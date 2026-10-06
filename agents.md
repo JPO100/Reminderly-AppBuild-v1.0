@@ -1,10 +1,10 @@
-# Reminderly - Claude Code Instructions
+# Reminderly - Codex instructions
 
 Re-read this file before starting work.
 
 ## Purpose
 
-You are an AI engineering agent working in an existing codebase.
+You are an AI engineering agent working in the existing Reminderly codebase.
 
 Implement exactly what the user asks using the smallest safe change set.
 
@@ -25,6 +25,8 @@ Build an app, not a rocket ship.
 * Do not introduce new patterns without approval.
 * Do not solve problems that were not requested.
 * If something appears wrong but is outside scope, leave it alone.
+* Never modify, discard, revert or overwrite pre-existing uncommitted changes unless explicitly instructed.
+* Before adding a dependency, confirm the required capability is not already available in the existing dependency set.
 
 ## Scope control
 
@@ -109,7 +111,7 @@ Examples:
 
 Requirements:
 
-* Implement change.
+* Implement the change.
 * Explain what changed.
 * Provide local testing commands.
 
@@ -127,10 +129,10 @@ Examples:
 
 Requirements:
 
-* Implement feature.
+* Implement the feature.
 * Define self-tests.
 * Perform targeted regression checks.
-* Update documentation if required.
+* Update relevant project documentation where required by the documentation rules below.
 
 ### Type C - Release candidate work
 
@@ -155,7 +157,7 @@ A self-test may be:
 
 * Automated test
 * Existing test extension
-* Dev tools verification
+* Dev Tools verification
 * Manual validation steps
 
 Do not create automated tests for trivial UI changes.
@@ -207,13 +209,15 @@ For these areas:
 
 Update it when:
 
-* A feature is completed
-* A branch is created
-* A branch is merged
-* An architectural decision is made
-* A significant bug is fixed
+* A feature is completed.
+* A branch is created.
+* A branch is merged.
+* An architectural decision is made.
+* A significant bug is fixed.
 
 Do not update it for every small implementation step.
+
+Do not make unrelated documentation changes outside the scope of the current work.
 
 ## UI standards
 
@@ -221,9 +225,9 @@ Do not update it for every small implementation step.
 
 Update it only when:
 
-* A reusable standard changes
-* A new reusable standard is introduced
-* An approved value changes
+* A reusable standard changes.
+* A new reusable standard is introduced.
+* An approved value changes.
 
 Do not update it for every UI tweak.
 
@@ -235,21 +239,36 @@ Follow existing implementation patterns.
 
 Do not introduce alternative architectural approaches unless explicitly approved.
 
+Prefer extending existing mechanisms over creating parallel implementations.
+
+## Dependency management
+
+Use the existing dependency set wherever practical.
+
+Before installing or recommending a new dependency:
+
+* Check whether the required capability already exists in the project.
+* Check whether an existing Capacitor, browser or native capability can provide it.
+* Do not add a dependency merely for implementation convenience.
+* If a new dependency is genuinely required, explain why before adding it unless its addition has already been explicitly approved.
+
+Do not update unrelated dependencies as part of feature work.
+
 ## Build requirements
 
 Builds are not required for every change.
 
 Builds are required when:
 
-* User requests a build
-* User requests verification
-* Feature work is complete
-* Preparing for commit
-* Preparing for merge
-* Preparing for release
-* Notification behaviour changes
-* Capacitor behaviour changes
-* Native behaviour changes
+* The user requests a build.
+* The user requests verification.
+* Feature work is complete.
+* Preparing for commit.
+* Preparing for merge.
+* Preparing for release.
+* Notification behaviour changes.
+* Capacitor behaviour changes.
+* Native behaviour changes.
 
 If a build is not run, state:
 
@@ -290,12 +309,12 @@ Do not perform them automatically.
 * Concise.
 * Implementation focused.
 
-## ## Local testing
+## Local testing
 
 After every source code change provide the following local iOS refresh command for the user to run manually:
 
 ```bash
-cd "/Users/john/Personal/noterly/Noterly app build/NoterlyV100"
+cd "/Users/john/Personal/Reminderly/Reminderly app build v2/FINAL builds/ReminderlyV300"
 npx vite build
 npx cap copy ios
 open ios/App/App.xcodeproj
@@ -330,7 +349,7 @@ For Type A - Minor changes:
 * Assume the user will perform the refresh and verification.
 * Report implementation changes only.
 
-If Claude has not run a build, state:
+If Codex has not run a build, state:
 
 "Build not run. Local iOS refresh command provided."
 
@@ -342,14 +361,13 @@ For Type B and Type C work:
 * Builds, tests, and validation may be performed where required by the workflow.
 * The local iOS refresh command should still be provided at sign-off if source code was changed.
 
-If Claude has run a build, report:
+If Codex has run a build, report:
 
 * Build result
 * Any errors
 * Git status
 
 The local iOS refresh command must still be provided after implementation so the user can verify the latest code in the simulator without risk of testing stale assets.
-
 
 ## Final principle
 

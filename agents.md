@@ -309,6 +309,43 @@ Do not perform them automatically.
 * Concise.
 * Implementation focused.
 
+## ChatGPT handover format
+
+The user works with ChatGPT as the senior developer and Codex as the implementation developer.
+
+The normal workflow is:
+
+User → ChatGPT → Codex → ChatGPT
+
+The user will frequently copy Codex's complete response and paste it into ChatGPT for senior-developer review and the next instruction.
+
+For this reason, final responses and implementation sign-offs must be easy to copy as one continuous piece of text.
+
+Rules:
+
+* Write the complete response as one continuous text response.
+* Paragraphs, headings, line breaks and bullet points are allowed.
+* Do not split the response into multiple separate code blocks, quote blocks, cards or other independently copyable elements.
+* Do not place filenames, configuration values, Git information, implementation summaries, test results or other normal report content inside separate code blocks.
+* Where code or configuration needs to be described in the final report, describe it inline or as normal text unless the user explicitly asks for copyable code.
+* Keep all implementation results, verification results, Git status, warnings and next-step information within the same continuous response.
+* Optimise the response so the user can select and copy the entire Codex reply in one action and paste it into ChatGPT without assembling multiple pieces.
+
+### Terminal sign-off exception
+
+The terminal sign-off is the one standard exception.
+
+When source code has changed and the local iOS refresh command is required, always provide that command as a single fenced code block so the user can copy and paste it directly into Terminal.
+
+Use the authoritative terminal sign-off command defined in the existing `Local testing` section below. Do not duplicate or redefine it in this section.
+
+Do not put any other part of the normal implementation sign-off into a separate code block unless the user explicitly asks for it.
+
+The intended result is:
+
+* One continuous, easily copyable Codex response for ChatGPT handover.
+* One separate copyable terminal command block when local iOS refresh is required.
+
 ## Local testing
 
 After every source code change provide the following local iOS refresh command for the user to run manually:

@@ -13,7 +13,12 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: 9271189
+Tip: d079bbb
+
+Merge - 2026-10-09: Panel header standardisation
+- Fast-forward merge of feature/settings-panels-header-keyline into main, 83f5a77 to d079bbb (no merge commit)
+- Settings panel keyline below headers; New reminder and list panel headers 45px with standard 45 x 45 buttons (10px apart, #D9D9D9 inactive); list add-item + centred under the header tick; list header subtitle gap matched to the Lists list rows
+- Verification on main: Vitest 53/53, production build successful. Self Check 334/334 on the branch
 
 Merge - 2026-10-09: Settings panels phase 1 (UI only)
 - Fast-forward merge of feature/settings-panels-ui into main, 81f8306 to 9271189 (no merge commit)
@@ -41,7 +46,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 Created: 2026-10-09
 Parent: main (83f5a77)
 Purpose: Header standardisation - keyline below the settings panel headers; 45px New reminder and list panel headers with 45 x 45 buttons; list add-item button aligned under the header tick
-Status: Active, not merged. Pushed to origin
+Status: Merged into main (fast-forward to d079bbb, 2026-10-09). Pushed to origin
 
 ### feature/settings-panels-ui
 

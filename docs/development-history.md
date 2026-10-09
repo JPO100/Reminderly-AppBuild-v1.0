@@ -13,7 +13,13 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: a6ee791
+Tip: 3356673
+
+Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
+- Fast-forward merge of settings-panel-header-update into main, b724d52 to 3356673 (no merge commit)
+- Includes Settings Menu Phase 2 (Lists Settings button, redesigned Templates button, Lists filter spacing correction), 45px Settings panel headers with Close SVGs, and standardised sliding panel positioning
+- Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
+- Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
 ### settings-panel-header-update
 
@@ -21,7 +27,7 @@ Created: 2026-10-09
 Parent: settings-menu-phase2-lists (4cb973d). Branched from Phase 2 because it is not yet merged into main (b724d52)
 Purpose: Reminders Settings and Lists Settings panel header update
 
-Status: Active (pushed, not merged)
+Status: Merged into main (fast-forward to 3356673, 2026-10-09)
 
 Summary:
 - Header row height changed from 40px to 45px in both panels; title remains left-aligned and vertically centred
@@ -53,7 +59,7 @@ Created: 2026-10-09
 Parent: main (b724d52)
 Purpose: Settings Menu Phase 2 - Lists tab Settings button and redesigned Templates button
 
-Status: Active (pushed, not merged)
+Status: Merged into main (fast-forward to 3356673, 2026-10-09)
 
 Summary:
 - Templates pill replaced by the supplied 45 x 45px Templates SVG whenever List templates is on, regardless of the Settings menu toggle. Click behaviour unchanged (opens the templates panel)

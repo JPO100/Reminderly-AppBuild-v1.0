@@ -1117,10 +1117,10 @@ export default function App() {
   });
   const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useState<boolean>(() => {
     try {
-      const stored = localStorage.getItem('reminderly-ff-settings-menu');
-      return stored == null ? true : stored === 'true';
+      const stored = localStorage.getItem('reminderly-ff-settings-menu-v2');
+      return stored === 'true';
     } catch {
-      return true;
+      return false;
     }
   });
   const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useState<boolean>(() => {
@@ -1394,7 +1394,7 @@ export default function App() {
   }, [pinnedListsFeatureEnabled]);
   useEffect(() => {
     try {
-      persistStringIfChanged('reminderly-ff-settings-menu', String(settingsMenuFeatureEnabled));
+      persistStringIfChanged('reminderly-ff-settings-menu-v2', String(settingsMenuFeatureEnabled));
     } catch {
       // Fail silently
     }
@@ -3351,7 +3351,7 @@ export default function App() {
       <div className="app-header relative shrink-0 w-full p-[20px]">
         <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
           <div className="content-stretch flex items-center justify-center pb-[20px] pt-[50px] relative shrink-0 w-full">
-            {settingsMenuFeatureEnabled && (
+            {(!settingsMenuFeatureEnabled || (isListsEnabled && activeMainTab === 'lists')) && (
               <>
                 <button
                   className="absolute flex items-center justify-center cursor-pointer p-0 m-0 border-none bg-transparent"
@@ -5579,7 +5579,7 @@ export default function App() {
                   className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} />
               </motion.div>
             </motion.div>
           </>

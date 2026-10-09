@@ -3683,75 +3683,92 @@ export default function App() {
             <>
             <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0">
             {/* List filter pills */}
-            {(
-              <div className="filters-menu flex items-center gap-[18px] relative shrink-0 w-full">
-                {savedListsFeatureEnabled ? (
-                  <>
-                    <div className="flex items-center justify-between flex-1 min-w-0">
-                      {(["todo", "started", "complete"] as const).map((filter) => {
-                        const isActive = activeListFilter === filter;
-                        return (
-                        <button
-                          key={filter}
-                          onClick={() => {
-                            setActiveListFilter(activeListFilter === filter ? "all" : filter);
-                          }}
-                          className={`${
-                            isActive
-                              ? "bg-white"
-                              : "text-[#4784F8]"
-                          } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
-                          style={getListFilterPillStyle(filter, activeListFilter)}
-                        >
-                          <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                            {filter === "complete" ? "Done" : filter === "started" ? "Started" : "Todo"}
-                          </div>
-                        </button>
-                        );
-                      })}
+            {(() => {
+              const templatesButton = (
+                <button
+                  type="button"
+                  onClick={() => setSavedListsPanelOpen(true)}
+                  aria-label="Open templates"
+                  className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+                >
+                  <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                    <path d="M27.0977 30.8908C27.5421 30.8908 27.9023 31.251 27.9023 31.6954C27.9023 32.1398 27.5421 32.5 27.0977 32.5H24.3391C23.8947 32.5 23.5345 32.1398 23.5345 31.6954C23.5345 31.251 23.8947 30.8908 24.3391 30.8908H27.0977Z" fill="white"/>
+                    <path d="M19.5833 29.0679C20.0189 28.9806 20.4423 29.2627 20.5298 29.6983C20.6147 30.1207 20.7478 30.3342 20.9474 30.4984C21.1681 30.6799 21.4932 30.8173 22.1085 30.898C22.5489 30.9558 22.8592 31.3592 22.8017 31.7996C22.7439 32.2402 22.3398 32.5506 21.8992 32.4928C21.139 32.3931 20.4749 32.1923 19.9255 31.7403C19.367 31.2809 19.0898 30.6959 18.9529 30.0144C18.8656 29.5788 19.1478 29.1554 19.5833 29.0679Z" fill="white"/>
+                    <path d="M30.907 29.6983C30.9945 29.2627 31.4179 28.9806 31.8534 29.0679C32.289 29.1554 32.5711 29.5788 32.4838 30.0144C32.3469 30.6959 32.0698 31.2809 31.5113 31.7403C30.9618 32.1923 30.2978 32.3931 29.5375 32.4928C29.0969 32.5506 28.6928 32.2402 28.6351 31.7996C28.5776 31.3592 28.8879 30.9558 29.3283 30.898C29.9436 30.8173 30.2687 30.6799 30.4894 30.4984C30.689 30.3342 30.8221 30.1207 30.907 29.6983Z" fill="white"/>
+                    <path d="M20.2012 12.5C21.6929 12.5 22.8825 12.4983 23.8236 12.6096C24.7825 12.7229 25.5877 12.9628 26.2635 13.5174C26.4905 13.7037 26.6986 13.9119 26.8849 14.1388C27.4104 14.7792 27.6534 15.5357 27.7739 16.4296C27.8919 17.3056 27.9012 18.3947 27.9023 19.7405C27.9023 19.9771 27.7991 20.1895 27.6365 20.3367C27.6149 20.3563 27.5928 20.3753 27.5691 20.3924C27.4784 20.4582 27.374 20.5065 27.2602 20.5298C27.208 20.5405 27.1539 20.5459 27.0986 20.546L27.0977 20.5451L24.3391 20.546C23.8947 20.546 23.5345 20.1857 23.5345 19.7414C23.5345 19.297 23.8947 18.9368 24.3391 18.9368H26.2895C26.2824 17.974 26.259 17.2386 26.1791 16.6451C26.0806 15.9141 25.907 15.4838 25.6412 15.1598C25.5218 15.0143 25.388 14.8805 25.2425 14.7611C24.901 14.481 24.4416 14.3034 23.6351 14.208C22.8103 14.1105 21.7323 14.1092 20.2012 14.1092C18.67 14.1092 17.592 14.1105 16.7672 14.208C15.9607 14.3034 15.5013 14.481 15.1598 14.7611C15.0143 14.8805 14.8805 15.0143 14.7611 15.1598C14.481 15.5013 14.3034 15.9607 14.208 16.7672C14.1105 17.592 14.1092 18.67 14.1092 20.2012C14.1092 21.7323 14.1105 22.8103 14.208 23.6351C14.3034 24.4416 14.481 24.901 14.7611 25.2425C14.8805 25.388 15.0143 25.5218 15.1598 25.6412C15.4838 25.907 15.9141 26.0806 16.6451 26.1791C17.2386 26.259 17.974 26.2815 18.9368 26.2886V24.3391C18.9368 23.8947 19.297 23.5345 19.7414 23.5345C20.1857 23.5345 20.546 23.8947 20.546 24.3391V27.0977C20.546 27.2365 20.5109 27.3672 20.449 27.4811C20.4182 27.5377 20.3796 27.5891 20.3367 27.6365C20.3123 27.6635 20.2866 27.6893 20.2586 27.7128C20.2516 27.7187 20.2443 27.7242 20.2371 27.7299C20.1003 27.8373 19.9287 27.9023 19.7414 27.9023L19.7405 27.9014C18.3947 27.9003 17.3056 27.8919 16.4296 27.7739C15.5357 27.6534 14.7792 27.4104 14.1388 26.8849C13.9119 26.6986 13.7037 26.4905 13.5174 26.2635C12.9628 25.5877 12.7229 24.7825 12.6096 23.8236C12.4983 22.8825 12.5 21.6929 12.5 20.2012C12.5 18.7094 12.4983 17.5198 12.6096 16.5787C12.7229 15.6198 12.9628 14.8146 13.5174 14.1388C13.7037 13.9119 13.9119 13.7037 14.1388 13.5174C14.8146 12.9628 15.6198 12.7229 16.5787 12.6096C17.5198 12.4983 18.7094 12.5 20.2012 12.5Z" fill="white"/>
+                    <path d="M31.6954 23.5345C32.1398 23.5345 32.5 23.8947 32.5 24.3391V27.0977C32.5 27.5421 32.1398 27.9023 31.6954 27.9023C31.251 27.9023 30.8908 27.5421 30.8908 27.0977V24.3391C30.8908 23.8947 31.251 23.5345 31.6954 23.5345Z" fill="white"/>
+                    <path d="M21.8992 18.944C22.3398 18.8862 22.7439 19.1966 22.8017 19.6372C22.8592 20.0776 22.5489 20.481 22.1085 20.5388C21.4932 20.6195 21.1681 20.7569 20.9474 20.9384C20.7478 21.1026 20.6147 21.3161 20.5298 21.7385C20.4423 22.1741 20.0189 22.4562 19.5833 22.3689C19.1478 22.2814 18.8656 21.858 18.9529 21.4224C19.0898 20.7408 19.367 20.1559 19.9255 19.6965C20.4749 19.2445 21.139 19.0437 21.8992 18.944Z" fill="white"/>
+                    <path d="M29.5375 18.944C30.2978 19.0437 30.9618 19.2445 31.5113 19.6965C32.0698 20.1559 32.3469 20.7408 32.4838 21.4224C32.5712 21.858 32.289 22.2814 31.8534 22.3689C31.4179 22.4562 30.9945 22.1741 30.907 21.7385C30.8221 21.3161 30.689 21.1026 30.4894 20.9384C30.2687 20.7569 29.9436 20.6195 29.3283 20.5388C28.8879 20.481 28.5776 20.0776 28.6351 19.6372C28.6928 19.1966 29.0969 18.8862 29.5375 18.944Z" fill="white"/>
+                  </svg>
+                </button>
+              );
+              const listsSettingsButton = (
+                <button
+                  type="button"
+                  onClick={handleHeaderMenuClick}
+                  aria-label="Open lists settings"
+                  className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+                >
+                  <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                    <circle cx="16" cy="22.5" r="1.75" fill="white"/>
+                    <circle cx="22.5" cy="22.5" r="1.75" fill="white"/>
+                    <circle cx="29" cy="22.5" r="1.75" fill="white"/>
+                  </svg>
+                </button>
+              );
+              const filterPills = (savedListsFeatureEnabled
+                ? (["todo", "started", "complete"] as const)
+                : (["complete", "almost", "started", "todo"] as const)
+              ).map((filter) => {
+                const isActive = activeListFilter === filter;
+                return (
+                <button
+                  key={filter}
+                  onClick={() => {
+                    setActiveListFilter(activeListFilter === filter ? "all" : filter);
+                  }}
+                  className={`${
+                    isActive
+                      ? "bg-white"
+                      : "text-[#4784F8]"
+                  } content-stretch flex items-center justify-center ${!settingsMenuFeatureEnabled ? "px-[16px]" : savedListsFeatureEnabled ? "px-[13px] min-[390px]:px-[16px]" : "px-[11px] min-[375px]:px-[13px] min-[390px]:px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                    filter !== "started" ? "" : !savedListsFeatureEnabled ? (settingsMenuFeatureEnabled ? "max-[440px]:hidden" : "max-[389px]:hidden") : settingsMenuFeatureEnabled ? "max-[360px]:hidden" : ""
+                  }`}
+                  style={getListFilterPillStyle(filter, activeListFilter)}
+                >
+                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
+                    {savedListsFeatureEnabled
+                      ? (filter === "complete" ? "Done" : filter === "started" ? "Started" : "Todo")
+                      : (filter === "complete" ? "Complete" : filter === "almost" ? "Almost" : filter === "started" ? "Started" : "Todo")}
+                  </div>
+                </button>
+                );
+              });
+              // Settings menu on: visible filters grouped left with 10px gaps, action buttons grouped right with 10px gaps
+              if (settingsMenuFeatureEnabled) {
+                return (
+                  <div className="filters-menu flex items-center justify-between gap-[10px] relative shrink-0 w-full">
+                    <div className="flex items-center gap-[10px]">{filterPills}</div>
+                    <div className="flex items-center gap-[10px]">
+                      {savedListsFeatureEnabled && templatesButton}
+                      {listsSettingsButton}
                     </div>
-                    <button
-                      className="bg-[#4784F8] content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer"
-                      type="button"
-                      onClick={() => setSavedListsPanelOpen(true)}
-                    >
-                      <div className="content-stretch flex items-center justify-center gap-[8px] relative">
-                        <div className="font-['Lato',sans-serif] font-bold text-[14px] text-white whitespace-nowrap">
-                          Templates
-                        </div>
-                        <svg className="block shrink-0" width="7" height="10" viewBox="0 0 7 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path d="M1.72101 0.269035C1.34568 -0.0896783 0.737045 -0.0896783 0.361708 0.269035C-0.0135638 0.627741 -0.0135771 1.20921 0.361708 1.56791L3.91284 4.96154L0.281458 8.43209C-0.0938212 8.79079 -0.0938182 9.37226 0.281458 9.73096C0.656796 10.0897 1.26543 10.0897 1.64076 9.73096L5.80081 5.75517C5.86027 5.71933 5.91677 5.67686 5.96858 5.62735C6.34382 5.26866 6.3438 4.68717 5.96858 4.32847L1.72101 0.269035Z" fill="white"/>
-                        </svg>
-                      </div>
-                    </button>
-                  </>
-                ) : (
-                  (["complete", "almost", "started", "todo"] as const).map((filter) => {
-                    const isActive = activeListFilter === filter;
-                    return (
-                    <button
-                      key={filter}
-                      onClick={() => {
-                        setActiveListFilter(activeListFilter === filter ? "all" : filter);
-                      }}
-                      className={`${
-                        isActive
-                          ? "bg-white"
-                          : "text-[#4784F8]"
-                      } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                        filter === "started" ? "max-[389px]:hidden" : ""
-                      }`}
-                      style={getListFilterPillStyle(filter, activeListFilter)}
-                    >
-                      <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                        {filter === "complete" ? "Complete" : filter === "almost" ? "Almost" : filter === "started" ? "Started" : "Todo"}
-                      </div>
-                    </button>
-                    );
-                  })
-                )}
-              </div>
-            )}
+                  </div>
+                );
+              }
+              return (
+                <div className="filters-menu flex items-center gap-[18px] relative shrink-0 w-full">
+                  {savedListsFeatureEnabled ? (
+                    <>
+                      <div className="flex items-center justify-between flex-1 min-w-0">{filterPills}</div>
+                      {templatesButton}
+                    </>
+                  ) : filterPills}
+                </div>
+              );
+            })()}
             <div className="relative w-full max-w-[768px] flex-1 min-h-0">
               {/* Scrollable lists container */}
               <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto', height: '100%' }}>

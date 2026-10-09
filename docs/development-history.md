@@ -15,6 +15,25 @@ Purpose: Primary development branch
 Status: Active
 Tip: a6ee791
 
+### settings-menu-phase2-lists
+
+Created: 2026-10-09
+Parent: main (b724d52)
+Purpose: Settings Menu Phase 2 - Lists tab Settings button and redesigned Templates button
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Templates pill replaced by the supplied 45 x 45px Templates SVG whenever List templates is on, regardless of the Settings menu toggle. Click behaviour unchanged (opens the templates panel)
+- Lists Settings button (same SVG as Reminders Settings) shown when the Settings menu toggle is on, independent of List templates. Opens the existing Lists Settings placeholder via handleHeaderMenuClick; Reminders Settings still opens Reminders Settings. No new flag
+- Settings on: visible filters grouped left and action buttons grouped right, 10px gaps, buttons 45 x 45px
+- Settings on, Templates on: pill padding 13px below 390px; Started hidden below 360px (only needed at 320px)
+- Settings on, Templates off: Started hidden below 440px; pill padding 11px below 375px, 13px from 375px, 16px from 390px
+- Settings off: existing layouts kept apart from the Templates button
+- No horizontal overflow at 320, 360, 375, 390 and 430px in the three affected combinations
+- Known pre-existing issue, left unchanged: with Settings and Templates both off, the legacy four-pill row overflows by 16px at 390px
+- Lists Settings panel contents and the onboarding tutorial unchanged
+
 ### integration-settings-sometime
 
 Created: 2026-10-09

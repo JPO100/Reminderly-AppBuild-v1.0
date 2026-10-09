@@ -21,6 +21,13 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/templates-slide-up-panel
+
+Created: 2026-10-09
+Parent: main (a002abc)
+Purpose: Present the List templates panel as a Settings-style slide-up panel
+Status: Active, not merged
+
 ### settings-panel-header-update
 
 Created: 2026-10-09
@@ -661,3 +668,15 @@ Completed:
 - Tutorial filter pills scaled to the 45px app buttons; unused tutorial cog option removed
 
 Test results: Vitest 44 passed (8 new tutorial page tests). Tutorial walked through for Lists on/off, settings menu on/off, smart reminders on/off and saved lists on/off.
+
+### 2026-10-09 (templates slide-up panel)
+
+Branch: feature/templates-slide-up-panel
+
+Completed:
+- Templates panel moved out of the inline Lists container into a fixed bottom sheet that reuses the Settings panel pattern: slide-up/slide-down (0.25s easeInOut), transparent backdrop tap to close, drag-down to close, top 28px below the logo
+- Standard 45px header titled Templates with the 45 x 45px close (X) button; the < Back control is removed
+- Template rows, empty state, row menu, editor round-trip and New template button unchanged. Panel stays mounted beneath the template editor and is restored when the editor closes, as before
+- Content uses the Settings panel 24px side padding; 34px bottom inset retained
+
+Test results: Vitest 53 passed. Production build successful. Browser checks at 402px: open/close transitions, header geometry, scrolling with fixed header, editor open/close round-trip, New template, row menu and Use as list. Create template from list then Go to template opens Templates and the editor. Self Check 334 passed, 0 failed. Drag-down dismissal passed on physical iPhone 15 Pro. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.

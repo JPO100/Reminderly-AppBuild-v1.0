@@ -246,11 +246,13 @@ const NEW_REMINDER_INSERT_DELAY = 500;
 // Duration of the temporary "just inserted" text/icon highlight (ms)
 const INSERT_HIGHLIGHT_MS = 1000;
 
-function RowMenuButton({ onClick }: { onClick?: () => void }) {
+function RowMenuButton({ onClick, alignWithSettingsButton = false }: { onClick?: () => void; alignWithSettingsButton?: boolean }) {
   return (
     <button
       className="relative shrink-0 self-stretch w-[20px] cursor-pointer flex items-center justify-center"
-      style={{ padding: 0, background: 'none', border: 'none', lineHeight: 0 }}
+      // Settings menu on: shift left (without affecting layout) so the dots centre on the 45px Settings button's dots:
+      // 22.5 (Settings half-width) - 10 (this button's half-width) - 1 (row px-px) = 11.5px
+      style={{ padding: 0, background: 'none', border: 'none', lineHeight: 0, right: alignWithSettingsButton ? '11.5px' : undefined }}
       aria-label="Item menu"
       type="button"
       onClick={(event) => {
@@ -4359,7 +4361,7 @@ export default function App() {
                             </div>
                           </div>
                         </div>
-                        <RowMenuButton onClick={() => setInfoReminder(reminder)} />
+                        <RowMenuButton onClick={() => setInfoReminder(reminder)} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                       </div>
                     </motion.div>
                   );

@@ -849,3 +849,13 @@ Completed:
 - docs/05-design-and-layout/sizing-spacing.md updated: exception removed, subtitle header rule added
 
 Test results: Vitest 53/53 passed. Production build successful. Capacitor copy and Xcode builds successful. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator. Visual sign-off by product owner.
+
+### 2026-10-09 (feature/ui-tweaks merged into main)
+
+Branch: main
+
+Completed:
+- feature/ui-tweaks merged into main (merge commit 08a9917, branch head b4152f0). Panel spacing and consistency standards: 26px top padding and header to content space, 24px bottom space and content to bottom button, 15px top corners, standard 45px headers and close buttons, settings panel row order, row 3-dot alignment when settings are on, Lists editor header spacing
+- Feature branch retained
+
+Test results: Vitest 53/53 passed. Production build successful after merge.

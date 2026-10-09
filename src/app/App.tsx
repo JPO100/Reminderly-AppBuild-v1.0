@@ -230,28 +230,6 @@ type TutorialVariant = 'reminders' | 'lists';
 const DELETED_GREY = "#939393";
 const DELETED_LIST_COLOUR = "#898989";
 
-function HeaderMenuIcon() {
-  return (
-    <svg
-      className="block h-[20px] w-[22px] shrink-0"
-      width="22"
-      height="20"
-      viewBox="0 0 22 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M1.5 1.5H20.5M1.5 10H20.5M1.5 18.5H20.5"
-        stroke="white"
-        strokeOpacity="0.5"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 // Completion delay before setting completedAt (ms)
 const COMPLETION_DELAY = 350; // ms 
 
@@ -3354,33 +3332,6 @@ export default function App() {
       <div className="app-header relative shrink-0 w-full p-[20px]">
         <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
           <div className="content-stretch flex items-center justify-center pb-[20px] pt-[50px] relative shrink-0 w-full">
-            {(!settingsMenuFeatureEnabled || (isListsEnabled && activeMainTab === 'lists')) && (
-              <>
-                <button
-                  className="absolute flex items-center justify-center cursor-pointer p-0 m-0 border-none bg-transparent"
-                  type="button"
-                  onClick={handleHeaderMenuClick}
-                  aria-label={isListsEnabled && activeMainTab === 'lists' ? 'Open lists settings' : 'Open reminders settings'}
-                  style={{
-                    top: '57px',
-                    right: 'calc((100vw - 100%) / -2 + 20px)',
-                    width: '17px',
-                    height: '35.653px',
-                  }}
-                />
-                <div
-                  className="pointer-events-none absolute flex items-center justify-center"
-                  style={{
-                    top: '57px',
-                    right: 'calc((100vw - 100%) / -2 + 20px)',
-                    width: '17px',
-                    height: '35.653px',
-                  }}
-                >
-                  <HeaderMenuIcon />
-                </div>
-              </>
-            )}
             <div className="h-[35.653px] relative shrink-0 w-[209.653px]" style={{ top: '7px' }}>
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 209.653 35.6533">
                 <g>

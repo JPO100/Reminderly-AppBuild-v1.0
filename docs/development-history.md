@@ -15,6 +15,18 @@ Purpose: Primary development branch
 Status: Active
 Tip: a6ee791
 
+### integration-settings-sometime
+
+Created: 2026-10-09
+Parent: settings-menu-phase1 (15967cf)
+Purpose: Combined build of Settings Menu Phase 1 and the undated Sometime reminder fix (cherry-picked ce3fe6a from fix-undated-reminder-add)
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Needed because fix-undated-reminder-add was branched from main, which lacks the unmerged Settings Menu Phase 1 commits (including 60cb9b6, legacy hamburger removal), so its build showed the legacy hamburger
+- Source applied cleanly; conflicts only in this file and the generated iOS asset reference
+
 ### settings-menu-phase1
 
 Created: 2026-10-09
@@ -31,6 +43,20 @@ Summary:
 - Active filter is remapped when the toggle changes so it is never left on a hidden filter
 - Tutorial reflects the toggle: no hamburger in either state; on shows grouped filters, the blue Settings button, combined Later/Sometime and the re-run page pointing to the blue settings button; off keeps the Sometime filter and omits the re-run page
 - Calendar not applicable (no calendar in use). A future calendar must respect the combined Later/Sometime behaviour
+
+### fix-undated-reminder-add
+
+Created: 2026-10-09
+Parent: main (ed7e849)
+Purpose: Allow undated Sometime reminders to be added from New reminder
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Root cause: commit f3d0de7 made the Add tick and submit handler require Date and Time in create mode, blocking Sometime reminders
+- Fix: shared canSubmitReminder check. Text is mandatory; Date OFF saves as Sometime; Date ON still requires a selected date and Time ON with a selected time (Date ON, Time OFF stays disabled)
+- Unchanged: date/time toggle interactions (Date ON still auto-enables Time at 12:00), data structures, parsing, notifications, categorisation, edit and smart reminder modes
+- Tests: src/app/__tests__/add-reminder-validation.test.ts (9 tests). Vitest 53 passed. Self Check schedule, persistence, natural language interaction and notification sections 184 passed, 0 failed (headless). Verified on iPhone 17 Pro simulator; deployed to physical iPhone 15 Pro
 
 ### feature/lists-disabled-ui-refinement
 

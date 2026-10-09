@@ -68,6 +68,13 @@ function isSameDate(a: Date | null, b: Date | null): boolean {
          a.getDate() === b.getDate();
 }
 
+// Text is mandatory. Date OFF saves as Sometime; Date ON requires both a date and a time.
+export function canSubmitReminder({ text, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime }: { text: string; requiresScheduledReminder: boolean; isDateOn: boolean; selectedDate: Date | null; isTimeOn: boolean; selectedTime: { hour: number; minute: number } | null }): boolean {
+  if (text.trim().length === 0) return false;
+  if (!requiresScheduledReminder || !isDateOn) return true;
+  return selectedDate !== null && isTimeOn && selectedTime !== null;
+}
+
 export function formatSelectedDate(date: Date | null, now?: Date): string | null {
   if (!date) return null;
   
@@ -1102,10 +1109,8 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
 
   const handleSubmit = () => {
     const text = reminderText.trim();
-    if (!text) return;
     const requiresScheduledReminder = !isEditMode && !isSmartReminderMode;
-    if (requiresScheduledReminder && (!isDateOn || !selectedDate)) return;
-    if (requiresScheduledReminder && (!isTimeOn || !selectedTime)) return;
+    if (!canSubmitReminder({ text, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime })) return;
 
     // Build schedule
     let schedule: Reminder['schedule'];
@@ -1181,7 +1186,7 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
   };
 
   const requiresScheduledReminder = !isEditMode && !isSmartReminderMode;
-  const isSubmitActive = reminderText.trim().length > 0 && (!requiresScheduledReminder || (isDateOn && selectedDate !== null && isTimeOn && selectedTime !== null));
+  const isSubmitActive = canSubmitReminder({ text: reminderText, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime });
 
   return (
     <div className="relative shrink-0 w-full max-w-[768px] h-full flex flex-col" data-name="new-reminder-elements">

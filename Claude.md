@@ -297,9 +297,73 @@ Do not perform them automatically.
 * Concise.
 * Implementation focused.
 
+## iPhone and simulator deployment
+
+Claude performs the full deployment directly whenever a deployment is requested or required as part of the agreed task.
+
+Deployment targets both the connected physical iPhone and the currently selected iOS Simulator.
+
+Deployment is not mandatory for every change. Type A/B/C classification and testing requirements are unchanged.
+
+Discover device identifiers when needed. Do not assume they are unchanged:
+
+```bash
+xcrun devicectl list devices
+xcrun simctl list devices booted
+```
+
+* Physical iPhone: use the physical device that is available (paired).
+* Simulator: use the simulator shown in the Claude Desktop simulator panel.
+* If device selection is ambiguous, ask.
+
+Build web assets once and reuse them for both targets:
+
+```bash
+cd "/Users/john/Developer/Reminderly/Reminderly-AppBuild-v1.0"
+npx vite build
+npx cap copy ios
+```
+
+Physical iPhone, replacing <device-id> with the discovered identifier:
+
+```bash
+xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination 'id=<device-id>' -derivedDataPath ios/App/build build
+xcrun devicectl device install app --device <device-id> ios/App/build/Build/Products/Debug-iphoneos/App.app
+xcrun devicectl device process launch --device <device-id> com.reminderly.app
+```
+
+Simulator, replacing <simulator-id> with the discovered identifier:
+
+```bash
+xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'id=<simulator-id>' -derivedDataPath ios/App/build build
+xcrun simctl install <simulator-id> ios/App/build/Build/Products/Debug-iphonesimulator/App.app
+xcrun simctl launch <simulator-id> com.reminderly.app
+```
+
+Rules:
+
+* Use the existing signing configuration and bundle identifier.
+* Never change signing, provisioning, bundle identifiers or app data without explicit permission.
+* Do not use -allowProvisioningUpdates without explicit permission.
+* Never uninstall the existing application or erase simulator data as part of routine deployment. Install updates in place.
+* If a device is unavailable or any step fails, report the issue for that device and stop. Do not make unapproved configuration changes.
+* Deployment is only fully successful when both devices succeed.
+
+At sign-off, report separately for each device:
+
+* Device used
+* Build result
+* Signing result (physical iPhone)
+* Installation result
+* Launch result
+
+Then report Git status.
+
 ## ## Local testing
 
-After every source code change provide the following local iOS refresh command for the user to run manually:
+Manual Xcode deployment is the fallback.
+
+If Claude has not deployed to the iPhone, or deployment failed, provide the following local iOS refresh command for the user to run manually after every source code change:
 
 ```bash
 cd "/Users/john/Developer/Reminderly/Reminderly-AppBuild-v1.0"
@@ -333,7 +397,7 @@ For Type A - Minor changes:
 
 * Do not run terminal commands unless explicitly requested by the user.
 * Do not run builds, tests, or Capacitor commands unless specifically requested, except where protected functionality requires targeted verification.
-* Always provide the local iOS refresh command at sign-off.
+* Always provide the local iOS refresh command at sign-off, unless Claude deployed to the iPhone as requested.
 * Assume the user will perform the refresh and verification.
 * Report implementation changes only.
 
@@ -347,7 +411,7 @@ For Type B and Type C work:
 
 * Run only the verification required by the task classification.
 * Builds, tests, and validation may be performed where required by the workflow.
-* The local iOS refresh command should still be provided at sign-off if source code was changed.
+* The local iOS refresh command should still be provided at sign-off if source code was changed and Claude has not deployed to the iPhone.
 
 If Claude has run a build, report:
 
@@ -355,7 +419,7 @@ If Claude has run a build, report:
 * Any errors
 * Git status
 
-The local iOS refresh command must still be provided after implementation so the user can verify the latest code in the simulator without risk of testing stale assets.
+Unless Claude has deployed to the iPhone, the local iOS refresh command must still be provided after implementation so the user can verify the latest code in the simulator without risk of testing stale assets.
 
 
 ## Final principle

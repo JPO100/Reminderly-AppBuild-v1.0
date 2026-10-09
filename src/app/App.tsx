@@ -4172,7 +4172,8 @@ export default function App() {
               </div>
             </button>
           </div>) : (
-            (["today", "this-week", "later", "sometime"] as ReminderCategory[]).map((filter) => {
+            <>
+            {((settingsMenuFeatureEnabled ? ["today", "this-week", "later"] : ["today", "this-week", "later", "sometime"]) as ReminderCategory[]).map((filter) => {
               const isActive = activeFilter === filter;
               return (
               <button
@@ -4194,7 +4195,23 @@ export default function App() {
                 </div>
               </button>
               );
-            })
+            })}
+            {settingsMenuFeatureEnabled && (
+              <button
+                type="button"
+                onClick={handleHeaderMenuClick}
+                aria-label="Open reminders settings"
+                className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+              >
+                <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                  <circle cx="16" cy="22.5" r="1.75" fill="white"/>
+                  <circle cx="22.5" cy="22.5" r="1.75" fill="white"/>
+                  <circle cx="29" cy="22.5" r="1.75" fill="white"/>
+                </svg>
+              </button>
+            )}
+            </>
           )}
         </div>
         {/* Scrollable area */}

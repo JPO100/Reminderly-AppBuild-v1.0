@@ -280,14 +280,15 @@ function InteractiveCalendar({ selectedDate, onDateSelect }: { selectedDate: Dat
 function AddTickBtn({ active, onSubmit }: { active: boolean; onSubmit?: () => void }) {
   return (
     <button
-      className={`flex items-center justify-center relative shrink-0 size-[50px] ${active ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`flex items-center justify-center relative shrink-0 size-[45px] ${active ? 'cursor-pointer' : 'cursor-default'}`}
       data-name="add-tick-btn"
       disabled={!active}
       onClick={active ? onSubmit : undefined}
     >
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 50 50">
+      {/* 45 x 45 button; viewBox crops the original 50px artwork so the tick icon keeps its size and stays centred */}
+      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="2.5 2.5 45 45">
         <g id="add-tick-btn">
-          <rect fill={active ? "#4784F8" : "#F5F5F5"} height="50" rx="25" width="50" />
+          <rect fill={active ? "#4784F8" : "#F5F5F5"} x="2.5" y="2.5" height="45" rx="22.5" width="45" />
           <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "#D5D5D5"} id="tick-icon" />
         </g>
       </svg>
@@ -297,7 +298,7 @@ function AddTickBtn({ active, onSubmit }: { active: boolean; onSubmit?: () => vo
 
 function Header({ isSubmitActive, onSubmit, title }: { isSubmitActive: boolean; onSubmit?: () => void; title: string }) {
   return (
-    <div className="flex items-center justify-between w-full" data-name="header">
+    <div className="flex items-center justify-between relative shrink-0 w-full h-[45px]" data-name="header">
       <span className="font-['Lato:Bold',sans-serif] not-italic text-[#1C2C42] text-[20px] whitespace-nowrap">{title}</span>
       <AddTickBtn active={isSubmitActive} onSubmit={onSubmit} />
     </div>

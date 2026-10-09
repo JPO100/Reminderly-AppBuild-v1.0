@@ -36,6 +36,13 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/settings-panels-header-keyline
+
+Created: 2026-10-09
+Parent: main (83f5a77)
+Purpose: Header standardisation - keyline below the settings panel headers; 45px New reminder and list panel headers with 45 x 45 buttons; list add-item button aligned under the header tick
+Status: Active, not merged. Pushed to origin
+
 ### feature/settings-panels-ui
 
 Created: 2026-10-09
@@ -736,3 +743,46 @@ Completed:
 - ToggleRow, MenuRow, SectionSubtitle and KeyLine exported from DevToolsOverlay and reused in the new SettingsPanelContent component
 
 Test results: Vitest 53 passed. Production build successful. Simulator checks: both panels render, a toggle flips, an info pop-up opens and closes, a click-through page opens and back returns with the toggle state kept. Siri toggled on in the Lists panel shows on in the Reminders panel. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (settings panels header keyline)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- Reminders and Lists settings panels: grey keyline (Dev Tools KeyLine) below the header, with 24px above and 24px below to the first setting row. Also shown under the header on the click-through pages
+- Spacing between setting rows unchanged at 30px
+
+Test results: Production build successful. Simulator: keyline and 24px gaps confirmed on the Reminders panel and the Sounds page. Lists panel uses the same component. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (New reminder header standardised)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- New reminder panel header set to 45px high, matching the settings panels
+- Add tick button reduced from 50 x 50 to 45 x 45. The SVG viewBox crops the original 50px artwork, so the tick icon keeps its size and stays centred. Active and inactive colours unchanged
+- Applies to every title using this header: New reminder, Edit reminder, Add smart reminder, Edit smart reminder
+
+Test results: Production build successful. Simulator: header 45px, tick button 45 x 45 and aligned with the settings close button position; inactive (grey) and active (blue) states checked; panel closed without saving. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (list panel header standardised)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- List panel header title row set to 45px high. Subtitle (progress) line unchanged below it
+- Small grey three dots replaced with the standard 45 x 45 three-dot button (blue circle, white dots); bare grey tick replaced with the standard 45 x 45 tick button (blue circle, white tick). 10px gap between the two
+- Inactive state (no items yet): both buttons show a #D9D9D9 circle with a white icon and are not tappable, as before
+- Button actions unchanged: three dots opens list settings (or the template menu), tick saves and closes
+- Shared header component (src/imports/Header.tsx), so the template editor and the tutorial list mock-ups also use the new buttons
+
+Test results: Vitest 53 passed. Production build successful. Simulator: new list panel header 45px, both buttons 45 x 45 with a 10px gap, inactive grey state confirmed; panel closed empty and no list was saved. Active (blue) state not checked on device, to avoid saving a test list. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (list add-item button alignment)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- List panel add-item (+) button inset 4px (mr-[4px], plus the row's existing 1px) so the 35px + is centred under the 45px header tick button. Shared AddListItemInput component, so the tutorial list mock-ups match
+
+Test results: Production build successful. Simulator: + and header tick centres measured on the same vertical line; panel closed empty, no list saved. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.

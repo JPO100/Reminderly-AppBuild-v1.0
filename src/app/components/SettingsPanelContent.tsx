@@ -40,14 +40,13 @@ function PanelHeader({ title, onBack, onClose, closeLabel }: { title: string; on
 
 function PanelShell({ title, closeLabel, subPage, onBack, onClose, children }: { title: string; closeLabel: string; subPage: string | null; onBack: () => void; onClose: () => void; children: ReactNode }) {
   return (
-    <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] pb-[60px] px-[24px] relative w-full flex-1 min-h-0" style={{ overflowY: 'auto' }}>
-      {subPage ? (
-        <PanelHeader title={subPage} onBack={onBack} onClose={onClose} closeLabel={closeLabel} />
-      ) : (
-        <>
-          <PanelHeader title={title} onClose={onClose} closeLabel={closeLabel} />
+    <div className="content-stretch flex flex-col gap-[24px] items-start pt-[30px] pb-[60px] px-[24px] relative w-full flex-1 min-h-0" style={{ overflowY: 'auto' }}>
+      <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} onClose={onClose} closeLabel={closeLabel} />
+      <KeyLine />
+      {!subPage && (
+        <div className="content-stretch flex flex-col gap-[30px] items-start relative w-full shrink-0">
           {children}
-        </>
+        </div>
       )}
     </div>
   );

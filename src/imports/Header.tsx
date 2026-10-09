@@ -1,14 +1,21 @@
 import svgPaths from "./svg-z3vqooufv8";
 import { useEffect, useRef, useState } from "react";
 
+// 45 x 45 header buttons (standard Settings / tick style). Inactive: #D9D9D9 circle with white icon
 function AddTickBtn({ active, onClick }: { active: boolean; onClick?: () => void }) {
   return (
-    <button className={`block relative shrink-0 size-[50px] ${active ? 'cursor-pointer' : 'cursor-default'}`} data-name="add-tick-btn" disabled={!active} onClick={active ? onClick : undefined}>
-      <svg className="absolute inset-0 block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 50 50">
-        <g id="add-tick-btn">
-          <rect fill={active ? "#4784F8" : "#F5F5F5"} height="50" rx="25" width="50" />
-          <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "#D5D5D5"} id="tick-icon" />
-        </g>
+    <button
+      className={`relative shrink-0 size-[45px] p-0 m-0 border-none bg-transparent flex items-center justify-center ${active ? 'cursor-pointer' : 'cursor-default'}`}
+      data-name="add-tick-btn"
+      disabled={!active}
+      onClick={active ? onClick : undefined}
+      type="button"
+      aria-label="Save list"
+    >
+      {/* viewBox crops the original 50px artwork so the tick icon keeps its size and stays centred */}
+      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="2.5 2.5 45 45" aria-hidden="true">
+        <rect fill={active ? "#4784F8" : "#D9D9D9"} x="2.5" y="2.5" height="45" rx="22.5" width="45" />
+        <path d={svgPaths.p1635b2f0} fill="white" />
       </svg>
     </button>
   );
@@ -17,33 +24,18 @@ function AddTickBtn({ active, onClick }: { active: boolean; onClick?: () => void
 function MenuDotsBtn({ active, onClick }: { active: boolean; onClick?: () => void }) {
   return (
     <button
-      className={`relative shrink-0 w-[30px] h-[35px] p-0 m-0 border-none bg-transparent flex items-center justify-end self-center ${active ? "cursor-pointer" : "cursor-default"}`}
+      className={`relative shrink-0 size-[45px] p-0 m-0 border-none bg-transparent flex items-center justify-center ${active ? "cursor-pointer" : "cursor-default"}`}
       data-name="menu-dots-btn"
       disabled={!active}
       onClick={active ? onClick : undefined}
       type="button"
+      aria-label="List settings"
     >
-      <div className="flex flex-row items-center justify-center gap-[3px]">
-        <span className={`block w-[3.5px] h-[3.5px] rounded-full ${active ? "bg-[#BABABA]" : "bg-[#D9D9D9]"}`} />
-        <span className={`block w-[3.5px] h-[3.5px] rounded-full ${active ? "bg-[#BABABA]" : "bg-[#D9D9D9]"}`} />
-        <span className={`block w-[3.5px] h-[3.5px] rounded-full ${active ? "bg-[#BABABA]" : "bg-[#D9D9D9]"}`} />
-      </div>
-    </button>
-  );
-}
-
-function CloseOverlayBtn({ active, onClick }: { active: boolean; onClick?: () => void }) {
-  return (
-    <button
-      className={`relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center ${active ? "cursor-pointer" : "cursor-default"}`}
-      data-name="close-overlay-btn"
-      disabled={!active}
-      onClick={active ? onClick : undefined}
-      type="button"
-      aria-label="Close overlay"
-    >
-      <svg width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M15.3699 0.442179C15.9541 -0.145067 16.9037 -0.14775 17.491 0.436319C18.0781 1.02046 18.0808 1.9701 17.4969 2.55741L6.36017 13.7576C6.07867 14.0407 5.69494 14.1999 5.29572 14.2C4.89666 14.1999 4.51367 14.0405 4.23224 13.7576L0.436341 9.93925C-0.147652 9.35181 -0.14518 8.40224 0.4422 7.81816C1.02956 7.23424 1.97918 7.23688 2.56329 7.82401L5.29572 10.5721L15.3699 0.442179Z" fill={active ? "#BABABA" : "#D9D9D9"}/>
+      <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="45" height="45" rx="22.5" fill={active ? "#4784F8" : "#D9D9D9"} />
+        <circle cx="16" cy="22.5" r="1.75" fill="white" />
+        <circle cx="22.5" cy="22.5" r="1.75" fill="white" />
+        <circle cx="29" cy="22.5" r="1.75" fill="white" />
       </svg>
     </button>
   );
@@ -103,8 +95,8 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
 
   return (
     <div className="flex flex-col relative w-full gap-[7px]" data-name="header">
-      <div className="flex items-center justify-between relative w-full min-h-[35px] gap-[12px]">
-        <div className="flex flex-1 min-w-0 h-[35px] items-center">
+      <div className="flex items-center justify-between relative w-full h-[45px] gap-[12px]">
+        <div className="flex flex-1 min-w-0 h-[45px] items-center">
           <input
             ref={inputRef}
             type="text"
@@ -125,9 +117,9 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
             style={{ color: textColor, transition: "color 300ms", fontWeight: 700 }}
           />
         </div>
-        <div className="flex items-center h-[35px] gap-[20px] shrink-0">
+        <div className="flex items-center gap-[10px] shrink-0">
           {showMenuButton ? <MenuDotsBtn active={active} onClick={onGearClick} /> : null}
-          <CloseOverlayBtn active={active} onClick={onClose} />
+          <AddTickBtn active={active} onClick={onClose} />
         </div>
       </div>
       {subtitleText || reserveSmartRemindersSubtitleSpace ? (

@@ -331,6 +331,7 @@ export default function TutorialStaticReminderList({
   rowTargetListId,
   onRowTargetElementChange,
   prependSmartReminder = false,
+  combineLaterSometime = false,
 }: {
   mode?: "reminders" | "lists";
   page1BuildSequence?: boolean;
@@ -345,7 +346,11 @@ export default function TutorialStaticReminderList({
   rowTargetListId?: string;
   onRowTargetElementChange?: (element: HTMLDivElement | null) => void;
   prependSmartReminder?: boolean;
+  combineLaterSometime?: boolean;
 }) {
+  // Settings menu on: Sometime is presented as Later (yellow, included in the Later filter)
+  const getCircleColor = (item: TutorialReminder | TutorialList) =>
+    combineLaterSometime && "category" in item && item.category === "sometime" ? "#FDB146" : item.circleColor;
   const sequenceIds = mode === "lists" ? PAGE_1_LIST_BUILD_SEQUENCE_IDS : PAGE_1_BUILD_SEQUENCE_IDS;
   const defaultVisibleIds = mode === "lists" ? LIST_DEFAULT_VISIBLE_IDS : REMINDER_DEFAULT_VISIBLE_IDS;
   const [visibleIds, setVisibleIds] = useState<string[]>(
@@ -589,6 +594,7 @@ export default function TutorialStaticReminderList({
       if (activeFilter !== "today" && activeFilter !== "thisWeek" && activeFilter !== "later" && activeFilter !== "sometime") {
         return true;
       }
+      if (combineLaterSometime && activeFilter === "later" && reminder.category === "sometime") return true;
       return reminder.category === activeFilter;
     });
   const listSourceVisibleIds = doneReminderIds ?? visibleIds;
@@ -656,9 +662,9 @@ export default function TutorialStaticReminderList({
                     <TutorialStaticReminderRow
                       title={item.title}
                       subtitle={mode === "lists" ? (item as TutorialList).subtitle : getTutorialReminderSubtitle(item as TutorialReminder)}
-                    circleColor={(item as TutorialReminder | TutorialList).circleColor}
+                    circleColor={getCircleColor(item as TutorialReminder | TutorialList)}
                     showRepeatIcon={mode === "reminders" && Boolean((item as TutorialReminder).repeatRule)}
-                    titleColor={isHighlighted ? item.circleColor : "#1C2C42"}
+                    titleColor={isHighlighted ? getCircleColor(item as TutorialReminder | TutorialList) : "#1C2C42"}
                     isDone={isDoneReminder}
                     isPendingDone={isPendingDone}
                     showMenuButton={!isDoneReminder}
@@ -693,9 +699,9 @@ export default function TutorialStaticReminderList({
                   <TutorialStaticReminderRow
                     title={item.title}
                     subtitle={mode === "lists" ? (item as TutorialList).subtitle : getTutorialReminderSubtitle(item as TutorialReminder)}
-                    circleColor={(item as TutorialReminder | TutorialList).circleColor}
+                    circleColor={getCircleColor(item as TutorialReminder | TutorialList)}
                     showRepeatIcon={mode === "reminders" && Boolean((item as TutorialReminder).repeatRule)}
-                    titleColor={isHighlighted ? item.circleColor : "#1C2C42"}
+                    titleColor={isHighlighted ? getCircleColor(item as TutorialReminder | TutorialList) : "#1C2C42"}
                     isDone={isDoneReminder}
                     isPendingDone={isPendingDone}
                     showMenuButton={!isDoneReminder}

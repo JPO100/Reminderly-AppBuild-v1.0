@@ -30,7 +30,7 @@ import EditableListItem from '@/app/components/lists/EditableListItem';
 import TutorialReminderFilters, {
   SAVED_LISTS_TUTORIAL_FILTER_ITEMS,
   type TutorialFilterKey,
-  UNGROUPED_TUTORIAL_FILTER_ITEMS,
+  TutorialRemindersFilterRow,
   UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS,
 } from '@/app/components/TutorialReminderFilters';
 import { getTutorialPageIds } from '@/app/utils/tutorial-pages';
@@ -1071,7 +1071,7 @@ function ListsTutorialPlaceholderPage({
       <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
         <TutorialPhoneShell
           activeMainTab={currentPage === 3 ? page4ActiveTab : "lists"}
-          showHeaderMenu={settingsMenuEnabled}
+          showHeaderMenu={false}
           headerProps={{
             logoTickHighlight: currentPage === 1 && page2ShowLogoHighlight,
             logoTickDone: currentPage === 1 && page2ShowDoneLists,
@@ -1080,10 +1080,7 @@ function ListsTutorialPlaceholderPage({
           filterRow={currentPage === 1 && page2ShowDoneLists ? (
             <Page5DoneDeletedFilters />
           ) : currentPage === 3 && page4ActiveTab === "reminders" ? (
-            <TutorialReminderFilters
-              items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-              showHiddenItems
-            />
+            <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
           ) : page5ShowTemplatesPanel || page5ShowEditor ? null : (
             <TutorialReminderFilters
               items={listFilterItems}
@@ -1287,6 +1284,7 @@ function ListsTutorialPlaceholderPage({
               onListFilterChange={currentPage === 0 ? onActiveFilterChange : undefined}
               onPage3DoneSequenceComplete={currentPage === 1 ? onPage2DoneSequenceComplete : undefined}
               rowTargetListId={currentPage === 2 ? LISTS_PAGE_3_TARGET_LIST_ID : undefined}
+              combineLaterSometime={settingsMenuEnabled}
               onRowTargetElementChange={currentPage === 2 ? setPage3TargetElement : undefined}
               prependSmartReminder={currentPage === 3 && smartFlowPhase === "reminder-visible"}
             />
@@ -1463,7 +1461,7 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
   const totalPages = pageIds.length;
   const currentPage = pageIds[Math.min(currentStep, totalPages - 1)];
   const isListsTutorial = variant === 'lists';
-  const page2ActiveFilter = useOnboardingPage2ActiveFilter(!isListsTutorial && currentPage === 1);
+  const page2ActiveFilter = useOnboardingPage2ActiveFilter(!isListsTutorial && currentPage === 1, settingsMenuEnabled);
   const [listsTutorialActiveFilter, setListsTutorialActiveFilter] = useState<TutorialFilterKey | undefined>(undefined);
   const [listsPage2CycleKey, setListsPage2CycleKey] = useState(0);
   const [listsPage2Phase, setListsPage2Phase] = useState<"marking" | "done-list">("marking");
@@ -1626,15 +1624,12 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
               <TutorialPhoneShell
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
-                showHeaderMenu={settingsMenuEnabled}
+                showHeaderMenu={false}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }
               >
-                <OnboardingPage1Content />
+                <OnboardingPage1Content combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1647,16 +1642,12 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
               <TutorialPhoneShell
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
-                showHeaderMenu={settingsMenuEnabled}
+                showHeaderMenu={false}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    activeKey={page2ActiveFilter}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} activeKey={page2ActiveFilter} />
                 }
               >
-                <OnboardingPage2Content activeFilter={page2ActiveFilter} />
+                <OnboardingPage2Content activeFilter={page2ActiveFilter} combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1669,16 +1660,13 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
               <TutorialPhoneShell
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
-                showHeaderMenu={settingsMenuEnabled}
+                showHeaderMenu={false}
                 overlay={page3ShowOverlay ? <TutorialReminderInfoOverlay reminder={CALL_DENTIST_TUTORIAL_REMINDER} /> : undefined}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }
               >
-                <OnboardingPage3Content onOverlayOpenChange={setPage3ShowOverlay} />
+                <OnboardingPage3Content onOverlayOpenChange={setPage3ShowOverlay} combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1691,15 +1679,12 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
               <TutorialPhoneShell
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
-                showHeaderMenu={settingsMenuEnabled}
+                showHeaderMenu={false}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }
               >
-                <OnboardingPage4Content />
+                <OnboardingPage4Content combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1712,7 +1697,7 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
               <TutorialPhoneShell
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
-                showHeaderMenu={settingsMenuEnabled}
+                showHeaderMenu={false}
                 headerProps={{
                   logoTickHighlight: page5ShowLogoHighlight,
                   logoTickDone: page5ShowDoneReminders,
@@ -1721,16 +1706,14 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
                 filterRow={page5ShowDoneReminders ? (
                   <Page5DoneDeletedFilters />
                 ) : (
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 )}
               >
                 <OnboardingPage5Content
                   onLogoHighlightChange={setPage5ShowLogoHighlight}
                   onDoneRemindersChange={setPage5ShowDoneReminders}
                   showDoneReminders={page5ShowDoneReminders}
+                  combineLaterSometime={settingsMenuEnabled}
                 />
               </TutorialPhoneShell>
             </div>
@@ -1744,15 +1727,12 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
               <TutorialPhoneShell
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
-                showHeaderMenu={settingsMenuEnabled}
+                showHeaderMenu={false}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }
               >
-                <OnboardingPage6Content />
+                <OnboardingPage6Content combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>

@@ -35,7 +35,7 @@ const PAGE_2_FILTER_LOOP_SEQUENCE: Array<TutorialFilterKey | undefined> = [
   "sometime",
   undefined,
 ];
-export function useOnboardingPage2ActiveFilter(enabled: boolean) {
+export function useOnboardingPage2ActiveFilter(enabled: boolean, skipSometime = false) {
   const [activeFilter, setActiveFilter] = useState<TutorialFilterKey | undefined>(undefined);
 
   useEffect(() => {
@@ -46,14 +46,16 @@ export function useOnboardingPage2ActiveFilter(enabled: boolean) {
 
     let timeoutId: number | null = null;
     let sequenceIndex = 0;
+    // Settings menu on: no Sometime filter to illustrate
+    const sequence = skipSometime ? PAGE_2_FILTER_LOOP_SEQUENCE.filter((key) => key !== "sometime") : PAGE_2_FILTER_LOOP_SEQUENCE;
 
-    setActiveFilter(PAGE_2_FILTER_LOOP_SEQUENCE[0]);
+    setActiveFilter(sequence[0]);
 
     const scheduleNext = () => {
-      const isRecycleDelay = sequenceIndex === PAGE_2_FILTER_LOOP_SEQUENCE.length - 1;
+      const isRecycleDelay = sequenceIndex === sequence.length - 1;
       timeoutId = window.setTimeout(() => {
         sequenceIndex = isRecycleDelay ? 1 : sequenceIndex + 1;
-        setActiveFilter(PAGE_2_FILTER_LOOP_SEQUENCE[sequenceIndex]);
+        setActiveFilter(sequence[sequenceIndex]);
         scheduleNext();
       }, isRecycleDelay ? TUTORIAL_FILTER_RECYCLE_DELAY : TUTORIAL_FILTER_STEP_DELAY);
     };
@@ -65,7 +67,7 @@ export function useOnboardingPage2ActiveFilter(enabled: boolean) {
         clearTimeout(timeoutId);
       }
     };
-  }, [enabled]);
+  }, [enabled, skipSometime]);
 
   return activeFilter;
 }
@@ -342,10 +344,10 @@ function NewReminderBtn() {
   );
 }
 
-export default function OnboardingPage2Content({ activeFilter }: { activeFilter?: TutorialFilterKey }) {
+export default function OnboardingPage2Content({ activeFilter, combineLaterSometime = false }: { activeFilter?: TutorialFilterKey; combineLaterSometime?: boolean }) {
   return (
     <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
-      <TutorialStaticReminderList activeFilter={activeFilter} />
+      <TutorialStaticReminderList activeFilter={activeFilter} combineLaterSometime={combineLaterSometime} />
     </div>
   );
 }

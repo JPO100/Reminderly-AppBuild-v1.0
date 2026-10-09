@@ -30,6 +30,35 @@ export const UNGROUPED_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = [
   { key: "sometime", label: "Sometime", color: "#939393", hideOnNarrow: true },
 ];
 
+// Settings menu on: Sometime is combined into Later and the Settings button sits on the right
+export const SETTINGS_MENU_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = UNGROUPED_TUTORIAL_FILTER_ITEMS.filter((item) => item.key !== "sometime");
+
+// Settings button scaled to match the tutorial Templates button height (45px in the app)
+export function TutorialSettingsButton() {
+  return (
+    <svg className="block shrink-0" width="32.308" height="32.308" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="45" height="45" rx="22.5" fill="#4784F8" />
+      <circle cx="16" cy="22.5" r="1.75" fill="white" />
+      <circle cx="22.5" cy="22.5" r="1.75" fill="white" />
+      <circle cx="29" cy="22.5" r="1.75" fill="white" />
+    </svg>
+  );
+}
+
+export function TutorialRemindersFilterRow({ settingsMenuEnabled, activeKey }: { settingsMenuEnabled: boolean; activeKey?: TutorialFilterKey }) {
+  if (settingsMenuEnabled) {
+    return (
+      <TutorialReminderFilters
+        items={SETTINGS_MENU_TUTORIAL_FILTER_ITEMS}
+        activeKey={activeKey}
+        trailing={<TutorialSettingsButton />}
+        groupGapClassName="gap-[7.18px]"
+      />
+    );
+  }
+  return <TutorialReminderFilters items={UNGROUPED_TUTORIAL_FILTER_ITEMS} activeKey={activeKey} showHiddenItems />;
+}
+
 export const UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS: TutorialFilterItem[] = [
   { key: "complete", label: "Complete", color: "#005BE3" },
   { key: "almost", label: "Almost", color: "#9468D5" },

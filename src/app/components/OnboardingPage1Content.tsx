@@ -39,10 +39,10 @@ function NewReminderBtn() {
   );
 }
 
-export default function OnboardingPage1Content() {
+export default function OnboardingPage1Content({ combineLaterSometime = false }: { combineLaterSometime?: boolean }) {
   return (
     <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
-      <TutorialStaticReminderList page1BuildSequence />
+      <TutorialStaticReminderList page1BuildSequence combineLaterSometime={combineLaterSometime} />
     </div>
   );
 }

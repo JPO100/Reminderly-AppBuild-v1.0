@@ -27,10 +27,10 @@ export function OnboardingPage4Text() {
   );
 }
 
-function ReminderList() {
+function ReminderList({ combineLaterSometime }: { combineLaterSometime: boolean }) {
   return (
     <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-h-px min-w-px w-full" data-name="Reminder list">
-      <TutorialStaticReminderList page3DoneSequence />
+      <TutorialStaticReminderList page3DoneSequence combineLaterSometime={combineLaterSometime} />
     </div>
   );
 }
@@ -50,10 +50,10 @@ function NewReminderBtn() {
   );
 }
 
-export default function OnboardingPage4Content() {
+export default function OnboardingPage4Content({ combineLaterSometime = false }: { combineLaterSometime?: boolean }) {
   return (
     <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
-      <ReminderList />
+      <ReminderList combineLaterSometime={combineLaterSometime} />
     </div>
   );
 }

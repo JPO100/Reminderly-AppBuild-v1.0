@@ -28,11 +28,12 @@ export function OnboardingPage5Text() {
   );
 }
 
-function ReminderList({ showDoneReminders }: { showDoneReminders: boolean }) {
+function ReminderList({ showDoneReminders, combineLaterSometime }: { showDoneReminders: boolean; combineLaterSometime: boolean }) {
   return (
     <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-h-px min-w-px w-full" data-name="Reminder list">
       <TutorialStaticReminderList
-        activeFilter={showDoneReminders ? undefined : "sometime"}
+        activeFilter={showDoneReminders ? undefined : combineLaterSometime ? "later" : "sometime"}
+        combineLaterSometime={combineLaterSometime}
         doneReminderIds={showDoneReminders ? PAGE_5_DONE_REMINDER_IDS : undefined}
       />
     </div>
@@ -43,10 +44,12 @@ export default function OnboardingPage5Content({
   onLogoHighlightChange,
   onDoneRemindersChange,
   showDoneReminders,
+  combineLaterSometime = false,
 }: {
   onLogoHighlightChange: (visible: boolean) => void;
   onDoneRemindersChange: (visible: boolean) => void;
   showDoneReminders: boolean;
+  combineLaterSometime?: boolean;
 }) {
   useEffect(() => {
     const timers: number[] = [];
@@ -113,7 +116,7 @@ export default function OnboardingPage5Content({
 
   return (
     <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
-      <ReminderList showDoneReminders={showDoneReminders} />
+      <ReminderList showDoneReminders={showDoneReminders} combineLaterSometime={combineLaterSometime} />
     </div>
   );
 }

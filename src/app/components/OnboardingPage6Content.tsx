@@ -10,16 +10,16 @@ export function OnboardingPage6Text() {
         </div>
       </div>
       <div className={TUTORIAL_BODY_CLASSNAME}>
-        <p className="css-4hzbpn leading-[30px]">You can re-run this tutorial from<br />the settings menu</p>
+        <p className="css-4hzbpn leading-[30px]">You can re-run this tutorial from<br />the blue settings button.</p>
       </div>
     </div>
   );
 }
 
-export default function OnboardingPage6Content() {
+export default function OnboardingPage6Content({ combineLaterSometime = false }: { combineLaterSometime?: boolean }) {
   return (
     <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
-      <TutorialStaticReminderList />
+      <TutorialStaticReminderList combineLaterSometime={combineLaterSometime} />
     </div>
   );
 }

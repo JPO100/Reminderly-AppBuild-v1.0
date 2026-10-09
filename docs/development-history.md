@@ -30,9 +30,9 @@ Summary:
 - Settings on, Templates on: pill padding 13px below 390px; Started hidden below 360px (only needed at 320px)
 - Settings on, Templates off: Started hidden below 440px; pill padding 11px below 375px, 13px from 375px, 16px from 390px
 - Settings off, Templates on (correction after device testing): Todo, Started and Done now grouped left with 10px gaps, matching Settings on, with the Templates button at the far right. Pill padding 13px below 390px; no filters hidden at any width
-- Settings off, Templates off: legacy layout unchanged
+- Settings off, Templates off: legacy layout unchanged apart from a gap correction. At 389-405px (Started visible) the gap between the four filters is 10px instead of 18px, fixing the pre-existing 16px overflow at 390px. 18px elsewhere
 - No horizontal overflow at 320, 360, 375, 390 and 430px in the three affected combinations
-- Known pre-existing issue, left unchanged: with Settings and Templates both off, the legacy four-pill row overflows by 16px at 390px
+- Pre-existing 16px overflow at 390px with Settings and Templates both off: corrected (see gap correction above)
 - Lists Settings panel contents and the onboarding tutorial unchanged
 
 ### integration-settings-sometime

@@ -3759,7 +3759,7 @@ export default function App() {
                 );
               }
               return (
-                <div className="filters-menu flex items-center gap-[18px] relative shrink-0 w-full">
+                <div className="filters-menu flex items-center gap-[18px] min-[389px]:max-[406px]:gap-[10px] relative shrink-0 w-full">
                   {filterPills}
                 </div>
               );

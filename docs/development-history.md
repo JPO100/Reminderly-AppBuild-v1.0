@@ -15,6 +15,19 @@ Purpose: Primary development branch
 Status: Active
 Tip: a6ee791
 
+### feature/lists-disabled-ui-refinement
+
+Created: 2026-10-09
+Parent: main (96327aa)
+Purpose: Lists-disabled UI refinement - filters inside the white panel, Sometime filter restored, legacy settings cog removed
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Removed the Dev Tools grouped filters layout, its legacy settings cog, SettingsOverlay and the show date/time subtitles setting
+- Lists off: Today, This week, Later and Sometime filters (and Done/Deleted filters) render inside the white panel, reusing the Lists-on filter row
+- Header settings button and its panels unchanged
+
 ### fix/midnight-badge-tests
 
 Created: 2026-10-09
@@ -522,3 +535,15 @@ Resolution: Restored notifications.test.ts to its pre-f98d81f content. Midnight 
 Test results: Vitest 36 passed, 0 failed, 0 skipped. Self Check 340 passed, 0 failed on physical iPhone 15 Pro and iPhone 17 Pro simulator. Both devices built, installed and launched successfully.
 
 Outcome: Merged to main.
+
+### 2026-10-09 (lists-disabled UI refinement)
+
+Branch: feature/lists-disabled-ui-refinement
+
+Completed:
+- Removed the grouped filters layout entirely (decision: user approved removal over leaving an inert Dev Tools option): Dev Tools Filters menu page, legacy filter-row settings cog, SettingsOverlay and its show date/time subtitles setting, tutorial grouped variants
+- Lists off: filter row moved from the blue header into the white panel by reusing the existing Lists-on in-panel row; panel now starts directly below the logo
+- Sometime filter available when Lists are off; existing rule hiding it below 390px width retained
+- Removed 13 Self Check checks covering the removed settings; expected Self Check count is 327
+
+Test results: Vitest 36 passed, 0 failed. Visual checks at 402px and 375px with Lists off and on.

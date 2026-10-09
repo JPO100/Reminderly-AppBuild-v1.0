@@ -28,17 +28,14 @@ import TutorialStaticReminderList, { TUTORIAL_PAGE_2_DONE_LIST_IDS, TUTORIAL_REM
 import AddListItemInput from '@/app/components/lists/AddListItemInput';
 import EditableListItem from '@/app/components/lists/EditableListItem';
 import TutorialReminderFilters, {
-  GROUPED_TUTORIAL_LIST_FILTER_ITEMS,
   SAVED_LISTS_TUTORIAL_FILTER_ITEMS,
   type TutorialFilterKey,
   UNGROUPED_TUTORIAL_FILTER_ITEMS,
   UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS,
 } from '@/app/components/TutorialReminderFilters';
-import type { FiltersMenuVariant } from '../reminder-utils';
 
 interface TutorialOnboardingContentProps {
   onComplete: () => void;
-  filtersMenuVariant: FiltersMenuVariant;
   variant: 'reminders' | 'lists';
   isListsEnabled: boolean;
   settingsMenuEnabled: boolean;
@@ -682,7 +679,6 @@ function SmartReminderSheetOverlay({ visible, showTickThrob, onExitComplete }: {
 }
 
 function ListsTutorialPlaceholderPage({
-  filtersMenuVariant,
   currentPage,
   settingsMenuEnabled,
   savedListsEnabled,
@@ -694,7 +690,6 @@ function ListsTutorialPlaceholderPage({
   page2ShowDoneLists,
   onPage2DoneSequenceComplete,
 }: {
-  filtersMenuVariant: FiltersMenuVariant;
   currentPage: number;
   settingsMenuEnabled: boolean;
   savedListsEnabled: boolean;
@@ -716,17 +711,8 @@ function ListsTutorialPlaceholderPage({
   const listFilterItems =
     savedListsEnabled
       ? SAVED_LISTS_TUTORIAL_FILTER_ITEMS
-      : filtersMenuVariant === 'grouped'
-      ? GROUPED_TUTORIAL_LIST_FILTER_ITEMS
       : UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS;
-  const displayActiveFilter: TutorialFilterKey | undefined =
-    currentPage === 0 && !savedListsEnabled && filtersMenuVariant === 'grouped'
-      ? activeFilter === 'todo'
-        ? 'grouped-todo'
-        : activeFilter === 'started'
-        ? 'almost'
-        : activeFilter
-      : activeFilter;
+  const displayActiveFilter: TutorialFilterKey | undefined = activeFilter;
 
   const [page5Phase, setPage5Phase] = useState<Page5Phase>("none");
   const [page5TemplatesButtonElement, setPage5TemplatesButtonElement] = useState<HTMLDivElement | null>(null);
@@ -1104,11 +1090,10 @@ function ListsTutorialPlaceholderPage({
           ) : page5ShowTemplatesPanel || page5ShowEditor ? null : (
             <TutorialReminderFilters
               items={listFilterItems}
-              showSettings={!savedListsEnabled && filtersMenuVariant === 'grouped'}
               trailing={savedListsEnabled ? <TemplatesTutorialButton /> : undefined}
               onTrailingElementChange={currentPage === 4 ? setPage5TemplatesButtonElement : undefined}
-              layout={savedListsEnabled || filtersMenuVariant === 'grouped' ? 'inline' : 'between'}
-              rowGapClassName={savedListsEnabled || filtersMenuVariant === 'grouped' ? 'gap-[12.923px]' : 'gap-[10px]'}
+              layout={savedListsEnabled ? 'inline' : 'between'}
+              rowGapClassName={savedListsEnabled ? 'gap-[12.923px]' : 'gap-[10px]'}
               groupGapClassName="gap-[8.615px]"
               activeKey={currentPage === 0 ? displayActiveFilter : undefined}
             />
@@ -1471,7 +1456,7 @@ function ListsTutorialPlaceholderPage({
   );
 }
 
-export default function TutorialOnboardingContent({ onComplete, filtersMenuVariant, variant, isListsEnabled: _isListsEnabled, settingsMenuEnabled, savedListsEnabled }: TutorialOnboardingContentProps) {
+export default function TutorialOnboardingContent({ onComplete, variant, isListsEnabled: _isListsEnabled, settingsMenuEnabled, savedListsEnabled }: TutorialOnboardingContentProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const isListsTutorial = variant === 'lists';
   const page2ActiveFilter = useOnboardingPage2ActiveFilter(!isListsTutorial && currentPage === 1);
@@ -1770,7 +1755,6 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
         
         {isListsTutorial && (
           <ListsTutorialPlaceholderPage
-            filtersMenuVariant={filtersMenuVariant}
             currentPage={currentPage}
             settingsMenuEnabled={settingsMenuEnabled}
             savedListsEnabled={savedListsEnabled}

@@ -24,24 +24,11 @@ export interface TutorialFilterItem {
   hideOnNarrow?: boolean;
 }
 
-export const GROUPED_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = [
-  { key: "today", label: "Today", color: "#00AFEE" },
-  { key: "thisWeek", label: "This week", color: "#E466FD" },
-  { key: "later", label: "Other", color: "#FDB146" },
-  { key: "sometime", label: "Sometime", color: "#939393", hideOnNarrow: true },
-];
-
 export const UNGROUPED_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = [
   { key: "today", label: "Today", color: "#00AFEE" },
   { key: "thisWeek", label: "This week", color: "#E466FD" },
   { key: "later", label: "Later", color: "#FDB146" },
   { key: "sometime", label: "Sometime", color: "#939393", hideOnNarrow: true },
-];
-
-export const GROUPED_TUTORIAL_LIST_FILTER_ITEMS: TutorialFilterItem[] = [
-  { key: "complete", label: "Complete", color: "#005BE3" },
-  { key: "almost", label: "Almost", color: "#9468D5" },
-  { key: "grouped-todo", label: "Todo", color: "#939393", hideOnNarrow: true },
 ];
 
 export const UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS: TutorialFilterItem[] = [

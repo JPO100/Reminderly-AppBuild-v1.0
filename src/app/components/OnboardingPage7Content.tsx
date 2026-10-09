@@ -6,7 +6,6 @@ import ImportedReminderListLater from "@/imports/ReminderList-1196-456";
 import ImportedReminderListSometime from "@/imports/ReminderList-1196-515";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import type { FiltersMenuVariant } from "../reminder-utils";
 import { TUTORIAL_BODY_CLASSNAME, TUTORIAL_TITLE_CLASSNAME } from "./tutorialTokens";
 import TutorialStaticReminderList from "./TutorialStaticReminderList";
 
@@ -27,7 +26,7 @@ export function OnboardingPage7Text() {
   );
 }
 
-export function useOnboardingPage7ActiveFilter(filtersMenuVariant: FiltersMenuVariant) {
+export function useOnboardingPage7ActiveFilter() {
   const [activeFilter, setActiveFilter] = useState<OnboardingPage7ActiveFilter>(undefined);
 
   useEffect(() => {
@@ -58,17 +57,15 @@ export function useOnboardingPage7ActiveFilter(filtersMenuVariant: FiltersMenuVa
         clearInterval(interval);
       }
     };
-  }, [filtersMenuVariant]);
+  }, []);
 
   return activeFilter;
 }
 
 function ReminderList({
   activeFilter,
-  filtersMenuVariant,
 }: {
   activeFilter?: OnboardingPage7ActiveFilter;
-  filtersMenuVariant: FiltersMenuVariant;
 }) {
   return (
     <div className="relative w-full flex-1 min-h-0">
@@ -116,14 +113,7 @@ function ReminderList({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            {filtersMenuVariant === 'grouped' ? (
-              <div className="content-stretch flex flex-col gap-[17.5px] items-start overflow-clip relative rounded-[6.961px] size-full">
-                <ImportedReminderListLater />
-                <ImportedReminderListSometime />
-              </div>
-            ) : (
-              <ImportedReminderListLater />
-            )}
+            <ImportedReminderListLater />
           </motion.div>
         )}
       </AnimatePresence>
@@ -148,10 +138,8 @@ function NewReminderBtn() {
 
 export default function OnboardingPage7Content({
   activeFilter,
-  filtersMenuVariant,
 }: {
   activeFilter?: OnboardingPage7ActiveFilter;
-  filtersMenuVariant: FiltersMenuVariant;
 }) {
   return (
     <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">

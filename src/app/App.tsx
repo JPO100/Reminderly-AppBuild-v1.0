@@ -3733,7 +3733,7 @@ export default function App() {
                     isActive
                       ? "bg-white"
                       : "text-[#4784F8]"
-                  } content-stretch flex items-center justify-center ${!settingsMenuFeatureEnabled ? "px-[16px]" : savedListsFeatureEnabled ? "px-[13px] min-[390px]:px-[16px]" : "px-[11px] min-[375px]:px-[13px] min-[390px]:px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                  } content-stretch flex items-center justify-center ${savedListsFeatureEnabled ? "px-[13px] min-[390px]:px-[16px]" : !settingsMenuFeatureEnabled ? "px-[16px]" : "px-[11px] min-[375px]:px-[13px] min-[390px]:px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
                     filter !== "started" ? "" : !savedListsFeatureEnabled ? (settingsMenuFeatureEnabled ? "max-[440px]:hidden" : "max-[389px]:hidden") : settingsMenuFeatureEnabled ? "max-[360px]:hidden" : ""
                   }`}
                   style={getListFilterPillStyle(filter, activeListFilter)}
@@ -3746,26 +3746,21 @@ export default function App() {
                 </button>
                 );
               });
-              // Settings menu on: visible filters grouped left with 10px gaps, action buttons grouped right with 10px gaps
-              if (settingsMenuFeatureEnabled) {
+              // Settings menu or List templates on: visible filters grouped left with 10px gaps, action buttons grouped right with 10px gaps
+              if (settingsMenuFeatureEnabled || savedListsFeatureEnabled) {
                 return (
                   <div className="filters-menu flex items-center justify-between gap-[10px] relative shrink-0 w-full">
                     <div className="flex items-center gap-[10px]">{filterPills}</div>
                     <div className="flex items-center gap-[10px]">
                       {savedListsFeatureEnabled && templatesButton}
-                      {listsSettingsButton}
+                      {settingsMenuFeatureEnabled && listsSettingsButton}
                     </div>
                   </div>
                 );
               }
               return (
                 <div className="filters-menu flex items-center gap-[18px] relative shrink-0 w-full">
-                  {savedListsFeatureEnabled ? (
-                    <>
-                      <div className="flex items-center justify-between flex-1 min-w-0">{filterPills}</div>
-                      {templatesButton}
-                    </>
-                  ) : filterPills}
+                  {filterPills}
                 </div>
               );
             })()}

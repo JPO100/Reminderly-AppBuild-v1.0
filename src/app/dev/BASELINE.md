@@ -1,6 +1,12 @@
 # Self-Check Baseline Report
 
-Last updated: 2026-06-03
+Last updated: 2026-10-09
+
+## Verified Baseline (2026-10-09)
+
+- Vitest (`npm run test`): 36 passed, 0 failed, 0 skipped.
+- In-app Self Check: 340 passed, 0 failed, verified on physical iPhone 15 Pro and iPhone 17 Pro simulator.
+- Five outdated midnight badge expectations in `src/app/__tests__/notifications.test.ts` were corrected to match the intentionally restored `hasActiveDateOnlyReminder` guard in `buildMidnightBadgeNotification` (restored 2026-06-18).
 
 ## Clean Run (Expected)
 

@@ -15,6 +15,20 @@ Purpose: Primary development branch
 Status: Active
 Tip: a6ee791
 
+### fix/midnight-badge-tests
+
+Created: 2026-10-09
+Parent: main (4675087)
+Purpose: Correct outdated midnight badge notification tests
+
+Status: Merged
+Merged into: main (normal merge)
+Final commit: see merge history
+
+Summary:
+- Restored notifications.test.ts to its pre-f98d81f expectations, matching the hasActiveDateOnlyReminder guard restored on 2026-06-18
+- Updated src/app/dev/BASELINE.md with the verified baseline
+
 ### badge-midnight-fix
 
 Created: 2026-06-16
@@ -497,4 +511,14 @@ Completed:
 
 Outcome: Pending commit.
 
+### 2026-10-09 (midnight badge test fix)
 
+Branch: fix/midnight-badge-tests
+Commits: bb9ceef
+
+Issue: Vitest baseline was 30 passed, 5 failed. All failures were midnight badge notification tests.
+Root cause: The 2026-06-16 badge-midnight-fix (f98d81f) changed the Vitest expectations to match removal of the hasActiveDateOnlyReminder guard. The guard was restored on 2026-06-18 (b81c142), but the Vitest file was not reverted.
+Resolution: Restored notifications.test.ts to its pre-f98d81f content. Midnight notifications are expected only when an active date-only reminder exists; 64-notification limit coverage retained. No application code changed.
+Test results: Vitest 36 passed, 0 failed, 0 skipped. Self Check 340 passed, 0 failed on physical iPhone 15 Pro and iPhone 17 Pro simulator. Both devices built, installed and launched successfully.
+
+Outcome: Merged to main.

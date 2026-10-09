@@ -164,10 +164,28 @@ describe('buildScheduledNotifications scheduling limits', () => {
     }
     const result = buildScheduledNotifications(reminders, true, false);
     expect(result.length).toBe(64);
+    expect(result.every((n) => n.title === 'Reminderly')).toBe(true);
+  });
+
+  it('limits to 63 reminder notifications plus midnight when date-only reminder exists', () => {
+    const reminders: Reminder[] = [
+      makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+    ];
+    for (let i = 0; i < 70; i++) {
+      const date = futureDate(Math.floor(i / 24) + 1);
+      const hour = String(i % 24).padStart(2, '0');
+      reminders.push(makeReminder({
+        id: `r-${i}`,
+        displayText: `Reminder ${i}`,
+        schedule: { kind: 'scheduled', date, time: `${hour}:00` },
+      }));
+    }
+    const result = buildScheduledNotifications(reminders, true, false);
     const midnightNotif = result.find((n) => n.id === 2147483647);
     const reminderNotifs = result.filter((n) => n.id !== 2147483647);
     expect(midnightNotif).toBeDefined();
     expect(reminderNotifs.length).toBe(63);
+    expect(result.length).toBe(64);
   });
 });
 
@@ -181,13 +199,13 @@ describe('buildScheduledNotifications midnight badge notification', () => {
     expect(midnight).toBeDefined();
   });
 
-  it('includes midnight notification when all reminders have times', () => {
+  it('excludes midnight notification when all reminders have times', () => {
     const reminders = [
       makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } }),
     ];
     const result = buildScheduledNotifications(reminders, true, false);
     const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight).toBeDefined();
+    expect(midnight).toBeUndefined();
   });
 
   it('excludes midnight notification when badge is disabled', () => {
@@ -209,25 +227,25 @@ describe('buildScheduledNotifications midnight badge notification', () => {
     expect(midnight!.body).toBe('');
   });
 
-  it('includes midnight notification even when only completed reminders exist', () => {
+  it('excludes completed date-only reminders from midnight guard', () => {
     const reminders = [
       makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() }, completedAt: Date.now() }),
     ];
     const result = buildScheduledNotifications(reminders, true, false);
     const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight).toBeDefined();
+    expect(midnight).toBeUndefined();
   });
 
-  it('includes midnight notification even when only deleted reminders exist', () => {
+  it('excludes deleted date-only reminders from midnight guard', () => {
     const reminders = [
       makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() }, deletedAt: Date.now() }),
     ];
     const result = buildScheduledNotifications(reminders, true, false);
     const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight).toBeDefined();
+    expect(midnight).toBeUndefined();
   });
 
-  it('reserves 1 slot for midnight notification when 64+ timed reminders exist', () => {
+  it('gives all 64 slots to reminder notifications when no midnight notification needed', () => {
     const reminders: Reminder[] = [];
     for (let i = 0; i < 70; i++) {
       const date = futureDate(Math.floor(i / 24) + 1);
@@ -240,8 +258,7 @@ describe('buildScheduledNotifications midnight badge notification', () => {
     }
     const result = buildScheduledNotifications(reminders, true, false);
     expect(result.length).toBe(64);
-    const midnightNotif = result.find((n) => n.id === 2147483647);
-    expect(midnightNotif).toBeDefined();
+    expect(result.find((n) => n.id === 2147483647)).toBeUndefined();
   });
 });
 

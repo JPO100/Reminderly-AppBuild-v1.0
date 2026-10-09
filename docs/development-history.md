@@ -15,6 +15,22 @@ Purpose: Primary development branch
 Status: Active
 Tip: a6ee791
 
+### settings-menu-phase1
+
+Created: 2026-10-09
+Parent: main (ed7e849)
+Purpose: Settings Menu Phase 1 - Settings button in the reminder filter row and combined Later/Sometime presentation, behind the Dev Tools > System > Settings menu toggle
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Toggle now stored as reminderly-ff-settings-menu-v2, default off, so existing installs (which persisted the old default of true) start with the feature off. Off is the original interface with the header menu
+- On: Reminders tab filter row is Today, This week, Later, Settings (45px SVG button reusing the existing settings action). The header menu stays on the Lists tab
+- On: Later uses the existing combined 'other' filter (Later and Sometime), and Sometime circles use the Later colour. Presentation only - no reminder data, categorisation or persistence changes
+- Active filter is remapped when the toggle changes so it is never left on a hidden filter
+- Tutorial always treats Settings as available, so it is unchanged in both states
+- Calendar not applicable (no calendar in use). A future calendar must respect the combined Later/Sometime behaviour
+
 ### feature/lists-disabled-ui-refinement
 
 Created: 2026-10-09

@@ -7,6 +7,7 @@ Last updated: 2026-10-09
 - Vitest (`npm run test`): 36 passed, 0 failed, 0 skipped.
 - In-app Self Check: 340 passed, 0 failed, verified on physical iPhone 15 Pro and iPhone 17 Pro simulator.
 - feature/lists-disabled-ui-refinement: 13 Self Check checks for the removed grouped filters layout (Filters menu: 5, Show date/time subtitles: 8) were removed. Self Check result is now 327 passed, 0 failed, verified on device.
+- settings-menu-phase1: 7 Self Check checks added for the combined Later/Sometime presentation and filter handover. Self Check result is now 334 passed, 0 failed (desktop browser run, device run pending).
 - Five outdated midnight badge expectations in `src/app/__tests__/notifications.test.ts` were corrected to match the intentionally restored `hasActiveDateOnlyReminder` guard in `buildMidnightBadgeNotification` (restored 2026-06-18).
 
 ## Clean Run (Expected)
@@ -16,7 +17,7 @@ Reminderly Self-Checks Report
 Run invocation id: [varies]
 Ran at: [varies]
 Duration: [varies]ms
-Passed: 327 | Failed: 0
+Passed: 334 | Failed: 0
 
 Schedule and reminder logic
 
@@ -78,6 +79,13 @@ Persistence and hydration
 ✓ Categorisation: scheduled on Monday of current week returns "this-week"
 ✓ Categorisation: scheduled after end of week returns "later"
 ✓ Categorisation: schedule.kind "sometime" returns "sometime"
+✓ Settings menu on: Sometime displays as Later, other categories unchanged
+✓ Settings menu off: Sometime keeps its own display category
+✓ Settings menu on: Later and Sometime filters switch to combined Later
+✓ Settings menu off: combined Later filter restores standard Later
+✓ Settings menu on -> off -> on: filter is always a visible filter
+✓ Settings menu: combined Later lists dated Later before undated Sometime
+✓ Settings menu: presentation helpers do not change stored reminders
 ✓ Sorting: scheduled reminders sort by date ascending
 ✓ Sorting: same-date scheduled reminders sort by time ascending
 ✓ Sorting: unscheduled come after scheduled, ordered by createdAt asc

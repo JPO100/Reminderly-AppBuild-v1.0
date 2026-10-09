@@ -13,7 +13,12 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: b8877aa
+Tip: 9dfaf5e
+
+Merge - 2026-10-09: Reminder three-dot alignment
+- Fast-forward merge of feature/reminder-menu-alignment into main, d5660d4 to 9dfaf5e (no merge commit)
+- Settings menu on: reminder row three-dot buttons inset 11.5px (margin-right) so they centre on the Reminders Settings button's dots, with the 16px text-to-dots gap preserved. Settings menu off unchanged
+- Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Settings on: dots aligned, 16px gap. Settings off: unchanged
 
 Merge - 2026-10-09: Templates slide-up panel
 - Fast-forward merge of feature/templates-slide-up-panel into main, a002abc to b8877aa (no merge commit)
@@ -31,7 +36,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 Created: 2026-10-09
 Parent: main (d5660d4)
 Purpose: Align reminder row three-dot buttons with the Reminders Settings button when the settings menu is on
-Status: Active, not merged
+Status: Merged into main (fast-forward to 9dfaf5e, 2026-10-09)
 
 ### feature/templates-slide-up-panel
 

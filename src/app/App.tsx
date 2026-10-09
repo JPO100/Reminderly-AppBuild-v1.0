@@ -3981,7 +3981,7 @@ export default function App() {
                   style={{ zIndex: 2, pointerEvents: savedListsPanelOpen ? 'auto' : 'none' }}
                 >
                   <div className="relative flex flex-col gap-[24px] w-full h-full min-h-0 pt-[0px]">
-                    <div className="flex items-center shrink-0 w-full h-[40px]">
+                    <div className="flex items-center shrink-0 w-full h-[45px]">
                       <button
                         className="flex items-center gap-[10px] cursor-pointer shrink-0 bg-transparent border-none p-0"
                         type="button"

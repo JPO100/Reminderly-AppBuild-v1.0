@@ -126,7 +126,7 @@ export function InfoIconWithOverlay({ color, header, title }: { color?: string; 
   );
 }
 
-function ToggleRow({ label, isOn, onToggle, disabled, infoHeader, infoTitle }: { label: string; isOn: boolean; onToggle: () => void; disabled?: boolean; infoHeader?: string; infoTitle?: string }) {
+export function ToggleRow({ label, isOn, onToggle, disabled, infoHeader, infoTitle }: { label: string; isOn: boolean; onToggle: () => void; disabled?: boolean; infoHeader?: string; infoTitle?: string }) {
   return (
     <div className="flex h-[30px] items-center justify-between w-full">
       <div className="flex items-center gap-[16px]">
@@ -153,7 +153,7 @@ function ToggleRow({ label, isOn, onToggle, disabled, infoHeader, infoTitle }: {
   );
 }
 
-function MenuRow({ label, onClick, disabled, infoHeader, infoTitle }: { label: string; onClick: () => void; disabled?: boolean; infoHeader?: string; infoTitle?: string }) {
+export function MenuRow({ label, onClick, disabled, infoHeader, infoTitle }: { label: string; onClick: () => void; disabled?: boolean; infoHeader?: string; infoTitle?: string }) {
   return (
     <button
       onClick={() => { if (!disabled) onClick(); }}
@@ -174,7 +174,7 @@ function MenuRow({ label, onClick, disabled, infoHeader, infoTitle }: { label: s
   );
 }
 
-function SectionSubtitle({ text }: { text: string }) {
+export function SectionSubtitle({ text }: { text: string }) {
   return (
     <div className="flex h-[10px] items-center w-full">
       <p className="font-['Lato:SemiBold',sans-serif] text-[14px] text-[#939393] leading-[normal]">{text}</p>
@@ -182,7 +182,7 @@ function SectionSubtitle({ text }: { text: string }) {
   );
 }
 
-function KeyLine() {
+export function KeyLine() {
   return <div className="w-full h-px bg-[#E4E4E4] shrink-0" />;
 }
 

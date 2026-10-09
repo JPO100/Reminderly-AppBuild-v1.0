@@ -31,6 +31,13 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/settings-panels-ui
+
+Created: 2026-10-09
+Parent: main (81f8306)
+Purpose: Settings panels phase 1 - Dev Tools style rows in the Reminders and Lists header settings panels (UI only)
+Status: Active, not merged
+
 ### feature/reminder-menu-alignment
 
 Created: 2026-10-09
@@ -708,3 +715,19 @@ Completed:
 - Settings menu off: no change
 
 Test results: Vitest 53 passed. Self Check 334 passed, 0 failed. Production build successful. Browser checks with Settings on: dots centres matched exactly at 320, 375, 393 and 430px with a 16px text-to-dots gap at each width; title start and circle positions unchanged; row menu opens the reminder info overlay. Settings off: row dots unchanged at original position. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (settings panels UI, phase 1)
+
+Branch: feature/settings-panels-ui
+
+Completed:
+- Reminders and Lists header settings panels populated with Dev Tools row types (UI only, phase 1). The Setting title / Setting subtitle placeholder row is removed; the Reminderly tutorial row is kept at the top of the Reminders panel
+- Reminders panel: Natural Language Capture, Haptic feedback and Sounds click-through rows; Show calendar, Use 1 minute time increments and Show reminder sub-titles toggles; key line; System settings subtitle; Use Siri shortcuts toggle
+- Lists panel: Sounds click-through row; Use Smart Reminders and Use list templates toggles; key line; System settings subtitle; Use Siri shortcuts toggle
+- Every row has an (i) info pop-up with new user-facing copy
+- Click-through rows open an empty page inside the panel with a back chevron, title and the panel close button
+- Toggles hold local state only and are not saved. All start off except Use 1 minute time increments and Use Siri shortcuts, which start at the current Dev Tools values. Functionality to be wired in phase 2
+- System settings Use Siri shortcuts toggle is shared by both panels (state held in App, UI only), so it stays in sync between panels and is kept when a panel is closed and reopened. Resets to the Dev Tools value on app restart
+- ToggleRow, MenuRow, SectionSubtitle and KeyLine exported from DevToolsOverlay and reused in the new SettingsPanelContent component
+
+Test results: Vitest 53 passed. Production build successful. Simulator checks: both panels render, a toggle flips, an info pop-up opens and closes, a click-through page opens and back returns with the toggle state kept. Siri toggled on in the Lists panel shows on in the Reminders panel. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.

@@ -26,7 +26,7 @@ import { hapticTap } from "./utils/haptics";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from "./notifications";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
-import listInfoOverlayPaths from "../imports/svg-oxn8g14l6y";
+import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
 import tutorialIconPaths from "../imports/svg-orocxqk06z";
 import ListsHeader from "../imports/Header";
 import InfoOverlay from "../imports/InfoOverlay";
@@ -1111,6 +1111,8 @@ export default function App() {
       return false;
     }
   });
+  // Settings panels phase 1 (UI only): System settings Siri toggle shared by the Reminders and Lists panels
+  const [settingsPanelSiriOn, setSettingsPanelSiriOn] = useState<boolean>(siriShortcutsEnabled);
   const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useState<boolean>(() => {
     try {
       return localStorage.getItem(DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY) === 'true';
@@ -5407,79 +5409,41 @@ export default function App() {
                   onPointerDown={(event) => remindersSettingsSheetDragControls.start(event)}
                 />
                 <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
-                    <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
-                      <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
-                        Reminders settings
-                      </div>
+                  <RemindersSettingsContent
+                    onClose={() => setIsRemindersSettingsPanelOpen(false)}
+                    useOneMinuteIncrements={useOneMinuteTimeIncrements}
+                    siriOn={settingsPanelSiriOn}
+                    onSiriChange={setSettingsPanelSiriOn}
+                    topContent={
+                      isOnboardingTutorialEnabled && (
                       <button
-                        className="relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center cursor-pointer w-[45px] h-[45px]"
                         type="button"
-                        onClick={() => setIsRemindersSettingsPanelOpen(false)}
-                        aria-label="Close reminders settings"
+                        className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full p-0 m-0 border-none bg-transparent text-left cursor-pointer"
+                        onClick={handleRemindersSettingsTutorialOpen}
                       >
-                        <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                          <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
-                      <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full">
-                        <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]" data-name="Union">
-                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">
-                            <g id="Union">
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p23b20a00} fill="#1C2C42" fillRule="evenodd" />
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p15d6fbb2} fill="#1C2C42" fillRule="evenodd" />
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p1797f00} fill="#1C2C42" fillRule="evenodd" />
-                            </g>
+                        <div className="h-[23.75px] relative self-start shrink-0 w-[21.551px]" data-name="Union">
+                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 21.5506 23.7501">
+                            <path clipRule="evenodd" d={tutorialIconPaths.pbcbed00} fill="#1C2C42" fillRule="evenodd" />
                           </svg>
                         </div>
                         <div className="content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative">
                           <div className="flex flex-col justify-start max-w-full min-w-0 overflow-visible relative shrink-0 text-[17px] text-[#1C2C42] w-full whitespace-nowrap">
-                            <p className="block leading-[17px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap w-full" style={{ boxSizing: 'content-box', fontSize: 17, fontWeight: 700, lineHeight: '17px', margin: 0, paddingBottom: 2, transform: 'translateY(-1px)' }}>Setting title</p>
+                            <p className="block leading-[17px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap w-full" style={{ boxSizing: 'content-box', fontSize: 17, fontWeight: 700, lineHeight: '17px', margin: 0, paddingBottom: 2, transform: 'translateY(-1px)' }}>Reminderly tutorial</p>
                           </div>
                           <div className="flex flex-col justify-start relative shrink-0 text-[14px] text-[#bababa] w-full">
-                            <p className="leading-[14px]" style={{ fontWeight: 700, color: '#BABABA' }}>Setting subtitle</p>
+                            <p className="leading-[14px]" style={{ fontWeight: 700, color: '#BABABA' }}>Take a refresh of the onboarding tutorial</p>
                           </div>
                         </div>
-                        <div className="bg-[#4784F8] content-stretch flex h-[30px] items-center self-start p-[3.75px] relative rounded-[37.5px] shrink-0 w-[56px] justify-end">
-                          <div className="relative shrink-0 size-[22.5px]">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.5 22.5">
-                              <circle cx="11.25" cy="11.25" fill="var(--fill-0, white)" r="11.25" />
-                            </svg>
-                          </div>
+                        <div className="h-[19px] relative self-center shrink-0 w-[18px]" data-name="Union">
+                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 19">
+                            <path d={tutorialIconPaths.p15f1c400} fill="#E5E5E5" />
+                            <path d={tutorialIconPaths.p18a25a00} fill="#E5E5E5" />
+                          </svg>
                         </div>
-                      </div>
-                      {isOnboardingTutorialEnabled && (
-                        <button
-                          type="button"
-                          className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full p-0 m-0 border-none bg-transparent text-left cursor-pointer"
-                          onClick={handleRemindersSettingsTutorialOpen}
-                        >
-                          <div className="h-[23.75px] relative self-start shrink-0 w-[21.551px]" data-name="Union">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 21.5506 23.7501">
-                              <path clipRule="evenodd" d={tutorialIconPaths.pbcbed00} fill="#1C2C42" fillRule="evenodd" />
-                            </svg>
-                          </div>
-                          <div className="content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative">
-                            <div className="flex flex-col justify-start max-w-full min-w-0 overflow-visible relative shrink-0 text-[17px] text-[#1C2C42] w-full whitespace-nowrap">
-                              <p className="block leading-[17px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap w-full" style={{ boxSizing: 'content-box', fontSize: 17, fontWeight: 700, lineHeight: '17px', margin: 0, paddingBottom: 2, transform: 'translateY(-1px)' }}>Reminderly tutorial</p>
-                            </div>
-                            <div className="flex flex-col justify-start relative shrink-0 text-[14px] text-[#bababa] w-full">
-                              <p className="leading-[14px]" style={{ fontWeight: 700, color: '#BABABA' }}>Take a refresh of the onboarding tutorial</p>
-                            </div>
-                          </div>
-                          <div className="h-[19px] relative self-center shrink-0 w-[18px]" data-name="Union">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 19">
-                              <path d={tutorialIconPaths.p15f1c400} fill="#E5E5E5" />
-                              <path d={tutorialIconPaths.p18a25a00} fill="#E5E5E5" />
-                            </svg>
-                          </div>
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                      </button>
+                      )
+                    }
+                  />
                 </div>
               </motion.div>
             </motion.div>
@@ -5525,52 +5489,11 @@ export default function App() {
                   onPointerDown={(event) => listsSettingsSheetDragControls.start(event)}
                 />
                 <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
-                    <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
-                      <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
-                        Lists settings
-                      </div>
-                      <button
-                        className="relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center cursor-pointer w-[45px] h-[45px]"
-                        type="button"
-                        onClick={() => setIsListsSettingsPanelOpen(false)}
-                        aria-label="Close lists settings"
-                      >
-                        <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                          <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
-                      <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full">
-                        <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]" data-name="Union">
-                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">
-                            <g id="Union">
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p23b20a00} fill="#1C2C42" fillRule="evenodd" />
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p15d6fbb2} fill="#1C2C42" fillRule="evenodd" />
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p1797f00} fill="#1C2C42" fillRule="evenodd" />
-                            </g>
-                          </svg>
-                        </div>
-                        <div className="content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative">
-                          <div className="flex flex-col justify-start max-w-full min-w-0 overflow-visible relative shrink-0 text-[17px] text-[#1C2C42] w-full whitespace-nowrap">
-                            <p className="block leading-[17px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap w-full" style={{ boxSizing: 'content-box', fontSize: 17, fontWeight: 700, lineHeight: '17px', margin: 0, paddingBottom: 2, transform: 'translateY(-1px)' }}>Setting title</p>
-                          </div>
-                          <div className="flex flex-col justify-start relative shrink-0 text-[14px] text-[#bababa] w-full">
-                            <p className="leading-[14px]" style={{ fontWeight: 700, color: '#BABABA' }}>Setting subtitle</p>
-                          </div>
-                        </div>
-                        <div className="bg-[#4784F8] content-stretch flex h-[30px] items-center self-start p-[3.75px] relative rounded-[37.5px] shrink-0 w-[56px] justify-end">
-                          <div className="relative shrink-0 size-[22.5px]">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.5 22.5">
-                              <circle cx="11.25" cy="11.25" fill="var(--fill-0, white)" r="11.25" />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ListsSettingsContent
+                    onClose={() => setIsListsSettingsPanelOpen(false)}
+                    siriOn={settingsPanelSiriOn}
+                    onSiriChange={setSettingsPanelSiriOn}
+                  />
                 </div>
               </motion.div>
             </motion.div>

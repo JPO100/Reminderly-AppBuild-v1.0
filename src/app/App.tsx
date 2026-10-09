@@ -3544,7 +3544,7 @@ export default function App() {
                     doneDeletedFilter === 'done'
                       ? "bg-white"
                       : "text-[#404040]"
-                  } content-stretch flex items-center justify-center px-[16px] h-[40px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                   style={getListArchiveFilterPillStyle('done', doneDeletedFilter)}
                 >
                   <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -3557,7 +3557,7 @@ export default function App() {
                     doneDeletedFilter === 'deleted'
                       ? "bg-white"
                       : "text-[#898989]"
-                  } content-stretch flex items-center justify-center px-[16px] h-[40px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                   style={getListArchiveFilterPillStyle('deleted', doneDeletedFilter)}
                 >
                   <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -3576,7 +3576,7 @@ export default function App() {
                     : clearListStep === 0
                     ? "text-[#4784F8]"
                     : "bg-[#4784F8] text-white"
-                } content-stretch flex items-center justify-center h-[40px] w-[95px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784F8]"}`}
+                } content-stretch flex items-center justify-center h-[45px] w-[95px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784F8]"}`}
                 style={isClearAllDisabled ? { color: '#CCCCCC', borderColor: '#CCCCCC' } : undefined}
               >
                 <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -3739,7 +3739,7 @@ export default function App() {
                             isActive
                               ? "bg-white"
                               : "text-[#4784F8]"
-                          } content-stretch flex items-center justify-center px-[16px] h-[40px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                          } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                           style={getListFilterPillStyle(filter, activeListFilter)}
                         >
                           <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -3750,7 +3750,7 @@ export default function App() {
                       })}
                     </div>
                     <button
-                      className="bg-[#4784F8] content-stretch flex items-center justify-center px-[16px] h-[40px] relative rounded-[100px] shrink-0 cursor-pointer"
+                      className="bg-[#4784F8] content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer"
                       type="button"
                       onClick={() => setSavedListsPanelOpen(true)}
                     >
@@ -3777,7 +3777,7 @@ export default function App() {
                         isActive
                           ? "bg-white"
                           : "text-[#4784F8]"
-                      } content-stretch flex items-center justify-center px-[16px] h-[40px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                      } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
                         filter === "started" ? "max-[389px]:hidden" : ""
                       }`}
                       style={getListFilterPillStyle(filter, activeListFilter)}
@@ -4123,7 +4123,7 @@ export default function App() {
                   doneDeletedFilter === 'done'
                     ? "bg-white"
                     : "text-[#404040]"
-                } content-stretch flex items-center justify-center px-[16px] h-[40px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                 style={getArchiveFilterPillStyle('done', doneDeletedFilter)}
               >
                 <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -4138,7 +4138,7 @@ export default function App() {
                   doneDeletedFilter === 'deleted'
                     ? "bg-white"
                     : "text-[#898989]"
-                } content-stretch flex items-center justify-center px-[16px] h-[40px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                 style={getArchiveFilterPillStyle('deleted', doneDeletedFilter)}
               >
                 <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -4157,7 +4157,7 @@ export default function App() {
                   : clearListStep === 0
                   ? "text-[#4784f8]"
                   : "bg-[#4784f8] text-white"
-              } content-stretch flex items-center justify-center h-[40px] w-[95px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784f8]"}`}
+              } content-stretch flex items-center justify-center h-[45px] w-[95px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784f8]"}`}
               style={isClearAllDisabled ? { color: '#CCCCCC', borderColor: '#CCCCCC' } : undefined}
             >
               <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -4177,7 +4177,7 @@ export default function App() {
                   isActive
                     ? "bg-white"
                     : "text-[#4784f8]"
-                } content-stretch flex items-center justify-center px-[16px] h-[40px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
                   filter === "sometime" ? "hidden min-[390px]:flex" : ""
                 }`}
                 style={getReminderFilterPillStyle(filter, activeFilter)}

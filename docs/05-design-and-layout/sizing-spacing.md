@@ -16,7 +16,8 @@ Reminderly uses a systematic spacing scale based on multiples of 4px and specifi
 - **26px**: Overlay header top padding
 - **30px**: Premium feature row gap
 - **32px**: Card gap, premium section bottom padding
-- **40px**: Filter button height, tutorial navigation gap
+- **40px**: Tutorial navigation gap
+- **45px**: Filter button height
 
 ## Component Spacing
 
@@ -86,7 +87,7 @@ Reminderly uses a systematic spacing scale based on multiples of 4px and specifi
 
 Minimum sizes for interactive elements:
 
-- **Filter buttons**: 40px height
+- **Filter buttons**: 45px height
 - **Circle checkbox**: 25px × 25px
 - **New reminder button**: 40-60px height (viewport-responsive)
 - **Status icons**: Varies by icon, all meet minimum

@@ -837,3 +837,15 @@ Completed:
 - docs/05-design-and-layout/sizing-spacing.md updated with the panel standards
 
 Test results: Vitest 53/53 passed. Production build successful. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator after each change; visual checks by user on device.
+
+### 2026-10-09 (Lists editor header spacing)
+
+Branch: feature/ui-tweaks
+
+Completed:
+- Lists editor header to content space reduced from 30px to 26px, measured from the bottom of the subtitle (title row and subtitle treated as one header block). Add-item input moves up 4px, now about 40px below the 45px title row. Resolves the last panel spacing exception
+- Tutorial copy of the Lists editor updated to match (gap 30px to 26px). Its existing 30px top padding left unchanged
+- 35px gap between the add-item input and list items unchanged
+- docs/05-design-and-layout/sizing-spacing.md updated: exception removed, subtitle header rule added
+
+Test results: Vitest 53/53 passed. Production build successful. Capacitor copy and Xcode builds successful. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator. Visual sign-off by product owner.

@@ -64,7 +64,7 @@ Applies to the main Reminders and Lists panels and every slide-up panel (Reminde
 
 Where a container gap also spaces other content (for example the list above a bottom button, or Dev tools sections), header spacing is adjusted with a margin on the header instead of changing the shared gap.
 
-Known exception: the Lists editor content sits 30px below the header subtitle (about 44px below the 45px title row). Not yet standardised.
+Headers with a subtitle (Lists editor): the title row and subtitle are treated as one header block, so the 26px header to content space is measured from the bottom of the subtitle (about 40px below the 45px title row).
 
 ### Row menu (3-dot) button
 

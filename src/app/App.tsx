@@ -872,7 +872,7 @@ export default function App() {
   const currentListAccentColor = LIST_CATEGORY_PILL_COLOURS[currentListCategory] || "#939393";
   const listItemHighlightTimerRef = useRef<number | null>(null);
   const tabsBarRef = useRef<HTMLDivElement | null>(null);
-  const mainPanelRef = useRef<HTMLDivElement | null>(null);
+  const logoRef = useRef<HTMLDivElement | null>(null);
   const listInfoOverlayList = listInfoOverlayListId == null
     ? null
     : createdLists.find((list) => list.id === listInfoOverlayListId) ?? null;
@@ -2021,23 +2021,13 @@ export default function App() {
     return DEFAULT_TOP;
   };
 
+  // Sliding panels stop 28px below the logo, with Lists on or off
   const getBottomSheetTopPosition = () => {
-    const tabsTop = tabsBarRef.current?.getBoundingClientRect().top;
-    if (typeof tabsTop === "number" && Number.isFinite(tabsTop)) {
-      return tabsTop - 2;
+    const logoBottom = logoRef.current?.getBoundingClientRect().bottom;
+    if (typeof logoBottom === "number" && Number.isFinite(logoBottom)) {
+      return logoBottom + 28;
     }
     return getOverlayTopPosition();
-  };
-
-  // Lists off has no tab bar, so align Reminders settings with the Reminders panel instead
-  const getRemindersSettingsTopPosition = () => {
-    if (!isListsEnabled) {
-      const panelTop = mainPanelRef.current?.getBoundingClientRect().top;
-      if (typeof panelTop === "number" && Number.isFinite(panelTop)) {
-        return panelTop - 2;
-      }
-    }
-    return getBottomSheetTopPosition();
   };
 
   const reminderSheetDragControls = useDragControls();
@@ -3344,7 +3334,7 @@ export default function App() {
       <div className="app-header relative shrink-0 w-full p-[20px]">
         <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
           <div className="content-stretch flex items-center justify-center pb-[20px] pt-[50px] relative shrink-0 w-full">
-            <div className="h-[35.653px] relative shrink-0 w-[209.653px]" style={{ top: '7px' }}>
+            <div ref={logoRef} className="h-[35.653px] relative shrink-0 w-[209.653px]" style={{ top: '7px' }}>
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 209.653 35.6533">
                 <g>
                   {/* Text portion */}
@@ -3491,7 +3481,7 @@ export default function App() {
       )}
 
       {/* Reminder list container */}
-      <div ref={mainPanelRef} className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative ${isListsEnabled ? 'rounded-tl-[15px] rounded-tr-[15px]' : 'rounded-tl-[20px] rounded-tr-[20px]'} w-full flex-1 min-h-[350px]`}>
+      <div className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative ${isListsEnabled ? 'rounded-tl-[15px] rounded-tr-[15px]' : 'rounded-tl-[20px] rounded-tr-[20px]'} w-full flex-1 min-h-[350px]`}>
         {isListsEnabled && activeMainTab === 'lists' ? (
           <>
           {viewMode === 'lists-done' && (
@@ -5345,7 +5335,7 @@ export default function App() {
 
             <motion.div
               initial={{ y: "100%" }}
-              animate={{ y: 0, top: getRemindersSettingsTopPosition() }}
+              animate={{ y: 0, top: getBottomSheetTopPosition() }}
               exit={{ y: "100%" }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
               className="fixed left-0 right-0 z-50 mx-auto w-full"

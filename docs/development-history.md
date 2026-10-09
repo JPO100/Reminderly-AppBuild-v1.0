@@ -37,6 +37,16 @@ Correction - Reminders Settings panel alignment with Lists off:
 - Verified at 320 x 568, 375 x 667, 390 x 844 and 430 x 932: settings top 143.64px, 2px above the Reminders panel (Lists off) and the tab bar (Lists on). Bottom edge unchanged. Header 45px, Close SVG 45 x 45px. At 320 x 568 all content visible; Close button and backdrop both close the panel
 - Tests: Vitest 53 passed. Self Check 334 passed, 0 failed (headless). Vite build succeeded. Deployed to iPhone 17 Pro simulator and physical iPhone 15 Pro
 
+Standardised sliding panel positioning (supersedes the Lists-off correction above):
+- Decision: all sliding panels that use getBottomSheetTopPosition stop 28px below the rendered bottom edge of the Reminderly logo, with Lists on or off. No dependency on the Lists tab bar
+- getBottomSheetTopPosition now measures the logo (new logoRef) and returns logo bottom + 28px. getOverlayTopPosition kept as the fallback if the logo has not rendered
+- Removed getRemindersSettingsTopPosition and mainPanelRef; Reminders Settings uses the shared function again
+- Panels affected: New reminder, Repeats, Tutorial, Dev Tools, Reminders Settings, Lists Settings, New/edit list. Bottom edges unchanged (screen bottom)
+- Verified at 320 x 568, 375 x 667, 390 x 844 and 430 x 932 with Lists on and off: logo bottom 112.64px, panel top 140.64px, gap 28px for every panel
+- 320 x 568: New reminder content scrolls fully with Date and Time on; Repeats opens at the same position. Dev Tools position verified on its log-in screen
+- Storage unavailable banner (simulated, 51px): logo and panels move down together, gap stays 28px
+- Tests: Vitest 53 passed. Self Check 334 passed, 0 failed (headless). Vite build succeeded. Deployed to iPhone 17 Pro simulator and physical iPhone 15 Pro
+
 ### settings-menu-phase2-lists
 
 Created: 2026-10-09

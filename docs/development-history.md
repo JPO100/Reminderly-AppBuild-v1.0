@@ -15,6 +15,20 @@ Purpose: Primary development branch
 Status: Active
 Tip: a6ee791
 
+### fix-undated-reminder-add
+
+Created: 2026-10-09
+Parent: main (ed7e849)
+Purpose: Allow undated Sometime reminders to be added from New reminder
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Root cause: commit f3d0de7 made the Add tick and submit handler require Date and Time in create mode, blocking Sometime reminders
+- Fix: shared canSubmitReminder check. Text is mandatory; Date OFF saves as Sometime; Date ON still requires a selected date and Time ON with a selected time (Date ON, Time OFF stays disabled)
+- Unchanged: date/time toggle interactions (Date ON still auto-enables Time at 12:00), data structures, parsing, notifications, categorisation, edit and smart reminder modes
+- Tests: src/app/__tests__/add-reminder-validation.test.ts (9 tests). Vitest 53 passed. Self Check schedule, persistence, natural language interaction and notification sections 184 passed, 0 failed (headless). Verified on iPhone 17 Pro simulator; deployed to physical iPhone 15 Pro
+
 ### feature/lists-disabled-ui-refinement
 
 Created: 2026-10-09

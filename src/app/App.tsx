@@ -27,6 +27,7 @@ import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from 
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
 import listInfoOverlayPaths from "../imports/svg-oxn8g14l6y";
+import tutorialIconPaths from "../imports/svg-orocxqk06z";
 import ListsHeader from "../imports/Header";
 import InfoOverlay from "../imports/InfoOverlay";
 import ListInfoOverlay from "../imports/list-info-overlay";
@@ -2064,6 +2065,12 @@ export default function App() {
     }
     setIsRemindersSettingsPanelOpen(true);
   }, [activeMainTab, isListsEnabled]);
+
+  // Reminders settings panel: re-run the tutorial from its first page, then close the panel behind it
+  const handleRemindersSettingsTutorialOpen = () => {
+    openTutorial('reminders');
+    setTimeout(() => setIsRemindersSettingsPanelOpen(false), 250);
+  };
 
   const openSavedListEditor = (list: SavedListTemplate) => {
     setListTitle(list.title);
@@ -5406,6 +5413,33 @@ export default function App() {
                           </div>
                         </div>
                       </div>
+                      {isOnboardingTutorialEnabled && (
+                        <button
+                          type="button"
+                          className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full p-0 m-0 border-none bg-transparent text-left cursor-pointer"
+                          onClick={handleRemindersSettingsTutorialOpen}
+                        >
+                          <div className="h-[23.75px] relative self-start shrink-0 w-[21.551px]" data-name="Union">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 21.5506 23.7501">
+                              <path clipRule="evenodd" d={tutorialIconPaths.pbcbed00} fill="#1C2C42" fillRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative">
+                            <div className="flex flex-col justify-start max-w-full min-w-0 overflow-visible relative shrink-0 text-[17px] text-[#1C2C42] w-full whitespace-nowrap">
+                              <p className="block leading-[17px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap w-full" style={{ boxSizing: 'content-box', fontSize: 17, fontWeight: 700, lineHeight: '17px', margin: 0, paddingBottom: 2, transform: 'translateY(-1px)' }}>Reminderly tutorial</p>
+                            </div>
+                            <div className="flex flex-col justify-start relative shrink-0 text-[14px] text-[#bababa] w-full">
+                              <p className="leading-[14px]" style={{ fontWeight: 700, color: '#BABABA' }}>Take a refresh of the onboarding tutorial</p>
+                            </div>
+                          </div>
+                          <div className="h-[19px] relative self-center shrink-0 w-[18px]" data-name="Union">
+                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 19">
+                              <path d={tutorialIconPaths.p15f1c400} fill="#E5E5E5" />
+                              <path d={tutorialIconPaths.p18a25a00} fill="#E5E5E5" />
+                            </svg>
+                          </div>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -5545,7 +5579,7 @@ export default function App() {
                   className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} />
               </motion.div>
             </motion.div>
           </>

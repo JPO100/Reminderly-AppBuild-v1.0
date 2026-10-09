@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import SettingsBtnSml from "@/imports/SettingsBtnSml";
 
 export type TutorialFilterKey =
   | "today"
@@ -65,7 +64,7 @@ function TutorialReminderFilterPill({
 
   return (
     <div
-      className={`content-stretch flex items-center justify-center px-[11.144px] py-[10.448px] relative rounded-[69.652px] shrink-0 h-[28px] ${isGhost ? "bg-[rgba(255,255,255,0.15)]" : isActive ? "bg-white" : "bg-transparent"}`}
+      className={`content-stretch flex items-center justify-center px-[11.144px] py-[10.448px] relative rounded-[69.652px] shrink-0 h-[31.5px] ${isGhost ? "bg-[rgba(255,255,255,0.15)]" : isActive ? "bg-white" : "bg-transparent"}`}
       style={{ boxShadow: `inset 0 0 0 ${isGhost ? "1px" : isActive ? "1.5px" : "1px"} ${isGhost ? "#FFFFFF" : color}` }}
     >
       <div
@@ -81,7 +80,6 @@ function TutorialReminderFilterPill({
 export default function TutorialReminderFilters({
   items,
   activeKey,
-  showSettings = false,
   leading,
   trailing,
   layout = "between",
@@ -93,7 +91,6 @@ export default function TutorialReminderFilters({
 }: {
   items: TutorialFilterItem[];
   activeKey?: TutorialFilterKey;
-  showSettings?: boolean;
   leading?: ReactNode;
   trailing?: ReactNode;
   layout?: "between" | "inline";
@@ -103,7 +100,7 @@ export default function TutorialReminderFilters({
   pillVariant?: "default" | "ghost";
   onTrailingElementChange?: (element: HTMLDivElement | null) => void;
 }) {
-  const hasTrailingControl = trailing != null || showSettings;
+  const hasTrailingControl = trailing != null;
   const isFullWidthBetweenLayout = layout === "between" && !hasTrailingControl;
   const visibleItems = items.filter((item) => showHiddenItems || isFullWidthBetweenLayout || !item.hideOnNarrow);
 
@@ -126,10 +123,6 @@ export default function TutorialReminderFilters({
         )}
         {trailing ? (
           <div ref={onTrailingElementChange} className="shrink-0">{trailing}</div>
-        ) : showSettings ? (
-          <div className="shrink-0" style={{ width: "35px", height: "28px" }}>
-            <SettingsBtnSml />
-          </div>
         ) : null}
       </div>
     </div>

@@ -11,6 +11,7 @@ export default function TutorialPhoneShell({
   shellColor,
   bezelColor = "#4784F8",
   showHeaderMenu = true,
+  showMainTabBar = true,
   headerProps,
   remindersLabel,
   listsLabel,
@@ -23,6 +24,7 @@ export default function TutorialPhoneShell({
   shellColor?: string;
   bezelColor?: string;
   showHeaderMenu?: boolean;
+  showMainTabBar?: boolean;
   headerProps?: Partial<Omit<TutorialPhoneHeaderProps, "activeMainTab" | "backgroundColor" | "showMenuIcon">>;
   remindersLabel?: string;
   listsLabel?: string;
@@ -49,8 +51,11 @@ export default function TutorialPhoneShell({
               showMenuIcon={showHeaderMenu}
               {...headerProps}
             />
-            <TutorialMainTabBar activeMainTab={activeMainTab} remindersLabel={remindersLabel} listsLabel={listsLabel} />
-            <div className="bg-white flex-[1_0_0] min-h-px min-w-px relative w-full rounded-tl-[10.769px] rounded-tr-[10.769px]">
+            {showMainTabBar && (
+              <TutorialMainTabBar activeMainTab={activeMainTab} remindersLabel={remindersLabel} listsLabel={listsLabel} />
+            )}
+            {/* Lists off: panel sits directly under the header with the app's larger corner radius (20px at tutorial scale) */}
+            <div className={`bg-white flex-[1_0_0] min-h-px min-w-px relative w-full ${showMainTabBar ? "rounded-tl-[10.769px] rounded-tr-[10.769px]" : "rounded-tl-[14.359px] rounded-tr-[14.359px]"}`}>
               <div className="flex flex-col items-center size-full">
                 {filterRow}
                 {blankBody ? (

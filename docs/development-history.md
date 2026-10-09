@@ -547,3 +547,16 @@ Completed:
 - Removed 13 Self Check checks covering the removed settings; expected Self Check count is 327
 
 Test results: Vitest 36 passed, 0 failed. Visual checks at 402px and 375px with Lists off and on.
+
+### 2026-10-09 (onboarding state consistency)
+
+Branch: feature/lists-disabled-ui-refinement
+
+Completed:
+- Tutorial phone mock-ups hide the Reminders/Lists tab bar when Lists are off, matching the app layout
+- Tutorial pages are selected from feature state (getTutorialPageIds): Reminders 5 pages, 6 with the header settings menu; Lists 3 core pages plus smart reminders and list templates pages when those features are on
+- Removed three placeholder Lists tutorial pages
+- Added a Reminderly tutorial row to the header Reminders settings panel (shown when the tutorial is enabled), restoring the re-run entry point lost with the legacy settings sheet
+- Tutorial filter pills scaled to the 45px app buttons; unused tutorial cog option removed
+
+Test results: Vitest 44 passed (8 new tutorial page tests). Tutorial walked through for Lists on/off, settings menu on/off, smart reminders on/off and saved lists on/off.

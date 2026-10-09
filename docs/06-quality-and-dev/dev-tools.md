@@ -19,7 +19,6 @@ Reminderly includes a built-in developer tools system that opens from the header
 - **Dummy reminders**: Generates reminders for category and state testing
 - **Dummy lists**: Generates lists for active, done, deleted, pinned, smart reminder, and template-related testing
 - **Natural Language Capture**: Switches between auto-parsing and click-parsing NLC modes
-- **Filters menu**: Switches between filter menu variants when lists are disabled
 - **Reminder settings**: Controls one-minute time increments for time selection UI
 - **List settings**: Controls whether a clean lists state is repopulated with default templates
 - **Onboarding tutorial**: Controls tutorial feature state and tutorial launch behaviour
@@ -33,7 +32,6 @@ State used by the developer tools and associated experiments:
 | State | Type | Default | Persistence | Purpose |
 | --- | --- | --- | --- | --- |
 | `nlcMode` | `'click' \| 'auto'` | `'auto'` | In-memory only | Controls NLC token application mode |
-| `filtersMenuVariant` | `'standard' \| 'grouped'` | `'standard'` | In-memory only | Controls the non-lists filter layout experiment |
 | `hideOverdue` | `boolean` | `false` | In-memory only | Hides overdue reminders from rendered reminder lists |
 | `isDevToolsUnlocked` | `boolean` | `false` | In-memory only | Session unlock state after password entry |
 

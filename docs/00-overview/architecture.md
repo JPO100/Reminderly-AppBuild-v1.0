@@ -10,7 +10,7 @@ Reminderly uses a single-component architecture with App.tsx as the central stat
 App.tsx (root)
 ├── Header (inline)
 │   ├── Logo (with done/deleted toggle and dev tools triple-tap)
-│   └── Filter buttons (standard or grouped variant)
+│   └── Filter buttons
 ├── Active list view (conditional)
 │   └── Reminder rows (motion.div with AnimatePresence)
 ├── Done/deleted view (conditional)
@@ -33,10 +33,6 @@ App.tsx (root)
 │   ├── Frequency selector (hourly/daily/weekly/monthly/yearly/custom-days)
 │   ├── Interval input
 │   └── Day selection (custom-days only)
-├── SettingsOverlay (/src/app/components)
-│   ├── Show date and time subtitles toggle
-│   ├── Tutorial access row
-│   └── Premium features section (3 feature rows + CTA)
 ├── TutorialOverlay (/src/app/components)
 │   └── TutorialOnboardingContent
 │       └── OnboardingPage[1-8]Content components
@@ -44,8 +40,7 @@ App.tsx (root)
     ├── DevTools home (/src/imports)
     ├── Automated tests page
     ├── Dummy reminders page (/src/imports/DummyReminders.tsx)
-    ├── NLC toggle page
-    └── Filters menu toggle page
+    └── NLC toggle page
 ```
 
 ## File Structure
@@ -69,7 +64,6 @@ App.tsx (root)
 │   │   ├── OnboardingPage9Content.tsx   # Unused (TOTAL_PAGES=8)
 │   │   ├── ReminderInfoOverlay.tsx      # Reminder detail/edit/done/delete modal
 │   │   ├── RepeatsOverlay.tsx           # Repeat configuration overlay
-│   │   ├── SettingsOverlay.tsx          # Settings overlay (grouped filters only)
 │   │   ├── TutorialOnboardingContent.tsx # Tutorial page controller
 │   │   ├── TutorialOverlay.tsx          # Tutorial overlay shell
 │   │   ├── /figma
@@ -99,7 +93,6 @@ App.tsx (root)
 │   ├── DevTools.tsx                     # DevTools home page component
 │   ├── DummyReminders.tsx               # Dummy reminders debug page
 │   ├── LaterBtn.tsx                     # Later/settings button component
-│   ├── LaterBtn-146-39.tsx              # Later/settings button variant (used in grouped filters)
 │   └── svg-*.ts                         # SVG path data
 ├── /styles
 │   ├── fonts.css                        # Font imports
@@ -124,7 +117,6 @@ All state lives in App.tsx. No context providers or external state management.
 
 - `isNewReminderOpen: boolean`
 - `isDevToolsOpen: boolean`
-- `isSettingsOpen: boolean`
 - `isTutorialOpen: boolean`
 - `editReminder: Reminder | null` - Reminder being edited
 - `infoReminder: Reminder | null` - Reminder in info overlay
@@ -133,12 +125,7 @@ All state lives in App.tsx. No context providers or external state management.
 ### Dev-Only State
 
 - `nlcMode: "click" | "auto"` - NLC mode for A/B testing
-- `filtersMenuVariant: "standard" | "grouped"` - Filter variant
 - `hideOverdue: boolean` - Hides overdue reminders (dev tool)
-
-### User Settings
-
-- `showDateAndTimeSubtitles: boolean` - Subtitle visibility toggle (persisted to localStorage)
 
 ### Transient State
 

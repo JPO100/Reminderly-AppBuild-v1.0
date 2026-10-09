@@ -156,8 +156,6 @@ List categories are derived from the completion state of list items.
 ### App/UI state
 
 - `reminderly-active-main-tab`
-- `reminderly-filters-menu-variant`
-- `reminderly.showDateAndTimeSubtitles`
 
 ### Dev settings and feature flags
 

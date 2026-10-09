@@ -25,7 +25,6 @@
 - `NewReminderOverlay`
 - `ReminderInfoOverlay`
 - `RepeatsOverlay`
-- `SettingsOverlay`
 - `TutorialOverlay`
 - `DevToolsOverlay`
 - list info overlay

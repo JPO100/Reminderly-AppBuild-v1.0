@@ -6,6 +6,7 @@ Last updated: 2026-10-09
 
 - Vitest (`npm run test`): 36 passed, 0 failed, 0 skipped.
 - In-app Self Check: 340 passed, 0 failed, verified on physical iPhone 15 Pro and iPhone 17 Pro simulator.
+- feature/lists-disabled-ui-refinement: 13 Self Check checks for the removed grouped filters layout (Filters menu: 5, Show date/time subtitles: 8) were removed. Expected Self Check result is now 327 passed, 0 failed. Device verification pending.
 - Five outdated midnight badge expectations in `src/app/__tests__/notifications.test.ts` were corrected to match the intentionally restored `hasActiveDateOnlyReminder` guard in `buildMidnightBadgeNotification` (restored 2026-06-18).
 
 ## Clean Run (Expected)
@@ -15,7 +16,7 @@ Reminderly Self-Checks Report
 Run invocation id: [varies]
 Ran at: [varies]
 Duration: [varies]ms
-Passed: 340 | Failed: 0
+Passed: 327 | Failed: 0
 
 Schedule and reminder logic
 
@@ -338,19 +339,6 @@ Dev tools and feature flags
 ✓ Tutorial reminders sentinel: can be written to localStorage
 ✓ Tutorial lists sentinel: absent by default (no value persisted)
 ✓ Tutorial lists sentinel: can be written to localStorage
-✓ Filters menu: default is "grouped" when no value persisted
-✓ Filters menu: "standard" persists to localStorage
-✓ Filters menu: "grouped" persists to localStorage
-✓ Filters menu: hydrates "standard" correctly from localStorage
-✓ Filters menu: hydrates "grouped" correctly from localStorage
-✓ Show date/time subtitles: default is true when no value persisted
-✓ Show date/time subtitles: true persists to localStorage
-✓ Show date/time subtitles: false persists to localStorage
-✓ Show date/time subtitles: hydrates true correctly from localStorage
-✓ Show date/time subtitles: hydrates false correctly from localStorage
-✓ Show date/time subtitles: grouped-to-standard reset logic (false resets to true)
-✓ Show date/time subtitles: no reset when variant is grouped
-✓ Show date/time subtitles: no reset when already true
 ✓ Hide overdue: default is false on initial load
 ✓ Hide overdue: state can change to true
 ✓ Hide overdue: state can change to false
@@ -450,15 +438,13 @@ Notification and badge
   - List settings (sort apply, uncheck all): 3
   - Smart reminder overlay flows: 5
   - Smart reminder sync: 4
-- **Dev tools and feature flags checks** (dev-tools-checks.ts): 46
+- **Dev tools and feature flags checks** (dev-tools-checks.ts): 33
   - Dev tools password: 5
   - Paywall toggle: 5
   - Onboarding tutorial enabled: 5
   - Tutorial first-launch: 5
   - Tutorial every-start: 5
   - Tutorial sentinels (reminders + lists): 4
-  - Filters menu: 5
-  - Show date/time subtitles: 8
   - Hide overdue: 4
 - **Notification checks** (notification-checks.ts): 22
   - Badge count: 7
@@ -467,7 +453,7 @@ Notification and badge
   - Scheduling limits: 3
   - Midnight notification: 6
   - Refresh boundary: 2
-- **Total**: 340 checks across 9 suites
+- **Total**: 327 checks across 9 suites
 
 ## Runner Integrity Check
 

@@ -32,7 +32,7 @@ Overdue reminders use `#FF0000` (red) for:
 
 ### Filtering Behaviour
 
-Overdue reminders appear in every filter view (All, Today, This Week, Later, Sometime, and grouped "Later"). They are not restricted to their original category filter.
+Overdue reminders appear in every filter view (All, Today, This Week, Later, Sometime). They are not restricted to their original category filter.
 
 ```typescript
 if (isOverdue(r, now)) return true; // bypass category filter

@@ -21,8 +21,8 @@ User-facing screens and overlays.
 - **[New Reminder Overlay](../01-core-surfaces/new-reminder-overlay.md)** - Creating new reminders with NLC
 - **[Reminder Info Overlay](../01-core-surfaces/reminder-info-overlay.md)** - Viewing and editing reminder details
 - **[Repeats Overlay](../01-core-surfaces/repeats-overlay.md)** - Repeat configuration interface
-- **[Settings Overlay](../01-core-surfaces/settings-overlay.md)** - User settings and premium features
-- **[Tutorial Overlay](../01-core-surfaces/tutorial-overlay.md)** - 8-page onboarding tutorial system
+- **[Settings Overlay](../01-core-surfaces/settings-overlay.md)** - Removed legacy settings overlay
+- **[Tutorial Overlay](../01-core-surfaces/tutorial-overlay.md)** - Configuration-aware onboarding tutorial system
 - **[Dev Tools Overlay](../01-core-surfaces/dev-tools-overlay.md)** - Developer diagnostic tools
 
 ### ⚙️ 02-reminder-behaviour
@@ -87,7 +87,7 @@ Development, testing, and quality.
 Regex-based date, time, and repeat extraction from free text. As users type, recognised patterns highlight and can be applied via click or auto modes.
 
 ### Filter System
-Two variants (standard and grouped) provide categorised views: Today (blue), This week (pink), Later (orange), Sometime (grey).
+Filter buttons provide categorised views: Today (blue), This week (pink), Later (orange), Sometime (grey).
 
 ### Done/Deleted Archive
 Soft-delete with 350ms visual transitions, uncomplete/undelete capability, sub-filters (All/Done/Deleted), and 3-step clear-all.

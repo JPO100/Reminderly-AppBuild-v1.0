@@ -19,23 +19,17 @@ The active list is the default view on app load. It can be accessed from the don
 
 ### Filter Buttons
 
-Two variants controlled by `filtersMenuVariant` dev toggle:
+Rendered inside the white content panel (not the header), using the same filter row whether lists are enabled or disabled. The Done/Deleted filters render in the same row in the done/deleted view.
 
-**Standard filters (default)**
 - 4 pill buttons: Today, This week, Later, Sometime
 - "Sometime" button hidden below 390px viewport width
 - Spacing: `justify-between`
-- Active state: white background, `#4784F8` text
-- Inactive state: `rgba(255,255,255,0.15)` background, white text
+- Default state (no filter active): 1px inset category-coloured border, category-coloured text
+- Active state: white background, 2px inset category-coloured border, category-coloured text
+- Inactive state (another filter active): 1px inset `#D9D9D9` border, `#D9D9D9` text
 - Toggle behaviour: click inactive to activate, click active to reset to "all"
 
-**Grouped filters**
-- 3 pill buttons: Today, This week, Later (maps to "other" category: later + sometime)
-- Settings gear button on right (opens SettingsOverlay)
-- Same visual styling as standard
-- Same toggle behaviour
-
-All buttons: 40px height, 100px border-radius, 1px white border, 16px horizontal padding, Lato bold 14px.
+All buttons: 45px height, 100px border-radius, 16px horizontal padding, Lato bold 14px.
 
 ## Reminder Rows
 
@@ -45,7 +39,7 @@ All buttons: 40px height, 100px border-radius, 1px white border, 16px horizontal
 - Padding: 13px 1px
 - Gap: 16px between elements
 - Border-radius: 100px
-- Alignment: `items-start` (or `items-center` when subtitles hidden)
+- Alignment: `items-start`
 
 ### Structure
 ```
@@ -63,7 +57,7 @@ Row
 - No fill when active
 - Filled dark blue `#4784F8` with white tick when pending done
 - Filled grey `#939393` with white tick when pending delete
-- `marginTop: 3px` when subtitles visible (for alignment with title)
+- `marginTop: 3px` (for alignment with title)
 
 ### Text Column
 - Flex: 1 (fills available space)
@@ -71,8 +65,6 @@ Row
 - Subtitle: 13.5px Lato SemiBold, grey `#BABABA`
 - `line-through` decoration when pending done or pending delete
 - Truncation: `overflow-hidden`, `text-ellipsis`, `whitespace-nowrap`
-- Subtitle hidden when `showSubtitles === false`
-- `minHeight: 38px` when subtitles hidden (maintains row spacing)
 
 ### Subtitle Content
 Displays in priority order:
@@ -117,8 +109,7 @@ Displays in priority order:
 
 When `activeFilter !== "all"`:
 - Overdue reminders appear in every filter (bypass category check)
-- Standard mode: exact category match
-- Grouped mode "other": match "later" OR "sometime"
+- Exact category match
 
 ### Overdue Reminders
 

@@ -4,13 +4,9 @@ Consolidated from `/docs/filter-system.md` and `/docs/reminder-logic.md`.
 
 ## Filter System
 
-Reminderly has two filter menu variants for the active list, selectable via dev tools toggle.
+The reminder filter row is rendered inside the white content panel, using the same filter row whether lists are enabled or disabled. The Done/Deleted filters render in the same row in the done/deleted view.
 
-```typescript
-export type FiltersMenuVariant = "standard" | "grouped";
-```
-
-## Standard Filters (Default)
+## Filter Buttons
 
 Four filter pill buttons in a single row with `justify-between` spacing:
 
@@ -25,33 +21,10 @@ Four filter pill buttons in a single row with `justify-between` spacing:
 
 - Click inactive filter: activates it
 - Click active filter: resets to `"all"`
-- Active button: white background, `#4784F8` text
-- Inactive button: `rgba(255,255,255,0.15)` background, white text
-- All buttons: 40px height, 100px border-radius, 1px white border, 16px horizontal padding, Lato bold 14px
-
-## Grouped Filters
-
-Three filter buttons on left, settings button on right:
-
-| Button | Category | Notes |
-|--------|----------|-------|
-| Today | `"today"` | Same styling as standard |
-| This week | `"this-week"` | Same styling as standard |
-| Later | `"other"` | Maps to both "later" AND "sometime" categories |
-
-### "Other" Category Mapping
-
-The "Later" button in grouped mode uses category value `"other"`. Filter logic:
-
-```typescript
-if (activeFilter === "other") return cat === "later" || cat === "sometime";
-```
-
-Reminders categorised as either "later" or "sometime" appear when grouped "Later" filter is active.
-
-### Settings Button
-
-Settings gear button (LaterBtn component) opens SettingsOverlay. Only visible in grouped filters mode.
+- Default state (no filter active): 1px inset category-coloured border, category-coloured text
+- Active button: white background, 2px inset category-coloured border, category-coloured text
+- Inactive button (another filter active): 1px inset `#D9D9D9` border, `#D9D9D9` text
+- All buttons: 45px height, 100px border-radius, 16px horizontal padding, Lato bold 14px
 
 ### Label Display
 
@@ -67,13 +40,6 @@ Settings gear button (LaterBtn component) opens SettingsOverlay. Only visible in
 
 Note: both `"later"` and `"other"` display as "Later".
 
-## Switching Variants
-
-When filters menu variant changes (via dev tools):
-1. Variant state updates
-2. `activeFilter` resets to `"all"`
-3. If switching away from grouped mode and `showDateAndTimeSubtitles` is false, it auto-resets to true
-
 ## Overdue in Filters
 
 Overdue reminders appear in every filter view regardless of their category:
@@ -82,7 +48,7 @@ Overdue reminders appear in every filter view regardless of their category:
 if (isOverdue(r, now)) return true;
 ```
 
-This applies to both standard and grouped filter variants. Overdue reminders bypass category filtering.
+Overdue reminders bypass category filtering.
 
 ## Category System
 
@@ -107,7 +73,7 @@ Categories derived at render time from `schedule` field:
 - `schedule.kind === "sometime"`
 
 **other** - virtual category
-- Used in grouped filters mode
+- Not used by any current filter button
 - Maps to "later" OR "sometime"
 
 ### Categorisation Logic

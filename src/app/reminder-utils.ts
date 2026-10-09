@@ -30,8 +30,6 @@ export type RepeatConfig = {
 // View mode: standard reminder list vs done/deleted archive view
 export type ViewMode = "list" | "done-deleted";
 
-// Dev-only: filters menu variant for A/B testing
-export type FiltersMenuVariant = "standard" | "grouped";
 
 
 export const STORAGE_KEY = "reminderly.reminders.v1";

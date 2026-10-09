@@ -10,12 +10,11 @@ Reminderly is a mobile-first reminders application that combines natural languag
 Regex-based date, time, and repeat extraction from free text. As users type, recognised patterns are highlighted and can be applied to the reminder's schedule via click or auto-apply modes.
 
 ### Filter System
-Two filter menu variants (standard and grouped) provide categorised views of reminders:
+Filter buttons provide categorised views of reminders:
 - Today (blue)
 - This week (pink)
 - Later (orange)
 - Sometime (grey)
-Grouped mode combines Later and Sometime into a single "Later" filter.
 
 ### Completion and Deletion
 - Mark reminders as done with visual transitions

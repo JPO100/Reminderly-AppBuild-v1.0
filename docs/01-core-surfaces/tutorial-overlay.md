@@ -35,13 +35,14 @@ Reminder page 5 is controlled by the Dev Tools `Settings menu` feature flag.
 
 ## Lists Tutorial
 
-When the tutorial opens with `activeMainTab === 'lists'`, the lists variant is shown instead of the reminders variant. The lists tutorial has 8 pages (indexed `0-7`). Pages 0-4 have full interactive content; pages 5-7 are placeholder stubs.
+When the tutorial opens with `activeMainTab === 'lists'`, the lists variant is shown instead of the reminders variant. The lists tutorial has 3 core pages (indexed `0-2`), plus page 3 (`Create smart reminders`) when smart reminders are enabled and page 4 (`Use list templates`) when saved lists are enabled.
 
 Lists tutorial pages are rendered by the `ListsTutorialPlaceholderPage` component inside `TutorialOnboardingContent.tsx`. See [Onboarding and Tutorial](../04-settings-onboarding-and-premium/onboarding-and-tutorial.md) for full page descriptions.
 
 ## Access
 
-- opened from the settings overlay through the `Reminderly tutorial` row
+- opened from the header Reminders settings panel through the `Reminderly tutorial` row (requires the Dev Tools `Settings menu` toggle); always starts from the first page
+- opened automatically on launch according to the onboarding tutorial toggles
 - only rendered when the onboarding tutorial feature is enabled
 
 ## Wrapper Behaviour
@@ -62,7 +63,11 @@ The reminders tutorial page count is dynamic.
 
 - Base reminders tutorial: 5 pages, indexed `0` through `4`
 - Reminders tutorial with `settingsMenuEnabled`: 6 pages, indexed `0` through `5`
-- Lists tutorial: 8 pages, indexed `0` through `7` (pages 5-7 are placeholder stubs)
+- Lists tutorial: 3 to 5 pages - core pages `0`-`2`, plus `3` with smart reminders and `4` with saved lists
+
+Visible pages are selected by `getTutorialPageIds` (`src/app/utils/tutorial-pages.ts`) from the current feature state. Page ids stay fixed, so each page keeps its own content; the progress dots, Back, Next and Restart follow the visible sequence.
+
+Tutorial phone mock-ups mirror the Lists feature state: with Lists disabled the Reminders/Lists tab bar is hidden and the white panel sits directly under the logo, matching the app.
 
 `OnboardingPage7Content.tsx`, `OnboardingPage8Content.tsx`, and `OnboardingPage9Content.tsx` exist in the codebase but are not part of the active reminders tutorial flow.
 
@@ -82,14 +87,14 @@ Current behaviour:
 - `Restart` is hidden on the first page
 - `Next` advances until the final page
 - the final page calls `onComplete()`, which closes the overlay
-- the final page is determined by the active variant: reminders page count depends on `settingsMenuEnabled`; lists tutorial always has 8 pages
+- the final page is determined by the active variant: reminders page count depends on `settingsMenuEnabled`; lists page count depends on smart reminders and saved lists
 
 The overlay does not persist a completion state of its own.
 
 ## State
 
 - current page is held inside `TutorialOnboardingContent`
-- `TutorialOverlay` receives the current `filtersMenuVariant` and `variant` (`'reminders'` or `'lists'`)
+- `TutorialOverlay` receives the current `variant` (`'reminders'` or `'lists'`) plus `isListsEnabled`, `settingsMenuEnabled`, `smartRemindersEnabled` and `savedListsEnabled`
 - `App.tsx` tracks `tutorialVariant` and `tutorialVariantsShownThisSessionRef`
 - the overlay is closed externally through `onClose`
 

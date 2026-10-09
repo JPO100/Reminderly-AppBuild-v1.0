@@ -53,7 +53,6 @@ The current unlock password is implemented in `DevToolsOverlay.tsx`.
 - `dummy-reminders`
 - `dummy-lists`
 - `nlc`
-- `filters-menu`
 - `onboarding-tutorial`
 - `dev-tools-password`
 - `reminder-settings`
@@ -71,7 +70,6 @@ The home page is grouped into three sections.
 
 ### Developer settings
 
-- `Filters menu`
 - `Reminder settings`
 - `List settings`
 - `Dev tools password`
@@ -129,15 +127,6 @@ Controls NLC application mode:
 
 This page is only practically useful when the NLC feature flag is enabled.
 
-### Filters Menu
-
-Controls the reminder filter menu experiment:
-
-- `Grouped filters`
-- `Standard filters`
-
-When lists are enabled, this page is visually disabled and the displayed variant is forced to `standard`.
-
 ### Onboarding Tutorial
 
 Controls tutorial-related persisted state:
@@ -190,7 +179,6 @@ The overlay currently controls a mix of in-memory state and persisted settings.
 ### In-memory only
 
 - `nlcMode`
-- `filtersMenuVariant`
 - `hideOverdue`
 - `isDevToolsUnlocked`
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The tutorial system provides the reminders and lists onboarding flows. It is accessible from the Settings overlay when the tutorial feature flag is enabled.
+The tutorial system provides the reminders and lists onboarding flows. It can be re-run from the header Reminders settings panel (`Reminderly tutorial` row) when the tutorial feature flag and the Dev Tools `Settings menu` toggle are enabled. Tutorial content mirrors the current feature configuration: the phone mock-ups hide the Reminders/Lists tab bar when Lists are disabled, and pages for disabled features are omitted.
 
 The active reminders tutorial render path is:
 
@@ -23,18 +23,17 @@ The reminders tutorial has 5 base pages (indexed `0-4`). When the Dev Tools `Set
 
 ## Lists Tutorial Pages
 
-The lists tutorial is rendered by `ListsTutorialPlaceholderPage` inside `TutorialOnboardingContent.tsx`. It has 8 pages total (indexed `0-7`). Pages 0-4 have full interactive content. Pages 5-7 are placeholder stubs with "Setting title" / "Setting subtitle" text.
+The lists tutorial is rendered by `ListsTutorialPlaceholderPage` inside `TutorialOnboardingContent.tsx`. It has 3 core pages (indexed `0-2`). Page 3 is included only when smart reminders are enabled, and page 4 only when saved lists are enabled. Visible pages are selected by `getTutorialPageIds` (`src/app/utils/tutorial-pages.ts`).
 
 The tutorial variant is determined by the active tab when the tutorial opens: `activeMainTab === ‘lists’` opens the lists tutorial, otherwise the reminders tutorial opens. The variant is tracked by `tutorialVariant` state in `App.tsx`.
 
 ### Lists tutorial page titles and content
 
-1. **Page 0** - "A tour of lists" — lists are grouped by colour and filtered in the same way as reminders. Uses the shared tutorial phone with list filter items. Filter variant handling maps `todo` to `grouped-todo` and `started` to `almost` when using the grouped filter variant without saved lists.
+1. **Page 0** - "A tour of lists" — lists are grouped by colour and filtered in the same way as reminders. Uses the shared tutorial phone with list filter items.
 2. **Page 1** - "Manage completed lists" — move finished lists to done and view completed lists. Logo tick highlight throb triggers a transition to the done lists view, then cycles back. Uses the same throb/pause pattern as reminders page 4.
 3. **Page 2** - "View and edit lists" — quickly add, update, and organise lists. Opens a list editor overlay with a typing demo that inserts "Prepare update" into the "Work tasks" list. Add-button attention throb circle (50px), followed by auto-type at 80ms per character, item insertion with highlight, then a 2000ms post-insert pause before recycling.
-4. **Page 3** - "Create smart reminders" — link lists to reminders so you never miss important tasks. Multi-phase smart reminder flow: 3-dot menu throb on target list → list settings overlay opens → smart reminders toggle activates → settings closes → tab switches to reminders → smart reminder sheet appears with tick-button throb (62px circle) → sheet closes → reminder inserts into reminder list. The tab switching between lists and reminders is unique to this page.
-5. **Page 4** - "Use list templates" — create lists from ready-made templates. Multi-phase template editor flow: templates button throb → templates panel opens showing 6 templates (Weekly food shop, Morning routine, Weekend tasks, Packing list, Spaghetti bolognese, Pancakes) → "Weekly food shop" row throb → template editor opens with 8 items (Milk, Bread, Eggs, Chicken, Rice, Bananas, Pasta, Butter) → typing demo inserts "Olive oil" → add-button throb → item added → menu-button throb → template settings overlay appears.
-6. **Pages 5-7** - placeholder stubs, not yet built
+4. **Page 3** (smart reminders only) - "Create smart reminders" — link lists to reminders so you never miss important tasks. Multi-phase smart reminder flow: 3-dot menu throb on target list → list settings overlay opens → smart reminders toggle activates → settings closes → tab switches to reminders → smart reminder sheet appears with tick-button throb (62px circle) → sheet closes → reminder inserts into reminder list. The tab switching between lists and reminders is unique to this page.
+5. **Page 4** (saved lists only) - "Use list templates" — create lists from ready-made templates. Multi-phase template editor flow: templates button throb → templates panel opens showing 6 templates (Weekly food shop, Morning routine, Weekend tasks, Packing list, Spaghetti bolognese, Pancakes) → "Weekly food shop" row throb → template editor opens with 8 items (Milk, Bread, Eggs, Chicken, Rice, Bananas, Pasta, Butter) → typing demo inserts "Olive oil" → add-button throb → item added → menu-button throb → template settings overlay appears.
 
 ### Signed-off reminder tutorial pages 0-4
 
@@ -59,7 +58,7 @@ OnboardingPage5Content demonstrates the Done reminders view as a continuation of
 - Done state: the tab label changes to `Done reminders`, the logo tick changes to white fill with Reminderly blue tick, and the filter row changes to scaled `Done`, `Deleted`, and `Clear all` pills.
 - Done mini-list: only page 3 completed reminders appear. The `sometime` reminder remains excluded, and row 3-dot menu buttons are hidden in this Done mini-list.
 - Later phases: after the initial throb, each main-list or Done-list state pauses for 2000ms before the logo tick throb repeats and the view changes state.
-- The Done / Deleted pills mirror the main app Done / Deleted controls scaled to the tutorial mini size: 28px pill height, 9.751px text, 11.144px side padding, and 66px `Clear all` width.
+- The Done / Deleted pills mirror the main app Done / Deleted controls scaled to the tutorial mini size: 31.5px pill height (45px app buttons at tutorial scale), 9.751px text, 11.144px side padding, and 66px `Clear all` width.
 
 ### Optional page 5 behaviour
 

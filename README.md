@@ -27,7 +27,6 @@ src/
       DevToolsOverlay.tsx
       ReminderInfoOverlay.tsx
       RepeatsOverlay.tsx
-      SettingsOverlay.tsx
       figma/
         ImageWithFallback.tsx
       ui/                       # Platform-managed, unused (see below)
@@ -47,7 +46,6 @@ src/
     DevTools.tsx
     DummyReminders.tsx
     LaterBtn.tsx
-    LaterBtn-146-39.tsx
     svg-*.ts                    # SVG path data
   styles/
     fonts.css

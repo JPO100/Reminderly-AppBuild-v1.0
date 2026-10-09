@@ -1,36 +1,10 @@
 # Settings
 
-See [Settings Overlay](../01-core-surfaces/settings-overlay.md) for the current surface structure.
+See [Settings Overlay](../01-core-surfaces/settings-overlay.md).
 
-## Current User-Facing Settings
+The legacy settings overlay and its `Show date and time subtitles` setting, tutorial row and premium section were removed on branch `feature/lists-disabled-ui-refinement`.
 
-The current settings surface exposes one live user setting:
-
-### Show date and time subtitles
-
-- persistence key: `reminderly.showDateAndTimeSubtitles`
-- default: `true`
-- only changes reminder row subtitle visibility when grouped reminder filters are active
-- automatically resets to `true` when grouped filters are no longer active
-
-## Tutorial Access
-
-The settings surface can also expose tutorial re-entry:
-
-- row label: `Reminderly tutorial`
-- shown only when the onboarding tutorial feature is enabled
-- opens the tutorial bottom sheet
-
-## Premium Presentation
-
-When lists are enabled, settings also shows the premium marketing section:
-
-- `Unlimited reminders`
-- `Natural Language Capture`
-- `Repeat reminders`
-- CTA button pricing copy
-
-These controls are currently presentation only and do not unlock product state.
+The separate header settings button (Dev Tools `Settings menu` toggle) and its Reminders and Lists settings panels are unaffected. The header Reminders settings panel includes a `Reminderly tutorial` row (shown when the onboarding tutorial is enabled) that re-runs the tutorial from its first page.
 
 ## Related Documentation
 

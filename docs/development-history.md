@@ -15,6 +15,21 @@ Purpose: Primary development branch
 Status: Active
 Tip: a6ee791
 
+### settings-panel-header-update
+
+Created: 2026-10-09
+Parent: settings-menu-phase2-lists (4cb973d). Branched from Phase 2 because it is not yet merged into main (b724d52)
+Purpose: Reminders Settings and Lists Settings panel header update
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Header row height changed from 40px to 45px in both panels; title remains left-aligned and vertically centred
+- Close button changed from a 30 x 30px button with a grey 15px X to the supplied 45 x 45px blue circle Close SVG (stroke attributes written in JSX form)
+- Same implementation in both panels. Horizontal margins (24px), 30px gap to panel content, panel positioning, drag-to-close and close behaviour unchanged
+- Verified at 320, 375, 390 and 430px in both panels: header 45px, Close SVG 45 x 45px, title centre offset 0px, no overflow or clipping, both Close buttons close their panels
+- Tests: Vitest 53 passed. Self Check 334 passed, 0 failed (headless). Vite build succeeded. Deployed to iPhone 17 Pro simulator and physical iPhone 15 Pro
+
 ### settings-menu-phase2-lists
 
 Created: 2026-10-09

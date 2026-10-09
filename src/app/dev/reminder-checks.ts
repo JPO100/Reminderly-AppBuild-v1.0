@@ -16,6 +16,8 @@ import {
   formatRepeatLabel,
   isOverdue,
   STORAGE_KEY,
+  getDisplayCategory,
+  getFilterForSettingsMenu,
 } from '../reminder-utils';
 import type { Reminder } from '../reminder-utils';
 import { normaliseReminderText } from '../utils/normalise-text';
@@ -361,6 +363,96 @@ export function getReminderChecks(): Check[] {
         const now = new Date(2026, 1, 25, 12, 0);
         const r = makeReminder({ id: 'c4', schedule: { kind: 'sometime' } });
         assert(categoriseReminder(r, now) === 'sometime', 'Expected "sometime"');
+      },
+    },
+
+    // Settings menu (Phase 1): combined Later/Sometime presentation
+    {
+      id: 'settings-menu-display-category-on',
+      name: 'Settings menu on: Sometime displays as Later, other categories unchanged',
+      run: () => {
+        assert(getDisplayCategory('sometime', true) === 'later', 'Expected sometime to display as later');
+        assert(getDisplayCategory('later', true) === 'later', 'Expected later unchanged');
+        assert(getDisplayCategory('today', true) === 'today', 'Expected today unchanged');
+        assert(getDisplayCategory('this-week', true) === 'this-week', 'Expected this-week unchanged');
+      },
+    },
+
+    {
+      id: 'settings-menu-display-category-off',
+      name: 'Settings menu off: Sometime keeps its own display category',
+      run: () => {
+        assert(getDisplayCategory('sometime', false) === 'sometime', 'Expected sometime unchanged');
+        assert(getDisplayCategory('later', false) === 'later', 'Expected later unchanged');
+      },
+    },
+
+    {
+      id: 'settings-menu-filter-on',
+      name: 'Settings menu on: Later and Sometime filters switch to combined Later',
+      run: () => {
+        assert(getFilterForSettingsMenu('sometime', true) === 'other', 'Expected sometime -> other');
+        assert(getFilterForSettingsMenu('later', true) === 'other', 'Expected later -> other');
+        assert(getFilterForSettingsMenu('today', true) === 'today', 'Expected today unchanged');
+        assert(getFilterForSettingsMenu('all', true) === 'all', 'Expected all unchanged');
+      },
+    },
+
+    {
+      id: 'settings-menu-filter-off',
+      name: 'Settings menu off: combined Later filter restores standard Later',
+      run: () => {
+        assert(getFilterForSettingsMenu('other', false) === 'later', 'Expected other -> later');
+        assert(getFilterForSettingsMenu('sometime', false) === 'sometime', 'Expected sometime unchanged');
+        assert(getFilterForSettingsMenu('this-week', false) === 'this-week', 'Expected this-week unchanged');
+      },
+    },
+
+    {
+      id: 'settings-menu-filter-round-trip',
+      name: 'Settings menu on -> off -> on: filter is always a visible filter',
+      run: () => {
+        let filter = getFilterForSettingsMenu('sometime', true);
+        assert(filter === 'other', 'Expected other after on');
+        filter = getFilterForSettingsMenu(filter, false);
+        assert(filter === 'later', 'Expected later after off');
+        filter = getFilterForSettingsMenu(filter, true);
+        assert(filter === 'other', 'Expected other after on again');
+      },
+    },
+
+    {
+      id: 'settings-menu-combined-order',
+      name: 'Settings menu: combined Later lists dated Later before undated Sometime',
+      run: () => {
+        const now = new Date(2026, 1, 25, 12, 0);
+        const sometime = makeReminder({ id: 'sm-s', schedule: { kind: 'sometime' }, createdAt: 1000 });
+        const later = makeReminder({ id: 'sm-l', schedule: { kind: 'scheduled', date: '2026-04-10' }, createdAt: 2000 });
+        const sorted = sortReminders([sometime, later], now);
+        assert(sorted[0].id === 'sm-l' && sorted[1].id === 'sm-s', 'Expected dated Later first, then Sometime');
+      },
+    },
+
+    {
+      id: 'settings-menu-data-unchanged',
+      name: 'Settings menu: presentation helpers do not change stored reminders',
+      run: () => {
+        withIsolatedStorage(() => {
+          const now = new Date(2026, 1, 25, 12, 0);
+          const stored = [
+            makeReminder({ id: 'sm-d1', schedule: { kind: 'sometime' }, createdAt: 1000 }),
+            makeReminder({ id: 'sm-d2', schedule: { kind: 'scheduled', date: '2026-04-10' }, createdAt: 2000 }),
+          ];
+          const raw = JSON.stringify(stored);
+          localStorage.setItem(STORAGE_KEY, raw);
+          const loaded = loadReminders();
+          for (const enabled of [true, false, true]) {
+            loaded.forEach((r) => getDisplayCategory(categoriseReminder(r, now), enabled));
+          }
+          assert(localStorage.getItem(STORAGE_KEY) === raw, 'Expected stored reminders unchanged');
+          assert(loaded[0].schedule.kind === 'sometime', 'Expected Sometime reminder to stay undated');
+          assert(categoriseReminder(loaded[0], now) === 'sometime', 'Expected derived category unchanged');
+        });
       },
     },
 

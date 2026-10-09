@@ -47,19 +47,34 @@ Reminderly uses a systematic spacing scale based on multiples of 4px and specifi
 - **Filter row spacing and pill layout**: controlled centrally by `TutorialReminderFilters.tsx`
 - **Page files do not own tutorial phone shell sizing or frame spacing**
 
-### Overlays
+### Panel standards
+
+Applies to the main Reminders and Lists panels and every slide-up panel (Reminders and Lists settings, Templates, Lists editor, New and edit reminder, Repeats, Dev tools). Centred popup dialogs and the onboarding tutorial are excluded.
 
 - **Top padding**: 26px
-- **Horizontal padding**: 20px
+- **Header**: 45px high, title left, 45 x 45 button(s) right. Main panels use the filters row as the header
+- **Close button**: 45 x 45 blue (#4784F8) circle with a white cross
+- **Header to content**: 26px. No separator line below the header
+- **Content to bottom button**: 24px (New reminder, New list, Templates)
+- **Bottom space**: 24px from the last element (button or content) to the bottom of the screen. Exception: Reminders and Lists done/deleted pages have 0px
+- **Top corners**: 15px (top left and top right) on every panel
+- **Horizontal padding**: 20px on the main panels and Dev tools, 24px on the other slide-up panels
 - **Content max-width**: 768px
-- **Border-radius**: 20px (top corners)
+- **Main panel min-height**: 350px
 
-### White Card
+Where a container gap also spaces other content (for example the list above a bottom button, or Dev tools sections), header spacing is adjusted with a margin on the header instead of changing the shared gap.
 
-- **Padding**: 20px
-- **Gap**: 32px (between sections)
-- **Border-radius**: 20px 20px 0 0 (top corners only)
-- **Min-height**: 350px
+Headers with a subtitle (Lists editor): the title row and subtitle are treated as one header block, so the 26px header to content space is measured from the bottom of the subtitle (about 40px below the 45px title row).
+
+### Row menu (3-dot) button
+
+- When the settings menu is on, row 3-dot buttons are inset 11.5px from the right (`RowMenuButton` `alignWithSettingsButton`) so the dots centre under the 45px button at the top right of the panel
+- Applies to Reminders and Lists rows, both done/deleted pages and Templates
+- Unchanged when the settings menu is off
+
+### Settings panels
+
+- Toggle rows first, then click-through rows. System settings section last, after a separator
 
 ### List Container
 

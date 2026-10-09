@@ -1131,7 +1131,7 @@ function ListsTutorialPlaceholderPage({
                     }}
                   >
                     <div ref={setPage5EditorHostElement} className="relative w-full h-full flex flex-col mx-auto">
-                      <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
+                      <div className="content-stretch flex flex-col gap-[26px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
                         <ListsHeader
                           value="Weekly food shop"
                           onChange={() => {}}

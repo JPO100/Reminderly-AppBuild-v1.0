@@ -15,23 +15,20 @@ function ToggleBtn({ isOn, onToggle }: { isOn: boolean; onToggle: () => void }) 
 
 function Header({ onClose }: { onClose: () => void }) {
   return (
-    <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-name="header">
+    <div className="content-stretch flex items-center justify-between relative shrink-0 w-full h-[45px]" data-name="header">
       <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] whitespace-nowrap">
         <p className="leading-[normal]">Dev tools</p>
       </div>
       <button
+        className="relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center cursor-pointer w-[45px] h-[45px]"
+        type="button"
         onClick={onClose}
-        className="flex items-center justify-center relative shrink-0 size-[25.456px] cursor-pointer"
         aria-label="Close dev tools"
-        style={{ "--transform-inner-width": "1200", "--transform-inner-height": "19" } as React.CSSProperties}
       >
-        <div className="flex-none rotate-45">
-          <div className="relative size-[18px]" data-name="Union">
-            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-              <path d={svgPaths.p1cbc7100} fill="var(--fill-0, #1C2C42)" id="Union" />
-            </svg>
-          </div>
-        </div>
+        <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+          <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
       </button>
     </div>
   );
@@ -186,7 +183,7 @@ export default function DevTools({
 
   return (
     <>
-    <div className="bg-white content-stretch flex flex-col gap-[30px] items-start pb-[30px] pt-[30px] px-[20px] relative rounded-tl-[20px] rounded-tr-[20px] size-full" data-name="dev-tools">
+    <div className="bg-white content-stretch flex flex-col gap-[26px] items-start pb-[24px] pt-[26px] px-[20px] relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="dev-tools">
       <Header onClose={onClose} />
       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[32px] items-center min-h-px min-w-px relative w-full">
         <div className="content-stretch flex flex-col items-start relative w-full" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>

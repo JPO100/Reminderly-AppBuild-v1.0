@@ -3486,11 +3486,11 @@ export default function App() {
       )}
 
       {/* Reminder list container */}
-      <div className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative ${isListsEnabled ? 'rounded-tl-[15px] rounded-tr-[15px]' : 'rounded-tl-[20px] rounded-tr-[20px]'} w-full flex-1 min-h-[350px]`}>
+      <div className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[26px] relative rounded-tl-[15px] rounded-tr-[15px] w-full flex-1 min-h-[350px]`}>
         {isListsEnabled && activeMainTab === 'lists' ? (
           <>
           {viewMode === 'lists-done' && (
-            <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
+            <div className="filters-menu flex items-center justify-between relative shrink-0 w-full mb-[2px]">
               <div className="flex items-center gap-[12px]">
                 <button
                   onClick={() => setViewMode('list')}
@@ -3677,7 +3677,7 @@ export default function App() {
                                 </div>
                               </div>
                             </div>
-                            <RowMenuButton onClick={() => isSavedList ? setSavedDeletedListInfoId(list.id) : setDoneInfoTarget({ kind: 'list', id: list.id })} />
+                            <RowMenuButton onClick={() => isSavedList ? setSavedDeletedListInfoId(list.id) : setDoneInfoTarget({ kind: 'list', id: list.id })} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                           </div>
                         </motion.div>
                       );
@@ -3756,7 +3756,7 @@ export default function App() {
               // Settings menu or List templates on: visible filters grouped left with 10px gaps, action buttons grouped right with 10px gaps
               if (settingsMenuFeatureEnabled || savedListsFeatureEnabled) {
                 return (
-                  <div className="filters-menu flex items-center justify-between gap-[10px] relative shrink-0 w-full">
+                  <div className="filters-menu flex items-center justify-between gap-[10px] relative shrink-0 w-full mb-[2px]">
                     <div className="flex items-center gap-[10px]">{filterPills}</div>
                     <div className="flex items-center gap-[10px]">
                       {savedListsFeatureEnabled && templatesButton}
@@ -3766,7 +3766,7 @@ export default function App() {
                 );
               }
               return (
-                <div className="filters-menu flex items-center gap-[18px] min-[389px]:max-[406px]:gap-[10px] relative shrink-0 w-full">
+                <div className="filters-menu flex items-center gap-[18px] min-[389px]:max-[406px]:gap-[10px] relative shrink-0 w-full mb-[2px]">
                   {filterPills}
                 </div>
               );
@@ -3891,7 +3891,7 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <RowMenuButton onClick={() => setListInfoOverlayListId(list.id)} />
+                          <RowMenuButton onClick={() => setListInfoOverlayListId(list.id)} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                         </div>
                       </motion.div>
                     );
@@ -3939,7 +3939,7 @@ export default function App() {
               </div>
             </div>
             {/* Add new list button */}
-            <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[34px] shrink-0">
+            <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
               <button
                 className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full transition-colors"
                 style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
@@ -3962,7 +3962,7 @@ export default function App() {
         ) : (
         <>
         {/* Filter buttons — rendered inside the container */}
-        <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
+        <div className="filters-menu flex items-center justify-between relative shrink-0 w-full mb-[2px]">
           {viewMode === "done-deleted" ? (<div
             className="flex items-center justify-between w-full"
           >
@@ -4218,7 +4218,7 @@ export default function App() {
                             </div>
                           </div>
                         </div>
-                        <RowMenuButton onClick={() => setDoneInfoTarget({ kind: 'reminder', id: item.id })} />
+                        <RowMenuButton onClick={() => setDoneInfoTarget({ kind: 'reminder', id: item.id })} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                       </div>
                     </motion.div>
                   ))}
@@ -4453,7 +4453,7 @@ export default function App() {
 
         {/* New reminder button - fixed at bottom */}
         {viewMode !== "done-deleted" && (
-        <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[34px] shrink-0">
+        <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
           <button
             className="bg-[#4784f8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full transition-colors"
             style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
@@ -4580,7 +4580,7 @@ export default function App() {
                   onPointerDown={(event) => templatesSheetDragControls.start(event)}
                 />
                 <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
+                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[26px] px-[24px] relative w-full shrink-0">
                     <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
                       <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
                         Templates
@@ -4598,7 +4598,7 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-                  <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0 px-[24px] mt-[30px]">
+                  <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0 px-[24px] mt-[26px]">
                     <div className="relative w-full max-w-[768px] flex-1 min-h-0">
                       <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: savedListsPanelOpen ? 'auto' : 'hidden', height: '100%' }}>
                         {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).length === 0 ? (
@@ -4650,7 +4650,7 @@ export default function App() {
                                     </div>
                                   </div>
                                 </div>
-                                <RowMenuButton onClick={() => setSavedListMenuId(list.id)} />
+                                <RowMenuButton onClick={() => setSavedListMenuId(list.id)} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                               </div>
                               </motion.div>
                             );
@@ -4660,7 +4660,7 @@ export default function App() {
                         )}
                       </div>
                     </div>
-                    <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[34px] shrink-0">
+                    <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
                       <button
                         type="button"
                         className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
@@ -4780,7 +4780,7 @@ export default function App() {
                   onPointerDown={(event) => listsSheetDragControls.start(event)}
                 />
                 <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
+                  <div className="content-stretch flex flex-col gap-[26px] items-start pt-[26px] px-[24px] relative w-full shrink-0">
                     <ListsHeader
                       value={listTitle}
                       onChange={setListTitle}

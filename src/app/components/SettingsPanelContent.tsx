@@ -40,9 +40,8 @@ function PanelHeader({ title, onBack, onClose, closeLabel }: { title: string; on
 
 function PanelShell({ title, closeLabel, subPage, onBack, onClose, children }: { title: string; closeLabel: string; subPage: string | null; onBack: () => void; onClose: () => void; children: ReactNode }) {
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start pt-[30px] pb-[60px] px-[24px] relative w-full flex-1 min-h-0" style={{ overflowY: 'auto' }}>
+    <div className="content-stretch flex flex-col gap-[26px] items-start pt-[26px] pb-[24px] px-[24px] relative w-full flex-1 min-h-0" style={{ overflowY: 'auto' }}>
       <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} onClose={onClose} closeLabel={closeLabel} />
-      <KeyLine />
       {!subPage && (
         <div className="content-stretch flex flex-col gap-[30px] items-start relative w-full shrink-0">
           {children}
@@ -64,12 +63,12 @@ export function RemindersSettingsContent({ onClose, topContent, useOneMinuteIncr
   return (
     <PanelShell title="Reminders settings" closeLabel="Close reminders settings" subPage={subPage} onBack={() => setSubPage(null)} onClose={onClose}>
       {topContent}
-      <MenuRow label="Natural Language Capture" onClick={() => setSubPage("Natural Language Capture")} infoTitle="Reminderly can pick out dates, times and repeats as you type, such as 'tomorrow at 3pm' or 'every Monday'. Choose what is recognised and how it works." />
-      <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you complete or delete a reminder." />
-      <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />
       <ToggleRow label="Show calendar" isOn={showCalendar} onToggle={() => setShowCalendar(prev => !prev)} infoTitle="Shows a calendar view so you can see your reminders by date." />
       <ToggleRow label="Use 1 minute time increments" isOn={oneMinute} onToggle={() => setOneMinute(prev => !prev)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 5 minute steps." />
       <ToggleRow label="Show reminder sub-titles" isOn={showSubtitles} onToggle={() => setShowSubtitles(prev => !prev)} infoTitle="Shows extra detail under each reminder, such as its date, time and repeat." />
+      <MenuRow label="Natural Language Capture" onClick={() => setSubPage("Natural Language Capture")} infoTitle="Reminderly can pick out dates, times and repeats as you type, such as 'tomorrow at 3pm' or 'every Monday'. Choose what is recognised and how it works." />
+      <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you complete or delete a reminder." />
+      <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />
       <KeyLine />
       <SectionSubtitle text="System settings" />
       <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />
@@ -84,9 +83,9 @@ export function ListsSettingsContent({ onClose, siriOn, onSiriChange }: { onClos
 
   return (
     <PanelShell title="Lists settings" closeLabel="Close lists settings" subPage={subPage} onBack={() => setSubPage(null)} onClose={onClose}>
-      <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />
       <ToggleRow label="Use Smart Reminders" isOn={smartReminders} onToggle={() => setSmartReminders(prev => !prev)} infoTitle="Link a reminder to a list so it tracks your progress, for example '3 of 5 items'." />
       <ToggleRow label="Use list templates" isOn={listTemplates} onToggle={() => setListTemplates(prev => !prev)} infoTitle="Save a list as a template so you can reuse it again and again, such as a packing or shopping list." />
+      <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />
       <KeyLine />
       <SectionSubtitle text="System settings" />
       <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />

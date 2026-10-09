@@ -821,3 +821,19 @@ Completed:
 - List header subtitle offset (4.25px) and tap pass-through accepted. Title/subtitle horizontal alignment left unchanged at 24px; optional 1px nudge not applied
 
 Test results: Vitest 53/53 passed. Production build successful. Self Check 334 passed, 0 failed. Simulator (iPhone 17 Pro): New reminder inactive (#D9D9D9) and active (blue) tick, Edit reminder header; nothing saved. Browser preview (402px): list panel active and inactive buttons, three-dot opens list settings from its bottom edge, template editor header, Reminders settings keyline (24px either side), tutorial list mock-up. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (panel spacing and layout standardisation)
+
+Branch: feature/ui-tweaks (created from main)
+
+Completed:
+- Panel top padding standardised to 26px on all panels (main Reminders and Lists, settings, Templates, Lists editor, New and edit reminder, Repeats, Dev tools)
+- Header to content space standardised to 26px (except Lists editor, which stays 30px below its subtitle). Margins used where a shared container gap also spaces other content
+- Top corner radius standardised to 15px on all panels. Main panel no longer switches to 20px when Lists is off; Dev tools 20px to 15px
+- Bottom space standardised to 24px on all panels; bottom buttons now 24px from the content above and 24px from the bottom of the screen. Reminders and Lists done/deleted pages left at 0px
+- Dev tools headers (home and sub-pages) set to 45px high with the standard 45 x 45 close button
+- Settings panels: separator below the header removed; rows reordered with toggles first, then click-through rows
+- Row 3-dot button aligned with the 45px top right button when settings are on, now on Lists rows, both done/deleted pages and Templates (Reminders rows already aligned)
+- docs/05-design-and-layout/sizing-spacing.md updated with the panel standards
+
+Test results: Vitest 53/53 passed. Production build successful. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator after each change; visual checks by user on device.

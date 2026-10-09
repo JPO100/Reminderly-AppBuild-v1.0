@@ -13,7 +13,12 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: 9dfaf5e
+Tip: 9271189
+
+Merge - 2026-10-09: Settings panels phase 1 (UI only)
+- Fast-forward merge of feature/settings-panels-ui into main, 81f8306 to 9271189 (no merge commit)
+- Reminders and Lists settings panels use Dev Tools style click-through and toggle rows with info pop-ups, a key line and a System settings section. Click-through rows open empty titled pages. Toggles are not saved; Use Siri shortcuts is shared by both panels. Functionality to be wired in phase 2
+- Verification on main: Vitest 53/53, production build successful. Self Check not run
 
 Merge - 2026-10-09: Reminder three-dot alignment
 - Fast-forward merge of feature/reminder-menu-alignment into main, d5660d4 to 9dfaf5e (no merge commit)
@@ -36,7 +41,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 Created: 2026-10-09
 Parent: main (81f8306)
 Purpose: Settings panels phase 1 - Dev Tools style rows in the Reminders and Lists header settings panels (UI only)
-Status: Active, not merged
+Status: Merged into main (fast-forward to 9271189, 2026-10-09)
 
 ### feature/reminder-menu-alignment
 

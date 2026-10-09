@@ -9,7 +9,6 @@ type NotificationTapHandlerOptions = {
     setIsOverlayOpen: (value: boolean) => void;
     setIsListsOverlayOpen: (value: boolean) => void;
     setIsRepeatsOverlayOpen: (value: boolean) => void;
-    setIsSettingsOpen: (value: boolean) => void;
     setViewMode: (value: ViewMode) => void;
     setActiveFilter: (value: ReminderCategory | "all") => void;
     setInfoReminder: (reminder: Reminder | null) => void;
@@ -24,7 +23,6 @@ export function useNotificationTapHandler({
     setIsOverlayOpen,
     setIsListsOverlayOpen,
     setIsRepeatsOverlayOpen,
-    setIsSettingsOpen,
     setViewMode,
     setActiveFilter,
     setInfoReminder,
@@ -59,7 +57,6 @@ export function useNotificationTapHandler({
             setIsOverlayOpen(false);
             setIsListsOverlayOpen(false);
             setIsRepeatsOverlayOpen(false);
-            setIsSettingsOpen(false);
             setActiveMainTab("reminders");
             setViewMode("list");
             setActiveFilter("all");
@@ -89,7 +86,6 @@ export function useNotificationTapHandler({
         setIsListsOverlayOpen,
         setIsOverlayOpen,
         setIsRepeatsOverlayOpen,
-        setIsSettingsOpen,
         setIsTutorialOpen,
         setViewMode,
         onMarkAsDone,

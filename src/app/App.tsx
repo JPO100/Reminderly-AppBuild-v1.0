@@ -9,7 +9,6 @@ import NewReminderOverlay from "../imports/NewReminderOverlay";
 import DevToolsOverlay from "./components/DevToolsOverlay";
 import RepeatsOverlay from "./components/RepeatsOverlay";
 import ReminderInfoOverlay from "./components/ReminderInfoOverlay";
-import SettingsOverlay from "./components/SettingsOverlay";
 import TutorialOverlay from "./components/TutorialOverlay";
 import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
@@ -28,7 +27,6 @@ import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from 
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
 import listInfoOverlayPaths from "../imports/svg-oxn8g14l6y";
-import LaterBtn from "../imports/LaterBtn-146-39";
 import ListsHeader from "../imports/Header";
 import InfoOverlay from "../imports/InfoOverlay";
 import ListInfoOverlay from "../imports/list-info-overlay";
@@ -100,15 +98,7 @@ const CATEGORY_COLOURS: Record<string, string> = {
   other: "#FDB146",
 };
 
-function getReminderFilterPillStyle(filter: ReminderCategory, activeFilter: ReminderCategory | "all", listsOff?: boolean) {
-  if (listsOff) {
-    const isActive = activeFilter === filter;
-    if (isActive) {
-      return { color: '#4784F8' };
-    }
-    return { boxShadow: 'inset 0 0 0 1px #ffffff', color: '#ffffff' };
-  }
-
+function getReminderFilterPillStyle(filter: ReminderCategory, activeFilter: ReminderCategory | "all") {
   const pillColor = CATEGORY_COLOURS[filter] || "#939393";
   const isActive = activeFilter === filter;
   const isDefault = activeFilter === "all";
@@ -996,7 +986,6 @@ export default function App() {
     }
   });
   const [isRepeatsOverlayOpen, setIsRepeatsOverlayOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialVariant, setTutorialVariant] = useState<TutorialVariant>('reminders');
   const [isRemindersSettingsPanelOpen, setIsRemindersSettingsPanelOpen] = useState(false);
@@ -1844,7 +1833,6 @@ export default function App() {
   const showSubtitles = !(filtersMenuVariant === 'grouped' && !showDateAndTimeSubtitles);
 
   // Derived: effective filter variant for rendering (lists mode forces standard)
-  const effectiveFiltersVariant = isListsEnabled ? 'standard' : filtersMenuVariant;
 
   // Helper: cancel and delete entries for a given id from all timer maps.
   const cancelAllTimersForId = (id: string) => {
@@ -2188,18 +2176,12 @@ export default function App() {
   const reminderSheetDragControls = useDragControls();
   const listsSheetDragControls = useDragControls();
   const repeatsSheetDragControls = useDragControls();
-  const settingsSheetDragControls = useDragControls();
   const tutorialSheetDragControls = useDragControls();
   const remindersSettingsSheetDragControls = useDragControls();
   const listsSettingsSheetDragControls = useDragControls();
 
   const shouldCloseBottomSheetFromDrag = (offsetY: number, velocityY: number) => {
     return offsetY > 120 || velocityY > 600;
-  };
-
-  const handleTutorialOpen = () => {
-    openTutorial(activeMainTab === 'lists' && isListsEnabled ? 'lists' : 'reminders');
-    setTimeout(() => setIsSettingsOpen(false), 250);
   };
 
   const handleHeaderMenuClick = useCallback(() => {
@@ -3239,7 +3221,6 @@ export default function App() {
     setIsOverlayOpen,
     setIsListsOverlayOpen,
     setIsRepeatsOverlayOpen,
-    setIsSettingsOpen,
     setViewMode,
     setActiveFilter,
     setInfoReminder,
@@ -3610,134 +3591,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Filter buttons — hidden when Lists mode is active (rendered inside container instead) */}
-          {!isListsEnabled && (
-          <div className="filters-menu flex items-center justify-between relative shrink-0 w-full" style={{ marginTop: 2 }}>
-            {viewMode === "done-deleted" ? (<div
-              className="flex items-center justify-between w-full"
-            >
-              {/* Done/deleted view filters */}
-              <div className="flex items-center gap-[12px]">
-                <button
-                  onClick={() => setViewMode("list")}
-                  className="hidden relative shrink-0 self-center cursor-pointer"
-                  style={{ width: 50, height: 40 }}
-                  aria-label="Back to reminders"
-                >
-                  <svg className="block" style={{ width: 50, height: 40 }} fill="none" viewBox="0 0 50 40">
-                    <rect fill="white" fillOpacity="0.15" height="39" rx="19.5" width="49" x="0.5" y="0.5" />
-                    <rect height="39" rx="19.5" stroke="white" width="49" x="0.5" y="0.5" />
-                  </svg>
-                  <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: 8, height: 13 }} fill="none" viewBox="20.88 13.38 7.76 13.24">
-                    <path d={laterBtnPaths.p17336800} fill="white" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => {
-                    setDoneDeletedFilter(doneDeletedFilter === 'done' ? 'all' : 'done');
-                  }}
-                  className={`${
-                    doneDeletedFilter === 'done'
-                      ? "bg-white"
-                      : "bg-[rgba(255,255,255,0.15)] text-white"
-                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
-                  style={doneDeletedFilter === 'done' ? { boxShadow: `inset 0 0 0 2px ${DONE_BLUE}`, color: DONE_BLUE } : { boxShadow: 'inset 0 0 0 1px #FFFFFF' }}
-                >
-                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                    Done
-                  </div>
-                </button>
-                <button
-                  onClick={() => {
-                    setDoneDeletedFilter(doneDeletedFilter === 'deleted' ? 'all' : 'deleted');
-                  }}
-                  className={`${
-                    doneDeletedFilter === 'deleted'
-                      ? "bg-white"
-                      : "bg-[rgba(255,255,255,0.15)] text-white"
-                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
-                  style={doneDeletedFilter === 'deleted' ? { boxShadow: `inset 0 0 0 2px ${DELETED_GREY}`, color: DELETED_GREY } : { boxShadow: 'inset 0 0 0 1px #FFFFFF' }}
-                >
-                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                    Deleted
-                  </div>
-                </button>
-              </div>
-              {/* Clear all button */}
-              <button
-                ref={clearAllButtonRef}
-                onClick={isClearAllDisabled ? undefined : handleClearListClick}
-                disabled={isClearAllDisabled}
-                className={`${
-                  isClearAllDisabled
-                    ? "text-[#CCCCCC]"
-                    : clearListStep === 0
-                    ? "bg-[rgba(255,255,255,0.15)] text-white"
-                    : "bg-white text-[#4784F8]"
-                } content-stretch flex items-center justify-center h-[45px] w-[95px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-white"}`}
-              >
-                <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                  {clearListStep === 0 ? "Clear all" : clearListStep === 1 ? "Clear all?" : "Cleared!"}
-                </div>
-              </button>
-            </div>) : filtersMenuVariant === "grouped" ? (
-              <>
-                <div className="flex items-center gap-[12px]">
-                  {(["today", "this-week", "other"] as ReminderCategory[]).map((filter) => {
-                    const isActive = activeFilter === filter;
-                    return (
-                    <button
-                      key={filter}
-                      onClick={() => {
-                        setActiveFilter(activeFilter === filter ? "all" : filter);
-                      }}
-                      className={`${
-                        isActive
-                          ? "bg-white"
-                          : "bg-[rgba(255,255,255,0.15)] text-white"
-                      } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                        filter === "other" ? "hidden min-[390px]:flex" : ""
-                      }`}
-                      style={getReminderFilterPillStyle(filter, activeFilter, !isListsEnabled)}
-                    >
-                      <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                        {getCategoryLabel(filter)}
-                      </div>
-                    </button>
-                    );
-                  })}
-                </div>
-                <div className="shrink-0 h-[40px] cursor-pointer" onClick={() => setIsSettingsOpen(true)}>
-                  <LaterBtn />
-                </div>
-              </>
-            ) : (
-              (["today", "this-week", "later", "sometime"] as ReminderCategory[]).map((filter) => {
-                const isActive = activeFilter === filter;
-                return (
-                <button
-                  key={filter}
-                  onClick={() => {
-                    setActiveFilter(activeFilter === filter ? "all" : filter);
-                  }}
-                  className={`${
-                    isActive
-                      ? "bg-white"
-                      : "bg-[rgba(255,255,255,0.15)] text-white"
-                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                    filter === "sometime" ? "hidden min-[390px]:flex" : ""
-                  }`}
-                  style={getReminderFilterPillStyle(filter, activeFilter, !isListsEnabled)}
-                >
-                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                    {getCategoryLabel(filter)}
-                  </div>
-                </button>
-                );
-              })
-            )}
-          </div>
-          )}
         </div>
       </div>
 
@@ -4041,37 +3894,6 @@ export default function App() {
                         </svg>
                       </div>
                     </button>
-                  </>
-                ) : effectiveFiltersVariant === "grouped" ? (
-                  <>
-                    <div className="flex items-center gap-[12px]">
-                      {(["complete", "almost", "grouped-todo"] as const).map((filter) => {
-                        const isActive = activeListFilter === filter;
-                        return (
-                        <button
-                          key={filter}
-                          onClick={() => {
-                            setActiveListFilter(activeListFilter === filter ? "all" : filter);
-                          }}
-                          className={`${
-                            isActive
-                              ? "bg-white"
-                              : "text-[#4784F8]"
-                          } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                            filter === "grouped-todo" ? "hidden min-[390px]:flex" : ""
-                          }`}
-                          style={getListFilterPillStyle(filter, activeListFilter)}
-                        >
-                          <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                            {filter === "complete" ? "Complete" : filter === "almost" ? "Almost" : "Todo"}
-                          </div>
-                        </button>
-                        );
-                      })}
-                    </div>
-                    <div className="shrink-0 h-[40px] cursor-pointer" onClick={() => setIsSettingsOpen(true)}>
-                      <LaterBtn />
-                    </div>
                   </>
                 ) : (
                   (["complete", "almost", "started", "todo"] as const).map((filter) => {
@@ -4403,8 +4225,7 @@ export default function App() {
           </>
         ) : (
         <>
-        {/* Filter buttons — Lists mode: rendered here inside the container */}
-        {isListsEnabled && (
+        {/* Reminder filters */}
         <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
           {viewMode === "done-deleted" ? (<div
             className="flex items-center justify-between w-full"
@@ -4474,38 +4295,7 @@ export default function App() {
                 {clearListStep === 0 ? "Clear all" : clearListStep === 1 ? "Clear all?" : "Cleared!"}
               </div>
             </button>
-          </div>) : effectiveFiltersVariant === "grouped" ? (
-            <>
-              <div className="flex items-center gap-[12px]">
-                {(["today", "this-week", "other"] as ReminderCategory[]).map((filter) => {
-                  const isActive = activeFilter === filter;
-                  return (
-                  <button
-                    key={filter}
-                    onClick={() => {
-                      setActiveFilter(activeFilter === filter ? "all" : filter);
-                    }}
-                    className={`${
-                      isActive
-                        ? "bg-white"
-                        : "text-[#4784f8]"
-                    } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                      filter === "other" ? "hidden min-[390px]:flex" : ""
-                    }`}
-                    style={getReminderFilterPillStyle(filter, activeFilter)}
-                  >
-                    <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                      {getCategoryLabel(filter)}
-                    </div>
-                  </button>
-                  );
-                })}
-              </div>
-              <div className="shrink-0 h-[40px] cursor-pointer" onClick={() => setIsSettingsOpen(true)}>
-                <LaterBtn />
-              </div>
-            </>
-          ) : (
+          </div>) : (
             (["today", "this-week", "later", "sometime"] as ReminderCategory[]).map((filter) => {
               const isActive = activeFilter === filter;
               return (
@@ -4531,7 +4321,6 @@ export default function App() {
             })
           )}
         </div>
-        )}
         {/* Scrollable area */}
         <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full max-w-[768px] rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {(() => {
@@ -5894,52 +5683,6 @@ export default function App() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isSettingsOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setIsSettingsOpen(false)}
-              className="fixed inset-0 bg-black/0 z-40"
-            />
-
-            {/* Overlay sliding from bottom */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="fixed left-0 right-0 z-50 mx-auto w-full"
-              style={{ bottom: 0 }}
-            >
-              <motion.div
-                drag="y"
-                dragControls={settingsSheetDragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: viewportHeight }}
-                dragElastic={0}
-                dragMomentum={false}
-                onDragEnd={(_, info) => {
-                  if (!shouldCloseBottomSheetFromDrag(info.offset.y, info.velocity.y)) return;
-                  setIsSettingsOpen(false);
-                }}
-                className="relative"
-              >
-                <div
-                  className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
-                  onPointerDown={(event) => settingsSheetDragControls.start(event)}
-                />
-                <SettingsOverlay onClose={() => setIsSettingsOpen(false)} showDateAndTimeSubtitles={showDateAndTimeSubtitles} onShowDateAndTimeSubtitlesChange={setShowDateAndTimeSubtitles} onTutorialOpen={handleTutorialOpen} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} />
               </motion.div>
             </motion.div>
           </>

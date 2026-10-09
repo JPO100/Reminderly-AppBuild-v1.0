@@ -8,6 +8,13 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 
 ## Branch history
 
+### ui-lists-off-layout
+
+Created: 2026-10-09
+Parent: reminder-attachments (c9baa91)
+Purpose: Move Lists-off filters into the white reminder panel and remove the legacy settings control
+Status: Active
+
 ### main
 
 Created: 2026-04-03
@@ -516,5 +523,4 @@ Completed:
 - Existing build sign-off, commit sign-off, testing rules, and git governance rules unchanged
 
 Outcome: Pending commit.
-
 

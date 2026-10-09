@@ -4127,7 +4127,8 @@ export default function App() {
             </button>
           </div>) : (
             <>
-            {((settingsMenuFeatureEnabled ? ["today", "this-week", "other"] : ["today", "this-week", "later", "sometime"]) as ReminderCategory[]).map((filter) => {
+            {(() => {
+            const filterPills = ((settingsMenuFeatureEnabled ? ["today", "this-week", "other"] : ["today", "this-week", "later", "sometime"]) as ReminderCategory[]).map((filter) => {
               const isActive = activeFilter === filter;
               return (
               <button
@@ -4139,7 +4140,7 @@ export default function App() {
                   isActive
                     ? "bg-white"
                     : "text-[#4784f8]"
-                } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                } content-stretch flex items-center justify-center ${settingsMenuFeatureEnabled ? "px-[13px] min-[375px]:px-[16px]" : "px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
                   filter === "sometime" ? "hidden min-[390px]:flex" : ""
                 }`}
                 style={getReminderFilterPillStyle(filter, activeFilter)}
@@ -4149,7 +4150,10 @@ export default function App() {
                 </div>
               </button>
               );
-            })}
+            });
+            // Settings menu on: filters grouped left with 10px gaps, Settings button pushed right by justify-between
+            return settingsMenuFeatureEnabled ? <div className="flex items-center gap-[10px]">{filterPills}</div> : filterPills;
+            })()}
             {settingsMenuFeatureEnabled && (
               <button
                 type="button"

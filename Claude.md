@@ -96,7 +96,7 @@ Avoid broad repository exploration unless necessary.
 
 Before starting work classify the request as one of:
 
-Before beginning each development task, state the proposed classification (Type A, B or C) and briefly state the expected testing and verification requirements. This is a statement, not an approval step. Existing approval rules for Git operations and significant architectural changes still apply.
+Before beginning each development task, state the proposed classification (Type A, B or C), the proposed branch strategy (see Branch selection) and briefly state the expected testing and verification requirements. This is a statement, not an approval step. Existing approval rules for Git operations and significant architectural changes still apply.
 
 ### Type A - Minor change
 
@@ -268,6 +268,29 @@ If a build is run, report:
 * Any errors
 * Git status
 
+## Branch selection
+
+Before starting any development task:
+
+1. Identify the current Git branch.
+2. Consider whether the task belongs on the current branch or a separate branch.
+3. Recommend an approach based on the scope, risk and expected duration of the work.
+4. State the proposed branch strategy alongside the Type A/B/C classification and verification plan.
+
+Guidelines:
+
+* main: stable, verified code and small, low-risk maintenance changes where appropriate.
+* Feature branches: new functionality, substantial UI changes, multi-step development and experimental work.
+* Fix branches: bug fixes and test corrections, particularly in protected areas.
+* Avoid unnecessary branches for trivial changes.
+
+Safeguards:
+
+* Never create, switch, merge, delete or rebase branches without explicit permission.
+* Never assume work should proceed directly on main.
+* If a task warrants a separate branch, recommend it before making changes and wait for approval.
+* Preserve existing uncommitted work and untracked files.
+
 ## Git rules
 
 Do not perform:
@@ -279,6 +302,7 @@ Do not perform:
 * git rebase
 * git reset
 * branch creation
+* branch switching or deletion
 
 Unless explicitly instructed.
 

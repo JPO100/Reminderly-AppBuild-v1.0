@@ -219,6 +219,23 @@ export function categoriseReminder(reminder: Reminder, now: Date): ReminderCateg
   return "later";
 }
 
+// Settings menu (Phase 1): when combined, Sometime reminders are presented as Later.
+// Presentation only - the stored schedule and derived category are unchanged.
+export function getDisplayCategory(category: ReminderCategory, combineLaterSometime: boolean): ReminderCategory {
+  return combineLaterSometime && category === "sometime" ? "later" : category;
+}
+
+// Keep the active reminder filter valid when the Settings menu toggle changes.
+// On: Later and Sometime map to the combined Later filter ("other").
+// Off: the combined Later filter maps back to the standard Later filter.
+export function getFilterForSettingsMenu(
+  filter: ReminderCategory | "all",
+  settingsMenuEnabled: boolean
+): ReminderCategory | "all" {
+  if (settingsMenuEnabled) return filter === "later" || filter === "sometime" ? "other" : filter;
+  return filter === "other" ? "later" : filter;
+}
+
 // Sort: overdue pinned to the absolute top of every view,
 // then group by category (today → this-week → later → sometime),
 // then sort within each group (scheduled by date/time ascending, rest by createdAt).

@@ -14,7 +14,7 @@ import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
-import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getNextTimeRefreshBoundary } from "./reminder-utils";
+import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu } from "./reminder-utils";
 import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
 import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
 import { normaliseReminderText } from "./utils/normalise-text";
@@ -1398,6 +1398,9 @@ export default function App() {
     } catch {
       // Fail silently
     }
+  }, [settingsMenuFeatureEnabled]);
+  useEffect(() => {
+    setActiveFilter((current) => getFilterForSettingsMenu(current, settingsMenuFeatureEnabled));
   }, [settingsMenuFeatureEnabled]);
 
   useEffect(() => {
@@ -4173,7 +4176,7 @@ export default function App() {
             </button>
           </div>) : (
             <>
-            {((settingsMenuFeatureEnabled ? ["today", "this-week", "later"] : ["today", "this-week", "later", "sometime"]) as ReminderCategory[]).map((filter) => {
+            {((settingsMenuFeatureEnabled ? ["today", "this-week", "other"] : ["today", "this-week", "later", "sometime"]) as ReminderCategory[]).map((filter) => {
               const isActive = activeFilter === filter;
               return (
               <button
@@ -4272,7 +4275,7 @@ export default function App() {
                                 {(pendingUncompleteIds.has(item.id) || pendingUndeleteIds.has(item.id)) ? (() => {
                                   const cat = categoriseReminder(item, now);
                                   const overdue = isOverdue(item, now);
-                                  const circleCol = overdue ? OVERDUE_COLOUR : CATEGORY_COLOURS[cat] ?? "#939393";
+                                  const circleCol = overdue ? OVERDUE_COLOUR : CATEGORY_COLOURS[getDisplayCategory(cat, settingsMenuFeatureEnabled)] ?? "#939393";
                                   return (
                                     <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 25 25">
                                       <circle cx="12.5" cy="12.5" fill="white" r="11.5" stroke={circleCol} strokeWidth="2" />
@@ -4389,7 +4392,7 @@ export default function App() {
                   const pendingColour = isPendingDelete ? DELETED_GREY : (isListsEnabled ? '#3F3F3F' : DONE_BLUE);
                   const category = categoriseReminder(reminder, now);
                   const overdue = isOverdue(reminder, now);
-                  const circleColour = overdue ? OVERDUE_COLOUR : CATEGORY_COLOURS[category] ?? "#939393";
+                  const circleColour = overdue ? OVERDUE_COLOUR : CATEGORY_COLOURS[getDisplayCategory(category, settingsMenuFeatureEnabled)] ?? "#939393";
                   const isHighlighted = insertHighlightId === reminder.id;
                   const textColour = isPendingAway ? "#BABABA" : (isHighlighted ? circleColour : (overdue ? OVERDUE_COLOUR : APP_TEXT_DARK_BLUE));
                   const isReinserted = reinsertedId === reminder.id;

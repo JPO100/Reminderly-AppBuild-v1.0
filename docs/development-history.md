@@ -698,8 +698,8 @@ Test results: Vitest 53 passed. Production build successful. Browser checks at 4
 Branch: feature/reminder-menu-alignment
 
 Completed:
-- Settings menu on: reminder row three-dot buttons shifted left with relative positioning (right: 11.5px) so their centre sits on the same X axis as the dots in the 45px Reminders Settings button. Offset derived from fixed geometry: 22.5 (Settings half-width) - 10 (row button half-width) - 1 (row px-px), so it holds at any width
-- Applied via an optional alignWithSettingsButton prop on RowMenuButton, set only on the main Reminders list rows. Layout flow, titles, subtitles, status circles and other RowMenuButton usages unchanged
+- Settings menu on: reminder row three-dot buttons inset with margin-right: 11.5px so their centre sits on the same X axis as the dots in the 45px Reminders Settings button. The title/subtitle area ends 11.5px earlier so the 16px text-to-dots gap is preserved (an initial relative-positioning approach reduced the gap to 4.5px and failed testing). Offset derived from fixed geometry: 22.5 (Settings half-width) - 10 (row button half-width) - 1 (row px-px), so it holds at any width
+- Applied via an optional alignWithSettingsButton prop on RowMenuButton, set only on the main Reminders list rows. Title/subtitle start positions, status circles and other RowMenuButton usages unchanged
 - Settings menu off: no change
 
-Test results: Vitest 53 passed. Self Check 334 passed, 0 failed. Production build successful. Browser checks with Settings on: dots centres matched exactly at 320, 375, 393 and 430px; title and circle positions unchanged; row menu opens the reminder info overlay. Settings off: row dots unchanged at original position. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+Test results: Vitest 53 passed. Self Check 334 passed, 0 failed. Production build successful. Browser checks with Settings on: dots centres matched exactly at 320, 375, 393 and 430px with a 16px text-to-dots gap at each width; title start and circle positions unchanged; row menu opens the reminder info overlay. Settings off: row dots unchanged at original position. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.

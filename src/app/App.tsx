@@ -250,9 +250,9 @@ function RowMenuButton({ onClick, alignWithSettingsButton = false }: { onClick?:
   return (
     <button
       className="relative shrink-0 self-stretch w-[20px] cursor-pointer flex items-center justify-center"
-      // Settings menu on: shift left (without affecting layout) so the dots centre on the 45px Settings button's dots:
+      // Settings menu on: inset from the right so the dots centre on the 45px Settings button's dots, keeping the 16px text gap:
       // 22.5 (Settings half-width) - 10 (this button's half-width) - 1 (row px-px) = 11.5px
-      style={{ padding: 0, background: 'none', border: 'none', lineHeight: 0, right: alignWithSettingsButton ? '11.5px' : undefined }}
+      style={{ padding: 0, background: 'none', border: 'none', lineHeight: 0, marginRight: alignWithSettingsButton ? '11.5px' : undefined }}
       aria-label="Item menu"
       type="button"
       onClick={(event) => {

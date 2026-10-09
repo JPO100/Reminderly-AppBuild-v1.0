@@ -291,8 +291,8 @@ function AddTickBtn({ active, onSubmit }: { active: boolean; onSubmit?: () => vo
     >
       <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 50 50">
         <g id="add-tick-btn">
-          <rect fill={active ? "#4784F8" : "#F5F5F5"} height="50" rx="25" width="50" />
-          <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "#D5D5D5"} id="tick-icon" />
+          <rect fill={active ? "#4784F8" : "#D9D9D9"} height="50" rx="25" width="50" />
+          <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "white"} id="tick-icon" />
         </g>
       </svg>
     </button>

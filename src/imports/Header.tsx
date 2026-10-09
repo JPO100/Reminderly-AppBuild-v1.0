@@ -6,8 +6,8 @@ function AddTickBtn({ active, onClick }: { active: boolean; onClick?: () => void
     <button className={`block relative shrink-0 size-[50px] ${active ? 'cursor-pointer' : 'cursor-default'}`} data-name="add-tick-btn" disabled={!active} onClick={active ? onClick : undefined}>
       <svg className="absolute inset-0 block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 50 50">
         <g id="add-tick-btn">
-          <rect fill={active ? "#4784F8" : "#F5F5F5"} height="50" rx="25" width="50" />
-          <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "#D5D5D5"} id="tick-icon" />
+          <rect fill={active ? "#4784F8" : "#D9D9D9"} height="50" rx="25" width="50" />
+          <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "white"} id="tick-icon" />
         </g>
       </svg>
     </button>
@@ -17,17 +17,19 @@ function AddTickBtn({ active, onClick }: { active: boolean; onClick?: () => void
 function MenuDotsBtn({ active, onClick }: { active: boolean; onClick?: () => void }) {
   return (
     <button
-      className={`relative shrink-0 w-[30px] h-[35px] p-0 m-0 border-none bg-transparent flex items-center justify-end self-center ${active ? "cursor-pointer" : "cursor-default"}`}
+      className={`relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center ${active ? "cursor-pointer" : "cursor-default"}`}
+      style={{ width: '45px', height: '45px' }}
       data-name="menu-dots-btn"
       disabled={!active}
       onClick={active ? onClick : undefined}
       type="button"
     >
-      <div className="flex flex-row items-center justify-center gap-[3px]">
-        <span className={`block w-[3.5px] h-[3.5px] rounded-full ${active ? "bg-[#BABABA]" : "bg-[#D9D9D9]"}`} />
-        <span className={`block w-[3.5px] h-[3.5px] rounded-full ${active ? "bg-[#BABABA]" : "bg-[#D9D9D9]"}`} />
-        <span className={`block w-[3.5px] h-[3.5px] rounded-full ${active ? "bg-[#BABABA]" : "bg-[#D9D9D9]"}`} />
-      </div>
+      <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="45" height="45" rx="22.5" fill={active ? "#4784F8" : "#D9D9D9"}/>
+        <circle cx="14.5264" cy="22.5" r="1.9873" fill="white"/>
+        <circle cx="22.501" cy="22.5" r="1.9873" fill="white"/>
+        <circle cx="30.4756" cy="22.5" r="1.9873" fill="white"/>
+      </svg>
     </button>
   );
 }
@@ -36,14 +38,16 @@ function CloseOverlayBtn({ active, onClick }: { active: boolean; onClick?: () =>
   return (
     <button
       className={`relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center ${active ? "cursor-pointer" : "cursor-default"}`}
+      style={{ width: '45px', height: '45px' }}
       data-name="close-overlay-btn"
       disabled={!active}
       onClick={active ? onClick : undefined}
       type="button"
       aria-label="Close overlay"
     >
-      <svg width="18" height="15" viewBox="0 0 18 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M15.3699 0.442179C15.9541 -0.145067 16.9037 -0.14775 17.491 0.436319C18.0781 1.02046 18.0808 1.9701 17.4969 2.55741L6.36017 13.7576C6.07867 14.0407 5.69494 14.1999 5.29572 14.2C4.89666 14.1999 4.51367 14.0405 4.23224 13.7576L0.436341 9.93925C-0.147652 9.35181 -0.14518 8.40224 0.4422 7.81816C1.02956 7.23424 1.97918 7.23688 2.56329 7.82401L5.29572 10.5721L15.3699 0.442179Z" fill={active ? "#BABABA" : "#D9D9D9"}/>
+      <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="45" height="45" rx="22.5" fill={active ? "#4784F8" : "#D9D9D9"}/>
+        <path d="M28.3697 16.0708C29.1151 15.3097 30.3226 15.3097 31.0679 16.0708C31.8131 16.8319 31.8132 18.0656 31.0679 18.8267L21.1734 28.9302C20.7979 29.3133 20.305 29.5024 19.8131 29.4995C19.3225 29.5122 18.8267 29.3344 18.4439 28.9605L13.9625 24.5825C13.2007 23.8382 13.1739 22.605 13.9019 21.8277C14.6302 21.0504 15.8381 21.023 16.6002 21.7671L19.7632 24.857L28.3697 16.0708Z" fill={active ? "#F0FAFE" : "white"}/>
       </svg>
     </button>
   );
@@ -73,7 +77,7 @@ function SavedListSubtitleIndicator() {
   );
 }
 
-export default function Header({ value, onChange, active, onSubmit, isEditMode, onGearClick, onClose, subtitleText, subtitleHighlightColor, showSmartRemindersSubtitle, reserveSmartRemindersSubtitleSpace, showMenuButton = true, showSavedListSubtitleIcon = false }: { value: string; onChange: (v: string) => void; active: boolean; onSubmit: () => void; isEditMode?: boolean; onGearClick?: () => void; onClose?: () => void; subtitleText?: string; subtitleHighlightColor?: string | null; showSmartRemindersSubtitle?: boolean; reserveSmartRemindersSubtitleSpace?: boolean; showMenuButton?: boolean; showSavedListSubtitleIcon?: boolean }) {
+export default function Header({ value, onChange, active, onSubmit, isEditMode, onGearClick, onClose, subtitleText, subtitleHighlightColor, showSmartRemindersSubtitle, reserveSmartRemindersSubtitleSpace, showMenuButton = true, showSavedListSubtitleIcon = false, autoGeneratedTitle }: { value: string; onChange: (v: string) => void; active: boolean; onSubmit: () => void; isEditMode?: boolean; onGearClick?: () => void; onClose?: () => void; subtitleText?: string; subtitleHighlightColor?: string | null; showSmartRemindersSubtitle?: boolean; reserveSmartRemindersSubtitleSpace?: boolean; showMenuButton?: boolean; showSavedListSubtitleIcon?: boolean; autoGeneratedTitle?: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState(false);
@@ -102,16 +106,16 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
   };
 
   return (
-    <div className="flex flex-col relative w-full gap-[7px]" data-name="header">
-      <div className="flex items-center justify-between relative w-full min-h-[35px] gap-[12px]">
-        <div className="flex flex-1 min-w-0 h-[35px] items-center">
+    <div className="flex items-center justify-between relative w-full min-h-[45px] gap-[20px]" data-name="header">
+      <div className="flex flex-col flex-1 min-w-0 gap-[3px]">
+        <div className="flex items-center h-[35px]">
           <input
             ref={inputRef}
             type="text"
             value={draftValue}
             autoCorrect="on"
             spellCheck={true}
-            onFocus={() => { setIsFocused(true); setHasTypedSinceFocus(false); }}
+            onFocus={() => { setIsFocused(true); setHasTypedSinceFocus(false); if (autoGeneratedTitle && draftValue === autoGeneratedTitle) { setDraftValue(''); } }}
             onBlur={() => { commitDraft(); setIsFocused(false); setHasTypedSinceFocus(false); }}
             onChange={(e) => { if (!hasTypedSinceFocus) setHasTypedSinceFocus(true); setDraftValue(e.target.value); onChange(e.target.value); }}
             onKeyDown={(event) => {
@@ -120,38 +124,38 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
               commitDraft();
               event.currentTarget.blur();
             }}
-            placeholder=""
+            placeholder={autoGeneratedTitle || ""}
             className="font-['Lato',sans-serif] not-italic text-[20px] leading-[23px] whitespace-nowrap bg-transparent border-none outline-none w-full min-w-0 p-0 m-0 placeholder-[#bababa] caret-[#1C2C42]"
             style={{ color: textColor, transition: "color 300ms", fontWeight: 700 }}
           />
         </div>
-        <div className="flex items-center h-[35px] gap-[20px] shrink-0">
-          {showMenuButton ? <MenuDotsBtn active={active} onClick={onGearClick} /> : null}
-          <CloseOverlayBtn active={active} onClick={onClose} />
-        </div>
+        {subtitleText || reserveSmartRemindersSubtitleSpace ? (
+          <div
+            className="flex items-center gap-[8px] min-w-0"
+            style={subtitleText ? undefined : { visibility: "hidden" }}
+          >
+            <p className="leading-[normal] overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'Lato', sans-serif", color: '#BABABA' }}>
+              {subtitleText?.includes('. Due by ') ? (
+                <>
+                  {subtitleText.split('. Due by ')[0]}
+                  {'. '}
+                  <span style={{ color: subtitleHighlightColor ?? '#BABABA' }}>
+                    {`Due by ${subtitleText.split('. Due by ')[1]}`}
+                  </span>
+                </>
+              ) : (
+                subtitleText ?? "Complete this list by..."
+              )}
+            </p>
+            {showSmartRemindersSubtitle ? <SmartRemindersIndicator /> : null}
+            {showSavedListSubtitleIcon ? <SavedListSubtitleIndicator /> : null}
+          </div>
+        ) : null}
       </div>
-      {subtitleText || reserveSmartRemindersSubtitleSpace ? (
-        <div
-          className="flex items-center gap-[8px] min-w-0 pr-[36px]"
-          style={subtitleText ? undefined : { visibility: "hidden" }}
-        >
-          <p className="leading-[normal] overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'Lato', sans-serif", color: '#BABABA' }}>
-            {subtitleText?.includes('. Due by ') ? (
-              <>
-                {subtitleText.split('. Due by ')[0]}
-                {'. '}
-                <span style={{ color: subtitleHighlightColor ?? '#BABABA' }}>
-                  {`Due by ${subtitleText.split('. Due by ')[1]}`}
-                </span>
-              </>
-            ) : (
-              subtitleText ?? "Complete this list by..."
-            )}
-          </p>
-          {showSmartRemindersSubtitle ? <SmartRemindersIndicator /> : null}
-          {showSavedListSubtitleIcon ? <SavedListSubtitleIndicator /> : null}
-        </div>
-      ) : null}
+      <div className="flex items-center gap-[10px] shrink-0">
+        {showMenuButton ? <MenuDotsBtn active={active} onClick={onGearClick} /> : null}
+        <CloseOverlayBtn active={active} onClick={onClose} />
+      </div>
     </div>
   );
 }

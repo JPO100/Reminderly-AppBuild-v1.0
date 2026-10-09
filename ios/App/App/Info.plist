@@ -20,10 +20,29 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.reminderly.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>reminderly</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Reminderly needs camera access so you can take a photo to attach to your reminder.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Reminderly needs photo library access to support attaching photos to your reminders.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Reminderly needs photo access so you can choose an image to attach to your reminder.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -55,24 +74,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.productivity</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Reminderly needs camera access so you can take a photo to attach to your reminder.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Reminderly needs photo library access to support attaching photos to your reminders.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Reminderly needs photo access so you can choose an image to attach to your reminder.</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>reminderly</string>
-			</array>
-			<key>CFBundleURLName</key>
-			<string>com.reminderly.app</string>
-		</dict>
-	</array>
 </dict>
 </plist>

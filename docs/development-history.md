@@ -13,7 +13,12 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: 3356673
+Tip: b8877aa
+
+Merge - 2026-10-09: Templates slide-up panel
+- Fast-forward merge of feature/templates-slide-up-panel into main, a002abc to b8877aa (no merge commit)
+- Templates presented as a Settings-style slide-up panel with the standard 45px header and close button; Back button removed; template content and behaviour unchanged
+- Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Drag-down dismissal passed on physical iPhone 15 Pro
 
 Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Fast-forward merge of settings-panel-header-update into main, b724d52 to 3356673 (no merge commit)
@@ -26,7 +31,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 Created: 2026-10-09
 Parent: main (a002abc)
 Purpose: Present the List templates panel as a Settings-style slide-up panel
-Status: Active, not merged
+Status: Merged into main (fast-forward to b8877aa, 2026-10-09)
 
 ### settings-panel-header-update
 

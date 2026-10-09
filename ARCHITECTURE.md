@@ -146,4 +146,4 @@ Key files:
 
 ## Self-Check System
 
-227 deterministic checks across 6 files in `/src/app/dev/`. Run via DevTools overlay. See `/src/app/dev/BASELINE.md` for expected output.
+340 deterministic checks across 9 files in `/src/app/dev/`. Run via DevTools overlay. See `/src/app/dev/BASELINE.md` for expected output.

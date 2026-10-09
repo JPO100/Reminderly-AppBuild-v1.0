@@ -96,6 +96,8 @@ Avoid broad repository exploration unless necessary.
 
 Before starting work classify the request as one of:
 
+Before beginning each development task, state the proposed classification (Type A, B or C) and briefly state the expected testing and verification requirements. This is a statement, not an approval step. Existing approval rules for Git operations and significant architectural changes still apply.
+
 ### Type A - Minor change
 
 Examples:
@@ -107,11 +109,15 @@ Examples:
 * Animation adjustments
 * Small bug fixes
 
+Scope: minor UI adjustments, copy, icons, spacing, animations and small isolated fixes.
+
 Requirements:
 
 * Implement change.
 * Explain what changed.
 * Provide local testing commands.
+* No new automated tests required for trivial changes.
+* Do not run existing tests, builds or Capacitor commands unless requested, except where protected functionality requires targeted verification.
 
 No full regression required.
 
@@ -125,12 +131,17 @@ Examples:
 * Notification behaviour changes
 * Scheduling behaviour changes
 
+Scope: new functionality, workflows, settings or behaviour changes.
+
 Requirements:
 
 * Implement feature.
 * Define self-tests.
+* Add or extend tests where they provide meaningful protection.
+* Run relevant targeted tests and Self Check checks.
 * Perform targeted regression checks.
 * Update documentation if required.
+* A build is required when the feature is complete, not after every implementation step.
 
 ### Type C - Release candidate work
 
@@ -143,8 +154,10 @@ Examples:
 Requirements:
 
 * Run full verification.
+* Run the full automated test suite and Self Check.
 * Run build.
 * Run appropriate regression coverage.
+* Report outstanding issues before declaring the work ready.
 * Confirm readiness.
 
 ## Self-tests
@@ -195,6 +208,8 @@ Changes affecting the following areas require additional care:
 * App lifecycle behaviour
 * Local storage persistence
 
+These rules apply regardless of Type A, B or C classification.
+
 For these areas:
 
 * Define explicit verification steps.
@@ -217,15 +232,7 @@ Do not update it for every small implementation step.
 
 ## UI standards
 
-`docs/ui-standards.md` is the implementation reference.
-
-Update it only when:
-
-* A reusable standard changes
-* A new reusable standard is introduced
-* An approved value changes
-
-Do not update it for every UI tweak.
+UI changes must follow established Reminderly design conventions and any supplied visual specifications.
 
 ## Existing architecture
 
@@ -295,7 +302,7 @@ Do not perform them automatically.
 After every source code change provide the following local iOS refresh command for the user to run manually:
 
 ```bash
-cd "/Users/john/Personal/noterly/Noterly app build/NoterlyV100"
+cd "/Users/john/Developer/Reminderly/Reminderly-AppBuild-v1.0"
 npx vite build
 npx cap copy ios
 open ios/App/App.xcodeproj
@@ -325,7 +332,7 @@ unless explicitly instructed by the user.
 For Type A - Minor changes:
 
 * Do not run terminal commands unless explicitly requested by the user.
-* Do not run builds, tests, or Capacitor commands unless specifically requested.
+* Do not run builds, tests, or Capacitor commands unless specifically requested, except where protected functionality requires targeted verification.
 * Always provide the local iOS refresh command at sign-off.
 * Assume the user will perform the refresh and verification.
 * Report implementation changes only.

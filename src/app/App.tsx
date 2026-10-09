@@ -872,6 +872,7 @@ export default function App() {
   const currentListAccentColor = LIST_CATEGORY_PILL_COLOURS[currentListCategory] || "#939393";
   const listItemHighlightTimerRef = useRef<number | null>(null);
   const tabsBarRef = useRef<HTMLDivElement | null>(null);
+  const mainPanelRef = useRef<HTMLDivElement | null>(null);
   const listInfoOverlayList = listInfoOverlayListId == null
     ? null
     : createdLists.find((list) => list.id === listInfoOverlayListId) ?? null;
@@ -2026,6 +2027,17 @@ export default function App() {
       return tabsTop - 2;
     }
     return getOverlayTopPosition();
+  };
+
+  // Lists off has no tab bar, so align Reminders settings with the Reminders panel instead
+  const getRemindersSettingsTopPosition = () => {
+    if (!isListsEnabled) {
+      const panelTop = mainPanelRef.current?.getBoundingClientRect().top;
+      if (typeof panelTop === "number" && Number.isFinite(panelTop)) {
+        return panelTop - 2;
+      }
+    }
+    return getBottomSheetTopPosition();
   };
 
   const reminderSheetDragControls = useDragControls();
@@ -3479,7 +3491,7 @@ export default function App() {
       )}
 
       {/* Reminder list container */}
-      <div className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative ${isListsEnabled ? 'rounded-tl-[15px] rounded-tr-[15px]' : 'rounded-tl-[20px] rounded-tr-[20px]'} w-full flex-1 min-h-[350px]`}>
+      <div ref={mainPanelRef} className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative ${isListsEnabled ? 'rounded-tl-[15px] rounded-tr-[15px]' : 'rounded-tl-[20px] rounded-tr-[20px]'} w-full flex-1 min-h-[350px]`}>
         {isListsEnabled && activeMainTab === 'lists' ? (
           <>
           {viewMode === 'lists-done' && (
@@ -5333,7 +5345,7 @@ export default function App() {
 
             <motion.div
               initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
+              animate={{ y: 0, top: getRemindersSettingsTopPosition() }}
               exit={{ y: "100%" }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
               className="fixed left-0 right-0 z-50 mx-auto w-full"

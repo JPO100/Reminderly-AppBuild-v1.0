@@ -30,6 +30,13 @@ Summary:
 - Verified at 320, 375, 390 and 430px in both panels: header 45px, Close SVG 45 x 45px, title centre offset 0px, no overflow or clipping, both Close buttons close their panels
 - Tests: Vitest 53 passed. Self Check 334 passed, 0 failed (headless). Vite build succeeded. Deployed to iPhone 17 Pro simulator and physical iPhone 15 Pro
 
+Correction - Reminders Settings panel alignment with Lists off:
+- Issue (predates the header update): with Lists off there is no tab bar, so getBottomSheetTopPosition fell back to fixed values (121.653px, or 54px at 570px height or less). The Reminders Settings panel opened 24px (91.64px on short screens) above the Reminders panel at 145.64px
+- Fix: added mainPanelRef on the main white panel and getRemindersSettingsTopPosition. With Lists off it returns the panel's measured top minus 2px (same convention as Lists on); otherwise it uses getBottomSheetTopPosition. Used by the Reminders Settings panel only
+- Shared bottom-sheet fallback and the New Reminder, Repeats, Tutorial, Dev Tools and Lists Settings positioning unchanged
+- Verified at 320 x 568, 375 x 667, 390 x 844 and 430 x 932: settings top 143.64px, 2px above the Reminders panel (Lists off) and the tab bar (Lists on). Bottom edge unchanged. Header 45px, Close SVG 45 x 45px. At 320 x 568 all content visible; Close button and backdrop both close the panel
+- Tests: Vitest 53 passed. Self Check 334 passed, 0 failed (headless). Vite build succeeded. Deployed to iPhone 17 Pro simulator and physical iPhone 15 Pro
+
 ### settings-menu-phase2-lists
 
 Created: 2026-10-09

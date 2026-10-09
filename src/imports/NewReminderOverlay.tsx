@@ -288,8 +288,8 @@ function AddTickBtn({ active, onSubmit }: { active: boolean; onSubmit?: () => vo
       {/* 45 x 45 button; viewBox crops the original 50px artwork so the tick icon keeps its size and stays centred */}
       <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="2.5 2.5 45 45">
         <g id="add-tick-btn">
-          <rect fill={active ? "#4784F8" : "#F5F5F5"} x="2.5" y="2.5" height="45" rx="22.5" width="45" />
-          <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "#D5D5D5"} id="tick-icon" />
+          <rect fill={active ? "#4784F8" : "#D9D9D9"} x="2.5" y="2.5" height="45" rx="22.5" width="45" />
+          <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "white"} id="tick-icon" />
         </g>
       </svg>
     </button>

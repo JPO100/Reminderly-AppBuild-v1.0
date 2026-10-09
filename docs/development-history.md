@@ -786,3 +786,33 @@ Completed:
 - List panel add-item (+) button inset 4px (mr-[4px], plus the row's existing 1px) so the 35px + is centred under the 45px header tick button. Shared AddListItemInput component, so the tutorial list mock-ups match
 
 Test results: Production build successful. Simulator: + and header tick centres measured on the same vertical line; panel closed empty, no list saved. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (list title to subtitle gap)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- List panel header: gap between the title row and the subtitle reduced from 7px to 2px. The 45px title row added 5px under the vertically centred title, which had pushed the subtitle down; it is now back in its original position
+
+Test results: Production build successful. Simulator: subtitle moved up 5px, matching its position before the 45px header change; panel closed empty, no list saved. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (list header subtitle gap matched to Lists list)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- Replaces the 2px gap fix above. List panel header subtitle now sits 4.25px up into the 45px title row (no flex gap) so the title-baseline to subtitle-cap distance matches the Lists list rows: 14.28px against 14.27px
+- Subtitle set to ignore taps so the bottom edge of the three-dot and tick buttons stays tappable. No glyph overlap with the buttons
+- Title vs subtitle left edge checked: both start at exactly 24px. The ~1px visual inset is the Lato bold capital's built-in left spacing at 20px (about 1.5px for 'N' against 0.4px for '0'); the Lists list rows show the same effect. No change made
+
+Test results: Production build successful. Browser preview (402px): spacing measured against a real Lists list row; buttons tappable to the bottom edge. Simulator visual check. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (New reminder inactive tick standardised)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- New reminder panel inactive tick button now matches the list panel: #D9D9D9 circle with a white tick (was #F5F5F5 circle, #D5D5D5 tick). 45 x 45 size, centred icon, active blue state and behaviour unchanged. Applies to New reminder, Edit reminder, Add smart reminder and Edit smart reminder (shared header)
+- List header subtitle offset (4.25px) and tap pass-through accepted. Title/subtitle horizontal alignment left unchanged at 24px; optional 1px nudge not applied
+
+Test results: Vitest 53/53 passed. Production build successful. Self Check 334 passed, 0 failed. Simulator (iPhone 17 Pro): New reminder inactive (#D9D9D9) and active (blue) tick, Edit reminder header; nothing saved. Browser preview (402px): list panel active and inactive buttons, three-dot opens list settings from its bottom edge, template editor header, Reminders settings keyline (24px either side), tutorial list mock-up. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.

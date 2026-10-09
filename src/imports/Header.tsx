@@ -93,8 +93,10 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
     onChange(draftValue);
   };
 
+  // Subtitle pulled up 4.25px so the title-baseline to subtitle-cap gap (14.27px) matches the Lists list rows.
+  // It overlaps the bottom of the 45px title row (no glyph overlap), so it ignores taps to keep the buttons fully tappable.
   return (
-    <div className="flex flex-col relative w-full gap-[7px]" data-name="header">
+    <div className="flex flex-col relative w-full" data-name="header">
       <div className="flex items-center justify-between relative w-full h-[45px] gap-[12px]">
         <div className="flex flex-1 min-w-0 h-[45px] items-center">
           <input
@@ -124,8 +126,8 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
       </div>
       {subtitleText || reserveSmartRemindersSubtitleSpace ? (
         <div
-          className="flex items-center gap-[8px] min-w-0 pr-[36px]"
-          style={subtitleText ? undefined : { visibility: "hidden" }}
+          className="flex items-center gap-[8px] min-w-0 pr-[36px] pointer-events-none"
+          style={subtitleText ? { marginTop: "-4.25px" } : { marginTop: "-4.25px", visibility: "hidden" }}
         >
           <p className="leading-[normal] overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '15px', fontWeight: 700, fontFamily: "'Lato', sans-serif", color: '#BABABA' }}>
             {subtitleText?.includes('. Due by ') ? (

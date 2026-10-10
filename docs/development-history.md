@@ -892,3 +892,13 @@ Completed:
 - Tutorial rows renamed: "Reminders tutorial" in Reminders settings, "Lists tutorial" in Lists settings
 - Reminders settings: 1 minute time increments moved to the bottom of the toggle rows (after Use Siri shortcuts)
 - Lists settings: Haptic feedback click-through row added above Sounds (opens an empty sub-page, like Reminders)
+
+### 2026-10-10 (feature/settings-overlays merged into main)
+
+Branch: main
+
+Completed:
+- feature/settings-overlays merged into main (merge commit 78e19cb, branch head edf2bbb), including the underlying feature/panel-spacing-24 work (c76f5f3). Panel spacing 24px, settings row changes, info icons hidden by default behind the Dev tools "Show info icons" toggle, centred overlay standard on every overlay, Reminders and Lists settings as centred overlays with tutorial rows, independent Siri toggles and Lists Haptic feedback row
+- Both feature branches retained
+
+Test results: Vitest 53/53 passed. Type check clean. Production build successful after merge. Product owner visual sign-off confirmed.

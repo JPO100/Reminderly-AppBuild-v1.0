@@ -91,7 +91,7 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
   return (
     <div className="bg-white content-stretch flex flex-col items-center relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="repeats-overlay">
       <div className="flex flex-col h-full relative w-full max-w-[768px]" data-name="repeats-content">
-        <div className="flex flex-col items-start pt-[26px] px-[24px] pb-[24px] relative w-full flex-1 min-h-0">
+        <div className="flex flex-col items-start pt-[24px] px-[24px] pb-[24px] relative w-full flex-1 min-h-0">
           <div className="bg-white w-full flex-1 min-h-0 flex flex-col">
             <div className="flex items-center justify-between w-full shrink-0">
               <button
@@ -118,7 +118,7 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
                 </svg>
               </button>
             </div>
-            <div className="mt-[26px] w-full flex flex-col gap-[30px] overflow-y-auto flex-1 min-h-0">
+            <div className="mt-[24px] w-full flex flex-col gap-[30px] overflow-y-auto flex-1 min-h-0">
               {/* Custom Days */}
               <div>
                 <button

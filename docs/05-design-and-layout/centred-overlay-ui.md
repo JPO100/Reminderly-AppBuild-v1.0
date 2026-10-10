@@ -2,7 +2,23 @@
 
 ## Overview
 
-Reminderly has two distinct centred overlay patterns plus one dev-tools-only info variant. There is no shared modal wrapper component. Each overlay is built inline using the same CSS structure.
+All centred overlays (user-facing and Dev tools) follow one spacing standard. There is no shared modal wrapper component. Each overlay is built inline using the same CSS structure.
+
+### Overlay standard
+
+| Space | Value |
+|---|---|
+| Card width | `340px` |
+| Card padding top / bottom | `40px` |
+| Card padding left / right | `30px` |
+| Screen edge to card (minimum) | `20px` (`px-[20px]` on the centring wrapper) |
+| Title (if any) to content, or to the first button | `40px` |
+| Between content sections (for example content to buttons) | `40px` |
+| Between content elements within a section (for example due line and detail lines, toggle rows) | `30px` |
+| Between buttons (stacked or side by side) | `30px` |
+| Title wrapping | Titles wrap onto multiple lines (no ellipsis) |
+
+Typical implementation: card `gap-[40px]` when it holds title and sections only. Where content elements sit directly in the card (ReminderInfoOverlay), the card uses `gap-[30px]` with `mb-[10px]` on the title and `mt-[10px]` on the buttons container to give 40px.
 
 ---
 
@@ -24,66 +40,25 @@ div.fixed.inset-0.z-[60].flex.items-center.justify-center.pointer-events-none  �
   div.pointer-events-auto  ← modal card
 ```
 
-The centring container in App.tsx-hosted overlays also includes `px-[20px]` for safe horizontal margin on narrow viewports. The self-contained overlays (ReminderInfoOverlay, DeletedInfoOverlay, DevToolsInfoOverlay) omit this horizontal padding.
+Every centring container includes `px-[20px]` so the card stays at least 20px from the screen edge on narrow viewports.
 
 ---
 
 ## 2. Modal container
 
-Two variants exist:
-
-### Pattern A: action modal (production user-facing)
-
-Used by: ReminderInfoOverlay, DeletedInfoOverlay, saved list menu, template editor menu, and (inner card) InfoOverlay and ListInfoOverlay.
-
 | Property | Value |
 |---|---|
-| Width | `340px` (inline style `{ width: 340 }`) |
-| Max width | None on card itself. When wrapped by App.tsx, outer wrapper has `max-w-[400px]` |
-| Height | Auto (content-driven) |
-| Corner radius | `rounded-[32px]` (32px) |
-| Background | `bg-white` (#FFFFFF) |
-| Padding top | `35px` (`pt-[35px]`) |
-| Padding bottom | `35px` (`pb-[35px]`) |
-| Padding left | `32px` (`px-[32px]`) |
-| Padding right | `32px` (`px-[32px]`) |
-| Display | `flex` |
-| Flex direction | `flex-col` (column) |
-| Alignment | `items-center` |
-| Gap | `25px` (`gap-[25px]`) standard. Variants: InfoOverlay uses `33px`, ListInfoOverlay uses `17px` |
-| Position | `relative` |
-| Outline | `none` |
-| Pointer events | `pointer-events-auto` |
+| Width | `340px` (inline style `{ width: 340 }`) on every centred overlay |
+| Corner radius | `rounded-[32px]` |
+| Background | `bg-white` |
+| Padding | `pt-[40px] pb-[40px] px-[30px]` (or `py-[40px] px-[30px]`) |
+| Layout | `flex flex-col items-center` |
+| Gap | `40px` between title and sections. ReminderInfoOverlay: `30px` with title `mb-[10px]` and buttons `mt-[10px]` |
 | Click propagation | `onClick={(e) => e.stopPropagation()}` |
 
-### Pattern B: confirmation dialog (dev tools only)
+Used by: ReminderInfoOverlay, DeletedInfoOverlay, saved list menu, template editor menu, InfoOverlay, ListInfoOverlay, DevToolsInfoOverlay and the Dev tools confirmation dialogs (NLC, onboarding, notifications, reminders, lists, Dev tools home).
 
-Used by: NLC, onboarding, notifications, reminders, lists toggle confirmations.
-
-| Property | Value |
-|---|---|
-| Width | `322px` (inline style `{ width: 322 }`) |
-| Max width | None |
-| Height | Auto (content-driven) |
-| Corner radius | `rounded-[32px]` (32px) |
-| Background | `bg-white` (#FFFFFF) |
-| Padding top | `40px` (`py-[40px]`) |
-| Padding bottom | `40px` (`py-[40px]`) |
-| Padding left | `34px` (`px-[34px]`) |
-| Padding right | `34px` (`px-[34px]`) |
-| Display | `flex` |
-| Flex direction | `flex-col` (column) |
-| Alignment | `items-center` |
-| Gap | `35px` (`gap-[35px]`) |
-| Position | `relative` |
-| Pointer events | `pointer-events-auto` |
-| Click propagation | `onClick={(e) => e.stopPropagation()}` |
-
-### Pattern C: info overlay (dev tools only)
-
-Used by: DevToolsInfoOverlay.
-
-Same as pattern A except gap is `40px` (`gap-[40px]`).
+Dev tools confirmation dialogs keep side-by-side Cancel (`#BABABA`) and Confirm (`#4784F8`) buttons. Body text stays `Lato:SemiBold` 17px `#939393`.
 
 ---
 
@@ -102,7 +77,7 @@ Same as pattern A except gap is `40px` (`gap-[40px]`).
 | Width | Content-width, shrink-0 |
 | Margins | None |
 | Padding | None |
-| Wrapping | `whitespace-pre-wrap`. InfoOverlay/ListInfoOverlay variant: `whitespace-nowrap` with `text-ellipsis overflow-hidden w-full` |
+| Wrapping | `whitespace-pre-wrap` on every overlay title, including list titles |
 | Not italic | `not-italic` |
 
 ### Due line / status subtitle (ReminderInfoOverlay only)
@@ -205,7 +180,7 @@ Same as pattern A except gap is `40px` (`gap-[40px]`).
 
 ## 5. Button layout
 
-### Stacked full-width buttons (action modals — pattern A)
+### Stacked full-width buttons (all other overlays)
 
 | Property | Value |
 |---|---|
@@ -215,7 +190,7 @@ Same as pattern A except gap is `40px` (`gap-[40px]`).
 | Layout direction | Column (`flex-col`) |
 | Gap between buttons | `30px` (`gap-[30px]`) |
 | Alignment | `items-start` (container), button content centred |
-| Container margin top | `7px` (`mt-[7px]`) from last content section. ListInfoOverlay uses `mt-[12px]` |
+| Container spacing | 40px from the title or last content section (see overlay standard) |
 | Internal padding | `px-[18px] py-[15px]` |
 | Button border | `border-none` (on some variants) |
 
@@ -240,12 +215,12 @@ Same as pattern A except gap is `40px` (`gap-[40px]`).
 | Background | `#D9D9D9` (`bg-[#d9d9d9]`) |
 | Cursor | Default (no pointer) |
 
-### Side-by-side buttons (confirmation dialogs — pattern B)
+### Side-by-side buttons (Dev tools confirmation dialogs)
 
 | Property | Value |
 |---|---|
 | Layout direction | Row (`flex`) |
-| Gap between buttons | `16px` (`gap-[16px]`) |
+| Gap between buttons | `30px` (`gap-[30px]`) |
 | Justify | `justify-between` |
 | Width | Full container width |
 | Button width | Auto (content-sized) |
@@ -271,61 +246,17 @@ Same as pattern A except gap is `40px` (`gap-[40px]`).
 
 ## 6. Element spacing
 
-### Pattern A (action modal, standard gap-[25px])
-
-| Between | Spacing |
+| Overlay | Layout |
 |---|---|
-| Modal top edge → title | `35px` (padding-top) |
-| Title → due line/subtitle | `25px` (gap) |
-| Due line → metadata line(s) | `25px` (gap) |
-| Last content → button container | `25px` (gap) + `7px` (mt-[7px]) = `32px` effective |
-| Between buttons | `30px` (gap-[30px]) |
-| Last button → modal bottom edge | `35px` (padding-bottom) |
-| Left/right edge → content | `32px` (padding-x) |
+| ReminderInfoOverlay | Title, 40px, due line, 30px, smart reminder line, 30px, repeats line, 40px, buttons (30px apart) |
+| DeletedInfoOverlay | Title, 40px, buttons (30px apart) |
+| Saved list menu / template editor menu | Title, 40px, buttons (30px apart) |
+| InfoOverlay (list settings) | Title, 40px, toggle rows (30px apart), 40px, buttons (30px apart) |
+| ListInfoOverlay | Title, 40px, smart reminder row (when shown), 40px, buttons (30px apart) |
+| DevToolsInfoOverlay | Title, 40px, body text, 40px, Close button |
+| Dev tools confirmation dialogs | Title, 40px, body text, 40px, Cancel and Confirm side by side (30px apart) |
 
-### Pattern A variant — InfoOverlay (gap-[33px])
-
-| Between | Spacing |
-|---|---|
-| Modal top edge → title | `35px` |
-| Title → toggle/settings section | `33px` (gap) |
-| Settings section → buttons | `33px` (gap) |
-| Between buttons | `30px` |
-| Last button → bottom edge | `35px` |
-| Left/right edge → content | `32px` |
-
-### Pattern A variant — ListInfoOverlay (gap-[17px])
-
-| Between | Spacing |
-|---|---|
-| Modal top edge → title | `35px` |
-| Title → smart reminder section | `17px` (gap) + `10px` (mt-[10px]) = `27px` |
-| Smart reminder → buttons | `17px` (gap) |
-| Button section top margin | `12px` (mt-[12px]) |
-| Between buttons | `30px` |
-| Last button → bottom edge | `35px` |
-| Left/right edge → content | `32px` |
-
-### Pattern B (confirmation dialog)
-
-| Between | Spacing |
-|---|---|
-| Modal top edge → title | `40px` (padding-top) |
-| Title → body text | `35px` (gap) |
-| Body text → button row | `35px` (gap) |
-| Cancel button ↔ confirm button | `16px` |
-| Last element → modal bottom edge | `40px` (padding-bottom) |
-| Left/right edge → content | `34px` |
-
-### Pattern C (info overlay, dev tools)
-
-| Between | Spacing |
-|---|---|
-| Modal top edge → header | `35px` |
-| Header → body text | `40px` (gap) |
-| Body text → close button | `40px` (gap) |
-| Close button → bottom edge | `35px` |
-| Left/right edge → content | `32px` |
+All overlays: 40px top and bottom padding, 30px side padding, minimum 20px from the screen edge.
 
 ---
 
@@ -344,35 +275,21 @@ Background scroll is locked on mount via `document.body.style.overflow = 'hidden
 
 ## 8. Implementation locations
 
-| Overlay | File | Component | Lines |
-|---|---|---|---|
-| ReminderInfoOverlay | `src/app/components/ReminderInfoOverlay.tsx` | `ReminderInfoOverlay` | 70-266 |
-| DeletedInfoOverlay | `src/imports/deleted-info-overlay.tsx` | `DeletedInfoOverlay` | 9-50 |
-| InfoOverlay (list settings) | `src/imports/InfoOverlay.tsx` | `InfoOverlay` | 240-327 |
-| InfoOverlay wrapper | `src/app/App.tsx` | Inline | ~5129-5163 |
-| ListInfoOverlay | `src/imports/list-info-overlay.tsx` | `ListInfoOverlay` | 204-295 |
-| ListInfoOverlay wrapper | `src/app/App.tsx` | Inline | ~5165-5241 |
-| Saved list menu | `src/app/App.tsx` | Inline | 5243-5342 |
-| Template editor menu | `src/app/App.tsx` | Inline | 5344-5433 |
-| DevToolsInfoOverlay | `src/app/components/DevToolsOverlay.tsx` | `DevToolsInfoOverlay` | 92-116 |
-| NLC toggle confirm | `src/app/components/DevToolsOverlay.tsx` | Inline | 360-418 |
-| Onboarding toggle confirm | `src/app/components/DevToolsOverlay.tsx` | Inline | 437-496 |
-| Notifications toggle confirm | `src/app/components/DevToolsOverlay.tsx` | Inline | 515-573 |
-| Reminders toggle confirm | `src/app/components/DevToolsOverlay.tsx` | Inline | 759-817 |
-| Lists toggle confirm | `src/app/components/DevToolsOverlay.tsx` | Inline | 842-900 |
+| Overlay | File |
+|---|---|
+| ReminderInfoOverlay | `src/app/components/ReminderInfoOverlay.tsx` |
+| DeletedInfoOverlay | `src/imports/deleted-info-overlay.tsx` |
+| InfoOverlay (list settings) and wrapper | `src/imports/InfoOverlay.tsx`, wrapper inline in `src/app/App.tsx` |
+| ListInfoOverlay and wrapper | `src/imports/list-info-overlay.tsx`, wrapper inline in `src/app/App.tsx` |
+| Saved list menu, template editor menu | Inline in `src/app/App.tsx` |
+| DevToolsInfoOverlay | `src/app/components/DevToolsOverlay.tsx` |
+| Dev tools confirmation dialogs | `src/app/components/DevToolsOverlay.tsx` (5), `src/imports/DevTools.tsx` (1) |
 
 ---
 
 ## 9. Inconsistencies
 
-| Area | Detail |
-|---|---|
-| Modal width | Pattern A uses `340px`, pattern B uses `322px` |
-| Padding | Pattern A: `35px` top/bottom, `32px` sides. Pattern B: `40px` top/bottom, `34px` sides |
-| Gap | Pattern A standard: `25px`. InfoOverlay: `33px`. ListInfoOverlay: `17px`. Pattern B: `35px`. Pattern C: `40px` |
-| Button section margin-top | ReminderInfoOverlay/DeletedInfoOverlay: `mt-[7px]`. ListInfoOverlay: `mt-[12px]`. InfoOverlay/saved list menu/template editor menu: no extra margin |
-| Centering container horizontal padding | App.tsx wrappers include `px-[20px]`. Self-contained overlays omit it |
-| Body text font | Pattern B uses `Lato:SemiBold` at `#939393`. Pattern C uses `Lato:Bold` at `#BABABA` |
+None known. All centred overlays follow the overlay standard in the overview (standardised 2026-10-10).
 
 ---
 
@@ -409,14 +326,14 @@ Multiple toggle rows are grouped in a container with vertical gap:
 | Property | Value |
 |---|---|
 | Display | `flex flex-col` |
-| Gap | `24px` (`gap-[24px]`) between rows |
+| Gap | `30px` (`gap-[30px]`) between rows |
 | Width | `w-full` |
 | Alignment | `items-start` |
 | Other | `content-stretch relative shrink-0` |
 
 Implementation reference (InfoOverlay.tsx line 83, line 108; list-info-overlay.tsx line 53):
 ```
-className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full"
+className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full"
 ```
 
 ### Toggle label block
@@ -502,16 +419,14 @@ Smart reminder subtitle has additional dynamic colour behaviour:
 
 | Between | Value |
 |---|---|
-| Left edge of modal content to icon | `0px` (icon sits at left edge of content area; modal padding of 32px provides the margin from modal edge) |
+| Left edge of modal content to icon | `0px` (icon sits at left edge of content area; modal padding of 30px provides the margin from modal edge) |
 | Icon to text block | `16px` (from row `gap-[16px]`) |
 | Text block to toggle | `16px` (from row `gap-[16px]`) |
-| Toggle to right edge of modal content | `0px` (toggle sits at right edge of content area; modal padding of 32px provides the margin) |
-| Between multiple toggle rows | `24px` (from wrapper `gap-[24px]`) |
+| Toggle to right edge of modal content | `0px` (toggle sits at right edge of content area; modal padding of 30px provides the margin) |
+| Between multiple toggle rows | `30px` (from wrapper `gap-[30px]`) |
 | Title to subtitle within label | `9px` (from label container `gap-[9px]`) |
-| Toggle rows section to modal title (InfoOverlay) | `33px` (from modal `gap-[33px]`) |
-| Toggle rows section to modal title (ListInfoOverlay) | `17px` gap + `10px` margin-top = `27px` effective |
-| Toggle rows section to buttons section (InfoOverlay) | `33px` (from modal gap) |
-| Toggle rows section to buttons section (ListInfoOverlay) | `17px` (from modal gap) |
+| Toggle rows section to modal title | `40px` (from modal `gap-[40px]`) |
+| Toggle rows section to buttons section | `40px` (from modal gap) |
 
 No responsive behaviour. Fixed dimensions throughout.
 
@@ -634,8 +549,6 @@ The centred overlay toggle implementation is fully consistent across both files.
 
 ---
 
-## 11. Recommended canonical pattern
+## 11. Canonical pattern
 
-Based on frequency of use and production visibility, the canonical pattern is pattern A (action modal) with the standard `gap-[25px]` variant. This is the most common user-facing implementation.
-
-If confirmation dialogs are needed, pattern B provides a tested reference, but pattern A values should be preferred for consistency unless there is a specific need for the narrower confirmation dialog.
+Use the overlay standard in the overview for every new centred overlay.

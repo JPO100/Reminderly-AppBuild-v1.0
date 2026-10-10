@@ -16,9 +16,9 @@ export default function DeletedInfoOverlay({
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
-      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
         <div
-          className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+          className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
           style={{ width: 340 }}
           onClick={(event) => event.stopPropagation()}
         >
@@ -28,7 +28,7 @@ export default function DeletedInfoOverlay({
             </p>
           </div>
 
-          <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
+          <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
             <button
               className="cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
               style={{ backgroundColor: buttonColor }}

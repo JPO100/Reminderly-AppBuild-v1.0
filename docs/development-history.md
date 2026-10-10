@@ -859,3 +859,18 @@ Completed:
 - Feature branch retained
 
 Test results: Vitest 53/53 passed. Production build successful after merge.
+
+### 2026-10-10 (feature/panel-spacing-24)
+
+Branch: feature/panel-spacing-24 (created from main at ee5444a)
+
+Completed:
+- Panel top padding and header to content space standardised from 26px to 24px on the main Reminders and Lists panels, Reminders and Lists settings, Templates, New and edit reminder, Repeats and Dev tools
+- Bottom space and content to bottom button already 24px, unchanged. Done/deleted pages keep 0px bottom space
+- Lists editor: top padding 24px, header to content (below the subtitle) kept at 26px
+- Tutorial copy of the Lists editor aligned with the app: top padding 30px to 24px
+- docs/05-design-and-layout/sizing-spacing.md updated
+- Reminders settings: tutorial link icon and subtitle removed, "Use 1 minute time increments" renamed "1 minute time increments", "Show reminder sub-titles" toggle removed
+- Lists settings: "Use list templates" toggle removed
+- Info icons in the user-facing Reminders and Lists settings panels hidden by default. New Dev tools > System > Features toggle "Show info icons" (default off, stored as reminderly-ff-info-icons) turns them back on. Dev tools info icons always shown. Code and info copy kept
+- Centred overlay standard applied to every overlay (user-facing and Dev tools): 340px wide, 40px top and bottom padding, 30px side padding, 20px minimum from the screen edge, 40px from title to content and between content sections, 30px between content elements and between buttons. List titles in overlays now wrap. Template editor menu copy "Use a list" corrected to "Use as list". centred-overlay-ui.md rewritten to the new standard

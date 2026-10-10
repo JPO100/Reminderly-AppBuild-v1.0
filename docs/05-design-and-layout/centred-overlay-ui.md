@@ -15,6 +15,7 @@ All centred overlays (user-facing and Dev tools) follow one spacing standard. Th
 | Title (if any) to content, or to the first button | `40px` |
 | Between content sections (for example content to buttons) | `40px` |
 | Between content elements within a section (for example due line and detail lines, toggle rows) | `30px` |
+| Above and below a separator line | `30px` |
 | Between buttons (stacked or side by side) | `30px` |
 | Title wrapping | Titles wrap onto multiple lines (no ellipsis) |
 
@@ -253,6 +254,7 @@ Dev tools confirmation dialogs keep side-by-side Cancel (`#BABABA`) and Confirm 
 | Saved list menu / template editor menu | Title, 40px, buttons (30px apart) |
 | InfoOverlay (list settings) | Title, 40px, toggle rows (30px apart), 40px, buttons (30px apart) |
 | ListInfoOverlay | Title, 40px, smart reminder row (when shown), 40px, buttons (30px apart) |
+| Reminders and Lists settings | Centred title (back arrow on the left on sub-pages), 40px, setting rows (30px apart): toggle rows first (Reminders: Show calendar, Use Siri shortcuts, 1 minute time increments. Lists: Use Smart Reminders, Use Siri shortcuts. Lists click-through rows: Haptic feedback, Sounds), then click-through rows, then the tutorial row last ("Reminders tutorial" or "Lists tutorial", shown when onboarding is enabled in Dev tools). The tutorial row uses the click-through row chevron (7 x 13px, #939393, 15px right inset) rotated to point up. No separator or subtitle. No close button; tap outside to close. Card scrolls if taller than the screen |
 | DevToolsInfoOverlay | Title, 40px, body text, 40px, Close button |
 | Dev tools confirmation dialogs | Title, 40px, body text, 40px, Cancel and Confirm side by side (30px apart) |
 
@@ -282,6 +284,7 @@ Background scroll is locked on mount via `document.body.style.overflow = 'hidden
 | InfoOverlay (list settings) and wrapper | `src/imports/InfoOverlay.tsx`, wrapper inline in `src/app/App.tsx` |
 | ListInfoOverlay and wrapper | `src/imports/list-info-overlay.tsx`, wrapper inline in `src/app/App.tsx` |
 | Saved list menu, template editor menu | Inline in `src/app/App.tsx` |
+| Reminders and Lists settings | Overlay inline in `src/app/App.tsx`, content in `src/app/components/SettingsPanelContent.tsx` |
 | DevToolsInfoOverlay | `src/app/components/DevToolsOverlay.tsx` |
 | Dev tools confirmation dialogs | `src/app/components/DevToolsOverlay.tsx` (5), `src/imports/DevTools.tsx` (1) |
 

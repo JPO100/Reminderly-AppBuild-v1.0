@@ -49,7 +49,7 @@ Reminderly uses a systematic spacing scale based on multiples of 4px and specifi
 
 ### Panel standards
 
-Applies to the main Reminders and Lists panels and every slide-up panel (Reminders and Lists settings, Templates, Lists editor, New and edit reminder, Repeats, Dev tools). Centred popup dialogs and the onboarding tutorial are excluded.
+Applies to the main Reminders and Lists panels and every slide-up panel (Templates, Lists editor, New and edit reminder, Repeats, Dev tools). Centred popup dialogs and the onboarding tutorial are excluded.
 
 - **Top padding**: 24px
 - **Header**: 45px high, title left, 45 x 45 button(s) right. Main panels use the filters row as the header
@@ -74,7 +74,8 @@ Headers with a subtitle (Lists editor): the title row and subtitle are treated a
 
 ### Settings panels
 
-- Toggle rows first, then click-through rows. System settings section last, after a separator
+- Reminders and Lists settings are centred overlays (see centred-overlay-ui.md), not slide-up panels
+- Toggle rows first (Reminders: Show calendar, Use Siri shortcuts, 1 minute time increments. Lists: Use Smart Reminders, Use Siri shortcuts. Lists click-through rows: Haptic feedback, Sounds), then click-through rows, then the tutorial row last (Reminders tutorial / Lists tutorial). No separator or System settings subtitle
 
 ### List Container
 

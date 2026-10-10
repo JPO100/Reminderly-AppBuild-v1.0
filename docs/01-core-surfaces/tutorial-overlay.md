@@ -41,7 +41,7 @@ Lists tutorial pages are rendered by the `ListsTutorialPlaceholderPage` componen
 
 ## Access
 
-- opened from the header Reminders settings panel through the `Reminderly tutorial` row (requires the Dev Tools `Settings menu` toggle); always starts from the first page
+- opened from the Reminders settings overlay (`Reminders tutorial` row) or the Lists settings overlay (`Lists tutorial` row), the last row in each (requires the Dev Tools `Settings menu` toggle); always starts from the first page
 - opened automatically on launch according to the onboarding tutorial toggles
 - only rendered when the onboarding tutorial feature is enabled
 

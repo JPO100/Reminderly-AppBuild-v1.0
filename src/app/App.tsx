@@ -27,7 +27,6 @@ import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from 
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
 import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
-import tutorialIconPaths from "../imports/svg-orocxqk06z";
 import ListsHeader from "../imports/Header";
 import InfoOverlay from "../imports/InfoOverlay";
 import ListInfoOverlay from "../imports/list-info-overlay";
@@ -1119,7 +1118,8 @@ export default function App() {
     }
   });
   // Settings panels phase 1 (UI only): System settings Siri toggle shared by the Reminders and Lists panels
-  const [settingsPanelSiriOn, setSettingsPanelSiriOn] = useState<boolean>(siriShortcutsEnabled);
+  const [remindersSettingsSiriOn, setRemindersSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
+  const [listsSettingsSiriOn, setListsSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
   const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useState<boolean>(() => {
     try {
       return localStorage.getItem(DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY) === 'true';
@@ -2052,8 +2052,6 @@ export default function App() {
   const listsSheetDragControls = useDragControls();
   const repeatsSheetDragControls = useDragControls();
   const tutorialSheetDragControls = useDragControls();
-  const remindersSettingsSheetDragControls = useDragControls();
-  const listsSettingsSheetDragControls = useDragControls();
   const templatesSheetDragControls = useDragControls();
 
   const shouldCloseBottomSheetFromDrag = (offsetY: number, velocityY: number) => {
@@ -2070,8 +2068,13 @@ export default function App() {
 
   // Reminders settings panel: re-run the tutorial from its first page, then close the panel behind it
   const handleRemindersSettingsTutorialOpen = () => {
+    setIsRemindersSettingsPanelOpen(false);
     openTutorial('reminders');
-    setTimeout(() => setIsRemindersSettingsPanelOpen(false), 250);
+  };
+
+  const handleListsSettingsTutorialOpen = () => {
+    setIsListsSettingsPanelOpen(false);
+    openTutorial('lists');
   };
 
   const openSavedListEditor = (list: SavedListTemplate) => {
@@ -5384,132 +5387,49 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Settings Overlay */}
-      <AnimatePresence>
-        {isRemindersSettingsPanelOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setIsRemindersSettingsPanelOpen(false)}
-              className="fixed inset-0 bg-black/0 z-40"
-            />
-
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="fixed left-0 right-0 z-50 mx-auto w-full"
-              style={{ bottom: 0 }}
+      {/* Settings overlays (centred overlay standard) */}
+      {isRemindersSettingsPanelOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsRemindersSettingsPanelOpen(false)} />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+            <div
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
+              style={{ width: 340, maxHeight: 'calc(100% - 40px)', overflowY: 'auto' }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div
-                drag="y"
-                dragControls={remindersSettingsSheetDragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: viewportHeight }}
-                dragElastic={0}
-                dragMomentum={false}
-                onDragEnd={(_, info) => {
-                  if (!shouldCloseBottomSheetFromDrag(info.offset.y, info.velocity.y)) return;
-                  setIsRemindersSettingsPanelOpen(false);
-                }}
-                className="bg-white relative rounded-tl-[15px] rounded-tr-[15px] size-full"
-              >
-                <div
-                  className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
-                  onPointerDown={(event) => remindersSettingsSheetDragControls.start(event)}
+                <ShowInfoIconsContext.Provider value={showInfoIcons}>
+                <RemindersSettingsContent
+                  useOneMinuteIncrements={useOneMinuteTimeIncrements}
+                  siriOn={remindersSettingsSiriOn}
+                  onSiriChange={setRemindersSettingsSiriOn}
+                  onOpenTutorial={isOnboardingTutorialEnabled ? handleRemindersSettingsTutorialOpen : undefined}
                 />
-                <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                  <RemindersSettingsContent
-                    onClose={() => setIsRemindersSettingsPanelOpen(false)}
-                    useOneMinuteIncrements={useOneMinuteTimeIncrements}
-                    siriOn={settingsPanelSiriOn}
-                    onSiriChange={setSettingsPanelSiriOn}
-                    topContent={
-                      isOnboardingTutorialEnabled && (
-                      <button
-                        type="button"
-                        className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full p-0 m-0 border-none bg-transparent text-left cursor-pointer"
-                        onClick={handleRemindersSettingsTutorialOpen}
-                      >
-                        <div className="content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative">
-                          <div className="flex flex-col justify-start max-w-full min-w-0 overflow-visible relative shrink-0 text-[17px] text-[#1C2C42] w-full whitespace-nowrap">
-                            <p className="block leading-[17px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap w-full" style={{ boxSizing: 'content-box', fontSize: 17, fontWeight: 700, lineHeight: '17px', margin: 0, paddingBottom: 2, transform: 'translateY(-1px)' }}>Reminderly tutorial</p>
-                          </div>
-                        </div>
-                        <div className="h-[19px] relative self-center shrink-0 w-[18px]" data-name="Union">
-                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 19">
-                            <path d={tutorialIconPaths.p15f1c400} fill="#E5E5E5" />
-                            <path d={tutorialIconPaths.p18a25a00} fill="#E5E5E5" />
-                          </svg>
-                        </div>
-                      </button>
-                      )
-                    }
-                  />
-                  </ShowInfoIconsContext.Provider>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                </ShowInfoIconsContext.Provider>
+            </div>
+          </div>
+        </>
+      )}
 
-      <AnimatePresence>
-        {isListsSettingsPanelOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setIsListsSettingsPanelOpen(false)}
-              className="fixed inset-0 bg-black/0 z-40"
-            />
-
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="fixed left-0 right-0 z-50 mx-auto w-full"
-              style={{ bottom: 0 }}
+      {isListsSettingsPanelOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsListsSettingsPanelOpen(false)} />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+            <div
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
+              style={{ width: 340, maxHeight: 'calc(100% - 40px)', overflowY: 'auto' }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div
-                drag="y"
-                dragControls={listsSettingsSheetDragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: viewportHeight }}
-                dragElastic={0}
-                dragMomentum={false}
-                onDragEnd={(_, info) => {
-                  if (!shouldCloseBottomSheetFromDrag(info.offset.y, info.velocity.y)) return;
-                  setIsListsSettingsPanelOpen(false);
-                }}
-                className="bg-white relative rounded-tl-[15px] rounded-tr-[15px] size-full"
-              >
-                <div
-                  className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
-                  onPointerDown={(event) => listsSettingsSheetDragControls.start(event)}
+                <ShowInfoIconsContext.Provider value={showInfoIcons}>
+                <ListsSettingsContent
+                  siriOn={listsSettingsSiriOn}
+                  onSiriChange={setListsSettingsSiriOn}
+                  onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}
                 />
-                <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                  <ListsSettingsContent
-                    onClose={() => setIsListsSettingsPanelOpen(false)}
-                    siriOn={settingsPanelSiriOn}
-                    onSiriChange={setSettingsPanelSiriOn}
-                  />
-                  </ShowInfoIconsContext.Provider>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                </ShowInfoIconsContext.Provider>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Tutorial Overlay */}
       <AnimatePresence>

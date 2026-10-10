@@ -2,7 +2,7 @@
 
 ## Overview
 
-The tutorial system provides the reminders and lists onboarding flows. It can be re-run from the header Reminders settings panel (`Reminderly tutorial` row) when the tutorial feature flag and the Dev Tools `Settings menu` toggle are enabled. Tutorial content mirrors the current feature configuration: the phone mock-ups hide the Reminders/Lists tab bar when Lists are disabled, and pages for disabled features are omitted.
+The tutorial system provides the reminders and lists onboarding flows. It can be re-run from the Reminders or Lists settings overlay (`Reminders tutorial` or `Lists tutorial` row, last in each) when the tutorial feature flag and the Dev Tools `Settings menu` toggle are enabled. Tutorial content mirrors the current feature configuration: the phone mock-ups hide the Reminders/Lists tab bar when Lists are disabled, and pages for disabled features are omitted.
 
 The active reminders tutorial render path is:
 
@@ -79,7 +79,7 @@ OnboardingPage6Content is included only when the Dev Tools `Settings menu` featu
 
 ## Access
 
-Via "Reminderly tutorial" row in Settings overlay, when `isOnboardingTutorialEnabled === true`.
+Via the "Reminders tutorial" row in the Reminders settings overlay or the "Lists tutorial" row in the Lists settings overlay, when `isOnboardingTutorialEnabled === true`.
 
 ## Feature Flag
 

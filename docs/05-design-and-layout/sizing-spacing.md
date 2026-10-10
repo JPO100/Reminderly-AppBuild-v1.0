@@ -49,12 +49,12 @@ Reminderly uses a systematic spacing scale based on multiples of 4px and specifi
 
 ### Panel standards
 
-Applies to the main Reminders and Lists panels and every slide-up panel (Reminders and Lists settings, Templates, Lists editor, New and edit reminder, Repeats, Dev tools). Centred popup dialogs and the onboarding tutorial are excluded.
+Applies to the main Reminders and Lists panels and every slide-up panel (Templates, Lists editor, New and edit reminder, Repeats, Dev tools). Centred popup dialogs and the onboarding tutorial are excluded.
 
-- **Top padding**: 26px
+- **Top padding**: 24px
 - **Header**: 45px high, title left, 45 x 45 button(s) right. Main panels use the filters row as the header
 - **Close button**: 45 x 45 blue (#4784F8) circle with a white cross
-- **Header to content**: 26px. No separator line below the header
+- **Header to content**: 24px. No separator line below the header. Exception: Lists editor 26px (see below)
 - **Content to bottom button**: 24px (New reminder, New list, Templates)
 - **Bottom space**: 24px from the last element (button or content) to the bottom of the screen. Exception: Reminders and Lists done/deleted pages have 0px
 - **Top corners**: 15px (top left and top right) on every panel
@@ -64,7 +64,7 @@ Applies to the main Reminders and Lists panels and every slide-up panel (Reminde
 
 Where a container gap also spaces other content (for example the list above a bottom button, or Dev tools sections), header spacing is adjusted with a margin on the header instead of changing the shared gap.
 
-Headers with a subtitle (Lists editor): the title row and subtitle are treated as one header block, so the 26px header to content space is measured from the bottom of the subtitle (about 40px below the 45px title row).
+Headers with a subtitle (Lists editor): the title row and subtitle are treated as one header block, so its 26px header to content space is measured from the bottom of the subtitle (about 40px below the 45px title row). The tutorial copy of the Lists editor matches the app (24px top padding, 26px below the subtitle).
 
 ### Row menu (3-dot) button
 
@@ -74,7 +74,8 @@ Headers with a subtitle (Lists editor): the title row and subtitle are treated a
 
 ### Settings panels
 
-- Toggle rows first, then click-through rows. System settings section last, after a separator
+- Reminders and Lists settings are centred overlays (see centred-overlay-ui.md), not slide-up panels
+- Toggle rows first (Reminders: Show calendar, Use Siri shortcuts, 1 minute time increments. Lists: Use Smart Reminders, Use Siri shortcuts. Lists click-through rows: Haptic feedback, Sounds), then click-through rows, then the tutorial row last (Reminders tutorial / Lists tutorial). No separator or System settings subtitle
 
 ### List Container
 

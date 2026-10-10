@@ -183,7 +183,7 @@ export default function DevTools({
 
   return (
     <>
-    <div className="bg-white content-stretch flex flex-col gap-[26px] items-start pb-[24px] pt-[26px] px-[20px] relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="dev-tools">
+    <div className="bg-white content-stretch flex flex-col gap-[24px] items-start pb-[24px] pt-[24px] px-[20px] relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="dev-tools">
       <Header onClose={onClose} />
       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[32px] items-center min-h-px min-w-px relative w-full">
         <div className="content-stretch flex flex-col items-start relative w-full" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
@@ -206,10 +206,10 @@ export default function DevTools({
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingToggle(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
             <div
-              className="bg-white relative flex flex-col gap-[35px] items-center py-[40px] px-[34px] rounded-[32px] pointer-events-auto"
-              style={{ width: 322 }}
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+              style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
@@ -222,7 +222,7 @@ export default function DevTools({
                   {pendingToggle.target ? copy.onSubtitle : copy.offSubtitle}
                 </p>
               </div>
-              <div className="flex gap-[16px] w-full justify-between">
+              <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingToggle(null)}
                   className="h-[50px] rounded-[100px] cursor-pointer px-[16px]"

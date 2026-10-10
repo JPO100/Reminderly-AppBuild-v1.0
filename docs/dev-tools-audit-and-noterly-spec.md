@@ -296,7 +296,7 @@ Settings section: "Show tutorial on first launch", "Show tutorial on every app s
 
 ### System page
 
-Features section: "Siri shortcuts" toggle (persisted), "Settings menu" toggle (persisted)
+Features section: "Siri shortcuts" toggle (persisted), "Settings menu" toggle (persisted), "Show info icons" toggle (persisted, default off)
 Settings section: three menu rows
 - "Filters menu" → FiltersMenuPage
 - "Dev tools password" → DevToolsPasswordPage
@@ -448,7 +448,7 @@ SectionSubtitle - `h-[10px]` label in `text-[14px] text-[#939393] font-semibold`
 KeyLine - `h-px bg-[#E4E4E4]`
 InfoIcon - SVG 16.5x16.5 info circle
 DevToolsInfoOverlay - portal modal with header, body, close button
-InfoIconWithOverlay - wrapper combining InfoIcon with DevToolsInfoOverlay
+InfoIconWithOverlay - wrapper combining InfoIcon with DevToolsInfoOverlay. Always shown in Dev tools. In the user-facing Reminders and Lists settings panels, shown or hidden by the Dev tools > System "Show info icons" toggle (default off, stored as `reminderly-ff-info-icons`), provided around those panels via `ShowInfoIconsContext`. All info copy is kept
 
 The `NavRow` and `NavRowWithToggle` components on the home page should be implemented locally in the DevTools home component as they are specific to the home layout.
 

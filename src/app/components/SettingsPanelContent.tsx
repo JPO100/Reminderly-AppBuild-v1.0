@@ -4,6 +4,8 @@ import { ToggleRow, MenuRow, KeyLine } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
 import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics";
+import { getSoundsConfig, setSoundsConfig, SOUND_GROUPS, panelMasterKey as soundsMasterKey } from "../utils/sounds";
+import type { SoundsConfig } from "../utils/sounds";
 
 // Phase 1: UI only. Toggles hold local state and nothing is saved; click-through rows open empty pages.
 // Each panel has its own Siri preference, saved by App. Each row shows only when its Siri flag is on.
@@ -100,6 +102,42 @@ function HapticSettings({ panel }: { panel: HapticPanel }) {
   );
 }
 
+// Sounds sub-page: same behaviour as Haptic feedback, with its own saved choices.
+function SoundSettings({ panel }: { panel: HapticPanel }) {
+  const [config, setConfig] = useState<SoundsConfig>(getSoundsConfig);
+  const groups = SOUND_GROUPS[panel];
+  const masterKey = soundsMasterKey(panel);
+  const panelActions = groups.flatMap((group) => group.actions);
+  const update = (next: SoundsConfig) => {
+    setConfig(next);
+    setSoundsConfig(next);
+  };
+  const setMaster = (on: boolean) => {
+    const next = { ...config, [masterKey]: on };
+    if (on && !panelActions.some((action) => config[action])) {
+      for (const action of panelActions) next[action] = true;
+    }
+    update(next);
+  };
+  const groupOn = (actions: HapticAction[]) => config[masterKey] && actions.some((action) => config[action]);
+  const setGroup = (actions: HapticAction[], on: boolean) => {
+    const next = { ...config };
+    if (!config[masterKey]) for (const action of panelActions) next[action] = false;
+    for (const action of actions) next[action] = on;
+    next[masterKey] = panelActions.some((action) => next[action]);
+    update(next);
+  };
+  return (
+    <>
+      <ToggleRow label="Sounds" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every click below off in one go. Turning it back on restores your previous choices." />
+      <KeyLine />
+      {groups.map(({ label, info, actions }) => (
+        <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
+      ))}
+    </>
+  );
+}
+
 // Last row in both settings overlays. Uses the MenuRow chevron (same size, colour and 15px right inset), rotated to point up.
 function TutorialRow({ label, onClick }: { label: string; onClick: () => void }) {
   return (
@@ -117,7 +155,7 @@ function TutorialRow({ label, onClick }: { label: string; onClick: () => void })
 }
 
 const SIRI_INFO = "Lets you use Siri and the Shortcuts app to create and manage reminders with your voice. Turn this off to stop Reminderly appearing in Siri and Shortcuts.";
-const SOUNDS_INFO = "Choose the sounds Reminderly plays, such as when a reminder is due or completed.";
+const SOUNDS_INFO = "Choose when Reminderly plays a soft click, such as when you complete or delete an item.";
 
 export function RemindersSettingsContent({ onOpenTutorial, calendarAvailable, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; calendarAvailable: boolean; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
@@ -128,7 +166,7 @@ export function RemindersSettingsContent({ onOpenTutorial, calendarAvailable, so
       title="Reminders settings"
       subPage={subPage}
       onBack={() => setSubPage(null)}
-      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : null}
+      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : subPage === "Sounds" ? <SoundSettings panel="reminders" /> : null}
     >
       {calendarAvailable && <ToggleRow label="Show calendar" isOn={showCalendar} onToggle={() => setShowCalendar(prev => !prev)} infoTitle="Shows a calendar view so you can see your reminders by date." />}
       {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
@@ -145,7 +183,7 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
   const [subPage, setSubPage] = useState<string | null>(null);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Haptic feedback" ? <HapticSettings panel="lists" /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Haptic feedback" ? <HapticSettings panel="lists" /> : subPage === "Sounds" ? <SoundSettings panel="lists" /> : null}>
       {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
       {hapticsAvailable && <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you check off a list item or delete a list." />}
       {soundsAvailable && <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />}

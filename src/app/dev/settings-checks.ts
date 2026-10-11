@@ -13,6 +13,7 @@ import { migrateSettings } from '../settings/migration';
 import { ALL_FEATURES, canChangeModuleFlag, isFeatureActive, keepRepeatRuleWhenOff, readSetting } from '../settings/resolver';
 import { parseTokens } from '../utils/nlc-parser';
 import { HAPTIC_GROUPS, normaliseHapticsConfig, panelForAction } from '../utils/haptics';
+import { SOUND_GROUPS, normaliseSoundsConfig, panelForAction as soundPanelForAction } from '../utils/sounds';
 import { SETTINGS_DEFAULTS, SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
 import { defaultFor, readStoredBool, setSettingsWriteFailureListener, writeStoredBool } from '../settings/useStoredSetting';
 
@@ -385,12 +386,12 @@ export function getSettingsChecks(): Check[] {
       id: 'settings-haptics-groups',
       name: 'Haptics: every action belongs to exactly one switch, on the right panel',
       run: () => {
-        const actions = ['markDone', 'createReminder', 'markListComplete', 'deleteReminder', 'deleteListItem', 'clearAllDoneDeleted',
+        const actions = ['markDone', 'createReminder', 'createList', 'markListComplete', 'deleteReminder', 'deleteListItem', 'clearAllDoneDeleted',
           'uncompleteReminder', 'undeleteReminder', 'undoListCompletion', 'toggleListItemCheckbox', 'swipeRevealDelete'];
         const grouped = [...HAPTIC_GROUPS.reminders, ...HAPTIC_GROUPS.lists].flatMap((group) => group.actions);
         assert(grouped.length === actions.length && actions.every((action) => grouped.filter((a) => a === action).length === 1), 'Each action should appear in exactly one switch');
         assert(panelForAction('markDone') === 'reminders' && panelForAction('toggleListItemCheckbox') === 'lists', 'Actions should map to their panel');
-        assert(HAPTIC_GROUPS.reminders.length === 3 && HAPTIC_GROUPS.lists.length === 3, 'Each panel should show three switches');
+        assert(HAPTIC_GROUPS.reminders.length === 3 && HAPTIC_GROUPS.lists.length === 4, 'Reminders should show three switches and Lists four');
       },
     },
     {
@@ -417,6 +418,53 @@ export function getSettingsChecks(): Check[] {
         storage.setItem('reminderly-ff-haptics', 'false');
         storage.setItem('reminderly-pref-haptics', '{"remindersHaptics":true,"listsHaptics":true}');
         assert(!isFeatureActive('haptics', { storage }), 'Flag off should be inactive');
+      },
+    },
+
+    // Sounds
+    {
+      id: 'settings-sounds-groups',
+      name: 'Sounds: same switches, actions and panels as haptics',
+      run: () => {
+        for (const panel of ['reminders', 'lists'] as const) {
+          assert(SOUND_GROUPS[panel].length === HAPTIC_GROUPS[panel].length, 'Each panel should show the same number of switches');
+          SOUND_GROUPS[panel].forEach((group, i) => {
+            assert(group.label === HAPTIC_GROUPS[panel][i].label, 'Switch labels should match haptics');
+            assert(JSON.stringify(group.actions) === JSON.stringify(HAPTIC_GROUPS[panel][i].actions), 'Switch actions should match haptics');
+            assert(group.actions.every((action) => soundPanelForAction(action) === panel), 'Actions should map to their panel');
+          });
+        }
+      },
+    },
+    {
+      id: 'settings-sounds-defaults',
+      name: 'Sounds: off by default for both panels, saved choices win',
+      run: () => {
+        const fresh = normaliseSoundsConfig(JSON.parse(SETTINGS_DEFAULTS['reminderly-pref-sounds']));
+        assert(!fresh.remindersSounds && !fresh.listsSounds, 'Both panels should default off');
+        assert(fresh.markDone && fresh.toggleListItemCheckbox, 'Individual actions should default on');
+        const saved = normaliseSoundsConfig({ remindersSounds: true, createReminder: false });
+        assert(saved.remindersSounds && !saved.listsSounds && !saved.createReminder && saved.markDone, 'Saved choices should win');
+      },
+    },
+    {
+      id: 'settings-sounds-resolver',
+      name: 'Sounds: active while either panel is on, saved choices kept when the flag is turned off and on',
+      run: () => {
+        const storage = memoryStorage({ 'reminderly-ff-sounds': 'true' });
+        assert(!isFeatureActive('sounds', { storage }), 'Sounds should default off');
+        const saved = '{"remindersSounds":false,"listsSounds":true,"markDone":false}';
+        storage.setItem('reminderly-pref-sounds', saved);
+        assert(isFeatureActive('sounds', { storage }), 'One panel on should be active');
+        storage.setItem('reminderly-ff-sounds', 'false');
+        assert(!isFeatureActive('sounds', { storage }), 'Flag off should be inactive');
+        storage.setItem('reminderly-ff-sounds', 'true');
+        assert(isFeatureActive('sounds', { storage }) && storage.getItem('reminderly-pref-sounds') === saved, 'Flag back on should keep saved choices');
+        storage.setItem('reminderly-pref-sounds', '{"remindersSounds":false,"listsSounds":false}');
+        assert(!isFeatureActive('sounds', { storage }), 'Both panels off should be inactive');
+        storage.setItem('reminderly-pref-sounds', 'not json');
+        assert(!isFeatureActive('sounds', { storage }), 'Unreadable sounds should be off');
+        assert(isFeatureActive('haptics', { storage: memoryStorage({ 'reminderly-pref-haptics': '{"allHaptics":true}' }) }), 'Haptics should be unaffected');
       },
     },
 

@@ -11,6 +11,7 @@ export const SETTINGS_SCHEMA_KEY = 'reminderly-settings-schema';
 export const SETTINGS_SCHEMA_VERSION = 1;
 
 export const HAPTICS_PREF_KEY = 'reminderly-pref-haptics';
+export const SOUNDS_PREF_KEY = 'reminderly-pref-sounds';
 
 // Development defaults, used when a key has never been saved (new installs).
 // Existing installs keep their current behaviour through the migration (migration.ts).
@@ -41,9 +42,9 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-haptics': 'true',
   [HAPTICS_PREF_KEY]: '{"allHaptics":false}',
 
-  // Sounds
+  // Sounds: both panels off, individual actions on (missing actions merge to on in utils/sounds.ts)
   'reminderly-ff-sounds': 'false',
-  'reminderly-pref-sounds': 'false',
+  [SOUNDS_PREF_KEY]: '{"remindersSounds":false,"listsSounds":false}',
 
   // Siri
   'reminderly-ff-siri-reminders': 'false',

@@ -259,7 +259,9 @@ Resync (the existing cancel-and-reschedule-if-different logic) runs when:
 Phase 3 change: the NLC mode and recognition preferences are stored as boolean keys (above) instead of a mode string and a JSON object, so they use the same `useStoredSetting` path as every other preference. No build ever wrote the original keys, so there is nothing to migrate.
 | `reminderly-ff-settings-menu-v2` | Unchanged | Off | Kept |
 | `reminderly-ff-info-icons` | Unchanged | Off | Kept |
-| - | `reminderly-ff-calendar`, `reminderly-ff-sounds` | Off | - |
+| - | `reminderly-ff-calendar` | Off | - |
+| - | `reminderly-ff-sounds` | Off (turn on in Dev tools > System > Sounds) | - |
+| - | `reminderly-pref-sounds` | JSON: both panels off, actions on | - (never saved by an earlier build) |
 | - | `reminderly-ff-nlc-phone`, `reminderly-ff-nlc-contacts` (temporary) | Off | - |
 | `reminderly-ff-paywall` | Unchanged | Off | Kept |
 | - | `reminderly-ff-attachments` (on `reminder-attachments`) | Off | - |
@@ -289,7 +291,7 @@ Not migrated (data and internal state, unchanged): `reminderly.reminders.v1`, `r
 
 - Dev tools regrouped into Feature flags (by area), Config, Testing tools, and Access and diagnostics.
 - Dev tools holds no user preference controls (decision record, section 0). Preferences are set only in Reminders and Lists settings.
-- Rows for unbuilt features are hidden by their flags: show calendar, sounds, the Haptic feedback page until wired, the Natural Language Capture page until wired.
+- Rows for unbuilt features are hidden by their flags: show calendar, the Haptic feedback page until wired, the Natural Language Capture page until wired. Sounds is built (section 12.2) and controlled by the Dev tools Sounds flag.
 - "Use Smart Reminders" is removed from Lists settings (built-in feature).
 
 ### 11.1 UI and UX
@@ -405,6 +407,19 @@ Approved by the product owner and senior developer on 2026-10-11, replacing the 
 - Existing choices carry over: the panel on/off values start from the original single master (`allHaptics`) and per-action values are kept. No migration.
 - Haptics fire only when the Dev tools Haptics flag, the panel on/off and the action are all on.
 - Template haptics deferred.
+- Added on feature/click-sounds: tapping New reminder follows the Creating a reminder switch, and a new Lists switch, Creating a list (`createList`, on by default), covers tapping New list. Lists now shows four switches. Existing saved choices are kept; the new action fills in as on.
+
+## 12.2 Click sounds
+
+Added on feature/click-sounds (2026-10-11). A soft click, generated in code with Web Audio (no audio files, no native code), on the same 12 actions as haptics.
+
+- Reminders and Lists settings each have a Sounds page with the same layout and behaviour as Haptic feedback: a Sounds on/off, then the same three switches per panel.
+- Choices are saved in `reminderly-pref-sounds` (JSON: `remindersSounds`, `listsSounds` and one value per action), separate from `reminderly-pref-haptics`. Changing one never changes the other.
+- Both panels are off by default; actions default on. No migration: no earlier build saved the key.
+- The resolver treats sounds as on while either panel is on.
+- Dev tools > System > Sounds controls availability (`reminderly-ff-sounds`). When off, no sounds play and the Sounds rows are hidden; saved choices are kept.
+- `hapticTap` calls `playClick` first, so each feature follows only its own flag and switches.
+- The audio session is set to ambient where supported, so clicks follow the silent switch and mix with other audio.
 
 ## 13. Decisions
 

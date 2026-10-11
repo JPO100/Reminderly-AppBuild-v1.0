@@ -1034,3 +1034,16 @@ Test results (post-merge on main): Vitest 120/120 passed. Self Check passed with
 
 Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised.
 
+### 2026-10-11 (feature/click-sounds - click sounds built)
+
+Branch: feature/click-sounds (created from main at a54e3b3, approved by the senior developer). Step 1 committed as 50277dc; the rest committed after senior developer approval. Physical iPhone testing passed. Not merged.
+
+Completed:
+- Click sounds on the same actions as haptics, generated in code with Web Audio (utils/sounds.ts). No audio files, native code or new dependencies. Audio session set to ambient where supported
+- Sounds pages in Reminders and Lists settings, same layout and behaviour as Haptic feedback, with choices saved separately (reminderly-pref-sounds, JSON). Both panels off by default
+- Dev tools > System > Sounds availability flag (reminderly-ff-sounds), off by default (senior developer decision); on during branch testing
+- hapticTap calls playClick first, so sounds and haptics each follow only their own settings
+- Product owner request: the New reminder and New list buttons give a haptic and click. New reminder follows Creating a reminder; Lists gains a Creating a list switch (createList) on both the Haptic feedback and Sounds pages
+- Decisions (senior developer): no TypeScript tooling added (check not applicable); SOUND_GROUPS defined in sounds.ts to avoid a circular import, kept in step with HAPTIC_GROUPS by Self Check
+
+Test results: Vitest 132/132 passed. Self Check 369/369 passed (Node run). Repo guard passed. Web, simulator and iPhone builds succeeded.

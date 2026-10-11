@@ -2,7 +2,12 @@
 
 Last updated: 2026-10-11
 
-## Verified Baseline (2026-10-11, feature/settings-flags-model Phase 3 close-out)
+## Verified Baseline (2026-10-11, feature/click-sounds)
+
+- Vitest (`npm run test`): 132 passed, 0 failed (7 files). New file: sounds.test.ts (12 tests).
+- Self Check: 369 passed, 0 failed across 10 suites (Node run of the same checks). Settings foundation: 35 checks (3 new for sounds).
+
+## Previous baseline (2026-10-11, feature/settings-flags-model Phase 3 close-out)
 
 - Vitest (`npm run test`): 120 passed, 0 failed (6 files).
 - Self Check: 366 passed, 0 failed across 10 suites (desktop browser and a Node run of the same checks). New suite: Settings foundation (32 checks).
@@ -23,7 +28,7 @@ Reminderly Self-Checks Report
 Run invocation id: [varies]
 Ran at: [varies]
 Duration: [varies]ms
-Passed: 366 | Failed: 0
+Passed: 369 | Failed: 0
 
 Schedule and reminder logic
 
@@ -410,6 +415,9 @@ Settings foundation
 ✓ Haptics: every action belongs to exactly one switch, on the right panel
 ✓ Haptics: existing saved choices carry over to the per-panel design
 ✓ Haptics: active while either panel is on, off when both are off
+✓ Sounds: same switches, actions and panels as haptics
+✓ Sounds: off by default for both panels, saved choices win
+✓ Sounds: active while either panel is on, saved choices kept when the flag is turned off and on
 ✓ Resolver: never writes to storage
 ✓ Resolver: Lists off hides lists features. Turning it back on restores them unchanged
 ✓ Resolver: Reminders off hides reminders features, including smart reminders and notifications
@@ -489,14 +497,15 @@ Settings foundation
   - Scheduling limits: 3
   - Midnight notification: 6
   - Refresh boundary: 2
-- **Settings foundation checks** (settings-checks.ts): 32
+- **Settings foundation checks** (settings-checks.ts): 35
   - Migration: 10
   - Stored settings (single source of truth, write failures): 9
   - Dev tools last-module guard: 1
   - Repeat reminders flag: 2
   - Haptics (per-panel switches, preserved choices, resolver): 3
+  - Sounds (switches match haptics, defaults, resolver and flag): 3
   - Resolver: 7
-- **Total**: 366 checks across 10 suites
+- **Total**: 369 checks across 10 suites
 
 ## Runner Integrity Check
 

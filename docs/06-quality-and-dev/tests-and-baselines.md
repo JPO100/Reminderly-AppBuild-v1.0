@@ -2,7 +2,7 @@
 
 ## Current Test Coverage
 
-Reminderly currently has **366 self-checks across 10 suites** (shown in 9 sections; the two done, deleted and completion suites share one), plus **120 Vitest tests** (2026-10-11).
+Reminderly currently has **369 self-checks across 10 suites** (shown in 9 sections; the two done, deleted and completion suites share one), plus **132 Vitest tests** (2026-10-11).
 
 | Suite | Checks | Focus |
 | --- | ---: | --- |
@@ -15,7 +15,7 @@ Reminderly currently has **366 self-checks across 10 suites** (shown in 9 sectio
 | Lists and smart reminders | 26 | Lists, templates, smart reminders, pinning, and list state rules |
 | Dev tools and feature flags | 33 | Developer settings and feature-flag behaviour |
 | Notification and badge | 22 | Badge count, notification payload, scheduling limits, midnight notification |
-| Settings foundation | 32 | Settings migration, single source of truth, flags and preferences, repeat flag, haptics |
+| Settings foundation | 35 | Settings migration, single source of truth, flags and preferences, repeat flag, haptics, sounds |
 
 ## Baseline Output
 
@@ -23,7 +23,7 @@ Expected clean-run output is tracked in `src/app/dev/BASELINE.md`.
 
 ### Clean Run Characteristics
 
-- all 366 checks pass
+- all 369 checks pass
 - failed count is 0
 - run invocation id varies per execution
 - duration varies per execution

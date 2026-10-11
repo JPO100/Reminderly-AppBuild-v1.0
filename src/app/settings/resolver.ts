@@ -2,7 +2,7 @@
 // A feature is active when its parent features, its admin flag, its user preferences
 // and (for notifications) iOS permission are all on. Nothing here writes to storage.
 
-import { HAPTICS_PREF_KEY, SETTINGS_DEFAULTS } from './keys';
+import { HAPTICS_PREF_KEY, SETTINGS_DEFAULTS, SOUNDS_PREF_KEY } from './keys';
 import type { SettingsStorage } from './keys';
 
 export type Feature =
@@ -49,7 +49,7 @@ const FEATURES: Record<Feature, FeatureDef> = {
   notificationBadge: { flag: 'reminderly-ff-notifications', parents: ['reminders'], prefs: ['reminderly-pref-notif-badge'], needsPermission: true },
   badgeIncludesToday: { flag: 'reminderly-ff-notifications', parents: ['reminders'], prefs: ['reminderly-pref-notif-badge', 'reminderly-pref-notif-include-today'], needsPermission: true },
   haptics: { flag: 'reminderly-ff-haptics', prefs: [HAPTICS_PREF_KEY] },
-  sounds: { flag: 'reminderly-ff-sounds', prefs: ['reminderly-pref-sounds'] },
+  sounds: { flag: 'reminderly-ff-sounds', prefs: [SOUNDS_PREF_KEY] },
   siriReminders: { flag: 'reminderly-ff-siri-reminders', parents: ['reminders'], prefs: ['reminderly-pref-siri-reminders'] },
   siriLists: { flag: 'reminderly-ff-siri-lists', parents: ['lists'], prefs: ['reminderly-pref-siri-lists'] },
   nlc: { flag: 'reminderly-ff-nlc', parents: ['reminders'], prefs: ['reminderly-pref-nlc'] },
@@ -81,6 +81,15 @@ export function readSettingBool(key: string, storage: SettingsStorage = localSto
       const reminders = value.remindersHaptics ?? value.allHaptics;
       const lists = value.listsHaptics ?? value.allHaptics;
       return reminders === true || lists === true;
+    } catch {
+      return false;
+    }
+  }
+  // The sounds preference is the same shape, with no single master to fall back to.
+  if (key === SOUNDS_PREF_KEY) {
+    try {
+      const value = JSON.parse(readSetting(key, storage) ?? '{}');
+      return value.remindersSounds === true || value.listsSounds === true;
     } catch {
       return false;
     }

@@ -1,10 +1,12 @@
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { SETTINGS_DEFAULTS } from '../settings/keys';
 import { readStoredBool } from '../settings/useStoredSetting';
+import { playClick } from './sounds';
 
 export type HapticAction =
   | 'markDone'
   | 'createReminder'
+  | 'createList'
   | 'markListComplete'
   | 'deleteReminder'
   | 'deleteListItem'
@@ -35,6 +37,7 @@ const DEFAULT_CONFIG: HapticsConfig = {
   listsHaptics: true,
   markDone: true,
   createReminder: true,
+  createList: true,
   markListComplete: true,
   deleteReminder: true,
   deleteListItem: true,
@@ -86,6 +89,8 @@ export function setHapticsConfig(next: HapticsConfig) {
 
 /** Single tap feedback gated by action config */
 export const hapticTap = (action: HapticAction) => {
+  // Click sounds play on the same actions, with their own settings (utils/sounds)
+  playClick(action);
   if (!readStoredBool(FLAG_KEY)) return;
   if (!config[panelMasterKey(panelForAction(action))]) return;
   if (!config[action]) return;
@@ -98,11 +103,12 @@ export const hapticTap = (action: HapticAction) => {
  */
 export const HAPTIC_GROUPS: Record<HapticPanel, { label: string; info: string; actions: HapticAction[] }[]> = {
   reminders: [
-    { label: 'Creating a reminder', info: 'A small vibration when you create a reminder.', actions: ['createReminder'] },
+    { label: 'Creating a reminder', info: 'A small vibration when you tap New reminder or create a reminder.', actions: ['createReminder'] },
     { label: 'Completing a reminder', info: 'A small vibration when you mark a reminder as done, or restore a done reminder.', actions: ['markDone', 'uncompleteReminder'] },
     { label: 'Deleting a reminder', info: 'A small vibration when you delete or restore a reminder, or clear done and deleted reminders.', actions: ['deleteReminder', 'undeleteReminder', 'clearAllDoneDeleted'] },
   ],
   lists: [
+    { label: 'Creating a list', info: 'A small vibration when you tap New list.', actions: ['createList'] },
     { label: 'Ticking off a list item', info: 'A small vibration when you tick or untick a list item.', actions: ['toggleListItemCheckbox'] },
     { label: 'Completing a list', info: 'A small vibration when you mark a list as done, or restore it.', actions: ['markListComplete', 'undoListCompletion'] },
     { label: 'Deleting a list item', info: 'A small vibration when you delete a list item, or swipe to reveal delete.', actions: ['deleteListItem', 'swipeRevealDelete'] },

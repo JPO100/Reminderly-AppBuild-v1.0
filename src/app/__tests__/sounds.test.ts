@@ -69,3 +69,44 @@ describe('playClick', () => {
     expect(JSON.parse(localStorage.getItem('reminderly-pref-sounds')!).listsSounds).toBe(true);
   });
 });
+
+// hapticTap plays the click first, so sounds and haptics each follow only their own settings.
+const impact = vi.fn(() => Promise.resolve());
+vi.mock('@capacitor/haptics', () => ({ Haptics: { impact }, ImpactStyle: { Light: 'LIGHT' } }));
+
+async function loadHaptics(saved: Record<string, string>) {
+  await loadSounds(saved);
+  return import('../utils/haptics');
+}
+
+describe('hapticTap with sounds', () => {
+  beforeEach(() => {
+    started.mockClear();
+    impact.mockClear();
+  });
+
+  it('plays the click with haptics off', async () => {
+    const { hapticTap } = await loadHaptics({ 'reminderly-ff-sounds': 'true', 'reminderly-pref-sounds': '{"remindersSounds":true}', 'reminderly-pref-haptics': '{"allHaptics":false}' });
+    hapticTap('createReminder');
+    expect(started).toHaveBeenCalledTimes(1);
+    expect(impact).not.toHaveBeenCalled();
+  });
+
+  it('fires haptics with sounds off', async () => {
+    const { hapticTap } = await loadHaptics({ 'reminderly-ff-sounds': 'true', 'reminderly-ff-haptics': 'true', 'reminderly-pref-haptics': '{"allHaptics":true}' });
+    hapticTap('createReminder');
+    expect(impact).toHaveBeenCalledTimes(1);
+    expect(started).not.toHaveBeenCalled();
+  });
+
+  it('fires both when both are on, and neither when both are off', async () => {
+    const both = await loadHaptics({ 'reminderly-ff-sounds': 'true', 'reminderly-ff-haptics': 'true', 'reminderly-pref-sounds': '{"listsSounds":true}', 'reminderly-pref-haptics': '{"allHaptics":true}' });
+    both.hapticTap('toggleListItemCheckbox');
+    expect(impact).toHaveBeenCalledTimes(1);
+    expect(started).toHaveBeenCalledTimes(1);
+    const neither = await loadHaptics({ 'reminderly-pref-haptics': '{"allHaptics":false}' });
+    neither.hapticTap('toggleListItemCheckbox');
+    expect(impact).toHaveBeenCalledTimes(1);
+    expect(started).toHaveBeenCalledTimes(1);
+  });
+});

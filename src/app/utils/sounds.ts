@@ -18,6 +18,7 @@ const DEFAULT_CONFIG: SoundsConfig = {
   listsSounds: false,
   markDone: true,
   createReminder: true,
+  createList: true,
   markListComplete: true,
   deleteReminder: true,
   deleteListItem: true,
@@ -121,11 +122,12 @@ export const playClick = (action: HapticAction) => {
  */
 export const SOUND_GROUPS: Record<HapticPanel, { label: string; info: string; actions: HapticAction[] }[]> = {
   reminders: [
-    { label: 'Creating a reminder', info: 'A soft click when you create a reminder.', actions: ['createReminder'] },
+    { label: 'Creating a reminder', info: 'A soft click when you tap New reminder or create a reminder.', actions: ['createReminder'] },
     { label: 'Completing a reminder', info: 'A soft click when you mark a reminder as done, or restore a done reminder.', actions: ['markDone', 'uncompleteReminder'] },
     { label: 'Deleting a reminder', info: 'A soft click when you delete or restore a reminder, or clear done and deleted reminders.', actions: ['deleteReminder', 'undeleteReminder', 'clearAllDoneDeleted'] },
   ],
   lists: [
+    { label: 'Creating a list', info: 'A soft click when you tap New list.', actions: ['createList'] },
     { label: 'Ticking off a list item', info: 'A soft click when you tick or untick a list item.', actions: ['toggleListItemCheckbox'] },
     { label: 'Completing a list', info: 'A soft click when you mark a list as done, or restore it.', actions: ['markListComplete', 'undoListCompletion'] },
     { label: 'Deleting a list item', info: 'A soft click when you delete a list item, or swipe to reveal delete.', actions: ['deleteListItem', 'swipeRevealDelete'] },

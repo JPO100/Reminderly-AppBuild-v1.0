@@ -1022,3 +1022,15 @@ Test results: Vitest 120/120 passed. Self Check 366/366 passed. Repo guard passe
 
 Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised. Not merged to main.
 
+### 2026-10-11 (feature/settings-flags-model merged into main)
+
+Branch: main
+
+Completed:
+- feature/settings-flags-model merged into main (merge commit 4dafe0e, branch head abafb8b), approved by the senior developer after Phase 3 closure. Merge introduced no changes beyond the branch (identical tree). Settings and feature flags Phases 0 to 3: settings foundation (keys, resolver, migration, single source of truth), Dev tools reorganised into availability, config, testing and access, availability flags wired, user preferences in Reminders and Lists settings, Reminders-off notification safeguard, centred overlay height limits, haptics redesign
+- Branch retained
+
+Test results (post-merge on main): Vitest 120/120 passed. Self Check passed with no failures. Repo guard passed. Web, simulator and iPhone builds succeeded.
+
+Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised.
+

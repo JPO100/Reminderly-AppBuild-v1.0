@@ -1022,6 +1022,8 @@ export default function App() {
   const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useStoredSetting('reminderly-config-templates-in-clean-state');
   const isSmartRemindersEnabled = isRemindersEnabled && isListsEnabled && smartRemindersFeatureEnabled;
   const isRepeatRemindersActive = isRemindersEnabled && repeatRemindersFlag;
+  const isOneMinuteAvailable = isRemindersEnabled && oneMinuteIncrementsFlag;
+  const isOneMinuteActive = isOneMinuteAvailable && useOneMinuteTimeIncrements;
   // Repeat reminders off: NLC never recognises repeats
   const nlcRecognitionForInput = useMemo(() => ({ ...nlcRecognition, repeats: nlcRecognition.repeats && isRepeatRemindersActive }), [nlcRecognition, isRepeatRemindersActive]);
 
@@ -4326,7 +4328,7 @@ export default function App() {
                   updateReminder={updateReminder}
                   smartReminderCreateList={smartReminderCreateList}
                   onCreateSmartReminder={createSmartReminderFromPanel}
-                  useOneMinuteIncrements={useOneMinuteTimeIncrements}
+                  useOneMinuteIncrements={isOneMinuteActive}
                   autoFocusReady={isReminderOverlayFocusReady}
                 />
               </motion.div>
@@ -5177,7 +5179,9 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <RemindersSettingsContent
-                  useOneMinuteIncrements={useOneMinuteTimeIncrements}
+                  oneMinuteAvailable={isOneMinuteAvailable}
+                  oneMinuteOn={useOneMinuteTimeIncrements}
+                  onOneMinuteChange={setUseOneMinuteTimeIncrements}
                   siriOn={remindersSettingsSiriOn}
                   onSiriChange={setRemindersSettingsSiriOn}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleRemindersSettingsTutorialOpen : undefined}

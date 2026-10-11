@@ -59,16 +59,15 @@ function TutorialRow({ label, onClick }: { label: string; onClick: () => void })
 const SIRI_INFO = "Lets you use Siri and the Shortcuts app to create and manage reminders with your voice. Turn this off to stop Reminderly appearing in Siri and Shortcuts.";
 const SOUNDS_INFO = "Choose the sounds Reminderly plays, such as when a reminder is due or completed.";
 
-export function RemindersSettingsContent({ onOpenTutorial, useOneMinuteIncrements, siriOn, onSiriChange }: { onOpenTutorial?: () => void; useOneMinuteIncrements: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
+export function RemindersSettingsContent({ onOpenTutorial, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriOn, onSiriChange }: { onOpenTutorial?: () => void; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [oneMinute, setOneMinute] = useState(useOneMinuteIncrements);
 
   return (
     <PanelShell title="Reminders settings" subPage={subPage} onBack={() => setSubPage(null)}>
       <ToggleRow label="Show calendar" isOn={showCalendar} onToggle={() => setShowCalendar(prev => !prev)} infoTitle="Shows a calendar view so you can see your reminders by date." />
       <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />
-      <ToggleRow label="1 minute time increments" isOn={oneMinute} onToggle={() => setOneMinute(prev => !prev)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 5 minute steps." />
+      {oneMinuteAvailable && <ToggleRow label="1 minute time increments" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 5 minute steps." />}
       <MenuRow label="Natural Language Capture" onClick={() => setSubPage("Natural Language Capture")} infoTitle="Reminderly can pick out dates, times and repeats as you type, such as 'tomorrow at 3pm' or 'every Monday'. Choose what is recognised and how it works." />
       <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you complete or delete a reminder." />
       <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />

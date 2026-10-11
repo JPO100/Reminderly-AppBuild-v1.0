@@ -11,8 +11,8 @@
 import type { Check } from './check-system';
 import { migrateSettings } from '../settings/migration';
 import { ALL_FEATURES, canChangeModuleFlag, isFeatureActive, readSetting } from '../settings/resolver';
-import { SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
-import { readStoredBool, setSettingsWriteFailureListener, writeStoredBool } from '../settings/useStoredSetting';
+import { SETTINGS_DEFAULTS, SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
+import { defaultFor, readStoredBool, setSettingsWriteFailureListener, writeStoredBool } from '../settings/useStoredSetting';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -230,7 +230,7 @@ export function getSettingsChecks(): Check[] {
         assert(readStoredBool('reminderly-pref-notif-alerts', undefined, storage) === false, 'Saved false should win over fallback true');
         assert(readStoredBool('reminderly-ff-smart-reminders', undefined, storage) === true, 'Saved true should win over fallback false');
         assert(readStoredBool('reminderly-pref-notif-badge', undefined, storage) === true, 'Missing badge should use fallback true');
-        assert(readStoredBool('reminderly-ff-saved-lists', undefined, storage) === false, 'Missing templates should use fallback false');
+        assert(readStoredBool('reminderly-ff-saved-lists', undefined, storage) === true, 'Missing templates should use the development default (on)');
       },
     },
     {
@@ -258,7 +258,7 @@ export function getSettingsChecks(): Check[] {
       name: 'Stored settings: reading every setting never writes',
       run: () => {
         const storage = memoryStorage(ALL_OLD_KEYS);
-        for (const key of Object.keys(TRANSITIONAL_FALLBACKS)) readStoredBool(key, undefined, storage);
+        for (const key of [...Object.keys(TRANSITIONAL_FALLBACKS), ...Object.keys(SETTINGS_DEFAULTS)]) readStoredBool(key, undefined, storage);
         assert(storage.writes() === 0, 'Reading should not write');
       },
     },
@@ -281,11 +281,11 @@ export function getSettingsChecks(): Check[] {
     },
     {
       id: 'settings-stored-mapping',
-      name: 'Stored settings: every migrated setting reads its authoritative key with the current app default',
+      name: 'Stored settings: every migrated setting reads its authoritative key with its default',
       run: () => {
         for (const [legacy, key, appDefault] of LEGACY_TO_AUTHORITATIVE) {
-          assert(TRANSITIONAL_FALLBACKS[key] === appDefault, `${key} fallback should be ${appDefault}`);
-          assert(!(legacy in TRANSITIONAL_FALLBACKS), `${legacy} should not be read any more`);
+          assert(defaultFor(key) === appDefault, `${key} default should be ${appDefault}`);
+          assert(!(legacy in TRANSITIONAL_FALLBACKS) && !(legacy in SETTINGS_DEFAULTS), `${legacy} should not be read any more`);
           const storage = memoryStorage({ [legacy]: String(!appDefault) });
           assert(readStoredBool(key, undefined, storage) === appDefault, `${key} should ignore the legacy key`);
         }
@@ -315,7 +315,7 @@ export function getSettingsChecks(): Check[] {
       run: () => {
         const storage = memoryStorage();
         migrateSettings(storage);
-        for (const key of Object.keys(TRANSITIONAL_FALLBACKS)) readStoredBool(key, undefined, storage);
+        for (const key of [...Object.keys(TRANSITIONAL_FALLBACKS), ...Object.keys(SETTINGS_DEFAULTS)]) readStoredBool(key, undefined, storage);
         const prefKeys = Object.keys(storage.snapshot()).filter((key) => key.startsWith('reminderly-pref-'));
         assert(prefKeys.length === 0, `Unexpected preference keys: ${prefKeys.join(', ')}`);
       },

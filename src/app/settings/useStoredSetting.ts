@@ -2,13 +2,18 @@
 // Read once on mount, written only when the setter is called. Never written because the app started.
 
 import { useCallback, useState } from 'react';
-import { TRANSITIONAL_FALLBACKS } from './keys';
+import { SETTINGS_DEFAULTS, TRANSITIONAL_FALLBACKS } from './keys';
 import type { SettingsStorage } from './keys';
 
 /** 'true' or 'false' as saved, otherwise the fallback. Never writes, so a malformed value is left as it is. */
+/** The value used when a key has never been saved. */
+export function defaultFor(key: string): boolean {
+  return TRANSITIONAL_FALLBACKS[key] ?? SETTINGS_DEFAULTS[key] === 'true';
+}
+
 export function readStoredBool(
   key: string,
-  fallback: boolean = TRANSITIONAL_FALLBACKS[key] ?? false,
+  fallback: boolean = defaultFor(key),
   storage: SettingsStorage = localStorage,
 ): boolean {
   try {

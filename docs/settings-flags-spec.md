@@ -253,8 +253,10 @@ Resync (the existing cancel-and-reschedule-if-different logic) runs when:
 | `reminderly-ff-siri-shortcuts` | `reminderly-pref-siri-reminders`, `reminderly-pref-siri-lists` | Off | Copied to both. The Lists value is kept for when its flag is turned on (section 10) |
 | - | `reminderly-ff-nlc` | Off | - |
 | - | `reminderly-pref-nlc` | Off | - (F5: nothing saved today) |
-| - | `reminderly-pref-nlc-mode` | `auto` | - |
-| - | `reminderly-pref-nlc-recognition` | Date, time, repeats on | - |
+| - | `reminderly-pref-nlc-auto-parsing` | On (apply as you type) | - |
+| - | `reminderly-pref-nlc-date`, `-time`, `-repeats` | On | - |
+
+Phase 3 change: the NLC mode and recognition preferences are stored as boolean keys (above) instead of a mode string and a JSON object, so they use the same `useStoredSetting` path as every other preference. No build ever wrote the original keys, so there is nothing to migrate.
 | `reminderly-ff-settings-menu-v2` | Unchanged | Off | Kept |
 | `reminderly-ff-info-icons` | Unchanged | Off | Kept |
 | - | `reminderly-ff-calendar`, `reminderly-ff-sounds` | Off | - |

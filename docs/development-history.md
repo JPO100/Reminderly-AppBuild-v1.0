@@ -990,3 +990,14 @@ Branch: feature/settings-flags-model
 - Siri (G1-G4): deferred, not failed. Siri is unusable and off by default; to be addressed and tested separately
 - Steps 6 and 7 built (NLC and Haptic feedback user pages, Haptics availability flag), awaiting visual approval
 
+### 2026-10-11 (feature/settings-flags-model - Phase 3 complete)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Step 8: Show calendar and Sounds rows hidden behind their flags (reminderly-ff-calendar, reminderly-ff-sounds, default off, no Dev tools control until built). "Use Smart Reminders" removed from Lists settings (smart reminders is admin-only). No saved preferences or data changed
+- NLC preferences stored as booleans (reminderly-pref-nlc, -date, -time, -repeats, -auto-parsing); the original mode and recognition keys were never written by any build, so there is nothing to migrate
+- Phase 3 summary: availability flags wired for Reminders (Lists-only layout and notification safeguard), Repeat reminders, 1 minute increments, Siri, NLC, Haptics, Calendar and Sounds. Every working preference is set in Reminders or Lists settings. Dev tools holds availability, config and testing only
+
+Deferred: Siri testing (G1-G4). Phase 4 (notifications) not started.
+

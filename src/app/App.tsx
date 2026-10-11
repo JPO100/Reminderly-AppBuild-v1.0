@@ -984,6 +984,9 @@ export default function App() {
 
   // Haptics availability flag (Dev tools); the user's choices live in utils/haptics
   const [hapticsFlag, setHapticsFlag] = useStoredSetting('reminderly-ff-haptics');
+  // Unbuilt features: flags default off and have no Dev tools control, so their rows stay hidden
+  const [calendarFlag] = useStoredSetting('reminderly-ff-calendar');
+  const [soundsFlag] = useStoredSetting('reminderly-ff-sounds');
 
   // Dev-only: onboarding tutorial feature flag — controls whether tutorial overlay is available
   const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useStoredSetting('reminderly-ff-onboarding-tutorial');
@@ -5200,6 +5203,8 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <RemindersSettingsContent
+                  calendarAvailable={isRemindersEnabled && calendarFlag}
+                  soundsAvailable={soundsFlag}
                   nlcAvailable={isNlcAvailable}
                   nlcPrefs={nlcPrefs}
                   onNlcChange={(key, value) => nlcPrefSetters[key](value)}
@@ -5230,6 +5235,7 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <ListsSettingsContent
+                  soundsAvailable={soundsFlag}
                   hapticsAvailable={hapticsFlag}
                   siriAvailable={isSiriListsAvailable}
                   siriOn={listsSettingsSiriOn}

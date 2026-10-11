@@ -23,7 +23,7 @@ import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMo
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
-import { PENDING_NOTIFICATION_REMINDER_ID_KEY, removeDeliveredReminderNotifications, syncReminderNotifications } from "./notifications";
+import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
 import { keepRepeatRuleWhenOff } from "./settings/resolver";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
@@ -1211,12 +1211,21 @@ export default function App() {
   }, [reminders]);
 
   useEffect(() => {
-    // Reminders off: an empty list cancels all pending Reminderly notifications. Back on: reschedules.
-    void syncReminderNotifications(isRemindersEnabled ? reminders : [], notifAppBadge, notifIncludeTodayInBadge);
+    // Reminders off: cancel pending, then remove delivered Reminderly notifications. Back on: reschedule.
+    if (!isRemindersEnabled) {
+      void clearReminderNotifications();
+      return;
+    }
+    void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge);
   }, [reminders, notifAppBadge, notifIncludeTodayInBadge, isRemindersEnabled]);
 
+  // Reminders off: clear again each time the app returns to the foreground
   useEffect(() => {
-    if (!isRemindersEnabled) void removeDeliveredReminderNotifications();
+    if (isRemindersEnabled) return;
+    const listener = CapacitorApp.addListener('appStateChange', (state) => {
+      if (state.isActive) void clearReminderNotifications();
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
   }, [isRemindersEnabled]);
 
 

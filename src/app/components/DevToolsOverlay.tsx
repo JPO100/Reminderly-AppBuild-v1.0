@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { getHapticsConfig, setHapticsConfig } from "../utils/haptics";
 import type { HapticAction, HapticsConfig } from "../utils/haptics";
+import { readSettingBool } from "../settings/resolver";
 import { runChecks, formatReportAsText, groupResultsBySection } from "../dev/check-system";
 import type { RunReport } from "../dev/check-system";
 import { getScheduleChecks } from "../dev/schedule-checks";
@@ -14,6 +15,7 @@ import { getCompletionChecks } from "../dev/completion-checks";
 import { getDevToolsChecks } from "../dev/dev-tools-checks";
 import { getListChecks } from "../dev/list-checks";
 import { getNotificationChecks } from "../dev/notification-checks";
+import { getSettingsChecks } from "../dev/settings-checks";
 import type { Check } from "../dev/check-system";
 import type { GeneratedDummyListsPayload, GeneratedList } from "../utils/dummy-list-generator";
 import DevToolsHome from "../../imports/DevTools";
@@ -587,7 +589,8 @@ function TestingPage({ onBack, onClose }: { onBack: () => void; onClose: () => v
         const listChecks = getListChecks().map(c => ({ ...c, name: `[Lists and smart reminders] ${c.name}` }));
         const devToolsChecks = getDevToolsChecks().map(c => ({ ...c, name: `[Dev tools and feature flags] ${c.name}` }));
         const notificationChecks = getNotificationChecks().map(c => ({ ...c, name: `[Notification and badge] ${c.name}` }));
-        return [...scheduleChecks, ...reminderChecks, ...nlcParserChecks, ...nlcInteractionChecks, ...doneDeletedChecks, ...completionChecks, ...listChecks, ...devToolsChecks, ...notificationChecks];
+        const settingsChecks = getSettingsChecks().map(c => ({ ...c, name: `[Settings foundation] ${c.name}` }));
+        return [...scheduleChecks, ...reminderChecks, ...nlcParserChecks, ...nlcInteractionChecks, ...doneDeletedChecks, ...completionChecks, ...listChecks, ...devToolsChecks, ...notificationChecks, ...settingsChecks];
       });
       setReport(result);
     } catch (error) {
@@ -727,8 +730,22 @@ function TestingPage({ onBack, onClose }: { onBack: () => void; onClose: () => v
   );
 }
 
+// Saved admin flag. In Phase 1 only Dev tools reads these, so the app is unaffected.
+function useSavedFlag(key: string): [boolean, (value: boolean) => void] {
+  const [value, setValue] = useState(() => readSettingBool(key));
+  const update = (next: boolean) => {
+    setValue(next);
+    try {
+      localStorage.setItem(key, String(next));
+    } catch {
+      // Fail silently
+    }
+  };
+  return [value, update];
+}
+
 function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChange, useOneMinuteIncrements, onUseOneMinuteIncrementsChange, onNavigateDummyReminders }: { onBack: () => void; onClose: () => void; enableReminders: boolean; onEnableRemindersChange: (value: boolean) => void; useOneMinuteIncrements: boolean; onUseOneMinuteIncrementsChange: (value: boolean) => void; onNavigateDummyReminders: () => void }) {
-  const [repeatToggle, setRepeatToggle] = useState(true);
+  const [repeatToggle, setRepeatToggle] = useSavedFlag('reminderly-ff-repeat-reminders');
   const [pendingRemindersState, setPendingRemindersState] = useState<boolean | null>(null);
 
   return (
@@ -738,7 +755,7 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
         <ToggleRow label="Enable reminders" isOn={enableReminders} onToggle={() => setPendingRemindersState(!enableReminders)} infoTitle="Master toggle for the reminders feature. Controls access to repeat reminders, time increment settings, and the dummy reminders page. Disabling this restricts all reminder sub-features and settings on this page." />
         <KeyLine />
         <SectionSubtitle text="Features" />
-        <ToggleRow label="Repeat reminders" isOn={repeatToggle} onToggle={() => setRepeatToggle(prev => !prev)} disabled={!enableReminders} infoTitle="Controls whether reminders can have repeat rules (e.g. daily, weekly, monthly). When disabled, the repeat option is hidden from the reminder creation and edit flows. Requires Enable reminders to be on." />
+        <ToggleRow label="Repeat reminders" isOn={repeatToggle} onToggle={() => setRepeatToggle(!repeatToggle)} disabled={!enableReminders} infoTitle="Controls whether reminders can have repeat rules (e.g. daily, weekly, monthly). When disabled, the repeat option is hidden from the reminder creation and edit flows. Requires Enable reminders to be on." />
         <KeyLine />
         <SectionSubtitle text="Settings" />
         <ToggleRow label="Display 1 minute time increments" isOn={useOneMinuteIncrements} onToggle={() => onUseOneMinuteIncrementsChange(!useOneMinuteIncrements)} disabled={!enableReminders} infoTitle="Changes the time picker to show one-minute intervals instead of the default five-minute intervals. Affects the time picker in both the new reminder and edit reminder flows. Requires Enable reminders to be on." />
@@ -1049,8 +1066,8 @@ function LoginScreen({ onUnlock, passwordRequired }: { onUnlock: () => void; pas
 
 function DevToolsContent({ onClose, onClearReminders, addReminder, addReminders, nlcMode, onNlcModeChange, nlcEnabled, onNlcEnabledChange, nlcRecognition, onNlcRecognitionChange, hideOverdue, onHideOverdueChange, isOnboardingTutorialEnabled, onOnboardingTutorialEnabledChange, isListsEnabled, onListsEnabledChange, showTutorialOnFirstLaunch, onShowTutorialOnFirstLaunchChange, showTutorialOnEveryStart, onShowTutorialOnEveryStartChange, isDevToolsUnlocked, onDevToolsUnlock, isDevToolsPasswordRequired, onDevToolsPasswordRequiredChange, useOneMinuteIncrements, onUseOneMinuteIncrementsChange, smartRemindersEnabled, onSmartRemindersEnabledChange, savedListsEnabled, onSavedListsEnabledChange, pinnedListsEnabled, onPinnedListsEnabledChange, settingsMenuEnabled, onSettingsMenuEnabledChange, showInfoIcons, onShowInfoIconsChange, notifReminderAlerts, onNotifReminderAlertsChange, notifAppBadge, onNotifAppBadgeChange, notifIncludeTodayInBadge, onNotifIncludeTodayInBadgeChange, siriShortcutsEnabled, onSiriShortcutsEnabledChange, useDefaultTemplatesInCleanState, onUseDefaultTemplatesInCleanStateChange, onClearLists, onGenerateLists }: { onClose: () => void; onClearReminders: () => void; addReminder: (reminder: Reminder) => void; addReminders: (reminders: Reminder[]) => void; nlcMode: NlcMode; onNlcModeChange: (mode: NlcMode) => void; nlcEnabled: boolean; onNlcEnabledChange: (enabled: boolean) => void; nlcRecognition: NlcRecognitionConfig; onNlcRecognitionChange: (config: NlcRecognitionConfig) => void; hideOverdue: boolean; onHideOverdueChange: (value: boolean) => void; isOnboardingTutorialEnabled: boolean; onOnboardingTutorialEnabledChange: (next: boolean) => void; isListsEnabled: boolean; onListsEnabledChange: (enabled: boolean) => void; showTutorialOnFirstLaunch: boolean; onShowTutorialOnFirstLaunchChange: (value: boolean) => void; showTutorialOnEveryStart: boolean; onShowTutorialOnEveryStartChange: (value: boolean) => void; isDevToolsUnlocked: boolean; onDevToolsUnlock: () => void; isDevToolsPasswordRequired: boolean; onDevToolsPasswordRequiredChange: (value: boolean) => void; useOneMinuteIncrements: boolean; onUseOneMinuteIncrementsChange: (value: boolean) => void; smartRemindersEnabled: boolean; onSmartRemindersEnabledChange: (value: boolean) => void; savedListsEnabled: boolean; onSavedListsEnabledChange: (value: boolean) => void; pinnedListsEnabled: boolean; onPinnedListsEnabledChange: (value: boolean) => void; settingsMenuEnabled: boolean; onSettingsMenuEnabledChange: (value: boolean) => void; showInfoIcons: boolean; onShowInfoIconsChange: (value: boolean) => void; notifReminderAlerts: boolean; onNotifReminderAlertsChange: (value: boolean) => void; notifAppBadge: boolean; onNotifAppBadgeChange: (value: boolean) => void; notifIncludeTodayInBadge: boolean; onNotifIncludeTodayInBadgeChange: (value: boolean) => void; siriShortcutsEnabled: boolean; onSiriShortcutsEnabledChange: (value: boolean) => void; useDefaultTemplatesInCleanState: boolean; onUseDefaultTemplatesInCleanStateChange: (value: boolean) => void; onClearLists: (useDefaultTemplatesInCleanState: boolean) => void; onGenerateLists: (payload: GeneratedDummyListsPayload) => void }) {
   const [page, setPage] = useState<DevToolsPage>('home');
-  const [enableReminders, setEnableReminders] = useState(true);
-  const [enableNotifications, setEnableNotifications] = useState(true);
+  const [enableReminders, setEnableReminders] = useSavedFlag('reminderly-ff-reminders');
+  const [enableNotifications, setEnableNotifications] = useSavedFlag('reminderly-ff-notifications');
 
   let content;
   if (!isDevToolsUnlocked) {

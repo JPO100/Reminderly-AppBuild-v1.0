@@ -4,6 +4,14 @@ import { LocalNotifications } from '@capacitor/local-notifications'
 import App from './app/App'
 import './styles/index.css'
 import { registerNotificationActionTypes } from './app/notifications'
+import { migrateSettings } from './app/settings/migration'
+
+// Must run before the app reads any settings
+try {
+  migrateSettings()
+} catch {
+  // Fail silently - the app keeps reading its current keys
+}
 
 const PENDING_NOTIFICATION_REMINDER_ID_KEY = 'reminderly.pendingNotificationReminderId'
 const PENDING_NOTIFICATION_ACTION_KEY = 'reminderly.pendingNotificationAction'

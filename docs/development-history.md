@@ -951,3 +951,20 @@ Test results: Vitest 79/79 passed. Self Check 359/359 passed (desktop browser). 
 
 Outstanding: Phase 2 awaits review.
 
+### 2026-10-11 (feature/settings-flags-model - Phase 2)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Dev tools home grouped into Feature flags, Config, Testing tools, and Access and diagnostics, using the existing rows and section heading style
+- Feature pages now hold availability flags only. New pages: Siri (Siri for reminders, Siri for lists locked off), Config, Testing tools, User preferences (temporary home for preference controls until Phase 3)
+- New 1 minute time increments availability flag (reminderly-ff-one-minute-increments), not yet read by the app
+- Reminders and Lists cannot both be off: canChangeModuleFlag in the resolver, used by every Dev tools change to either flag
+- Settings writes report failures through the existing "Storage unavailable" banner
+- Self checks page title renamed from Testing to Self checks
+- Tests: 2 new Self Check checks (last module guard, write failure) and a Vitest check that each of the 44 Dev tools controls appears exactly once
+
+Test results: Vitest 125/125 passed. Self Check 361/361 passed (desktop browser). Repo guard passed. Web build, simulator and iPhone builds succeeded. Browser (375px): structure checked, last module guard both directions, preferences and data unchanged, Lists off persisted through reload. Simulator and iPhone 15 Pro: installed in place, no stored keys changed. Manual iPhone Dev tools checks outstanding.
+
+Outstanding: manual iPhone checks; Phase 3 awaits review.
+

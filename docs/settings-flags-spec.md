@@ -341,6 +341,27 @@ Phase 2 - Dev tools restructure
 - The last master flag cannot be turned off.
 - Existing dev tools controls still work.
 
+Phase 2 as delivered:
+
+| Group | Page | Controls |
+|---|---|---|
+| Feature flags | Reminders | Enable reminders, Repeat reminders, 1 minute time increments (availability flag) |
+| Feature flags | Lists | Enable lists, Smart reminders, List templates, Pinned lists |
+| Feature flags | Natural Language Capture | Enable Natural Language Capture, Phone number recognition (locked), Contact recognition (locked) |
+| Feature flags | Notifications | Enable notifications |
+| Feature flags | Siri | Siri for reminders, Siri for lists (locked off, D7) |
+| Feature flags | Onboarding | Enable onboarding |
+| Feature flags | System | Settings menu, Show info icons |
+| Config | Config | Show tutorial on first launch, Use template set in clean state |
+| Testing tools | Testing tools | Self checks, Dummy reminders (with Hide overdue), Dummy lists, Show tutorial on every app start, User preferences |
+| Testing tools | User preferences (temporary until Phase 3) | Display 1 minute time increments, Date, Time and Repeats recognition, Auto-parsing, Click-parsing, Reminder system notifications, Reminder app badge notifications, Include today in app badge count, Haptics |
+| Access and diagnostics | Dev tools password | Password required, password reset |
+
+- The home page keeps its existing rows, grouped under four headings. Master toggles stay on the home page with their existing confirmation dialogs.
+- Reminders and Lists: `canChangeModuleFlag` in the resolver. Every change to either flag in Dev tools goes through it, so the last one on cannot be turned off. The toggle stays visibly on and ignores the tap; the info text explains why.
+- Settings writes report failures through the app's existing storage error banner (`setSettingsWriteListener`).
+- Not added in Phase 2 (added with their wiring in Phase 3): haptics, calendar, sounds and NLC availability flags. The NLC master stays unsaved until Phase 3.
+
 Phase 3 - User settings connected
 - Every user setting saves and restores across app restarts.
 - Rows appear only when their flag is on, and preserve spacing.

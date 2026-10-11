@@ -902,3 +902,20 @@ Completed:
 - Both feature branches retained
 
 Test results: Vitest 53/53 passed. Type check clean. Production build successful after merge. Product owner visual sign-off confirmed.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 0)
+
+Branch: feature/settings-flags-model (created from main at 15c44d4, matching origin/main)
+
+Completed:
+- Settings and feature flags model agreed and approved by senior developer review: dev tools flags control availability, user settings control state, one flag per feature, flags never reset preferences, development defaults off with options inside a feature on, existing installs keep established behaviour
+- docs/settings-audit.md: item-by-item audit of dev tools and user settings, decisions, defaults and migration matrix, review outcome, Phase 0 corrections
+- docs/settings-flags-spec.md: Phase 0 specification covering baseline results, code-validated findings, resolver, parent flags, repeat reminders flag, notifications, storage migration mapping, NLC, Siri, UI approach, acceptance criteria per phase and decisions for approval
+- No application code changed
+
+Test results (baseline on unchanged code): Vitest 53/53 passed. Self Check 334/334 passed (desktop browser). Repo guard passed. Web build succeeded. iOS simulator build succeeded. Type check not run (no tsconfig or TypeScript compiler in the project). Not deployed to device.
+
+Decisions: D1 to D9 provisionally approved by senior developer review (D3 visual sign-off in Phase 3, D4 with migration regression tests, D6 with rollback verified, D8 spoken Siri reply recorded as a future improvement, D9 as a separate tracked fix). D10 ask state key and values awaiting confirmation. Spec updated with repeat flag enforcement points, ask state values, rollback behaviour and expanded acceptance criteria.
+
+Outstanding: D10 confirmation. Phase 1 awaits approval.
+

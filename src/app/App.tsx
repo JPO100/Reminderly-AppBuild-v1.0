@@ -3134,8 +3134,10 @@ export default function App() {
 
   const now = new Date();
 
+  // Dev tools panel sits level with the top of the logo
   if (isDevToolsOpen && devToolsTopRef.current === null) {
-    devToolsTopRef.current = getBottomSheetTopPosition();
+    const logoTop = logoRef.current?.getBoundingClientRect().top;
+    devToolsTopRef.current = typeof logoTop === "number" && Number.isFinite(logoTop) ? logoTop : getBottomSheetTopPosition();
   }
   if (!isDevToolsOpen) {
     devToolsTopRef.current = null;

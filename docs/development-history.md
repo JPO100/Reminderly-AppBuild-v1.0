@@ -1059,3 +1059,18 @@ Completed:
 Test results (post-merge on main): Vitest 132/132 passed. Repo guard passed. Production build succeeded. Self Check 369/369 passed on the branch (identical tree).
 
 Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised.
+
+### 2026-10-11 (feature/dev-tools-restyle - Dev tools look and feel)
+
+Branch: feature/dev-tools-restyle (created from main at 1cabc35, approved by the product owner). Accepted by the product owner after iPhone testing, committed and pushed. Not merged.
+
+Completed:
+- Dev tools restyled to the product owner's mockups: #F7F7F7 page, 20px side and 24px top margins, 45px header (robot icon on home, blue back button on sub-pages, title centred, blue close button), white cards with 6px corners 24px apart, 60px rows with a full-width 1px #F7F7F7 separator
+- New Dev tools components in DevToolsOverlay.tsx (DevPage, DevHeader, DevCard, DevCardBody, DevToggleRow, DevNavToggleRow, DevMenuRow). Toggles sit to the left of the label. The shared ToggleRow, MenuRow and KeyLine used by the settings overlays and onboarding are unchanged
+- Home page: toggle rows grouped first, click-through rows after. Siri is now "Siri shortcuts" with a toggle (Siri for reminders flag, no confirmation) after Onboarding. Config row renamed "Config tools" (page title too), Testing card titled "Testing", Siri page titled "Siri shortcuts"
+- Login: robot logo, 70px password field with lock icon, 65px Login button, 6px corners. "Log-in to Reminderly" title and placeholder removed; eye icon, error and reveal behaviour kept
+- Other pages (Self checks, Dummy reminders, Dummy lists, Dev tools password) moved into white cards with their existing controls, for product owner review
+- settings.test.ts Dev tools label list updated for the renamed rows
+- Dev tools panel now opens level with the top of the logo (other sliding panels unchanged, still 28px below it), with 15px top corners visible. Pages inside the panel have no background of their own, because iOS painted the corners black when clipping scrolling content
+
+Test results: Vitest 132/132 passed. Self Check 369/369 passed (in-app). Repo guard passed.

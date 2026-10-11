@@ -21,13 +21,14 @@ export function readStoredBool(
   return fallback;
 }
 
-// Receives the result of every settings write, so the app can show its existing storage error.
-let writeListener: ((ok: boolean) => void) | null = null;
+// Called when a settings write fails, so the app can show its existing storage error.
+// Successful writes are not reported, so they never clear an error raised by reminder or list saves.
+let writeFailureListener: (() => void) | null = null;
 
-/** Sets the write listener and returns the previous one. */
-export function setSettingsWriteListener(listener: ((ok: boolean) => void) | null) {
-  const previous = writeListener;
-  writeListener = listener;
+/** Sets the write failure listener and returns the previous one. */
+export function setSettingsWriteFailureListener(listener: (() => void) | null) {
+  const previous = writeFailureListener;
+  writeFailureListener = listener;
   return previous;
 }
 
@@ -35,10 +36,9 @@ export function setSettingsWriteListener(listener: ((ok: boolean) => void) | nul
 export function writeStoredBool(key: string, value: boolean, storage: SettingsStorage = localStorage): boolean {
   try {
     storage.setItem(key, String(value));
-    writeListener?.(true);
     return true;
   } catch {
-    writeListener?.(false);
+    writeFailureListener?.();
     return false;
   }
 }

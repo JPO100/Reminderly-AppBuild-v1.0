@@ -59,16 +59,16 @@ describe('dev tools controls', () => {
     // Feature flags
     'Reminders', 'Enable reminders', 'Repeat reminders', '1 minute time increments',
     'Lists', 'Enable lists', 'Smart reminders', 'List templates', 'Pinned lists',
-    'Natural Language Capture', 'Enable Natural Language Capture', 'Phone number recognition', 'Contact recognition',
+    'Natural Language Capture', 'Enable Natural Language Capture',
     'Notifications', 'Enable notifications',
-    'Siri', 'Siri for reminders', 'Siri for lists',
-    'Onboarding', 'Enable onboarding',
+    'Siri', 'Siri for reminders',
+    'Onboarding', 'Enable onboarding', 'Show tutorial on first launch',
     'System', 'Settings menu', 'Show info icons',
     // Config
-    'Config', 'Show tutorial on first launch', 'Use template set in clean state',
+    'Config', 'Use template set in clean state',
     // Testing tools
     'Testing tools', 'Self checks', 'Dummy reminders', 'Dummy lists', 'Show tutorial on every app start',
-    'User preferences', 'Display 1 minute time increments', 'Date recognition', 'Time recognition', 'Repeats recognition',
+    'Temporary user preferences', 'Display 1 minute time increments', 'Date recognition', 'Time recognition', 'Repeats recognition',
     'Auto-parsing', 'Click-parsing', 'Reminder system notifications', 'Reminder app badge notifications',
     'Include today in app badge count', 'Haptics',
     // Access and diagnostics

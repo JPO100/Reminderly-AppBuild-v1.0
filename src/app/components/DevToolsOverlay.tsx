@@ -332,10 +332,6 @@ function NaturalLanguagePage({ onBack, onClose, nlcEnabled, onNlcEnabledChange, 
     <div className="flex flex-col h-full relative w-full" data-name="natural-language-page">
       <PageShell title="Natural Language" onBack={onBack} onClose={onClose}>
         <ToggleRow label="Enable Natural Language Capture" isOn={nlcEnabled} onToggle={() => setPendingNlcState(!nlcEnabled)} infoTitle="Master toggle for the NLC system. When enabled, the app can automatically detect dates, times, and repeat patterns as the user types a reminder. Disabling this turns off all NLC sub-features below and reverts to manual-only scheduling." />
-        <KeyLine />
-        <SectionSubtitle text="Features" />
-        <ToggleRow label="Phone number recognition" isOn={false} onToggle={() => {}} disabled infoTitle="Planned feature: will allow NLC to detect phone numbers in reminder text and offer quick-dial actions. Not yet implemented — this toggle is reserved for a future release. Currently locked in the disabled state." />
-        <ToggleRow label="Contact recognition" isOn={false} onToggle={() => {}} disabled infoTitle="Planned feature: will allow NLC to detect contact names in reminder text and link them to address book entries. Not yet implemented — this toggle is reserved for a future release. Currently locked in the disabled state." />
       </PageShell>
     </div>
       {pendingNlcState !== null && (
@@ -409,6 +405,9 @@ function OnboardingPage({ onBack, onClose, isOnboardingTutorialEnabled, onOnboar
     <div className="flex flex-col h-full relative w-full" data-name="onboarding-page">
       <PageShell title="Onboarding" onBack={onBack} onClose={onClose}>
         <ToggleRow label="Enable onboarding" isOn={isOnboardingTutorialEnabled} onToggle={() => setPendingOnboardingState(!isOnboardingTutorialEnabled)} infoTitle="Master toggle for the onboarding tutorial system. When enabled, the tutorial is accessible from the Settings menu and can be shown to users on first launch or every app start. Disabling this hides the tutorial from Settings and prevents all automatic display." />
+        <KeyLine />
+        <SectionSubtitle text="Settings" />
+        <ToggleRow label="Show tutorial on first launch" isOn={showTutorialOnFirstLaunch} onToggle={() => { const next = !showTutorialOnFirstLaunch; onShowTutorialOnFirstLaunchChange(next); if (next) onShowTutorialOnEveryStartChange(false); }} disabled={!isOnboardingTutorialEnabled} infoTitle="Shows the onboarding tutorial automatically the first time a user opens the app. Enabling this turns off 'Show tutorial on every app start' in Testing tools. Only one launch trigger can be active. Requires Onboarding to be on." />
       </PageShell>
     </div>
       {pendingOnboardingState !== null && (
@@ -1116,15 +1115,11 @@ function DevToolsContent({ onClose, onClearReminders, addReminder, addReminders,
     content = (
       <PageShell title="Siri" onBack={() => setPage('home')} onClose={onClose}>
         <ToggleRow label="Siri for reminders" isOn={siriShortcutsEnabled} onToggle={() => onSiriShortcutsEnabledChange(!siriShortcutsEnabled)} infoTitle="Controls whether Reminderly acts on the 'Add to Reminderly' Siri shortcut. When off, the shortcut still appears in iOS but the request is ignored." />
-        <ToggleRow label="Siri for lists" isOn={false} onToggle={() => {}} disabled infoTitle="Planned feature: Siri actions for lists. Not yet implemented, so this stays off until a Lists Siri action exists." />
       </PageShell>
     );
   } else if (page === 'config') {
     content = (
       <PageShell title="Config" onBack={() => setPage('home')} onClose={onClose}>
-        <SectionSubtitle text="Onboarding" />
-        <ToggleRow label="Show tutorial on first launch" isOn={showTutorialOnFirstLaunch} onToggle={() => { const next = !showTutorialOnFirstLaunch; onShowTutorialOnFirstLaunchChange(next); if (next) onShowTutorialOnEveryStartChange(false); }} disabled={!isOnboardingTutorialEnabled} infoTitle="Shows the onboarding tutorial automatically the first time a user opens the app. Enabling this turns off 'Show tutorial on every app start' in Testing tools. Only one launch trigger can be active. Requires Onboarding to be on." />
-        <KeyLine />
         <SectionSubtitle text="Lists" />
         <ToggleRow label="Use template set in clean state" isOn={useDefaultTemplatesInCleanState} onToggle={() => onUseDefaultTemplatesInCleanStateChange(!useDefaultTemplatesInCleanState)} disabled={!isListsEnabled || !savedListsEnabled} infoTitle="When all lists are cleared, the app automatically restores the default set of list templates instead of showing an empty state. Only applies when list templates are enabled. Requires both Lists and List templates to be on." />
       </PageShell>
@@ -1135,14 +1130,14 @@ function DevToolsContent({ onClose, onClearReminders, addReminder, addReminders,
         <MenuRow label="Self checks" onClick={() => setPage('testing')} infoTitle="Runs the automated self checks and shows the results, which can be copied." />
         <MenuRow label="Dummy reminders" onClick={() => setPage('dummy-reminders')} disabled={!enableReminders} infoTitle="Opens the Dummy Reminders page where you can generate test reminders across all time categories (overdue, today, this week, later, sometime, done), configure repeat flags, and clear all reminders. Requires Reminders to be on." />
         <MenuRow label="Dummy lists" onClick={() => setPage('dummy-lists')} disabled={!isListsEnabled} infoTitle="Opens the Dummy Lists page where you can generate test lists with configurable item counts, choose to include done items, smart reminder lists, and saved list templates, then clear or regenerate. Requires Lists to be on." />
-        <ToggleRow label="Show tutorial on every app start" isOn={showTutorialOnEveryStart} onToggle={() => { const next = !showTutorialOnEveryStart; onShowTutorialOnEveryStartChange(next); if (next) onShowTutorialOnFirstLaunchChange(false); }} disabled={!isOnboardingTutorialEnabled} infoTitle="Shows the onboarding tutorial every time the app is opened, regardless of whether it has been seen before. Enabling this turns off 'Show tutorial on first launch' in Config. Only one launch trigger can be active. Requires Onboarding to be on." />
+        <ToggleRow label="Show tutorial on every app start" isOn={showTutorialOnEveryStart} onToggle={() => { const next = !showTutorialOnEveryStart; onShowTutorialOnEveryStartChange(next); if (next) onShowTutorialOnFirstLaunchChange(false); }} disabled={!isOnboardingTutorialEnabled} infoTitle="Shows the onboarding tutorial every time the app is opened, regardless of whether it has been seen before. Enabling this turns off 'Show tutorial on first launch' in Feature flags > Onboarding. Only one launch trigger can be active. Requires Onboarding to be on." />
         <KeyLine />
-        <MenuRow label="User preferences" onClick={() => setPage('user-preferences')} infoTitle="Temporary controls for user preferences that are not yet in the Reminders and Lists settings. Each one is removed here once its user setting is working." />
+        <MenuRow label="Temporary user preferences" onClick={() => setPage('user-preferences')} infoTitle="Temporary. These are the user's own preferences, kept here only until each one works in Reminders and Lists settings, then removed. They do not control availability: see Feature flags." />
       </PageShell>
     );
   } else if (page === 'user-preferences') {
     content = (
-      <PageShell title="User preferences" onBack={() => setPage('testing-tools')} onClose={onClose}>
+      <PageShell title="Temporary user preferences" onBack={() => setPage('testing-tools')} onClose={onClose}>
         <SectionSubtitle text="Reminders" />
         <ToggleRow label="Display 1 minute time increments" isOn={useOneMinuteIncrements} onToggle={() => onUseOneMinuteIncrementsChange(!useOneMinuteIncrements)} disabled={!enableReminders} infoTitle="Changes the time picker to show one-minute intervals instead of the default five-minute intervals. Affects the time picker in both the new reminder and edit reminder flows. Requires Reminders to be on." />
         <KeyLine />

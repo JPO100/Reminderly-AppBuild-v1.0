@@ -12,7 +12,7 @@ import type { Check } from './check-system';
 import { migrateSettings } from '../settings/migration';
 import { ALL_FEATURES, canChangeModuleFlag, isFeatureActive, readSetting } from '../settings/resolver';
 import { SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
-import { readStoredBool, setSettingsWriteListener, writeStoredBool } from '../settings/useStoredSetting';
+import { readStoredBool, setSettingsWriteFailureListener, writeStoredBool } from '../settings/useStoredSetting';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -323,10 +323,10 @@ export function getSettingsChecks(): Check[] {
 
     {
       id: 'settings-stored-write-failure',
-      name: 'Stored settings: a failed write is reported, a successful write clears it',
+      name: 'Stored settings: a failed write is reported, a successful write reports nothing (cannot clear other errors)',
       run: () => {
-        const results: boolean[] = [];
-        const previous = setSettingsWriteListener((ok) => results.push(ok));
+        let failures = 0;
+        const previous = setSettingsWriteFailureListener(() => { failures += 1; });
         try {
           const failing = { getItem: () => null, setItem: () => { throw new Error('Quota exceeded'); } };
           assert(writeStoredBool('reminderly-pref-notif-badge', false, failing) === false, 'Failed write should return false');
@@ -334,9 +334,9 @@ export function getSettingsChecks(): Check[] {
           assert(writeStoredBool('reminderly-pref-notif-badge', false, working) === true, 'Successful write should return true');
           assert(working.getItem('reminderly-pref-notif-badge') === 'false', 'Value should be saved');
         } finally {
-          setSettingsWriteListener(previous);
+          setSettingsWriteFailureListener(previous);
         }
-        assert(JSON.stringify(results) === JSON.stringify([false, true]), `Expected [false, true], got ${JSON.stringify(results)}`);
+        assert(failures === 1, `Expected 1 failure report, got ${failures}`);
       },
     },
 

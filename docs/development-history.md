@@ -968,3 +968,15 @@ Test results: Vitest 125/125 passed. Self Check 361/361 passed (desktop browser)
 
 Outstanding: manual iPhone checks; Phase 3 awaits review.
 
+### 2026-10-11 (feature/settings-flags-model - Phase 2 corrections)
+
+Branch: feature/settings-flags-model
+
+Completed (after iPhone acceptance testing and audit):
+- C1: Show tutorial on first launch moved to Feature flags > Onboarding (same key and behaviour)
+- C2: Unimplemented Siri for lists, Phone number recognition and Contact recognition rows removed from Dev tools (keys unchanged)
+- C3: Settings writes only raise the storage error, never clear it, so they cannot hide a reminder or list save failure
+- C4: Preference controls renamed "Temporary user preferences", with info text stating they are temporary and do not control availability. They are removed in Phase 3
+
+Test results: Vitest 122/122 passed. Self Check 361/361 passed (desktop browser). Web build, simulator and iPhone builds succeeded. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator, no stored keys changed. iPhone retest outstanding.
+

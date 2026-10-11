@@ -199,3 +199,12 @@ export async function syncReminderNotifications(
         await LocalNotifications.schedule({ notifications });
     }
 }
+
+/** Removes Reminderly's delivered notifications from Notification Centre (iOS scopes this to the app). */
+export async function removeDeliveredReminderNotifications() {
+    try {
+        await LocalNotifications.removeAllDeliveredNotifications();
+    } catch {
+        // Not available on web
+    }
+}

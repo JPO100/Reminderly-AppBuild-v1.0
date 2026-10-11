@@ -18,7 +18,7 @@ import { getNotificationChecks } from "../dev/notification-checks";
 import { getSettingsChecks } from "../dev/settings-checks";
 import type { Check } from "../dev/check-system";
 import type { GeneratedDummyListsPayload, GeneratedList } from "../utils/dummy-list-generator";
-import DevToolsHome from "../../imports/DevTools";
+import DevToolsHome, { LastModuleNotice } from "../../imports/DevTools";
 import DummyRemindersPage from "../../imports/DummyReminders";
 import DummyListsPage from "../../imports/DummyLists";
 import type { Reminder } from "../reminder-utils";
@@ -709,19 +709,21 @@ function TestingPage({ onBack, onClose }: { onBack: () => void; onClose: () => v
 
 function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChange, isListsEnabled, repeatToggle, setRepeatToggle, oneMinuteFlag, setOneMinuteFlag }: { onBack: () => void; onClose: () => void; enableReminders: boolean; onEnableRemindersChange: (value: boolean) => void; isListsEnabled: boolean; repeatToggle: boolean; setRepeatToggle: (value: boolean) => void; oneMinuteFlag: boolean; setOneMinuteFlag: (value: boolean) => void }) {
   const isLastModule = enableReminders && !isListsEnabled;
+  const [showLastModuleNotice, setShowLastModuleNotice] = useState(false);
   const [pendingRemindersState, setPendingRemindersState] = useState<boolean | null>(null);
 
   return (
     <>
     <div className="flex flex-col h-full relative w-full" data-name="reminders-page">
       <PageShell title="Reminders" onBack={onBack} onClose={onClose}>
-        <ToggleRow label="Enable reminders" isOn={enableReminders} onToggle={() => { if (!isLastModule) setPendingRemindersState(!enableReminders); }} infoTitle="Master toggle for the reminders feature. Controls access to repeat reminders, time increment settings, and the dummy reminders page. Disabling this restricts all reminder sub-features and settings on this page. Reminders and Lists cannot both be off, so this cannot be turned off while Lists is off." />
+        <ToggleRow label="Enable reminders" isOn={enableReminders} onToggle={() => { if (isLastModule) setShowLastModuleNotice(true); else setPendingRemindersState(!enableReminders); }} infoTitle="Master availability flag for Reminders. When off, the app shows Lists only, reminder notifications are cancelled and the badge cleared. Reminder data and preferences are kept and return when turned back on. Reminders and Lists cannot both be off: while Lists is off, tapping this explains why." />
         <KeyLine />
         <SectionSubtitle text="Features" />
         <ToggleRow label="Repeat reminders" isOn={repeatToggle} onToggle={() => setRepeatToggle(!repeatToggle)} disabled={!enableReminders} infoTitle="Controls whether reminders can have repeat rules (e.g. daily, weekly, monthly). When disabled, the repeat option is hidden from the reminder creation and edit flows. Requires Enable reminders to be on." />
         <ToggleRow label="1 minute time increments" isOn={oneMinuteFlag} onToggle={() => setOneMinuteFlag(!oneMinuteFlag)} disabled={!enableReminders} infoTitle="Controls whether the 1 minute time increments setting is available to users. The user's own choice is a user preference (Testing tools > User preferences until it moves to Reminders settings). Hides the user setting and uses 5 minute steps when off. The user's choice is kept." />
       </PageShell>
     </div>
+      {showLastModuleNotice && <LastModuleNotice onClose={() => setShowLastModuleNotice(false)} />}
       {pendingRemindersState !== null && (
         <>
           <div
@@ -744,8 +746,8 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
               <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
                 <p className="leading-[normal] whitespace-pre-wrap">
                   {pendingRemindersState
-                    ? 'The Reminders feature will be enabled, turning on access to repeat reminders, time increments, and dummy reminders.'
-                    : 'The Reminders feature will be disabled, turning off access to repeat reminders, time increments, and dummy reminders.'}
+                    ? 'Reminders will be shown again, with reminder notifications and the badge restored.'
+                    : 'The app will show Lists only. Reminder notifications stop and the badge clears. Reminders and settings are kept.'}
                 </p>
               </div>
               <div className="flex gap-[30px] w-full justify-between">
@@ -788,12 +790,13 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
 function ListsAreaPage({ onBack, onClose, enableReminders, isListsEnabled, onListsEnabledChange, smartRemindersEnabled, onSmartRemindersEnabledChange, savedListsEnabled, onSavedListsEnabledChange, pinnedListsEnabled, onPinnedListsEnabledChange, useDefaultTemplatesInCleanState, onUseDefaultTemplatesInCleanStateChange, onNavigateDummyLists }: { onBack: () => void; onClose: () => void; enableReminders: boolean; isListsEnabled: boolean; onListsEnabledChange: (enabled: boolean) => void; smartRemindersEnabled: boolean; onSmartRemindersEnabledChange: (value: boolean) => void; savedListsEnabled: boolean; onSavedListsEnabledChange: (value: boolean) => void; pinnedListsEnabled: boolean; onPinnedListsEnabledChange: (value: boolean) => void; useDefaultTemplatesInCleanState: boolean; onUseDefaultTemplatesInCleanStateChange: (value: boolean) => void; onNavigateDummyLists: () => void }) {
   const [pendingListsState, setPendingListsState] = useState<boolean | null>(null);
   const isLastModule = isListsEnabled && !enableReminders;
+  const [showLastModuleNotice, setShowLastModuleNotice] = useState(false);
 
   return (
     <>
     <div className="flex flex-col h-full relative w-full" data-name="lists-area-page">
       <PageShell title="Lists" onBack={onBack} onClose={onClose}>
-        <ToggleRow label="Enable lists" isOn={isListsEnabled} onToggle={() => { if (!isLastModule) setPendingListsState(!isListsEnabled); }} infoTitle="Master toggle for the lists feature. Controls access to smart reminders, list templates, pinned lists, and the dummy lists page. Disabling this restricts all list sub-features. Also forces the filters menu to use the Standard layout. Reminders and Lists cannot both be off, so this cannot be turned off while Reminders is off." />
+        <ToggleRow label="Enable lists" isOn={isListsEnabled} onToggle={() => { if (isLastModule) setShowLastModuleNotice(true); else setPendingListsState(!isListsEnabled); }} infoTitle="Master toggle for the lists feature. Controls access to smart reminders, list templates, pinned lists, and the dummy lists page. Disabling this restricts all list sub-features. Also forces the filters menu to use the Standard layout. Reminders and Lists cannot both be off: while Reminders is off, tapping this explains why." />
         <KeyLine />
         <SectionSubtitle text="Features" />
         <ToggleRow label="Smart reminders" isOn={smartRemindersEnabled} onToggle={() => onSmartRemindersEnabledChange(!smartRemindersEnabled)} disabled={!isListsEnabled} infoTitle="Allows reminders to be linked to a list, turning them into smart reminders that track list item progress. Smart reminders display a completion count (e.g. '3 of 5 items'). Requires Enable lists to be on." />
@@ -801,6 +804,7 @@ function ListsAreaPage({ onBack, onClose, enableReminders, isListsEnabled, onLis
         <ToggleRow label="Pinned lists" isOn={pinnedListsEnabled} onToggle={() => onPinnedListsEnabledChange(!pinnedListsEnabled)} disabled={!isListsEnabled} infoTitle="Allows users to pin frequently used lists for quick access. Pinned lists appear in a dedicated section above other lists in the lists view. Requires Enable lists to be on." />
       </PageShell>
     </div>
+      {showLastModuleNotice && <LastModuleNotice onClose={() => setShowLastModuleNotice(false)} />}
       {pendingListsState !== null && (
         <>
           <div

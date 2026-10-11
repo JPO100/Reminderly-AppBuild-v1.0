@@ -23,7 +23,7 @@ import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMo
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
-import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from "./notifications";
+import { PENDING_NOTIFICATION_REMINDER_ID_KEY, removeDeliveredReminderNotifications, syncReminderNotifications } from "./notifications";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
@@ -998,6 +998,8 @@ export default function App() {
       return 'reminders';
     }
   });
+  // The tab actually shown. With only one module on, that module is shown and the saved tab is kept.
+  const shownMainTab: 'reminders' | 'lists' = !isRemindersEnabled ? 'lists' : !isListsEnabled ? 'reminders' : activeMainTab;
 
   // Dev-only: show tutorial on first launch toggle
   const [showTutorialOnFirstLaunch, setShowTutorialOnFirstLaunch] = useStoredSetting('reminderly-config-tutorial-first-launch');
@@ -1017,7 +1019,7 @@ export default function App() {
   const [remindersSettingsSiriOn, setRemindersSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
   const [listsSettingsSiriOn, setListsSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
   const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useStoredSetting('reminderly-config-templates-in-clean-state');
-  const isSmartRemindersEnabled = isListsEnabled && smartRemindersFeatureEnabled;
+  const isSmartRemindersEnabled = isRemindersEnabled && isListsEnabled && smartRemindersFeatureEnabled;
 
   // Dev-only: hide overdue reminders from all views
   const [hideOverdue, setHideOverdue] = useState(false);
@@ -1199,8 +1201,13 @@ export default function App() {
   }, [reminders]);
 
   useEffect(() => {
-    void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge);
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge]);
+    // Reminders off: an empty list cancels all pending Reminderly notifications. Back on: reschedules.
+    void syncReminderNotifications(isRemindersEnabled ? reminders : [], notifAppBadge, notifIncludeTodayInBadge);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, isRemindersEnabled]);
+
+  useEffect(() => {
+    if (!isRemindersEnabled) void removeDeliveredReminderNotifications();
+  }, [isRemindersEnabled]);
 
 
 
@@ -1303,13 +1310,13 @@ export default function App() {
 
 
   useEffect(() => {
-    if (!notifAppBadge) {
+    if (!notifAppBadge || !isRemindersEnabled) {
       void Badge.clear();
       return;
     }
     const count = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date());
     void Badge.set({ count });
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick]);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled]);
 
   // Persist created lists to localStorage
   useEffect(() => {
@@ -1458,7 +1465,7 @@ export default function App() {
     if (pendingTappedReminderId) return;
     if (!isOnboardingTutorialEnabled) return;
     if (!showTutorialOnFirstLaunch && !showTutorialOnEveryStart) return;
-    const initialTutorialVariant: TutorialVariant = activeMainTab === 'lists' && isListsEnabled ? 'lists' : 'reminders';
+    const initialTutorialVariant: TutorialVariant = shownMainTab === 'lists' ? 'lists' : 'reminders';
     openTutorial(initialTutorialVariant);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1473,11 +1480,11 @@ export default function App() {
     if (!isOnboardingTutorialEnabled) return;
     if (!showTutorialOnFirstLaunch && !showTutorialOnEveryStart) return;
     if (isTutorialOpen) return;
-    const nextTutorialVariant: TutorialVariant = activeMainTab === 'lists' && isListsEnabled ? 'lists' : 'reminders';
+    const nextTutorialVariant: TutorialVariant = shownMainTab === 'lists' ? 'lists' : 'reminders';
     if (!tutorialVariantsShownThisSessionRef.current.has(nextTutorialVariant)) {
       openTutorial(nextTutorialVariant);
     }
-  }, [activeMainTab, isListsEnabled, isOnboardingTutorialEnabled, isTutorialOpen, openTutorial, showTutorialOnEveryStart, showTutorialOnFirstLaunch]);
+  }, [shownMainTab, isOnboardingTutorialEnabled, isTutorialOpen, openTutorial, showTutorialOnEveryStart, showTutorialOnFirstLaunch]);
 
 
   // Helper: cancel and delete entries for a given id from all timer maps.
@@ -1823,12 +1830,12 @@ export default function App() {
   };
 
   const handleHeaderMenuClick = useCallback(() => {
-    if (isListsEnabled && activeMainTab === 'lists') {
+    if (shownMainTab === 'lists') {
       setIsListsSettingsPanelOpen(true);
       return;
     }
     setIsRemindersSettingsPanelOpen(true);
-  }, [activeMainTab, isListsEnabled]);
+  }, [shownMainTab]);
 
   // Reminders settings panel: re-run the tutorial from its first page, then close the panel behind it
   const handleRemindersSettingsTutorialOpen = () => {
@@ -2161,7 +2168,7 @@ export default function App() {
 
   // Logo tick click: toggle between done-deleted view and "all" list view
   const handleTickClick = () => {
-    if (isListsEnabled && activeMainTab === 'lists') {
+    if (shownMainTab === 'lists') {
       setViewMode((prev) => (prev === 'lists-done' ? 'list' : 'lists-done'));
     } else {
       setViewMode((prev) => (prev === "list" ? "done-deleted" : "list"));
@@ -2869,6 +2876,7 @@ export default function App() {
 
   useNotificationTapHandler({
     reminders,
+    remindersEnabled: isRemindersEnabled,
     setActiveMainTab,
     setIsTutorialOpen,
     setIsOverlayOpen,
@@ -2924,7 +2932,7 @@ export default function App() {
   const isClearAllDisabled =
     viewMode === 'done-deleted'
       ? visibleDoneDeletedReminderCount === 0
-      : (isListsEnabled && activeMainTab === 'lists' && viewMode === 'lists-done')
+      : (shownMainTab === 'lists' && viewMode === 'lists-done')
         ? visibleDoneDeletedListCount + visibleDeletedSavedListCount === 0
         : false;
 
@@ -2943,7 +2951,7 @@ export default function App() {
     setClearListStep(2);
     setDoneDeletedFilter('all');
 
-    if (isListsEnabled && activeMainTab === 'lists' && viewMode === 'lists-done') {
+    if (shownMainTab === 'lists' && viewMode === 'lists-done') {
       const savedListIdsToRemove = new Set(
         savedLists
           .filter((list) => (list.status ?? 'active') === 'deleted')
@@ -3090,7 +3098,7 @@ export default function App() {
       clearListTimerRef.current = null;
       setClearListStep(0);
     }, 500);
-  }, [activeMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
+  }, [shownMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
 
   const now = new Date();
 
@@ -3102,7 +3110,7 @@ export default function App() {
   }
 
   return (
-    <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
+    <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
         if ((clearListStep === 1 || clearListStep === 2) && clearAllButtonRef.current && !clearAllButtonRef.current.contains(e.target as Node)) {
           setClearListStep(0);
           if (clearListTimerRef.current !== null) {
@@ -3118,7 +3126,7 @@ export default function App() {
       )}
       {/* Header */}
       <div className="app-header relative shrink-0 w-full p-[20px]">
-        <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
+        <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
           <div className="content-stretch flex items-center justify-center pb-[20px] pt-[50px] relative shrink-0 w-full">
             <div ref={logoRef} className="h-[35.653px] relative shrink-0 w-[209.653px]" style={{ top: '7px' }}>
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 209.653 35.6533">
@@ -3213,7 +3221,7 @@ export default function App() {
       </div>
 
       {/* Reminders/Lists tab bar — Lists mode only */}
-      {isListsEnabled && (
+      {isListsEnabled && isRemindersEnabled && (
         <div ref={tabsBarRef} className="content-stretch flex gap-[10px] items-end justify-center px-[20px] relative w-full">
           <div
             className={`${activeMainTab === 'reminders' ? 'bg-white' : 'bg-[rgba(255,255,255,0.25)]'} flex-[1_0_0] min-h-px min-w-px relative rounded-tl-[12px] rounded-tr-[12px] cursor-pointer h-[52px]`}
@@ -3268,7 +3276,7 @@ export default function App() {
 
       {/* Reminder list container */}
       <div className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative rounded-tl-[15px] rounded-tr-[15px] w-full flex-1 min-h-[350px]`}>
-        {isListsEnabled && activeMainTab === 'lists' ? (
+        {shownMainTab === 'lists' ? (
           <>
           {viewMode === 'lists-done' && (
             <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
@@ -4323,7 +4331,7 @@ export default function App() {
 
       {/* Templates Overlay */}
       <AnimatePresence>
-        {isListsEnabled && activeMainTab === 'lists' && (savedListsPanelOpen || (isSavedListsOverlayOpen && restoreSavedListsPanelAfterOverlayClose)) && (
+        {shownMainTab === 'lists' && (savedListsPanelOpen || (isSavedListsOverlayOpen && restoreSavedListsPanelAfterOverlayClose)) && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -4481,7 +4489,7 @@ export default function App() {
 
       {/* Lists Overlay */}
       <AnimatePresence>
-        {isListsEnabled && activeMainTab === 'lists' && (isListsOverlayOpen || isSavedListsOverlayOpen) && (() => {
+        {shownMainTab === 'lists' && (isListsOverlayOpen || isSavedListsOverlayOpen) && (() => {
           const isSavedListCreateOverlay = isSavedListsOverlayOpen && !isListsOverlayOpen;
           const isSavedListEditOverlay = isSavedListCreateOverlay && editingSavedListId !== null;
           const overlayDisplayListItems = displayListItems;
@@ -4689,7 +4697,7 @@ export default function App() {
         })()}
       </AnimatePresence>
 
-      {isListSettingsOpen && isListsEnabled && activeMainTab === 'lists' && isListsOverlayOpen && (
+      {isListSettingsOpen && shownMainTab === 'lists' && isListsOverlayOpen && (
         <>
           <div
             className="fixed inset-0 bg-black/50 z-[60]"

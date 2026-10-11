@@ -919,3 +919,19 @@ Decisions: D1 to D9 provisionally approved by senior developer review (D3 visual
 
 Outstanding: D10 confirmation. Phase 1 awaits approval.
 
+### 2026-10-11 (feature/settings-flags-model - Phase 1)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Phase 0 final review corrections recorded in docs/settings-flags-spec.md (independent alerts and badge, D10 refinements, Phase 1 boundary, existing-install detection check)
+- New src/app/settings/: keys.ts (storage keys and development defaults), resolver.ts (read-only isFeatureActive with parent flags, preferences and iOS permission), migration.ts (one-time copy of current keys to new keys, never overwrites, never deletes, schema marker reminderly-settings-schema = 1)
+- Migration runs in src/main.tsx before the app renders
+- Dev tools Enable reminders, Enable notifications and Repeat reminders toggles now saved (reminderly-ff-reminders, reminderly-ff-notifications, reminderly-ff-repeat-reminders). Nothing outside dev tools reads them yet
+- New Self Check suite "Settings foundation" (17 checks, in-memory storage), also run by Vitest (src/app/__tests__/settings.test.ts)
+- The app still reads its current keys. No user-facing behaviour change
+
+Test results: Vitest 70/70 passed. Self Check 351/351 passed (desktop browser). Repo guard passed. Web build succeeded. iOS simulator and iPhone builds succeeded with refreshed web assets. Existing-install detection verified (first launch with no data saves the detection keys). Simulator upgrade and rollback test passed (main -> Phase 1 -> main -> Phase 1: data and current keys unchanged, no second migration). iPhone 15 Pro upgrade verified with real data (25 reminders, 4 repeating, 17 lists): data and current keys unchanged, new keys correct.
+
+Outstanding: Phase 2 awaits approval. Phase 3 dependency on settings changed in dev tools after migration recorded in the spec.
+

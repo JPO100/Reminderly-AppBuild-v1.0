@@ -304,7 +304,8 @@ Boundary: no user-facing change to navigation, recurrence, Siri, notification sc
 - The app keeps reading and writing its current storage keys. Each setting moves to its new key in its integration phase: phase 3 for settings, phase 4 for notifications.
 - The new Enable reminders, Enable notifications and Repeat reminders flags are saved by the existing dev tools toggles, but nothing outside dev tools reads them in Phase 1. So turning them off cannot disable existing functionality.
 - The smart reminders and list templates default change (on where never saved) takes effect in Phase 3, when the app reads the resolver.
-- Dependency: values changed in dev tools after the migration has run are saved to the current keys only. Before the Phase 3 switch, either the new keys are refreshed from the current keys once, or development devices are reset. This only affects development devices, since these settings can only be changed in dev tools today. To be decided before Phase 3.
+- Dependency: values changed in dev tools after the migration has run are saved to the current keys only. This only affects development devices, since these settings can only be changed in dev tools today. To be decided before Phase 3.
+- Phase 1 finding for that decision: the current app writes every current settings key with its old default on first launch (for example `reminderly-notif-reminder-alerts` = `true`). A one-off refresh of the new keys from the current keys would therefore copy old defaults into new installs. The safer option is no refresh: avoid changing these settings in dev tools on development devices until Phase 3, or re-set them after the switch.
 
 Acceptance criteria:
 - Migration produces the mapping in 8.2 for: a new install, an existing install with all old keys, an existing install with some keys explicitly false, and a second run (no changes).

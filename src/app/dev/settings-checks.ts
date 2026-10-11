@@ -88,7 +88,7 @@ export function getSettingsChecks(): Check[] {
         assert(!isFeatureActive('siriReminders', { storage }), 'Siri should default off');
         assert(isFeatureActive('smartReminders', { storage }), 'Smart reminders should default on');
         assert(isFeatureActive('listTemplates', { storage }), 'List templates should default on');
-        assert(readSetting('reminderly-pref-nlc-mode', storage) === 'auto', 'NLC mode should default to auto');
+        assert(readStoredBool('reminderly-pref-nlc-auto-parsing', undefined, storage) === true, 'NLC should default to applying as you type (auto)');
       },
     },
     {

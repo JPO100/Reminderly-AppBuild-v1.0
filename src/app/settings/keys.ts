@@ -54,8 +54,10 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   // Natural language capture
   'reminderly-ff-nlc': 'false',
   'reminderly-pref-nlc': 'false',
-  'reminderly-pref-nlc-mode': 'auto',
-  'reminderly-pref-nlc-recognition': '{"date":true,"time":true,"repeats":true}',
+  'reminderly-pref-nlc-auto-parsing': 'true',
+  'reminderly-pref-nlc-date': 'true',
+  'reminderly-pref-nlc-time': 'true',
+  'reminderly-pref-nlc-repeats': 'true',
   'reminderly-ff-nlc-phone': 'false',
   'reminderly-ff-nlc-contacts': 'false',
 

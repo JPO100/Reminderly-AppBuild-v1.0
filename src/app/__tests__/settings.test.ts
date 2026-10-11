@@ -63,7 +63,7 @@ describe('dev tools controls', () => {
     'Notifications', 'Enable notifications',
     'Siri', 'Siri for reminders',
     'Onboarding', 'Enable onboarding', 'Show tutorial on first launch',
-    'System', 'Settings menu', 'Show info icons',
+    'System', 'Haptics', 'Settings menu', 'Show info icons',
     // Config
     'Config', 'Use template set in clean state',
     // Testing tools

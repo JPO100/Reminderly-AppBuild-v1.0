@@ -970,14 +970,20 @@ export default function App() {
   // Used to allow second-click cancellation and prevent duplicate spawn.
   const pendingRepeatCompletionIdsRef = useRef<Set<string>>(new Set());
 
-  // Dev-only: NLC parsing mode for A/B testing (click vs auto)
-  const [nlcMode, setNlcMode] = useState<NlcMode>('auto');
+  // Natural Language Capture: availability flag (Dev tools) and the user's preferences (Reminders settings)
+  const [nlcFlag, setNlcFlag] = useStoredSetting('reminderly-ff-nlc');
+  const [nlcPrefOn, setNlcPrefOn] = useStoredSetting('reminderly-pref-nlc');
+  const [nlcPrefDate, setNlcPrefDate] = useStoredSetting('reminderly-pref-nlc-date');
+  const [nlcPrefTime, setNlcPrefTime] = useStoredSetting('reminderly-pref-nlc-time');
+  const [nlcPrefRepeats, setNlcPrefRepeats] = useStoredSetting('reminderly-pref-nlc-repeats');
+  const [nlcPrefAutoParsing, setNlcPrefAutoParsing] = useStoredSetting('reminderly-pref-nlc-auto-parsing');
+  const nlcMode: NlcMode = nlcPrefAutoParsing ? 'auto' : 'click';
+  const nlcRecognition: NlcRecognitionConfig = useMemo(() => ({ date: nlcPrefDate, time: nlcPrefTime, repeats: nlcPrefRepeats }), [nlcPrefDate, nlcPrefTime, nlcPrefRepeats]);
+  const nlcPrefs = { on: nlcPrefOn, date: nlcPrefDate, time: nlcPrefTime, repeats: nlcPrefRepeats, autoParsing: nlcPrefAutoParsing };
+  const nlcPrefSetters = { on: setNlcPrefOn, date: setNlcPrefDate, time: setNlcPrefTime, repeats: setNlcPrefRepeats, autoParsing: setNlcPrefAutoParsing };
 
-  // Dev-only: NLC feature flag — controls whether NLC parsing and UI are active
-  const [nlcEnabled, setNlcEnabled] = useState(false);
-
-  // Dev-only: NLC recognition config — granular category gates
-  const [nlcRecognition, setNlcRecognition] = useState<NlcRecognitionConfig>({ date: true, time: true, repeats: true });
+  // Haptics availability flag (Dev tools); the user's choices live in utils/haptics
+  const [hapticsFlag, setHapticsFlag] = useStoredSetting('reminderly-ff-haptics');
 
   // Dev-only: onboarding tutorial feature flag — controls whether tutorial overlay is available
   const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useStoredSetting('reminderly-ff-onboarding-tutorial');
@@ -1028,6 +1034,8 @@ export default function App() {
   const isSiriRemindersAvailable = isRemindersEnabled && siriShortcutsEnabled;
   const isSiriRemindersActive = isSiriRemindersAvailable && remindersSettingsSiriOn;
   const isSiriListsAvailable = isListsEnabled && siriListsFlag;
+  const isNlcAvailable = isRemindersEnabled && nlcFlag;
+  const isNlcActive = isNlcAvailable && nlcPrefOn;
   // Repeat reminders off: NLC never recognises repeats
   const nlcRecognitionForInput = useMemo(() => ({ ...nlcRecognition, repeats: nlcRecognition.repeats && isRepeatRemindersActive }), [nlcRecognition, isRepeatRemindersActive]);
 
@@ -4335,7 +4343,7 @@ export default function App() {
                   addReminder={addReminder}
                   onClose={handleOverlayClose}
                   nlcMode={nlcMode}
-                  nlcEnabled={nlcEnabled}
+                  nlcEnabled={isNlcActive}
                   nlcRecognition={nlcRecognitionForInput}
                   editReminder={editingReminder}
                   updateReminder={updateReminder}
@@ -5093,7 +5101,7 @@ export default function App() {
               className="fixed left-0 right-0 z-50 mx-auto w-full"
               style={{ bottom: 0 }}
             >
-              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={setNlcMode} nlcEnabled={nlcEnabled} onNlcEnabledChange={setNlcEnabled} nlcRecognition={nlcRecognition} onNlcRecognitionChange={setNlcRecognition} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
+              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
                 setCreatedLists([]);
                 setSavedLists(
                   useDefaultTemplatesInCleanState
@@ -5192,6 +5200,11 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <RemindersSettingsContent
+                  nlcAvailable={isNlcAvailable}
+                  nlcPrefs={nlcPrefs}
+                  onNlcChange={(key, value) => nlcPrefSetters[key](value)}
+                  repeatsAvailable={isRepeatRemindersActive}
+                  hapticsAvailable={hapticsFlag}
                   oneMinuteAvailable={isOneMinuteAvailable}
                   oneMinuteOn={useOneMinuteTimeIncrements}
                   onOneMinuteChange={setUseOneMinuteTimeIncrements}
@@ -5217,6 +5230,7 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <ListsSettingsContent
+                  hapticsAvailable={hapticsFlag}
                   siriAvailable={isSiriListsAvailable}
                   siriOn={listsSettingsSiriOn}
                   onSiriChange={setListsSettingsSiriOn}

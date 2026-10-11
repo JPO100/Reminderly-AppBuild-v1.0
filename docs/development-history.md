@@ -981,3 +981,12 @@ Completed (after iPhone acceptance testing and audit):
 Test results: Vitest 122/122 passed. Self Check 361/361 passed (desktop browser). Web build, simulator and iPhone builds succeeded. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator, no stored keys changed. iPhone retest outstanding.
 - Temporary user preferences page removed from Dev tools. Decision made 2026-10-11 12:23 BST by John (product owner): Dev tools controls availability only, users control their own preferences. Until their user settings are wired (Phase 3, notifications Phase 4), 1 minute increments, NLC options, notification alerts, badge, include today and haptics stay at their saved values (NLC options at their defaults). Vitest 111/111 passed
 
+### 2026-10-11 (feature/settings-flags-model - Phase 3 progress)
+
+Branch: feature/settings-flags-model
+
+- Steps 1 to 5 implemented (foundation, Reminders master with Lists-only layout and notification safeguard, Repeat reminders flag, 1 minute increments, Siri). C1 fix: Reminders off cancels pending then removes delivered Reminderly notifications, at toggle, launch and resume
+- iPhone acceptance (product owner): steps 1-2 visual tests, C1-C4, C6, D1-D4, E1-E3, F1-F4 passed. C5 confirmed as expected behaviour: notifications missed while Reminders was off are not re-created; future reminders resume and the badge is recalculated
+- Siri (G1-G4): deferred, not failed. Siri is unusable and off by default; to be addressed and tested separately
+- Steps 6 and 7 built (NLC and Haptic feedback user pages, Haptics availability flag), awaiting visual approval
+

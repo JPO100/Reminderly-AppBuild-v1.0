@@ -18,7 +18,7 @@ All centred overlays (user-facing and Dev tools) follow one spacing standard. Th
 | Above and below a separator line | `30px` |
 | Between buttons (stacked or side by side) | `30px` |
 | Title wrapping | Titles wrap onto multiple lines (no ellipsis) |
-| Maximum height | Never taller than the screen: the wrapper keeps 20px clear of the notch and home indicator (`centred-overlay-wrapper`), and the card is limited to that space (`centred-overlay-card`, in `src/styles/index.css`) |
+| Maximum height | At least 100px from the top and bottom of the screen (and 20px clear of the notch and home indicator) via `centred-overlay-wrapper`; the card is limited to the space between (`centred-overlay-card`, in `src/styles/index.css`) |
 | Overflow | Content that does not fit scrolls inside the card. Settings overlays keep the title fixed and scroll only the rows |
 
 Typical implementation: card `gap-[40px]` when it holds title and sections only. Where content elements sit directly in the card (ReminderInfoOverlay), the card uses `gap-[30px]` with `mb-[10px]` on the title and `mt-[10px]` on the buttons container to give 40px.

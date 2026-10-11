@@ -1016,14 +1016,18 @@ export default function App() {
   const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useStoredSetting('reminderly-ff-settings-menu-v2');
   const [showInfoIcons, setShowInfoIcons] = useStoredSetting('reminderly-ff-info-icons');
   const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useStoredSetting('reminderly-ff-siri-reminders');
-  // Settings panels phase 1 (UI only): System settings Siri toggle shared by the Reminders and Lists panels
-  const [remindersSettingsSiriOn, setRemindersSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
-  const [listsSettingsSiriOn, setListsSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
+  // Siri user preferences, one per settings panel
+  const [remindersSettingsSiriOn, setRemindersSettingsSiriOn] = useStoredSetting('reminderly-pref-siri-reminders');
+  const [listsSettingsSiriOn, setListsSettingsSiriOn] = useStoredSetting('reminderly-pref-siri-lists');
+  const [siriListsFlag] = useStoredSetting('reminderly-ff-siri-lists');
   const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useStoredSetting('reminderly-config-templates-in-clean-state');
   const isSmartRemindersEnabled = isRemindersEnabled && isListsEnabled && smartRemindersFeatureEnabled;
   const isRepeatRemindersActive = isRemindersEnabled && repeatRemindersFlag;
   const isOneMinuteAvailable = isRemindersEnabled && oneMinuteIncrementsFlag;
   const isOneMinuteActive = isOneMinuteAvailable && useOneMinuteTimeIncrements;
+  const isSiriRemindersAvailable = isRemindersEnabled && siriShortcutsEnabled;
+  const isSiriRemindersActive = isSiriRemindersAvailable && remindersSettingsSiriOn;
+  const isSiriListsAvailable = isListsEnabled && siriListsFlag;
   // Repeat reminders off: NLC never recognises repeats
   const nlcRecognitionForInput = useMemo(() => ({ ...nlcRecognition, repeats: nlcRecognition.repeats && isRepeatRemindersActive }), [nlcRecognition, isRepeatRemindersActive]);
 
@@ -1567,7 +1571,7 @@ export default function App() {
       if (!text) return;
       localStorage.removeItem(PENDING_SIRI_TEXT_KEY);
 
-      if (!siriShortcutsEnabled) return;
+      if (!isSiriRemindersActive) return;
 
       const tokens = parseTokens(text);
       const actions = computeAutoApplyResult(tokens, { date: false, time: false, repeats: false });
@@ -1647,7 +1651,7 @@ export default function App() {
     handleSiriAdd();
     window.addEventListener(SIRI_ADD_EVENT, handleSiriAdd);
     return () => window.removeEventListener(SIRI_ADD_EVENT, handleSiriAdd);
-  }, [siriShortcutsEnabled, addReminder, isRepeatRemindersActive]);
+  }, [isSiriRemindersActive, addReminder, isRepeatRemindersActive]);
 
   const addReminders = useCallback((newReminders: Reminder[]) => {
     // Cancel any pending insert timer (last-one-wins)
@@ -5182,6 +5186,7 @@ export default function App() {
                   oneMinuteAvailable={isOneMinuteAvailable}
                   oneMinuteOn={useOneMinuteTimeIncrements}
                   onOneMinuteChange={setUseOneMinuteTimeIncrements}
+                  siriAvailable={isSiriRemindersAvailable}
                   siriOn={remindersSettingsSiriOn}
                   onSiriChange={setRemindersSettingsSiriOn}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleRemindersSettingsTutorialOpen : undefined}
@@ -5203,6 +5208,7 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <ListsSettingsContent
+                  siriAvailable={isSiriListsAvailable}
                   siriOn={listsSettingsSiriOn}
                   onSiriChange={setListsSettingsSiriOn}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}

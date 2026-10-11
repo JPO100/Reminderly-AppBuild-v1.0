@@ -4,7 +4,7 @@ import { ToggleRow, MenuRow } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 
 // Phase 1: UI only. Toggles hold local state and nothing is saved; click-through rows open empty pages.
-// Each panel has its own Siri toggle, held in App so it survives the overlay closing. The two are independent.
+// Each panel has its own Siri preference, saved by App. Each row shows only when its Siri flag is on.
 
 // Centred overlay header: title centred, back arrow on the left for sub-pages.
 function PanelHeader({ title, onBack }: { title: string; onBack?: () => void }) {
@@ -59,14 +59,14 @@ function TutorialRow({ label, onClick }: { label: string; onClick: () => void })
 const SIRI_INFO = "Lets you use Siri and the Shortcuts app to create and manage reminders with your voice. Turn this off to stop Reminderly appearing in Siri and Shortcuts.";
 const SOUNDS_INFO = "Choose the sounds Reminderly plays, such as when a reminder is due or completed.";
 
-export function RemindersSettingsContent({ onOpenTutorial, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriOn, onSiriChange }: { onOpenTutorial?: () => void; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
+export function RemindersSettingsContent({ onOpenTutorial, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
 
   return (
     <PanelShell title="Reminders settings" subPage={subPage} onBack={() => setSubPage(null)}>
       <ToggleRow label="Show calendar" isOn={showCalendar} onToggle={() => setShowCalendar(prev => !prev)} infoTitle="Shows a calendar view so you can see your reminders by date." />
-      <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />
+      {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
       {oneMinuteAvailable && <ToggleRow label="1 minute time increments" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 5 minute steps." />}
       <MenuRow label="Natural Language Capture" onClick={() => setSubPage("Natural Language Capture")} infoTitle="Reminderly can pick out dates, times and repeats as you type, such as 'tomorrow at 3pm' or 'every Monday'. Choose what is recognised and how it works." />
       <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you complete or delete a reminder." />
@@ -76,14 +76,14 @@ export function RemindersSettingsContent({ onOpenTutorial, oneMinuteAvailable, o
   );
 }
 
-export function ListsSettingsContent({ onOpenTutorial, siriOn, onSiriChange }: { onOpenTutorial?: () => void; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
+export function ListsSettingsContent({ onOpenTutorial, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
   const [smartReminders, setSmartReminders] = useState(false);
 
   return (
     <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)}>
       <ToggleRow label="Use Smart Reminders" isOn={smartReminders} onToggle={() => setSmartReminders(prev => !prev)} infoTitle="Link a reminder to a list so it tracks your progress, for example '3 of 5 items'." />
-      <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />
+      {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
       <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you check off a list item or delete a list." />
       <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />
       {onOpenTutorial && <TutorialRow label="Lists tutorial" onClick={onOpenTutorial} />}

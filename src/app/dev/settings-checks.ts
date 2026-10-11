@@ -13,6 +13,7 @@ import { migrateSettings } from '../settings/migration';
 import { ALL_FEATURES, canChangeModuleFlag, isFeatureActive, keepRepeatRuleWhenOff, readSetting } from '../settings/resolver';
 import { parseTokens } from '../utils/nlc-parser';
 import { HAPTIC_GROUPS, normaliseHapticsConfig, panelForAction } from '../utils/haptics';
+import { SOUND_GROUPS, normaliseSoundsConfig, panelForAction as soundPanelForAction } from '../utils/sounds';
 import { SETTINGS_DEFAULTS, SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
 import { defaultFor, readStoredBool, setSettingsWriteFailureListener, writeStoredBool } from '../settings/useStoredSetting';
 
@@ -417,6 +418,33 @@ export function getSettingsChecks(): Check[] {
         storage.setItem('reminderly-ff-haptics', 'false');
         storage.setItem('reminderly-pref-haptics', '{"remindersHaptics":true,"listsHaptics":true}');
         assert(!isFeatureActive('haptics', { storage }), 'Flag off should be inactive');
+      },
+    },
+
+    // Sounds
+    {
+      id: 'settings-sounds-groups',
+      name: 'Sounds: same switches, actions and panels as haptics',
+      run: () => {
+        for (const panel of ['reminders', 'lists'] as const) {
+          assert(SOUND_GROUPS[panel].length === HAPTIC_GROUPS[panel].length, 'Each panel should show the same number of switches');
+          SOUND_GROUPS[panel].forEach((group, i) => {
+            assert(group.label === HAPTIC_GROUPS[panel][i].label, 'Switch labels should match haptics');
+            assert(JSON.stringify(group.actions) === JSON.stringify(HAPTIC_GROUPS[panel][i].actions), 'Switch actions should match haptics');
+            assert(group.actions.every((action) => soundPanelForAction(action) === panel), 'Actions should map to their panel');
+          });
+        }
+      },
+    },
+    {
+      id: 'settings-sounds-defaults',
+      name: 'Sounds: off by default for both panels, saved choices win',
+      run: () => {
+        const fresh = normaliseSoundsConfig(JSON.parse(SETTINGS_DEFAULTS['reminderly-pref-sounds']));
+        assert(!fresh.remindersSounds && !fresh.listsSounds, 'Both panels should default off');
+        assert(fresh.markDone && fresh.toggleListItemCheckbox, 'Individual actions should default on');
+        const saved = normaliseSoundsConfig({ remindersSounds: true, createReminder: false });
+        assert(saved.remindersSounds && !saved.listsSounds && !saved.createReminder && saved.markDone, 'Saved choices should win');
       },
     },
 

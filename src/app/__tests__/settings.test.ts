@@ -50,7 +50,7 @@ describe('no legacy settings keys in active code', () => {
   });
 });
 
-// Phase 2: every Dev tools control from docs/settings-audit.md appears exactly once.
+// Phase 2: every Dev tools control appears exactly once. Dev tools holds no user preferences.
 describe('dev tools controls', () => {
   const files = ['components/DevToolsOverlay.tsx', '../imports/DevTools.tsx'].map((file) =>
     fs.readFileSync(path.resolve(__dirname, '..', file), 'utf8'),
@@ -68,9 +68,6 @@ describe('dev tools controls', () => {
     'Config', 'Use template set in clean state',
     // Testing tools
     'Testing tools', 'Self checks', 'Dummy reminders', 'Dummy lists', 'Show tutorial on every app start',
-    'Temporary user preferences', 'Display 1 minute time increments', 'Date recognition', 'Time recognition', 'Repeats recognition',
-    'Auto-parsing', 'Click-parsing', 'Reminder system notifications', 'Reminder app badge notifications',
-    'Include today in app badge count', 'Haptics',
     // Access and diagnostics
     'Dev tools password', 'Password required',
   ];

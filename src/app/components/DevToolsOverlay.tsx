@@ -34,7 +34,7 @@ import passwordResetSvgPaths from "../../imports/svg-p8ebad7jx7";
 
 const DEV_TOOLS_PASSWORD = '123';
 
-type DevToolsPage = 'home' | 'dummy-reminders' | 'dummy-lists' | 'dev-tools-password' | 'haptics' | 'system' | 'natural-language' | 'onboarding' | 'notifications-area' | 'testing' | 'reminders' | 'lists' | 'siri' | 'config' | 'testing-tools' | 'user-preferences';
+type DevToolsPage = 'home' | 'dummy-reminders' | 'dummy-lists' | 'dev-tools-password' | 'system' | 'natural-language' | 'onboarding' | 'notifications-area' | 'testing' | 'reminders' | 'lists' | 'siri' | 'config' | 'testing-tools';
 
 function BackHeader({ title, onBack, onClose }: { title: string; onBack: () => void; onClose: () => void }) {
   return (
@@ -293,6 +293,7 @@ const HAPTIC_ACTION_LABELS: { action: HapticAction; label: string; info: string 
   { action: 'swipeRevealDelete', label: 'Swipe to reveal delete', info: 'Fires haptic feedback when swiping a list item reveals the delete button.' },
 ];
 
+// Not routed: Dev tools holds no user preferences. Kept for reuse by the user Haptic feedback page (Phase 3).
 function HapticsPage({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
   const [config, setConfig] = useState<HapticsConfig>(getHapticsConfig);
 
@@ -1103,10 +1104,6 @@ function DevToolsContent({ onClose, onClearReminders, addReminder, addReminders,
     content = (
       <DevToolsPasswordPage onBack={() => setPage('home')} onClose={onClose} passwordRequired={isDevToolsPasswordRequired} onPasswordRequiredChange={onDevToolsPasswordRequiredChange} />
     );
-  } else if (page === 'haptics') {
-    content = (
-      <HapticsPage onBack={() => setPage('user-preferences')} onClose={onClose} />
-    );
   } else if (page === 'notifications-area') {
     content = (
       <NotificationsAreaPage onBack={() => setPage('home')} onClose={onClose} enableNotifications={enableNotifications} onEnableNotificationsChange={setEnableNotifications} reminderAlerts={notifReminderAlerts} onReminderAlertsChange={onNotifReminderAlertsChange} appBadge={notifAppBadge} onAppBadgeChange={onNotifAppBadgeChange} includeTodayInBadge={notifIncludeTodayInBadge} onIncludeTodayInBadgeChange={onNotifIncludeTodayInBadgeChange} />
@@ -1131,30 +1128,6 @@ function DevToolsContent({ onClose, onClearReminders, addReminder, addReminders,
         <MenuRow label="Dummy reminders" onClick={() => setPage('dummy-reminders')} disabled={!enableReminders} infoTitle="Opens the Dummy Reminders page where you can generate test reminders across all time categories (overdue, today, this week, later, sometime, done), configure repeat flags, and clear all reminders. Requires Reminders to be on." />
         <MenuRow label="Dummy lists" onClick={() => setPage('dummy-lists')} disabled={!isListsEnabled} infoTitle="Opens the Dummy Lists page where you can generate test lists with configurable item counts, choose to include done items, smart reminder lists, and saved list templates, then clear or regenerate. Requires Lists to be on." />
         <ToggleRow label="Show tutorial on every app start" isOn={showTutorialOnEveryStart} onToggle={() => { const next = !showTutorialOnEveryStart; onShowTutorialOnEveryStartChange(next); if (next) onShowTutorialOnFirstLaunchChange(false); }} disabled={!isOnboardingTutorialEnabled} infoTitle="Shows the onboarding tutorial every time the app is opened, regardless of whether it has been seen before. Enabling this turns off 'Show tutorial on first launch' in Feature flags > Onboarding. Only one launch trigger can be active. Requires Onboarding to be on." />
-        <KeyLine />
-        <MenuRow label="Temporary user preferences" onClick={() => setPage('user-preferences')} infoTitle="Temporary. These are the user's own preferences, kept here only until each one works in Reminders and Lists settings, then removed. They do not control availability: see Feature flags." />
-      </PageShell>
-    );
-  } else if (page === 'user-preferences') {
-    content = (
-      <PageShell title="Temporary user preferences" onBack={() => setPage('testing-tools')} onClose={onClose}>
-        <SectionSubtitle text="Reminders" />
-        <ToggleRow label="Display 1 minute time increments" isOn={useOneMinuteIncrements} onToggle={() => onUseOneMinuteIncrementsChange(!useOneMinuteIncrements)} disabled={!enableReminders} infoTitle="Changes the time picker to show one-minute intervals instead of the default five-minute intervals. Affects the time picker in both the new reminder and edit reminder flows. Requires Reminders to be on." />
-        <KeyLine />
-        <SectionSubtitle text="Natural Language Capture" />
-        <ToggleRow label="Date recognition" isOn={nlcRecognition.date} onToggle={() => onNlcRecognitionChange({ ...nlcRecognition, date: !nlcRecognition.date })} disabled={!nlcEnabled} infoTitle="Allows NLC to detect and parse date references like 'tomorrow', 'next Friday', or 'March 5th' from reminder text. Parsed dates are applied to the reminder's schedule automatically. Requires Natural Language Capture to be on." />
-        <ToggleRow label="Time recognition" isOn={nlcRecognition.time} onToggle={() => onNlcRecognitionChange({ ...nlcRecognition, time: !nlcRecognition.time })} disabled={!nlcEnabled} infoTitle="Allows NLC to detect and parse time references like 'at 3pm' or 'in the morning' from reminder text. Parsed times are applied to the reminder's schedule automatically. Requires Natural Language Capture to be on." />
-        <ToggleRow label="Repeats recognition" isOn={nlcRecognition.repeats} onToggle={() => onNlcRecognitionChange({ ...nlcRecognition, repeats: !nlcRecognition.repeats })} disabled={!nlcEnabled} infoTitle="Allows NLC to detect and parse repeat patterns like 'every Monday' or 'daily' from reminder text. Parsed patterns are applied as repeat rules on the reminder. Requires Natural Language Capture to be on." />
-        <ToggleRow label="Auto-parsing" isOn={nlcMode === 'auto'} onToggle={() => onNlcModeChange('auto')} disabled={!nlcEnabled} infoTitle="NLC parses the reminder text in real time as the user types. Dates, times, and repeats are detected and applied immediately without user action. Only one parsing mode can be active. Requires Natural Language Capture to be on." />
-        <ToggleRow label="Click-parsing" isOn={nlcMode === 'click'} onToggle={() => onNlcModeChange('click')} disabled={!nlcEnabled} infoTitle="NLC only parses the reminder text when the user explicitly triggers it by tapping the parse button. Gives the user full control over when detection runs. Only one parsing mode can be active. Requires Natural Language Capture to be on." />
-        <KeyLine />
-        <SectionSubtitle text="Notifications" />
-        <ToggleRow label="Reminder system notifications" isOn={notifReminderAlerts} onToggle={() => onNotifReminderAlertsChange(!notifReminderAlerts)} disabled={!enableNotifications} infoTitle="Controls whether the app sends native iOS system notifications when a reminder is due. Notifications appear as banners, alerts, and in the notification centre. Requires Notifications to be on." />
-        <ToggleRow label="Reminder app badge notifications" isOn={notifAppBadge} onToggle={() => onNotifAppBadgeChange(!notifAppBadge)} disabled={!enableNotifications} infoTitle="Controls whether the app displays a numeric badge on the app icon showing how many reminders need attention. The badge count reflects overdue reminders by default. Requires Notifications to be on." />
-        <ToggleRow label="Include today in app badge count" isOn={notifAppBadge && notifIncludeTodayInBadge} onToggle={() => onNotifIncludeTodayInBadgeChange(!notifIncludeTodayInBadge)} disabled={!enableNotifications || !notifAppBadge} infoTitle="When enabled, reminders due today are included in the app icon badge count alongside overdue reminders. When disabled, only overdue reminders contribute to the badge number. Requires both Notifications and App badge to be on." />
-        <KeyLine />
-        <SectionSubtitle text="System" />
-        <MenuRow label="Haptics" onClick={() => setPage('haptics')} infoTitle="Opens the Haptics settings page. Haptics control vibration feedback for app actions like completing reminders, deleting items, and toggling checkboxes. Each action can be enabled or disabled individually, or all haptics can be turned off globally." />
       </PageShell>
     );
   }

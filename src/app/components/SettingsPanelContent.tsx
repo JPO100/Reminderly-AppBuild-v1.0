@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import { ToggleRow, MenuRow } from "./DevToolsOverlay";
+import { ToggleRow, MenuRow, KeyLine } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
 import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics";
@@ -92,6 +92,7 @@ function HapticSettings({ panel }: { panel: HapticPanel }) {
   return (
     <>
       <ToggleRow label="Haptic feedback" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every vibration below off in one go. Turning it back on restores your previous choices." />
+      <KeyLine />
       {groups.map(({ label, info, actions }) => (
         <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
       ))}

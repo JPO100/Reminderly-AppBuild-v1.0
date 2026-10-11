@@ -88,17 +88,17 @@ export const hapticTap = (action: HapticAction) => {
 
 /**
  * Haptic switches shown on each settings panel's Haptic feedback page. Each names one user action;
- * related actions follow it (restoring follows marking as done or deleting, swipe follows deleting).
+ * related actions follow it (restoring follows completing or deleting, swipe follows deleting).
  */
 export const HAPTIC_GROUPS: Record<HapticPanel, { label: string; info: string; actions: HapticAction[] }[]> = {
   reminders: [
     { label: 'Creating a reminder', info: 'A small vibration when you create a reminder.', actions: ['createReminder'] },
-    { label: 'Marking a reminder as done', info: 'A small vibration when you mark a reminder as done, or restore a done reminder.', actions: ['markDone', 'uncompleteReminder'] },
+    { label: 'Completing a reminder', info: 'A small vibration when you mark a reminder as done, or restore a done reminder.', actions: ['markDone', 'uncompleteReminder'] },
     { label: 'Deleting a reminder', info: 'A small vibration when you delete or restore a reminder, or clear done and deleted reminders.', actions: ['deleteReminder', 'undeleteReminder', 'clearAllDoneDeleted'] },
   ],
   lists: [
     { label: 'Ticking off a list item', info: 'A small vibration when you tick or untick a list item.', actions: ['toggleListItemCheckbox'] },
-    { label: 'Marking a list as done', info: 'A small vibration when you mark a list as done, or restore it.', actions: ['markListComplete', 'undoListCompletion'] },
+    { label: 'Completing a list', info: 'A small vibration when you mark a list as done, or restore it.', actions: ['markListComplete', 'undoListCompletion'] },
     { label: 'Deleting a list item', info: 'A small vibration when you delete a list item, or swipe to reveal delete.', actions: ['deleteListItem', 'swipeRevealDelete'] },
   ],
 };

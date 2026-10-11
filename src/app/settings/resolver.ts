@@ -101,3 +101,8 @@ export function isFeatureActive(
 export function canChangeModuleFlag(next: boolean, otherModuleOn: boolean): boolean {
   return next || otherModuleOn;
 }
+
+/** Repeat reminders off: no rule can be created or changed, and an edited reminder keeps its existing rule. */
+export function keepRepeatRuleWhenOff<T>(repeatsActive: boolean, existingRule: T | null | undefined, requestedRule: T | null): T | null {
+  return repeatsActive ? requestedRule : existingRule ?? null;
+}

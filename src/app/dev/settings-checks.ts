@@ -10,7 +10,8 @@
 
 import type { Check } from './check-system';
 import { migrateSettings } from '../settings/migration';
-import { ALL_FEATURES, canChangeModuleFlag, isFeatureActive, readSetting } from '../settings/resolver';
+import { ALL_FEATURES, canChangeModuleFlag, isFeatureActive, keepRepeatRuleWhenOff, readSetting } from '../settings/resolver';
+import { parseTokens } from '../utils/nlc-parser';
 import { SETTINGS_DEFAULTS, SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
 import { defaultFor, readStoredBool, setSettingsWriteFailureListener, writeStoredBool } from '../settings/useStoredSetting';
 
@@ -348,6 +349,33 @@ export function getSettingsChecks(): Check[] {
         assert(!canChangeModuleFlag(false, false), 'Turning off Reminders with Lists off should be rejected');
         assert(canChangeModuleFlag(false, true), 'Turning off Reminders with Lists on should be allowed');
         assert(canChangeModuleFlag(true, false), 'Turning a module on should always be allowed');
+      },
+    },
+
+    // Repeat reminders flag (Phase 3)
+    {
+      id: 'settings-repeat-flag-rules',
+      name: 'Repeat flag off: new reminders and Siri get no rule, edits keep the existing rule, on allows changes',
+      run: () => {
+        const existing = { frequency: 'weekly', interval: 1 };
+        const requested = { frequency: 'daily', interval: 2 };
+        assert(keepRepeatRuleWhenOff(false, null, requested) === null, 'Off: a new reminder or Siri request gets no rule');
+        assert(keepRepeatRuleWhenOff(false, existing, requested) === existing, 'Off: an edited reminder keeps its rule');
+        assert(keepRepeatRuleWhenOff(false, existing, null) === existing, 'Off: an edit cannot remove the rule');
+        assert(keepRepeatRuleWhenOff(true, existing, requested) === requested, 'On: the rule can be changed');
+        assert(keepRepeatRuleWhenOff(true, existing, null) === null, 'On: the rule can be removed');
+      },
+    },
+    {
+      id: 'settings-repeat-flag-nlc',
+      name: 'Repeat flag off: NLC recognises no repeats but still recognises dates and times',
+      run: () => {
+        const text = 'Water plants every Monday at 3pm';
+        const on = parseTokens(text, { date: true, time: true, repeats: true });
+        const off = parseTokens(text, { date: true, time: true, repeats: false });
+        assert(on.some((t) => t.category === 'repeats'), 'Repeats should be recognised when on');
+        assert(!off.some((t) => t.category === 'repeats'), 'Repeats should not be recognised when off');
+        assert(off.some((t) => t.category === 'time'), 'Time should still be recognised');
       },
     },
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { Badge } from "@capawesome/capacitor-badge";
 import { App as CapacitorApp } from "@capacitor/app";
@@ -25,6 +25,7 @@ import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, removeDeliveredReminderNotifications, syncReminderNotifications } from "./notifications";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
+import { keepRepeatRuleWhenOff } from "./settings/resolver";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
 import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
@@ -1020,6 +1021,9 @@ export default function App() {
   const [listsSettingsSiriOn, setListsSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
   const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useStoredSetting('reminderly-config-templates-in-clean-state');
   const isSmartRemindersEnabled = isRemindersEnabled && isListsEnabled && smartRemindersFeatureEnabled;
+  const isRepeatRemindersActive = isRemindersEnabled && repeatRemindersFlag;
+  // Repeat reminders off: NLC never recognises repeats
+  const nlcRecognitionForInput = useMemo(() => ({ ...nlcRecognition, repeats: nlcRecognition.repeats && isRepeatRemindersActive }), [nlcRecognition, isRepeatRemindersActive]);
 
   // Dev-only: hide overdue reminders from all views
   const [hideOverdue, setHideOverdue] = useState(false);
@@ -1620,7 +1624,8 @@ export default function App() {
         schedule = { kind: 'sometime' };
       }
 
-      const repeatRule = repeatConfigToRule(repeatConfig);
+      // Repeat reminders off: Siri never creates a repeat rule
+      const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
       const now = new Date();
       const displayText = schedule.kind === 'scheduled'
         ? normaliseReminderText(text, schedule, repeatRule, now, { skipDateInjection: true, skipTimeInjection: true })
@@ -1640,7 +1645,7 @@ export default function App() {
     handleSiriAdd();
     window.addEventListener(SIRI_ADD_EVENT, handleSiriAdd);
     return () => window.removeEventListener(SIRI_ADD_EVENT, handleSiriAdd);
-  }, [siriShortcutsEnabled, addReminder]);
+  }, [siriShortcutsEnabled, addReminder, isRepeatRemindersActive]);
 
   const addReminders = useCallback((newReminders: Reminder[]) => {
     // Cancel any pending insert timer (last-one-wins)
@@ -4307,6 +4312,7 @@ export default function App() {
                   onPointerDown={(event) => reminderSheetDragControls.start(event)}
                 />
                 <NewReminderOverlay
+                  repeatsEnabled={isRepeatRemindersActive}
                   onRepeatsOverlayOpen={() => setIsRepeatsOverlayOpen(true)}
                   repeatConfig={repeatConfig}
                   onRepeatConfigChange={setRepeatConfig}
@@ -4315,7 +4321,7 @@ export default function App() {
                   onClose={handleOverlayClose}
                   nlcMode={nlcMode}
                   nlcEnabled={nlcEnabled}
-                  nlcRecognition={nlcRecognition}
+                  nlcRecognition={nlcRecognitionForInput}
                   editReminder={editingReminder}
                   updateReminder={updateReminder}
                   smartReminderCreateList={smartReminderCreateList}

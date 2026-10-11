@@ -389,6 +389,23 @@ Phase 5 - Integration and regression
 - Manual regression: notifications, badge counts, repeating reminders, completion and deletion flows, app lifecycle (background, resume, relaunch), and upgrade from `main` with real data.
 - Baseline docs corrected (section 2 notes). Development history updated.
 
+## 12.1 Phase 3 as delivered: haptics
+
+Approved by the product owner and senior developer on 2026-10-11, replacing the 11 shared action switches:
+
+| Reminders settings | Lists settings |
+|---|---|
+| Haptic feedback (on/off) | Haptic feedback (on/off) |
+| Creating a reminder | Ticking off a list item |
+| Completing a reminder | Completing a list |
+| Deleting a reminder | Deleting a list item |
+
+- Related actions follow their parent switch: restoring a done reminder follows completing; restoring a deleted reminder and clearing done or deleted follow deleting; undoing a completed list follows completing a list; swipe to reveal delete follows deleting a list item.
+- Each panel has its own on/off (`remindersHaptics`, `listsHaptics` in `reminderly-pref-haptics`). Off turns that panel's switches off and keeps them listed; back on restores previous choices.
+- Existing choices carry over: the panel on/off values start from the original single master (`allHaptics`) and per-action values are kept. No migration.
+- Haptics fire only when the Dev tools Haptics flag, the panel on/off and the action are all on.
+- Template haptics deferred.
+
 ## 13. Decisions
 
 | # | Decision | Outcome |

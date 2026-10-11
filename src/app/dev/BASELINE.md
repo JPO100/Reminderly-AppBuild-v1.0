@@ -1,8 +1,14 @@
 # Self-Check Baseline Report
 
-Last updated: 2026-10-09
+Last updated: 2026-10-11
 
-## Verified Baseline (2026-10-09)
+## Verified Baseline (2026-10-11, feature/settings-flags-model Phase 3 close-out)
+
+- Vitest (`npm run test`): 120 passed, 0 failed (6 files).
+- Self Check: 366 passed, 0 failed across 10 suites (desktop browser and a Node run of the same checks). New suite: Settings foundation (32 checks).
+- Device: Phase 3 behaviour verified on physical iPhone 15 Pro by the product owner; Self Check itself was not run on device.
+
+## Previous baseline (2026-10-09)
 
 - Vitest (`npm run test`): 36 passed, 0 failed, 0 skipped.
 - In-app Self Check: 340 passed, 0 failed, verified on physical iPhone 15 Pro and iPhone 17 Pro simulator.
@@ -17,7 +23,7 @@ Reminderly Self-Checks Report
 Run invocation id: [varies]
 Ran at: [varies]
 Duration: [varies]ms
-Passed: 334 | Failed: 0
+Passed: 366 | Failed: 0
 
 Schedule and reminder logic
 
@@ -376,6 +382,41 @@ Notification and badge
 ✓ Scheduling limits: all 64 slots for reminders when no midnight needed
 ✓ Refresh boundary: returns ms to midnight when no timed reminders today
 ✓ Refresh boundary: returns ms to next timed reminder when sooner than midnight
+
+Settings foundation
+
+✓ Migration: new install writes only the schema marker and gets development defaults
+✓ Migration: existing install with nothing saved keeps notifications and haptics on
+✓ Migration: each existing-install key on its own marks an existing install
+✓ Migration: every saved current key is copied to its new key
+✓ Migration: explicitly saved off values stay off (alerts, badge, include today, smart reminders, templates)
+✓ Migration: a second run changes nothing
+✓ Migration: never overwrites a new key that already has a value
+✓ Migration: current keys, reminders, lists and tutorial state are unchanged
+✓ Migration: Siri on moves to Siri reminders. Siri lists stays off with its preference kept
+✓ Migration: an unreadable schema value runs the migration safely
+✓ Stored settings: a saved value wins over the fallback, a missing value uses it
+✓ Stored settings: explicit false stays distinct from missing
+✓ Stored settings: a malformed value uses the fallback and is not overwritten by reading
+✓ Stored settings: reading every setting never writes
+✓ Stored settings: a change writes only the authoritative key, legacy keys unchanged
+✓ Stored settings: every migrated setting reads its authoritative key with its default
+✓ Stored settings: an install already migrated in Phase 1 keeps its new values
+✓ Stored settings: a new install has no preference keys until something is changed
+✓ Stored settings: a failed write is reported, a successful write reports nothing (cannot clear other errors)
+✓ Dev tools: the last enabled of Reminders and Lists cannot be turned off
+✓ Repeat flag off: new reminders and Siri get no rule, edits keep the existing rule, on allows changes
+✓ Repeat flag off: NLC recognises no repeats but still recognises dates and times
+✓ Haptics: every action belongs to exactly one switch, on the right panel
+✓ Haptics: existing saved choices carry over to the per-panel design
+✓ Haptics: active while either panel is on, off when both are off
+✓ Resolver: never writes to storage
+✓ Resolver: Lists off hides lists features. Turning it back on restores them unchanged
+✓ Resolver: Reminders off hides reminders features, including smart reminders and notifications
+✓ Resolver: a flag off hides the feature without changing the preference
+✓ Resolver: alerts and badge resolve independently and need iOS permission
+✓ Resolver: unrecognised values read as off, haptics reads its master switch
+✓ Resolver: testing-only keys never change any feature
 ```
 
 ## Check Count Breakdown
@@ -386,20 +427,7 @@ Notification and badge
   - RepeatRule equality: 8
   - Delta detection: 14
   - Derived properties: 4
-- **Reminder checks** (reminder-checks.ts): 77
-  - Persistence (defensive load): 12
-  - Persistence (round trip): 3
-  - Categorisation: 5
-  - Sorting: 4
-  - formatRepeatLabel: 12
-  - Overdue detection: 6
-  - Overdue sorting: 2
-  - Legacy hydration migration: 2
-  - Text normalisation (normaliseReminderText): 15
-  - Restore from done — bucket colour: 2
-  - Render text (renderReminderText): 7
-  - Date indicator label: 2
-  - getDisplayTitle: 5
+- **Reminder checks** (reminder-checks.ts): 84 (per-section split not itemised since the 77-check baseline)
 - **NLC parser checks** (nlc-parser-checks.ts): 61
   - Date token recognition: 6
   - Month-name date recognition: 8
@@ -461,7 +489,14 @@ Notification and badge
   - Scheduling limits: 3
   - Midnight notification: 6
   - Refresh boundary: 2
-- **Total**: 327 checks across 9 suites
+- **Settings foundation checks** (settings-checks.ts): 32
+  - Migration: 10
+  - Stored settings (single source of truth, write failures): 9
+  - Dev tools last-module guard: 1
+  - Repeat reminders flag: 2
+  - Haptics (per-panel switches, preserved choices, resolver): 3
+  - Resolver: 7
+- **Total**: 366 checks across 10 suites
 
 ## Runner Integrity Check
 

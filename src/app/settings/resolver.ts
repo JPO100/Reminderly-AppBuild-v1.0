@@ -73,10 +73,14 @@ export function readSetting(key: string, storage: SettingsStorage = localStorage
 }
 
 export function readSettingBool(key: string, storage: SettingsStorage = localStorage): boolean {
-  // The haptics preference is a JSON object; its master switch is allHaptics.
+  // The haptics preference is a JSON object with an on/off per settings panel (falling back to the
+  // original single master, allHaptics). Haptics is on while either panel's on/off is on.
   if (key === HAPTICS_PREF_KEY) {
     try {
-      return JSON.parse(readSetting(key, storage) ?? '{}').allHaptics === true;
+      const value = JSON.parse(readSetting(key, storage) ?? '{}');
+      const reminders = value.remindersHaptics ?? value.allHaptics;
+      const lists = value.listsHaptics ?? value.allHaptics;
+      return reminders === true || lists === true;
     } catch {
       return false;
     }

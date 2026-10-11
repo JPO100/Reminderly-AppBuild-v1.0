@@ -1008,3 +1008,17 @@ Branch: feature/settings-flags-model
 - Centred overlays: at least 100px from the top and bottom of the screen (and clear of the notch and home indicator); content that does not fit scrolls inside the card. Settings overlays keep the title fixed. viewport-fit=cover added so safe-area insets are available
 - Haptic feedback page (product owner decision): the top "Haptic feedback" toggle turns every action off in one go and the actions stay listed. Turning it back on restores each action's previous choice (or turns all on if none were on). Turning an action on while the top toggle is off turns on only that action and the top toggle; turning the last action off turns the top toggle off. The Dev tools Haptics flag also preserves saved choices
 
+### 2026-10-11 (feature/settings-flags-model - Phase 3 closed)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Haptics redesign approved (product owner and senior developer): per-panel Haptic feedback on/off plus three literal switches per panel (Reminders: Creating, Completing, Deleting a reminder; Lists: Ticking off a list item, Completing a list, Deleting a list item). Related actions follow their parent switch. Existing choices preserved; no migration
+- Clean-up: unused per-action list removed; resolver treats haptics as on while either panel is on; 3 new Self Check checks (every action in exactly one switch, preserved choices, resolver)
+- Baselines updated: src/app/dev/BASELINE.md (clean run regenerated from the actual checks), docs/06-quality-and-dev/tests-and-baselines.md
+- Phase 3 approved for closure by the senior developer after physical iPhone testing (haptic feedback, smart reminders, list item editing all passed)
+
+Test results: Vitest 120/120 passed. Self Check 366/366 passed. Repo guard passed. Web, simulator and iPhone builds succeeded.
+
+Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised. Not merged to main.
+

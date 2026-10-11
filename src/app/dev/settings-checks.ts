@@ -12,6 +12,7 @@ import type { Check } from './check-system';
 import { migrateSettings } from '../settings/migration';
 import { ALL_FEATURES, canChangeModuleFlag, isFeatureActive, keepRepeatRuleWhenOff, readSetting } from '../settings/resolver';
 import { parseTokens } from '../utils/nlc-parser';
+import { HAPTIC_GROUPS, normaliseHapticsConfig, panelForAction } from '../utils/haptics';
 import { SETTINGS_DEFAULTS, SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
 import { defaultFor, readStoredBool, setSettingsWriteFailureListener, writeStoredBool } from '../settings/useStoredSetting';
 
@@ -376,6 +377,46 @@ export function getSettingsChecks(): Check[] {
         assert(on.some((t) => t.category === 'repeats'), 'Repeats should be recognised when on');
         assert(!off.some((t) => t.category === 'repeats'), 'Repeats should not be recognised when off');
         assert(off.some((t) => t.category === 'time'), 'Time should still be recognised');
+      },
+    },
+
+    // Haptics (Phase 3 redesign)
+    {
+      id: 'settings-haptics-groups',
+      name: 'Haptics: every action belongs to exactly one switch, on the right panel',
+      run: () => {
+        const actions = ['markDone', 'createReminder', 'markListComplete', 'deleteReminder', 'deleteListItem', 'clearAllDoneDeleted',
+          'uncompleteReminder', 'undeleteReminder', 'undoListCompletion', 'toggleListItemCheckbox', 'swipeRevealDelete'];
+        const grouped = [...HAPTIC_GROUPS.reminders, ...HAPTIC_GROUPS.lists].flatMap((group) => group.actions);
+        assert(grouped.length === actions.length && actions.every((action) => grouped.filter((a) => a === action).length === 1), 'Each action should appear in exactly one switch');
+        assert(panelForAction('markDone') === 'reminders' && panelForAction('toggleListItemCheckbox') === 'lists', 'Actions should map to their panel');
+        assert(HAPTIC_GROUPS.reminders.length === 3 && HAPTIC_GROUPS.lists.length === 3, 'Each panel should show three switches');
+      },
+    },
+    {
+      id: 'settings-haptics-preserve',
+      name: 'Haptics: existing saved choices carry over to the per-panel design',
+      run: () => {
+        const off = normaliseHapticsConfig({ allHaptics: false, createReminder: false });
+        assert(!off.remindersHaptics && !off.listsHaptics, 'Original master off should turn both panels off');
+        assert(!off.createReminder && off.markDone, 'Saved per-action choices should be kept');
+        const on = normaliseHapticsConfig({ allHaptics: true, toggleListItemCheckbox: false });
+        assert(on.remindersHaptics && on.listsHaptics && !on.toggleListItemCheckbox, 'Original master on should turn both panels on');
+        const saved = normaliseHapticsConfig({ allHaptics: true, remindersHaptics: false, listsHaptics: true });
+        assert(!saved.remindersHaptics && saved.listsHaptics, 'Saved panel choices should win');
+      },
+    },
+    {
+      id: 'settings-haptics-resolver',
+      name: 'Haptics: active while either panel is on, off when both are off',
+      run: () => {
+        const storage = memoryStorage({ 'reminderly-pref-haptics': '{"allHaptics":true,"remindersHaptics":false,"listsHaptics":true}' });
+        assert(isFeatureActive('haptics', { storage }), 'One panel on should be active');
+        storage.setItem('reminderly-pref-haptics', '{"remindersHaptics":false,"listsHaptics":false}');
+        assert(!isFeatureActive('haptics', { storage }), 'Both panels off should be inactive');
+        storage.setItem('reminderly-ff-haptics', 'false');
+        storage.setItem('reminderly-pref-haptics', '{"remindersHaptics":true,"listsHaptics":true}');
+        assert(!isFeatureActive('haptics', { storage }), 'Flag off should be inactive');
       },
     },
 

@@ -46,16 +46,22 @@ const DEFAULT_CONFIG: HapticsConfig = {
   swipeRevealDelete: true,
 };
 
+/**
+ * Fills in anything missing from a saved haptics value. Saved choices always win. Panel masters
+ * that were never saved start from the original single master (allHaptics), so existing choices carry over.
+ */
+export function normaliseHapticsConfig(parsed: Partial<HapticsConfig>): HapticsConfig {
+  const master = parsed.allHaptics ?? DEFAULT_CONFIG.allHaptics;
+  return { ...DEFAULT_CONFIG, remindersHaptics: master, listsHaptics: master, ...parsed };
+}
+
 let config: HapticsConfig = loadConfig();
 
 function loadConfig(): HapticsConfig {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     // Never saved: development default (master off, actions on)
-    const parsed = stored == null ? JSON.parse(SETTINGS_DEFAULTS[STORAGE_KEY]) : JSON.parse(stored);
-    const master = parsed.allHaptics ?? DEFAULT_CONFIG.allHaptics;
-    // Merge with defaults so new keys are always present; panel masters start from the original master
-    return { ...DEFAULT_CONFIG, remindersHaptics: master, listsHaptics: master, ...parsed };
+    return normaliseHapticsConfig(JSON.parse(stored ?? SETTINGS_DEFAULTS[STORAGE_KEY]));
   } catch {
     return { ...DEFAULT_CONFIG };
   }
@@ -110,18 +116,3 @@ export function panelMasterKey(panel: HapticPanel): 'remindersHaptics' | 'listsH
 export function panelForAction(action: HapticAction): HapticPanel {
   return HAPTIC_GROUPS.reminders.some((group) => group.actions.includes(action)) ? 'reminders' : 'lists';
 }
-
-/** Haptic actions shown on the Haptic feedback settings page. */
-export const HAPTIC_ACTION_LABELS: { action: HapticAction; label: string; info: string }[] = [
-  { action: 'markDone', label: 'Mark reminder done', info: 'A small vibration when you mark a reminder as done.' },
-  { action: 'createReminder', label: 'Create new reminder', info: 'A small vibration when you create a reminder.' },
-  { action: 'markListComplete', label: 'Mark list complete', info: 'A small vibration when you complete a list.' },
-  { action: 'deleteReminder', label: 'Delete reminder', info: 'A small vibration when you delete a reminder.' },
-  { action: 'deleteListItem', label: 'Delete list item', info: 'A small vibration when you delete a list item.' },
-  { action: 'clearAllDoneDeleted', label: 'Clear all done/deleted', info: 'A small vibration when you clear all done or deleted items.' },
-  { action: 'uncompleteReminder', label: 'Uncomplete reminder', info: 'A small vibration when you restore a done reminder.' },
-  { action: 'undeleteReminder', label: 'Undelete reminder', info: 'A small vibration when you restore a deleted reminder.' },
-  { action: 'undoListCompletion', label: 'Undo list completion', info: 'A small vibration when you restore a completed list.' },
-  { action: 'toggleListItemCheckbox', label: 'Toggle list item checkbox', info: 'A small vibration when you tick or untick a list item.' },
-  { action: 'swipeRevealDelete', label: 'Swipe to reveal delete', info: 'A small vibration when a swipe reveals the delete button.' },
-];

@@ -15,8 +15,14 @@ export type HapticAction =
   | 'toggleListItemCheckbox'
   | 'swipeRevealDelete';
 
+export type HapticPanel = 'reminders' | 'lists';
+
+// allHaptics is the original single master. Each settings panel now has its own master
+// (remindersHaptics, listsHaptics); when missing they start from allHaptics.
 export type HapticsConfig = {
   allHaptics: boolean;
+  remindersHaptics: boolean;
+  listsHaptics: boolean;
 } & Record<HapticAction, boolean>;
 
 // Authoritative key since the settings migration (migrated from reminderly-haptics-config)
@@ -25,6 +31,8 @@ const FLAG_KEY = 'reminderly-ff-haptics';
 
 const DEFAULT_CONFIG: HapticsConfig = {
   allHaptics: true,
+  remindersHaptics: true,
+  listsHaptics: true,
   markDone: true,
   createReminder: true,
   markListComplete: true,
@@ -44,10 +52,10 @@ function loadConfig(): HapticsConfig {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     // Never saved: development default (master off, actions on)
-    if (stored == null) return { ...DEFAULT_CONFIG, ...JSON.parse(SETTINGS_DEFAULTS[STORAGE_KEY]) };
-    const parsed = JSON.parse(stored);
-    // Merge with defaults so new keys are always present
-    return { ...DEFAULT_CONFIG, ...parsed };
+    const parsed = stored == null ? JSON.parse(SETTINGS_DEFAULTS[STORAGE_KEY]) : JSON.parse(stored);
+    const master = parsed.allHaptics ?? DEFAULT_CONFIG.allHaptics;
+    // Merge with defaults so new keys are always present; panel masters start from the original master
+    return { ...DEFAULT_CONFIG, remindersHaptics: master, listsHaptics: master, ...parsed };
   } catch {
     return { ...DEFAULT_CONFIG };
   }
@@ -73,10 +81,33 @@ export function setHapticsConfig(next: HapticsConfig) {
 /** Single tap feedback gated by action config */
 export const hapticTap = (action: HapticAction) => {
   if (!readStoredBool(FLAG_KEY)) return;
-  if (!config.allHaptics) return;
+  if (!config[panelMasterKey(panelForAction(action))]) return;
   if (!config[action]) return;
   Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
 };
+
+/** Haptic groups shown on each settings panel's Haptic feedback page. */
+export const HAPTIC_GROUPS: Record<HapticPanel, { label: string; info: string; actions: HapticAction[] }[]> = {
+  reminders: [
+    { label: 'Completing', info: 'A small vibration when you mark a reminder as done.', actions: ['markDone'] },
+    { label: 'Adding', info: 'A small vibration when you create a reminder.', actions: ['createReminder'] },
+    { label: 'Deleting', info: 'A small vibration when you delete a reminder or clear done and deleted reminders.', actions: ['deleteReminder', 'clearAllDoneDeleted'] },
+    { label: 'Undoing', info: 'A small vibration when you restore a done or deleted reminder.', actions: ['uncompleteReminder', 'undeleteReminder'] },
+  ],
+  lists: [
+    { label: 'Completing', info: 'A small vibration when you tick a list item or complete a list.', actions: ['toggleListItemCheckbox', 'markListComplete'] },
+    { label: 'Deleting', info: 'A small vibration when you delete a list item or swipe to reveal delete.', actions: ['deleteListItem', 'swipeRevealDelete'] },
+    { label: 'Undoing', info: 'A small vibration when you restore a completed list.', actions: ['undoListCompletion'] },
+  ],
+};
+
+export function panelMasterKey(panel: HapticPanel): 'remindersHaptics' | 'listsHaptics' {
+  return panel === 'reminders' ? 'remindersHaptics' : 'listsHaptics';
+}
+
+export function panelForAction(action: HapticAction): HapticPanel {
+  return HAPTIC_GROUPS.reminders.some((group) => group.actions.includes(action)) ? 'reminders' : 'lists';
+}
 
 /** Haptic actions shown on the Haptic feedback settings page. */
 export const HAPTIC_ACTION_LABELS: { action: HapticAction; label: string; info: string }[] = [

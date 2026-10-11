@@ -2,8 +2,8 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { ToggleRow, MenuRow } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
-import { getHapticsConfig, setHapticsConfig, HAPTIC_ACTION_LABELS } from "../utils/haptics";
-import type { HapticsConfig } from "../utils/haptics";
+import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
+import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics";
 
 // Phase 1: UI only. Toggles hold local state and nothing is saved; click-through rows open empty pages.
 // Each panel has its own Siri preference, saved by App. Each row shows only when its Siri flag is on.
@@ -62,37 +62,38 @@ function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; o
   );
 }
 
-// Haptic feedback sub-page. The saved choices are shared by both settings panels.
-// The top toggle switches every action off in one go and back on to the previous choices; the actions always stay listed.
-function HapticSettings() {
+// Haptic feedback sub-page: the panel's own on/off plus its groups, always listed.
+// Off turns every group off; back on restores the previous choices (all on if none were on).
+// Turning a group on while off turns on only that group and the panel's on/off.
+function HapticSettings({ panel }: { panel: HapticPanel }) {
   const [config, setConfig] = useState<HapticsConfig>(getHapticsConfig);
+  const groups = HAPTIC_GROUPS[panel];
+  const masterKey = panelMasterKey(panel);
+  const panelActions = groups.flatMap((group) => group.actions);
   const update = (next: HapticsConfig) => {
     setConfig(next);
     setHapticsConfig(next);
   };
-  const setAll = (on: boolean) => {
-    // Off keeps each action's saved choice, so on restores them. If none were on, on turns them all on.
-    const next = { ...config, allHaptics: on };
-    if (on && !HAPTIC_ACTION_LABELS.some(({ action }) => config[action])) {
-      for (const { action } of HAPTIC_ACTION_LABELS) next[action] = true;
+  const setMaster = (on: boolean) => {
+    const next = { ...config, [masterKey]: on };
+    if (on && !panelActions.some((action) => config[action])) {
+      for (const action of panelActions) next[action] = true;
     }
     update(next);
   };
-  const setAction = (action: (typeof HAPTIC_ACTION_LABELS)[number]['action'], on: boolean) => {
-    // While the top toggle is off every action counts as off, so turning one on enables only that one
+  const groupOn = (actions: HapticAction[]) => config[masterKey] && actions.some((action) => config[action]);
+  const setGroup = (actions: HapticAction[], on: boolean) => {
     const next = { ...config };
-    if (!config.allHaptics) for (const { action: a } of HAPTIC_ACTION_LABELS) next[a] = false;
-    next[action] = on;
-    // The top toggle is on while any action is on
-    next.allHaptics = HAPTIC_ACTION_LABELS.some(({ action: a }) => next[a]);
+    if (!config[masterKey]) for (const action of panelActions) next[action] = false;
+    for (const action of actions) next[action] = on;
+    next[masterKey] = panelActions.some((action) => next[action]);
     update(next);
   };
-  const isOn = (action: (typeof HAPTIC_ACTION_LABELS)[number]['action']) => config.allHaptics && config[action];
   return (
     <>
-      <ToggleRow label="Haptic feedback" isOn={config.allHaptics} onToggle={() => setAll(!config.allHaptics)} infoTitle="Turns every vibration below off in one go. Turning it back on restores your previous choices." />
-      {HAPTIC_ACTION_LABELS.map(({ action, label, info }) => (
-        <ToggleRow key={action} label={label} isOn={isOn(action)} onToggle={() => setAction(action, !isOn(action))} infoTitle={info} />
+      <ToggleRow label="Haptic feedback" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every vibration below off in one go. Turning it back on restores your previous choices." />
+      {groups.map(({ label, info, actions }) => (
+        <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
       ))}
     </>
   );
@@ -126,7 +127,7 @@ export function RemindersSettingsContent({ onOpenTutorial, calendarAvailable, so
       title="Reminders settings"
       subPage={subPage}
       onBack={() => setSubPage(null)}
-      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings /> : null}
+      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : null}
     >
       {calendarAvailable && <ToggleRow label="Show calendar" isOn={showCalendar} onToggle={() => setShowCalendar(prev => !prev)} infoTitle="Shows a calendar view so you can see your reminders by date." />}
       {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
@@ -143,7 +144,7 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
   const [subPage, setSubPage] = useState<string | null>(null);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Haptic feedback" ? <HapticSettings /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Haptic feedback" ? <HapticSettings panel="lists" /> : null}>
       {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
       {hapticsAvailable && <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you check off a list item or delete a list." />}
       {soundsAvailable && <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />}

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { getHapticsConfig, setHapticsConfig } from "../utils/haptics";
 import type { HapticAction, HapticsConfig } from "../utils/haptics";
-import { readSettingBool } from "../settings/resolver";
+import { useStoredSetting } from "../settings/useStoredSetting";
 import { runChecks, formatReportAsText, groupResultsBySection } from "../dev/check-system";
 import type { RunReport } from "../dev/check-system";
 import { getScheduleChecks } from "../dev/schedule-checks";
@@ -730,22 +730,8 @@ function TestingPage({ onBack, onClose }: { onBack: () => void; onClose: () => v
   );
 }
 
-// Saved admin flag. In Phase 1 only Dev tools reads these, so the app is unaffected.
-function useSavedFlag(key: string): [boolean, (value: boolean) => void] {
-  const [value, setValue] = useState(() => readSettingBool(key));
-  const update = (next: boolean) => {
-    setValue(next);
-    try {
-      localStorage.setItem(key, String(next));
-    } catch {
-      // Fail silently
-    }
-  };
-  return [value, update];
-}
-
 function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChange, useOneMinuteIncrements, onUseOneMinuteIncrementsChange, onNavigateDummyReminders }: { onBack: () => void; onClose: () => void; enableReminders: boolean; onEnableRemindersChange: (value: boolean) => void; useOneMinuteIncrements: boolean; onUseOneMinuteIncrementsChange: (value: boolean) => void; onNavigateDummyReminders: () => void }) {
-  const [repeatToggle, setRepeatToggle] = useSavedFlag('reminderly-ff-repeat-reminders');
+  const [repeatToggle, setRepeatToggle] = useStoredSetting('reminderly-ff-repeat-reminders');
   const [pendingRemindersState, setPendingRemindersState] = useState<boolean | null>(null);
 
   return (
@@ -1066,8 +1052,8 @@ function LoginScreen({ onUnlock, passwordRequired }: { onUnlock: () => void; pas
 
 function DevToolsContent({ onClose, onClearReminders, addReminder, addReminders, nlcMode, onNlcModeChange, nlcEnabled, onNlcEnabledChange, nlcRecognition, onNlcRecognitionChange, hideOverdue, onHideOverdueChange, isOnboardingTutorialEnabled, onOnboardingTutorialEnabledChange, isListsEnabled, onListsEnabledChange, showTutorialOnFirstLaunch, onShowTutorialOnFirstLaunchChange, showTutorialOnEveryStart, onShowTutorialOnEveryStartChange, isDevToolsUnlocked, onDevToolsUnlock, isDevToolsPasswordRequired, onDevToolsPasswordRequiredChange, useOneMinuteIncrements, onUseOneMinuteIncrementsChange, smartRemindersEnabled, onSmartRemindersEnabledChange, savedListsEnabled, onSavedListsEnabledChange, pinnedListsEnabled, onPinnedListsEnabledChange, settingsMenuEnabled, onSettingsMenuEnabledChange, showInfoIcons, onShowInfoIconsChange, notifReminderAlerts, onNotifReminderAlertsChange, notifAppBadge, onNotifAppBadgeChange, notifIncludeTodayInBadge, onNotifIncludeTodayInBadgeChange, siriShortcutsEnabled, onSiriShortcutsEnabledChange, useDefaultTemplatesInCleanState, onUseDefaultTemplatesInCleanStateChange, onClearLists, onGenerateLists }: { onClose: () => void; onClearReminders: () => void; addReminder: (reminder: Reminder) => void; addReminders: (reminders: Reminder[]) => void; nlcMode: NlcMode; onNlcModeChange: (mode: NlcMode) => void; nlcEnabled: boolean; onNlcEnabledChange: (enabled: boolean) => void; nlcRecognition: NlcRecognitionConfig; onNlcRecognitionChange: (config: NlcRecognitionConfig) => void; hideOverdue: boolean; onHideOverdueChange: (value: boolean) => void; isOnboardingTutorialEnabled: boolean; onOnboardingTutorialEnabledChange: (next: boolean) => void; isListsEnabled: boolean; onListsEnabledChange: (enabled: boolean) => void; showTutorialOnFirstLaunch: boolean; onShowTutorialOnFirstLaunchChange: (value: boolean) => void; showTutorialOnEveryStart: boolean; onShowTutorialOnEveryStartChange: (value: boolean) => void; isDevToolsUnlocked: boolean; onDevToolsUnlock: () => void; isDevToolsPasswordRequired: boolean; onDevToolsPasswordRequiredChange: (value: boolean) => void; useOneMinuteIncrements: boolean; onUseOneMinuteIncrementsChange: (value: boolean) => void; smartRemindersEnabled: boolean; onSmartRemindersEnabledChange: (value: boolean) => void; savedListsEnabled: boolean; onSavedListsEnabledChange: (value: boolean) => void; pinnedListsEnabled: boolean; onPinnedListsEnabledChange: (value: boolean) => void; settingsMenuEnabled: boolean; onSettingsMenuEnabledChange: (value: boolean) => void; showInfoIcons: boolean; onShowInfoIconsChange: (value: boolean) => void; notifReminderAlerts: boolean; onNotifReminderAlertsChange: (value: boolean) => void; notifAppBadge: boolean; onNotifAppBadgeChange: (value: boolean) => void; notifIncludeTodayInBadge: boolean; onNotifIncludeTodayInBadgeChange: (value: boolean) => void; siriShortcutsEnabled: boolean; onSiriShortcutsEnabledChange: (value: boolean) => void; useDefaultTemplatesInCleanState: boolean; onUseDefaultTemplatesInCleanStateChange: (value: boolean) => void; onClearLists: (useDefaultTemplatesInCleanState: boolean) => void; onGenerateLists: (payload: GeneratedDummyListsPayload) => void }) {
   const [page, setPage] = useState<DevToolsPage>('home');
-  const [enableReminders, setEnableReminders] = useSavedFlag('reminderly-ff-reminders');
-  const [enableNotifications, setEnableNotifications] = useSavedFlag('reminderly-ff-notifications');
+  const [enableReminders, setEnableReminders] = useStoredSetting('reminderly-ff-reminders');
+  const [enableNotifications, setEnableNotifications] = useStoredSetting('reminderly-ff-notifications');
 
   let content;
   if (!isDevToolsUnlocked) {

@@ -69,3 +69,35 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-info-icons': 'false',
   'reminderly-ff-paywall': 'false',
 };
+
+// Transitional fallbacks (Phase 1.1): the current app defaults, used when a key has never been saved.
+// They keep behaviour unchanged until each setting's integration phase (Phase 3, or Phase 4 for
+// notifications), when the fallback becomes the development default in SETTINGS_DEFAULTS.
+// Nothing is written at startup, so a missing key stays missing and that switch never overwrites
+// a saved choice.
+export const TRANSITIONAL_FALLBACKS: Record<string, boolean> = {
+  // Migrated settings (authoritative new keys)
+  'reminderly-ff-lists': true,
+  'reminderly-pref-one-minute-increments': false,
+  'reminderly-pref-notif-alerts': true,
+  'reminderly-pref-notif-badge': true,
+  'reminderly-pref-notif-include-today': true,
+  'reminderly-config-tutorial-first-launch': true,
+  'reminderly-test-tutorial-every-start': false,
+  'reminderly-config-templates-in-clean-state': false,
+  'reminderly-ff-siri-reminders': false,
+
+  // Unchanged keys
+  'reminderly-ff-onboarding-tutorial': true,
+  'reminderly-ff-smart-reminders': false,
+  'reminderly-ff-saved-lists': false,
+  'reminderly-ff-pinned-lists': true,
+  'reminderly-ff-settings-menu-v2': false,
+  'reminderly-ff-info-icons': false,
+  'reminderly-dev-tools-password-required': true,
+
+  // Saved Dev tools flags, not yet read outside Dev tools
+  'reminderly-ff-reminders': true,
+  'reminderly-ff-notifications': true,
+  'reminderly-ff-repeat-reminders': true,
+};

@@ -24,6 +24,7 @@ import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from "./notifications";
+import { useStoredSetting } from "./settings/useStoredSetting";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
 import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
@@ -220,7 +221,6 @@ const OVERDUE_COLOUR = "#FF0000";
 // List blue constant for done styling
 const DONE_BLUE = "#4784F8";
 const APP_TEXT_DARK_BLUE = "#1C2C42";
-const DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY = 'reminderly-dev-default-templates-in-clean-state';
 const DONE_LIST_COLOUR = "#404040";
 type TutorialVariant = 'reminders' | 'lists';
 
@@ -917,42 +917,10 @@ export default function App() {
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
   const devToolsTopRef = useRef<number | null>(null);
   const [isDevToolsUnlocked, setIsDevToolsUnlocked] = useState(false);
-  const [isDevToolsPasswordRequired, setIsDevToolsPasswordRequired] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-dev-tools-password-required');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifReminderAlerts, setNotifReminderAlerts] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-reminder-alerts');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifAppBadge, setNotifAppBadge] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-app-badge');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-include-today-in-badge');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [isDevToolsPasswordRequired, setIsDevToolsPasswordRequired] = useStoredSetting('reminderly-dev-tools-password-required');
+  const [notifReminderAlerts, setNotifReminderAlerts] = useStoredSetting('reminderly-pref-notif-alerts');
+  const [notifAppBadge, setNotifAppBadge] = useStoredSetting('reminderly-pref-notif-badge');
+  const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useStoredSetting('reminderly-pref-notif-include-today');
   const [isRepeatsOverlayOpen, setIsRepeatsOverlayOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialVariant, setTutorialVariant] = useState<TutorialVariant>('reminders');
@@ -1011,26 +979,10 @@ export default function App() {
   const [nlcRecognition, setNlcRecognition] = useState<NlcRecognitionConfig>({ date: true, time: true, repeats: true });
 
   // Dev-only: onboarding tutorial feature flag — controls whether tutorial overlay is available
-  const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-onboarding-tutorial');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useStoredSetting('reminderly-ff-onboarding-tutorial');
 
-  // Dev-only: paywall feature flag — controls visibility of premium features
-  const [isListsEnabled, setIsListsEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('dev.listsEnabled');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  // Lists availability flag
+  const [isListsEnabled, setIsListsEnabled] = useStoredSetting('reminderly-ff-lists');
 
   // Lists mode: active main tab (reminders or lists)
   const [activeMainTab, setActiveMainTab] = useState<'reminders' | 'lists'>(() => {
@@ -1044,89 +996,23 @@ export default function App() {
   });
 
   // Dev-only: show tutorial on first launch toggle
-  const [showTutorialOnFirstLaunch, setShowTutorialOnFirstLaunch] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-tutorial-first-launch');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [showTutorialOnFirstLaunch, setShowTutorialOnFirstLaunch] = useStoredSetting('reminderly-config-tutorial-first-launch');
 
   // Dev-only: show tutorial on every app start toggle
-  const [showTutorialOnEveryStart, setShowTutorialOnEveryStart] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-tutorial-every-start');
-      if (stored === 'true') return true;
-      return false;
-    } catch {
-      return false;
-    }
-  });
+  const [showTutorialOnEveryStart, setShowTutorialOnEveryStart] = useStoredSetting('reminderly-test-tutorial-every-start');
 
-  const [useOneMinuteTimeIncrements, setUseOneMinuteTimeIncrements] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-dev-one-minute-time-increments') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [useOneMinuteTimeIncrements, setUseOneMinuteTimeIncrements] = useStoredSetting('reminderly-pref-one-minute-increments');
 
-  const [smartRemindersFeatureEnabled, setSmartRemindersFeatureEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-smart-reminders') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-saved-lists') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-pinned-lists');
-      return stored == null ? true : stored === 'true';
-    } catch {
-      return true;
-    }
-  });
-  const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-settings-menu-v2');
-      return stored === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [showInfoIcons, setShowInfoIcons] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-info-icons') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-siri-shortcuts') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [smartRemindersFeatureEnabled, setSmartRemindersFeatureEnabled] = useStoredSetting('reminderly-ff-smart-reminders');
+  const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useStoredSetting('reminderly-ff-saved-lists');
+  const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useStoredSetting('reminderly-ff-pinned-lists');
+  const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useStoredSetting('reminderly-ff-settings-menu-v2');
+  const [showInfoIcons, setShowInfoIcons] = useStoredSetting('reminderly-ff-info-icons');
+  const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useStoredSetting('reminderly-ff-siri-reminders');
   // Settings panels phase 1 (UI only): System settings Siri toggle shared by the Reminders and Lists panels
   const [remindersSettingsSiriOn, setRemindersSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
   const [listsSettingsSiriOn, setListsSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
-  const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY) === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useStoredSetting('reminderly-config-templates-in-clean-state');
   const isSmartRemindersEnabled = isListsEnabled && smartRemindersFeatureEnabled;
 
   // Dev-only: hide overdue reminders from all views
@@ -1142,11 +1028,6 @@ export default function App() {
     setActiveListFilter('all');
     if (!enabled) {
       setSavedListsPanelOpen(false);
-    }
-    try {
-      persistStringIfChanged('reminderly-ff-saved-lists', String(enabled));
-    } catch {
-      // Fail silently
     }
   }, []);
 
@@ -1317,104 +1198,16 @@ export default function App() {
     void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge);
   }, [reminders, notifAppBadge, notifIncludeTodayInBadge]);
 
-  // Persist onboarding tutorial feature flag to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-onboarding-tutorial', String(isOnboardingTutorialEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [isOnboardingTutorialEnabled]);
 
-  // Persist paywall feature flag to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('dev.listsEnabled', String(isListsEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [isListsEnabled]);
 
-  // Persist tutorial first-launch toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-tutorial-first-launch', String(showTutorialOnFirstLaunch));
-    } catch {
-      // Fail silently
-    }
-  }, [showTutorialOnFirstLaunch]);
 
-  // Persist tutorial every-start toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-tutorial-every-start', String(showTutorialOnEveryStart));
-    } catch {
-      // Fail silently
-    }
-  }, [showTutorialOnEveryStart]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-dev-one-minute-time-increments', String(useOneMinuteTimeIncrements));
-    } catch {
-      // Fail silently
-    }
-  }, [useOneMinuteTimeIncrements]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-smart-reminders', String(smartRemindersFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [smartRemindersFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-saved-lists', String(savedListsFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [savedListsFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-pinned-lists', String(pinnedListsFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [pinnedListsFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-settings-menu-v2', String(settingsMenuFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [settingsMenuFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-info-icons', String(showInfoIcons));
-    } catch {
-      // Fail silently
-    }
-  }, [showInfoIcons]);
   useEffect(() => {
     setActiveFilter((current) => getFilterForSettingsMenu(current, settingsMenuFeatureEnabled));
   }, [settingsMenuFeatureEnabled]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-siri-shortcuts', String(siriShortcutsEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [siriShortcutsEnabled]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged(DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY, String(useDefaultTemplatesInCleanState));
-    } catch {
-      // Fail silently
-    }
-  }, [useDefaultTemplatesInCleanState]);
 
   useEffect(() => {
     if (!savedListMenuId && !templateEditorMenuId) {
@@ -1500,44 +1293,10 @@ export default function App() {
     return () => { clearTimeout(timerId); };
   }, [reminders, timeRefreshTick]);
 
-  useEffect(() => {
-    if (!isListsEnabled) {
-      setSmartRemindersFeatureEnabled(false);
-    }
-  }, [isListsEnabled]);
 
-  // Persist dev tools password required toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-dev-tools-password-required', String(isDevToolsPasswordRequired));
-    } catch {
-      // Fail silently
-    }
-  }, [isDevToolsPasswordRequired]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-reminder-alerts', String(notifReminderAlerts));
-    } catch {
-      // Fail silently
-    }
-  }, [notifReminderAlerts]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-app-badge', String(notifAppBadge));
-    } catch {
-      // Fail silently
-    }
-  }, [notifAppBadge]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-include-today-in-badge', String(notifIncludeTodayInBadge));
-    } catch {
-      // Fail silently
-    }
-  }, [notifIncludeTodayInBadge]);
 
   useEffect(() => {
     if (!notifAppBadge) {

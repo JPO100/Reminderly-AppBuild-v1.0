@@ -11,7 +11,8 @@
 import type { Check } from './check-system';
 import { migrateSettings } from '../settings/migration';
 import { ALL_FEATURES, isFeatureActive, readSetting } from '../settings/resolver';
-import { SETTINGS_SCHEMA_KEY } from '../settings/keys';
+import { SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
+import { readStoredBool, writeStoredBool } from '../settings/useStoredSetting';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -34,6 +35,19 @@ function memoryStorage(initial: Record<string, string> = {}) {
 }
 
 const EXISTING = { 'reminderly.reminders.v1': '[]' };
+
+// Legacy keys replaced by authoritative keys in Phase 1.1, with the app default each one had.
+const LEGACY_TO_AUTHORITATIVE: [string, string, boolean][] = [
+  ['dev.listsEnabled', 'reminderly-ff-lists', true],
+  ['reminderly-dev-one-minute-time-increments', 'reminderly-pref-one-minute-increments', false],
+  ['reminderly-notif-reminder-alerts', 'reminderly-pref-notif-alerts', true],
+  ['reminderly-notif-app-badge', 'reminderly-pref-notif-badge', true],
+  ['reminderly-notif-include-today-in-badge', 'reminderly-pref-notif-include-today', true],
+  ['reminderly-ff-tutorial-first-launch', 'reminderly-config-tutorial-first-launch', true],
+  ['reminderly-ff-tutorial-every-start', 'reminderly-test-tutorial-every-start', false],
+  ['reminderly-dev-default-templates-in-clean-state', 'reminderly-config-templates-in-clean-state', false],
+  ['reminderly-ff-siri-shortcuts', 'reminderly-ff-siri-reminders', false],
+];
 
 // A representative existing install with every current settings key saved.
 const ALL_OLD_KEYS: Record<string, string> = {
@@ -204,6 +218,106 @@ export function getSettingsChecks(): Check[] {
         assert(migrateSettings(storage) === true, 'Migration should run');
         assert(storage.getItem('reminderly-pref-notif-alerts') === 'false', 'Existing new key should be kept');
         assert(storage.getItem(SETTINGS_SCHEMA_KEY) === '1', 'Schema should be set');
+      },
+    },
+
+    // Stored settings (Phase 1.1)
+    {
+      id: 'settings-stored-precedence',
+      name: 'Stored settings: a saved value wins over the fallback, a missing value uses it',
+      run: () => {
+        const storage = memoryStorage({ 'reminderly-pref-notif-alerts': 'false', 'reminderly-ff-smart-reminders': 'true' });
+        assert(readStoredBool('reminderly-pref-notif-alerts', undefined, storage) === false, 'Saved false should win over fallback true');
+        assert(readStoredBool('reminderly-ff-smart-reminders', undefined, storage) === true, 'Saved true should win over fallback false');
+        assert(readStoredBool('reminderly-pref-notif-badge', undefined, storage) === true, 'Missing badge should use fallback true');
+        assert(readStoredBool('reminderly-ff-saved-lists', undefined, storage) === false, 'Missing templates should use fallback false');
+      },
+    },
+    {
+      id: 'settings-stored-explicit-false',
+      name: 'Stored settings: explicit false stays distinct from missing',
+      run: () => {
+        const missing = memoryStorage();
+        const off = memoryStorage({ 'reminderly-ff-pinned-lists': 'false' });
+        assert(readStoredBool('reminderly-ff-pinned-lists', undefined, missing) === true, 'Missing should use fallback true');
+        assert(readStoredBool('reminderly-ff-pinned-lists', undefined, off) === false, 'Explicit false should stay false');
+        assert(missing.getItem('reminderly-ff-pinned-lists') === null, 'Missing should stay missing');
+      },
+    },
+    {
+      id: 'settings-stored-malformed',
+      name: 'Stored settings: a malformed value uses the fallback and is not overwritten by reading',
+      run: () => {
+        const storage = memoryStorage({ 'reminderly-ff-lists': 'yes' });
+        assert(readStoredBool('reminderly-ff-lists', undefined, storage) === true, 'Malformed should use fallback');
+        assert(storage.getItem('reminderly-ff-lists') === 'yes', 'Malformed value should be left as it is');
+      },
+    },
+    {
+      id: 'settings-stored-read-no-write',
+      name: 'Stored settings: reading every setting never writes',
+      run: () => {
+        const storage = memoryStorage(ALL_OLD_KEYS);
+        for (const key of Object.keys(TRANSITIONAL_FALLBACKS)) readStoredBool(key, undefined, storage);
+        assert(storage.writes() === 0, 'Reading should not write');
+      },
+    },
+    {
+      id: 'settings-stored-write-authoritative-only',
+      name: 'Stored settings: a change writes only the authoritative key, legacy keys unchanged',
+      run: () => {
+        const storage = memoryStorage(ALL_OLD_KEYS);
+        migrateSettings(storage);
+        const before = storage.snapshot();
+        writeStoredBool('reminderly-pref-one-minute-increments', false, storage);
+        writeStoredBool('reminderly-ff-siri-reminders', false, storage);
+        const after = storage.snapshot();
+        const changed = Object.keys(after).filter((key) => after[key] !== before[key]);
+        assert(JSON.stringify(changed.sort()) === JSON.stringify(['reminderly-ff-siri-reminders', 'reminderly-pref-one-minute-increments']), `Unexpected changes: ${changed.join(', ')}`);
+        for (const [legacy] of LEGACY_TO_AUTHORITATIVE) {
+          assert(after[legacy] === ALL_OLD_KEYS[legacy], `${legacy} should be unchanged`);
+        }
+      },
+    },
+    {
+      id: 'settings-stored-mapping',
+      name: 'Stored settings: every migrated setting reads its authoritative key with the current app default',
+      run: () => {
+        for (const [legacy, key, appDefault] of LEGACY_TO_AUTHORITATIVE) {
+          assert(TRANSITIONAL_FALLBACKS[key] === appDefault, `${key} fallback should be ${appDefault}`);
+          assert(!(legacy in TRANSITIONAL_FALLBACKS), `${legacy} should not be read any more`);
+          const storage = memoryStorage({ [legacy]: String(!appDefault) });
+          assert(readStoredBool(key, undefined, storage) === appDefault, `${key} should ignore the legacy key`);
+        }
+      },
+    },
+    {
+      id: 'settings-stored-phase1-upgrade',
+      name: 'Stored settings: an install already migrated in Phase 1 keeps its new values',
+      run: () => {
+        // Phase 1 build: migrated, then the app kept writing the legacy keys
+        const storage = memoryStorage({
+          ...EXISTING,
+          [SETTINGS_SCHEMA_KEY]: '1',
+          'reminderly-pref-notif-badge': 'false',
+          'reminderly-notif-app-badge': 'true',
+          'reminderly-ff-lists': 'true',
+          'dev.listsEnabled': 'false',
+        });
+        assert(migrateSettings(storage) === false, 'Migration should not run again');
+        assert(readStoredBool('reminderly-pref-notif-badge', undefined, storage) === false, 'New badge value should be kept');
+        assert(readStoredBool('reminderly-ff-lists', undefined, storage) === true, 'New lists value should be kept');
+      },
+    },
+    {
+      id: 'settings-stored-new-install',
+      name: 'Stored settings: a new install has no preference keys until something is changed',
+      run: () => {
+        const storage = memoryStorage();
+        migrateSettings(storage);
+        for (const key of Object.keys(TRANSITIONAL_FALLBACKS)) readStoredBool(key, undefined, storage);
+        const prefKeys = Object.keys(storage.snapshot()).filter((key) => key.startsWith('reminderly-pref-'));
+        assert(prefKeys.length === 0, `Unexpected preference keys: ${prefKeys.join(', ')}`);
       },
     },
 

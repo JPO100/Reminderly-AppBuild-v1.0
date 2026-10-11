@@ -17,7 +17,8 @@ export type HapticsConfig = {
   allHaptics: boolean;
 } & Record<HapticAction, boolean>;
 
-const STORAGE_KEY = 'reminderly-haptics-config';
+// Authoritative key since the settings migration (migrated from reminderly-haptics-config)
+const STORAGE_KEY = 'reminderly-pref-haptics';
 
 const DEFAULT_CONFIG: HapticsConfig = {
   allHaptics: true,

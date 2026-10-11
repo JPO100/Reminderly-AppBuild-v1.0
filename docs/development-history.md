@@ -1006,5 +1006,5 @@ Deferred: Siri testing (G1-G4). Phase 4 (notifications) not started.
 Branch: feature/settings-flags-model
 
 - Centred overlays: at least 100px from the top and bottom of the screen (and clear of the notch and home indicator); content that does not fit scrolls inside the card. Settings overlays keep the title fixed. viewport-fit=cover added so safe-area insets are available
-- Haptic feedback page (product owner decision): the top "Haptic feedback" toggle switches every action on or off in one go and the actions always stay listed. Turning an action on turns the top toggle on; turning the last one off turns it off. Individual choices are overwritten when the top toggle is used. The Dev tools Haptics flag still preserves saved choices
+- Haptic feedback page (product owner decision): the top "Haptic feedback" toggle turns every action off in one go and the actions stay listed. Turning it back on restores each action's previous choice (or turns all on if none were on). Turning an action on while the top toggle is off turns on only that action and the top toggle; turning the last action off turns the top toggle off. The Dev tools Haptics flag also preserves saved choices
 

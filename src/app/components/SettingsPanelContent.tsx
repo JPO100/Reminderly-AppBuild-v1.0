@@ -63,7 +63,7 @@ function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; o
 }
 
 // Haptic feedback sub-page. The saved choices are shared by both settings panels.
-// The top toggle switches every action on or off in one go; the actions always stay listed.
+// The top toggle switches every action off in one go and back on to the previous choices; the actions always stay listed.
 function HapticSettings() {
   const [config, setConfig] = useState<HapticsConfig>(getHapticsConfig);
   const update = (next: HapticsConfig) => {
@@ -71,8 +71,11 @@ function HapticSettings() {
     setHapticsConfig(next);
   };
   const setAll = (on: boolean) => {
+    // Off keeps each action's saved choice, so on restores them. If none were on, on turns them all on.
     const next = { ...config, allHaptics: on };
-    for (const { action } of HAPTIC_ACTION_LABELS) next[action] = on;
+    if (on && !HAPTIC_ACTION_LABELS.some(({ action }) => config[action])) {
+      for (const { action } of HAPTIC_ACTION_LABELS) next[action] = true;
+    }
     update(next);
   };
   const setAction = (action: (typeof HAPTIC_ACTION_LABELS)[number]['action'], on: boolean) => {
@@ -87,7 +90,7 @@ function HapticSettings() {
   const isOn = (action: (typeof HAPTIC_ACTION_LABELS)[number]['action']) => config.allHaptics && config[action];
   return (
     <>
-      <ToggleRow label="Haptic feedback" isOn={config.allHaptics} onToggle={() => setAll(!config.allHaptics)} infoTitle="Turns every vibration below on or off in one go." />
+      <ToggleRow label="Haptic feedback" isOn={config.allHaptics} onToggle={() => setAll(!config.allHaptics)} infoTitle="Turns every vibration below off in one go. Turning it back on restores your previous choices." />
       {HAPTIC_ACTION_LABELS.map(({ action, label, info }) => (
         <ToggleRow key={action} label={label} isOn={isOn(action)} onToggle={() => setAction(action, !isOn(action))} infoTitle={info} />
       ))}

@@ -91,9 +91,9 @@ export function DevToolsInfoOverlay({ visible, onClose, header, title }: { visib
   return createPortal(
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
-      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
         <div
-          className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
+          className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
           style={{ width: 340 }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -303,9 +303,9 @@ function NaturalLanguagePage({ onBack, onClose, nlcEnabled, onNlcEnabledChange, 
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingNlcState(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -379,9 +379,9 @@ function OnboardingPage({ onBack, onClose, isOnboardingTutorialEnabled, onOnboar
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingOnboardingState(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -450,9 +450,9 @@ function NotificationsAreaPage({ onBack, onClose, enableNotifications, onEnableN
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingNotificationsState(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -693,9 +693,9 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingRemindersState(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -774,9 +774,9 @@ function ListsAreaPage({ onBack, onClose, enableReminders, isListsEnabled, onLis
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingListsState(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >

@@ -4735,8 +4735,8 @@ export default function App() {
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={closeListSettingsOverlay}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
-            <div className="pointer-events-auto w-full max-w-[400px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
               <InfoOverlay sortMode={listSettingsSortModeDraft} onSortChange={setListSettingsSortModeDraft} listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
                 const listId = editingListId;
                 if (!listId) return;
@@ -4771,8 +4771,8 @@ export default function App() {
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setListInfoOverlayListId(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
-            <div className="pointer-events-auto w-full max-w-[400px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
               <ListInfoOverlay
                 listTitle={listInfoOverlayList.title}
                 smartReminders={(listInfoOverlayList.smartReminders ?? false) || pendingListInfoSmartReminderListId === listInfoOverlayList.id}
@@ -4853,9 +4853,9 @@ export default function App() {
               className="fixed inset-0 bg-black/50 z-[60]"
               onClick={() => setSavedListMenuId(null)}
             />
-            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
               <div
-                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
+                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
                 style={{ width: 340 }}
                 onClick={(event) => event.stopPropagation()}
               >
@@ -4954,9 +4954,9 @@ export default function App() {
               className="fixed inset-0 bg-black/50 z-[60]"
               onClick={() => setTemplateEditorMenuId(null)}
             />
-            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
               <div
-                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
+                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
                 style={{ width: 340 }}
                 onClick={(event) => event.stopPropagation()}
               >
@@ -5195,10 +5195,10 @@ export default function App() {
       {isRemindersSettingsPanelOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsRemindersSettingsPanelOpen(false)} />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
-              style={{ width: 340, maxHeight: 'calc(100% - 40px)', overflowY: 'auto' }}
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+              style={{ width: 340, overflowY: 'hidden' }}
               onClick={(e) => e.stopPropagation()}
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
@@ -5227,10 +5227,10 @@ export default function App() {
       {isListsSettingsPanelOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsListsSettingsPanelOpen(false)} />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
-              style={{ width: 340, maxHeight: 'calc(100% - 40px)', overflowY: 'auto' }}
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+              style={{ width: 340, overflowY: 'hidden' }}
               onClick={(e) => e.stopPropagation()}
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>

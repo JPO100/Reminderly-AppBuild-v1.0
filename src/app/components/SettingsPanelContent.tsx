@@ -28,14 +28,14 @@ function PanelHeader({ title, onBack }: { title: string; onBack?: () => void }) 
   );
 }
 
-// Overlay standard: 40px from title to content, 30px between rows.
+// Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
 function PanelShell({ title, subPage, onBack, subContent, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent : children;
   return (
-    <div className="content-stretch flex flex-col gap-[40px] items-start relative w-full">
+    <div className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0">
       <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
       {content && (
-        <div className="content-stretch flex flex-col gap-[30px] items-start relative w-full shrink-0">
+        <div className="content-stretch flex flex-col gap-[30px] items-start relative w-full min-h-0 overflow-y-auto">
           {content}
         </div>
       )}

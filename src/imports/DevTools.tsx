@@ -106,9 +106,9 @@ export function LastModuleNotice({ onClose }: { onClose: () => void }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
-      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
         <div
-          className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+          className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
           style={{ width: 340 }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -270,9 +270,9 @@ export default function DevTools({
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingToggle(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >

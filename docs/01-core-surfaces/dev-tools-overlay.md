@@ -2,7 +2,7 @@
 
 ## Overview
 
-Reminderly includes a built-in developer tools overlay opened by triple-tapping the text portion of the header logo. The overlay is a multi-page slide-up surface used for testing, data generation, feature-flag control, and tutorial/dev access settings.
+Reminderly includes a built-in developer tools overlay opened by triple-tapping the text portion of the header logo. The overlay is a multi-page slide-up surface used to control feature availability, app configuration, testing tools and dev tools access.
 
 ## Access
 
@@ -36,6 +36,12 @@ Dev tools can require a password before the main content is shown.
 
 The current unlock password is implemented in `DevToolsOverlay.tsx`.
 
+## Purpose
+
+Decision (2026-10-11 12:23 BST, John, product owner): Dev tools controls availability only - what is and is not available to the user. Users manage their own preferences for whatever is available, in Reminders and Lists settings. Dev tools holds no user preference controls.
+
+See [Settings and feature flags specification](../settings-flags-spec.md) for the full model.
+
 ## Overlay Behaviour
 
 - slide-up motion from the bottom of the viewport
@@ -43,176 +49,61 @@ The current unlock password is implemented in `DevToolsOverlay.tsx`.
 - close button closes the overlay
 - internal navigation is page-based rather than route-based
 
-## Navigation Structure
-
-`DevToolsPage` currently supports:
-
-- `home`
-- `tests`
-- `test-data`
-- `dummy-reminders`
-- `dummy-lists`
-- `nlc`
-- `onboarding-tutorial`
-- `dev-tools-password`
-- `reminder-settings`
-- `list-settings`
-- `paywall`
-
 ## Home Page
 
-The home page is grouped into three sections.
-
-### Testing and QA
-
-- `Automated tests`
-- `Test data`
-
-### Developer settings
-
-- `Reminder settings`
-- `List settings`
-- `Dev tools password`
-
-`List settings` is visually disabled unless the top-level lists feature flag is enabled.
+The home page has four groups.
 
 ### Feature flags
 
-- `Natural Language Capture`
-- `Repeat reminders`
-- `Onboarding tutorial`
-- `Lists`
-- `Premium`
+Availability flags. Rows with a toggle are master flags; turning one on or off asks for confirmation.
 
-The `Natural Language Capture`, `Onboarding tutorial`, and `Lists` rows each include both a toggle and page navigation.  
-The `Repeat reminders` row is currently a visual toggle on the home page only.  
-The `Premium` row navigates to the current `paywall` page, which presently renders the same `Lists` page component.
+| Row | Page contents | Storage keys |
+| --- | --- | --- |
+| Reminders (master) | Enable reminders, Repeat reminders, 1 minute time increments | `reminderly-ff-reminders`, `reminderly-ff-repeat-reminders`, `reminderly-ff-one-minute-increments` |
+| Lists (master) | Enable lists, Smart reminders, List templates, Pinned lists | `reminderly-ff-lists`, `reminderly-ff-smart-reminders`, `reminderly-ff-saved-lists`, `reminderly-ff-pinned-lists` |
+| Natural Language Capture (master) | Enable Natural Language Capture | In-memory only until Phase 3 (`reminderly-ff-nlc`) |
+| Notifications (master) | Enable notifications | `reminderly-ff-notifications` |
+| Siri | Siri for reminders | `reminderly-ff-siri-reminders` |
+| Onboarding (master) | Enable onboarding, Show tutorial on first launch | `reminderly-ff-onboarding-tutorial`, `reminderly-config-tutorial-first-launch` |
+| System | Settings menu, Show info icons | `reminderly-ff-settings-menu-v2`, `reminderly-ff-info-icons` |
 
-## Page Behaviour
+- Reminders and Lists cannot both be off. The last one on ignores the tap (`canChangeModuleFlag` in `src/app/settings/resolver.ts`).
+- Not yet read by the app: Enable reminders, Repeat reminders and 1 minute time increments (Phase 3), Enable notifications (Phase 4).
+- Unimplemented features (Siri for lists, phone and contact recognition) are hidden until built.
 
-### Automated Tests
+### Config
 
-Runs the full self-check suite and shows:
+- Use template set in clean state (`reminderly-config-templates-in-clean-state`): when all lists are cleared, restores the default template set.
 
-- run invocation id
-- pass/fail counts
-- duration
-- grouped per-check results
-- copy results action
-- reset action
+### Testing tools
 
-The current suite contains 8 groups and 425 checks in total.
+- Self checks: runs the self-check suite (pass/fail counts, grouped results, copy, reset)
+- Dummy reminders: generates reminder data; includes `Hide overdue reminders` (in-memory only). Requires Reminders on
+- Dummy lists: generates list data. Requires Lists on
+- Show tutorial on every app start (`reminderly-test-tutorial-every-start`): turning it on turns off Show tutorial on first launch, and the reverse
 
-### Test Data
+### Access and diagnostics
 
-Parent page for generated test content:
+- Dev tools password: Password required toggle and password reset
 
-- `Dummy reminders`
-- `Dummy lists`
+## Storage
 
-### Dummy Reminders
-
-Used to generate reminder data for reminder-state testing. This page also includes the `Hide overdue reminders` toggle.
-
-### Dummy Lists
-
-Used to generate list data for list-state testing. The page feeds generated list payloads back into app state rather than working as a read-only preview.
-
-### Natural Language Capture
-
-Controls NLC application mode:
-
-- `Auto-parsing`
-- `Click-parsing`
-
-This page is only practically useful when the NLC feature flag is enabled.
-
-### Onboarding Tutorial
-
-Controls tutorial-related persisted state:
-
-- `Show tutorial on first launch`
-- `Show tutorial on every app start`
-
-Enabling one setting disables the other.
-
-### Dev Tools Password
-
-Controls dev-tools access requirements:
-
-- `Password required`
-- password reset inputs
-- confirm/reset flow UI
-
-### Reminder Settings
-
-Current reminder-specific dev setting:
-
-- `Display 1 minute time increments`
-
-Persistence key:
-
-- `reminderly-dev-one-minute-time-increments`
-
-### List Settings
-
-Current list-specific dev setting:
-
-- `Use default templates in clean state`
-
-This controls whether a clean lists state is repopulated with default templates.
-
-### Lists
-
-The current lists page inside dev tools controls:
-
-- `Smart reminders`
-- `List templates`
-- `Pinned lists`
-
-These are feature flags for the current lists system and are persisted by the app.
-
-## Dev-Only State and Flags
-
-The overlay currently controls a mix of in-memory state and persisted settings.
-
-### In-memory only
-
-- `nlcMode`
-- `hideOverdue`
-- `isDevToolsUnlocked`
-
-### Persisted
-
-- `reminderly-dev-tools-password-required`
-- `reminderly-dev-one-minute-time-increments`
-- `reminderly-ff-onboarding-tutorial`
-- `dev.listsEnabled`
-- `reminderly-ff-tutorial-first-launch`
-- `reminderly-ff-tutorial-every-start`
-- `reminderly-ff-smart-reminders`
-- `reminderly-ff-saved-lists`
-- `reminderly-ff-pinned-lists`
-
-## Destructive Actions
-
-The developer tools home screen still includes the `Clear reminders list` destructive control with two-step confirmation:
-
-1. `Clear reminders list`
-2. `Are you sure?`
-3. `Cleared!`
+- Every setting has one authoritative key, read once and written only when changed (`useStoredSetting`).
+- Settings write failures show the app's storage error banner.
+- In-memory only: Natural Language Capture master, `hideOverdue`, `isDevToolsUnlocked`.
 
 ## File Locations
 
 - `src/app/components/DevToolsOverlay.tsx`
-- `src/imports/DevTools.tsx`
+- `src/imports/DevTools.tsx` (home page)
 - `src/imports/DummyReminders.tsx`
 - `src/imports/DummyLists.tsx`
-- `src/app/dev/check-system.ts`
-- `src/app/dev/*.ts`
+- `src/app/settings/` (keys, resolver, migration, `useStoredSetting`)
+- `src/app/dev/check-system.ts`, `src/app/dev/*.ts`
 
 ## Related Documentation
 
 - [Dev Tools](../06-quality-and-dev/dev-tools.md)
+- [Settings and feature flags specification](../settings-flags-spec.md)
 - [Self-Check System](../06-quality-and-dev/self-check-system.md)
 - [Tests and Baselines](../06-quality-and-dev/tests-and-baselines.md)

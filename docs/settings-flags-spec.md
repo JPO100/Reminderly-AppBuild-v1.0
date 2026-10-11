@@ -4,6 +4,10 @@ Branch: `feature/settings-flags-model` (created from `main` at `15c44d4`)
 Status: Phase 0 approved, including D1 to D10 and the corrections from the final review (sections 7.3, 7.4, 7.5, 8.1 and 12). Phase 1 authorised.
 Companion: `docs/settings-audit.md` (model, item-by-item audit, decisions, defaults and migration matrix)
 
+## 0. Decision record
+
+- Decision (2026-10-11 12:23 BST, John, product owner): Dev tools controls availability only - what is and is not available to the user. Users manage their own preferences for whatever is available, in Reminders and Lists settings. Dev tools holds no user preference controls, including temporary ones. The temporary user preferences page was removed the same day (commit cbf73c2). Until their user settings exist (Phase 3, notifications Phase 4), 1 minute increments, NLC options, notification alerts, badge, include today and haptics cannot be changed and keep their saved values (NLC options at their defaults).
+
 ## 1. Scope
 
 Phase 0 covers documentation, code inspection and baseline verification only. This document:
@@ -282,7 +286,7 @@ Not migrated (data and internal state, unchanged): `reminderly.reminders.v1`, `r
 ## 11. Dev tools and user settings
 
 - Dev tools regrouped into Feature flags (by area), Config, Testing tools, and Access and diagnostics.
-- Old dev tools controls stay until the replacement user setting is working and verified (Phase 3). They are then removed in the same phase.
+- Dev tools holds no user preference controls (decision record, section 0). Preferences are set only in Reminders and Lists settings.
 - Rows for unbuilt features are hidden by their flags: show calendar, sounds, the Haptic feedback page until wired, the Natural Language Capture page until wired.
 - "Use Smart Reminders" is removed from Lists settings (built-in feature).
 
@@ -347,19 +351,20 @@ Phase 2 as delivered:
 |---|---|---|
 | Feature flags | Reminders | Enable reminders, Repeat reminders, 1 minute time increments (availability flag) |
 | Feature flags | Lists | Enable lists, Smart reminders, List templates, Pinned lists |
-| Feature flags | Natural Language Capture | Enable Natural Language Capture, Phone number recognition (locked), Contact recognition (locked) |
+| Feature flags | Natural Language Capture | Enable Natural Language Capture |
 | Feature flags | Notifications | Enable notifications |
-| Feature flags | Siri | Siri for reminders, Siri for lists (locked off, D7) |
-| Feature flags | Onboarding | Enable onboarding |
+| Feature flags | Siri | Siri for reminders |
+| Feature flags | Onboarding | Enable onboarding, Show tutorial on first launch |
 | Feature flags | System | Settings menu, Show info icons |
-| Config | Config | Show tutorial on first launch, Use template set in clean state |
-| Testing tools | Testing tools | Self checks, Dummy reminders (with Hide overdue), Dummy lists, Show tutorial on every app start, User preferences |
-| Testing tools | User preferences (temporary until Phase 3) | Display 1 minute time increments, Date, Time and Repeats recognition, Auto-parsing, Click-parsing, Reminder system notifications, Reminder app badge notifications, Include today in app badge count, Haptics |
+| Config | Config | Use template set in clean state |
+| Testing tools | Testing tools | Self checks, Dummy reminders (with Hide overdue), Dummy lists, Show tutorial on every app start |
 | Access and diagnostics | Dev tools password | Password required, password reset |
 
 - The home page keeps its existing rows, grouped under four headings. Master toggles stay on the home page with their existing confirmation dialogs.
 - Reminders and Lists: `canChangeModuleFlag` in the resolver. Every change to either flag in Dev tools goes through it, so the last one on cannot be turned off. The toggle stays visibly on and ignores the tap; the info text explains why.
-- Settings writes report failures through the app's existing storage error banner (`setSettingsWriteListener`).
+- Settings write failures raise the app's existing storage error banner (`setSettingsWriteFailureListener`). Successful settings writes never clear it.
+- Unimplemented Siri for lists, phone and contact recognition rows are hidden until built. Their keys are unchanged.
+- No user preference controls (section 0).
 - Not added in Phase 2 (added with their wiring in Phase 3): haptics, calendar, sounds and NLC availability flags. The NLC master stays unsaved until Phase 3.
 
 Phase 3 - User settings connected
@@ -368,7 +373,7 @@ Phase 3 - User settings connected
 - Repeat flag off behaves as in section 6 on device, with existing repeating reminders: they repeat on completion, keep their rule when other properties are edited, and no rule can be created or changed through the repeats overlay, NLC or Siri.
 - Self Check covers the repeat flag at each enforcement point (overlay pass-through, NLC repeats recognition off, Siri repeat dropped).
 - Reminders off and Lists off behave as in section 5 on device.
-- Replaced dev tools controls removed.
+- Every working user preference is set from its Reminders or Lists settings page.
 
 Phase 4 - Notifications permission flow
 - Device checks for each permission state: not asked, accepted, not now, denied, and revoked then restored in iOS Settings.

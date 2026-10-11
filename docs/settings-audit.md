@@ -20,6 +20,10 @@ Terms used:
 - Flag: a dev tools switch that controls whether a feature is available.
 - Today: how the item works in the current code on `main`.
 
+## Decision record
+
+- Decision (2026-10-11 12:23 BST, John, product owner): Dev tools controls availability only - what is and is not available to the user. Users manage their own preferences for whatever is available, in Reminders and Lists settings. Dev tools holds no user preference controls, including temporary ones.
+
 ## Model
 
 - Flag (dev tools): is the feature available. Off = user setting hidden, feature off, user preference kept.
@@ -160,6 +164,8 @@ Terms used:
 8. Notifications today: the iOS permission prompt fires automatically the first time notifications sync (`src/app/notifications.ts`), and alerts, badge and include today all default to on.
 
 ## Proposed dev tools structure
+
+Superseded: the delivered structure is in `docs/settings-flags-spec.md` (Phase 2 as delivered). Dev tools holds no user preferences (decision record above).
 
 - Feature flags: grouped by Reminders, Lists, Notifications, System, Onboarding. Availability toggles only.
 - Config: tutorial on first launch, template set in clean state.

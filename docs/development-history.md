@@ -979,5 +979,5 @@ Completed (after iPhone acceptance testing and audit):
 - C4: Preference controls renamed "Temporary user preferences", with info text stating they are temporary and do not control availability. They are removed in Phase 3
 
 Test results: Vitest 122/122 passed. Self Check 361/361 passed (desktop browser). Web build, simulator and iPhone builds succeeded. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator, no stored keys changed. iPhone retest outstanding.
-- Temporary user preferences page removed from Dev tools at product owner request: Dev tools controls availability only, users control their own preferences. Until their user settings are wired (Phase 3, notifications Phase 4), 1 minute increments, NLC options, notification alerts, badge, include today and haptics stay at their saved values (NLC options at their defaults). Vitest 111/111 passed
+- Temporary user preferences page removed from Dev tools. Decision made 2026-10-11 12:23 BST by John (product owner): Dev tools controls availability only, users control their own preferences. Until their user settings are wired (Phase 3, notifications Phase 4), 1 minute increments, NLC options, notification alerts, badge, include today and haptics stay at their saved values (NLC options at their defaults). Vitest 111/111 passed
 

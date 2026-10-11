@@ -86,18 +86,20 @@ export const hapticTap = (action: HapticAction) => {
   Haptics.impact({ style: ImpactStyle.Light }).catch(() => {});
 };
 
-/** Haptic groups shown on each settings panel's Haptic feedback page. */
+/**
+ * Haptic switches shown on each settings panel's Haptic feedback page. Each names one user action;
+ * related actions follow it (restoring follows marking as done or deleting, swipe follows deleting).
+ */
 export const HAPTIC_GROUPS: Record<HapticPanel, { label: string; info: string; actions: HapticAction[] }[]> = {
   reminders: [
-    { label: 'Completing', info: 'A small vibration when you mark a reminder as done.', actions: ['markDone'] },
-    { label: 'Adding', info: 'A small vibration when you create a reminder.', actions: ['createReminder'] },
-    { label: 'Deleting', info: 'A small vibration when you delete a reminder or clear done and deleted reminders.', actions: ['deleteReminder', 'clearAllDoneDeleted'] },
-    { label: 'Undoing', info: 'A small vibration when you restore a done or deleted reminder.', actions: ['uncompleteReminder', 'undeleteReminder'] },
+    { label: 'Creating a reminder', info: 'A small vibration when you create a reminder.', actions: ['createReminder'] },
+    { label: 'Marking a reminder as done', info: 'A small vibration when you mark a reminder as done, or restore a done reminder.', actions: ['markDone', 'uncompleteReminder'] },
+    { label: 'Deleting a reminder', info: 'A small vibration when you delete or restore a reminder, or clear done and deleted reminders.', actions: ['deleteReminder', 'undeleteReminder', 'clearAllDoneDeleted'] },
   ],
   lists: [
-    { label: 'Completing', info: 'A small vibration when you tick a list item or complete a list.', actions: ['toggleListItemCheckbox', 'markListComplete'] },
-    { label: 'Deleting', info: 'A small vibration when you delete a list item or swipe to reveal delete.', actions: ['deleteListItem', 'swipeRevealDelete'] },
-    { label: 'Undoing', info: 'A small vibration when you restore a completed list.', actions: ['undoListCompletion'] },
+    { label: 'Ticking off a list item', info: 'A small vibration when you tick or untick a list item.', actions: ['toggleListItemCheckbox'] },
+    { label: 'Marking a list as done', info: 'A small vibration when you mark a list as done, or restore it.', actions: ['markListComplete', 'undoListCompletion'] },
+    { label: 'Deleting a list item', info: 'A small vibration when you delete a list item, or swipe to reveal delete.', actions: ['deleteListItem', 'swipeRevealDelete'] },
   ],
 };
 

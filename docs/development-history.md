@@ -1082,3 +1082,15 @@ Completed:
 - Dev tools panel now opens level with the top of the logo (other sliding panels unchanged, still 28px below it), with 15px top corners visible. Pages inside the panel have no background of their own, because iOS painted the corners black when clipping scrolling content
 
 Test results: Vitest 132/132 passed. Self Check 369/369 passed (in-app). Repo guard passed.
+
+### 2026-10-11 (feature/ui-tweaks-2 and feature/dev-tools-restyle merged into main)
+
+Branch: main
+
+Completed:
+- Merge approved by the senior developer in the proposed order, after product owner iPhone testing of both branches
+- feature/ui-tweaks-2 merged into main first (merge commit 9573271, branch head 053de45), no conflicts: settings overlay back arrow tap area and fixed 450px overlay height
+- feature/dev-tools-restyle merged second (merge commit 003aabf, branch head 732f766): Dev tools restyle, panel at logo top with 15px corners. Only conflict was this file (both branches added an entry); resolved by keeping both entries
+- Both branches retained
+
+Test results (post-merge on main): Vitest 132/132 passed. Self Check 369/369 passed (Node run). Repo guard passed. Production build succeeded.

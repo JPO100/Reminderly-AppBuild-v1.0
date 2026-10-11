@@ -256,9 +256,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-first-launch-default',
       name: 'Tutorial first-launch: default is true when no value persisted',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-first-launch', () => {
-          localStorage.removeItem('reminderly-ff-tutorial-first-launch');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-first-launch');
+        withIsolatedKey('reminderly-config-tutorial-first-launch', () => {
+          localStorage.removeItem('reminderly-config-tutorial-first-launch');
+          const stored = localStorage.getItem('reminderly-config-tutorial-first-launch');
           assert(stored === null, 'Expected no stored value');
           // Default logic: if stored === 'false' return false, else return true
           const defaultValue = stored === 'false' ? false : true;
@@ -271,9 +271,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-first-launch-persist-true',
       name: 'Tutorial first-launch: true persists to localStorage',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-first-launch', () => {
-          localStorage.setItem('reminderly-ff-tutorial-first-launch', 'true');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-first-launch');
+        withIsolatedKey('reminderly-config-tutorial-first-launch', () => {
+          localStorage.setItem('reminderly-config-tutorial-first-launch', 'true');
+          const stored = localStorage.getItem('reminderly-config-tutorial-first-launch');
           assert(stored === 'true', `Expected 'true', got '${stored}'`);
         });
       },
@@ -283,9 +283,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-first-launch-persist-false',
       name: 'Tutorial first-launch: false persists to localStorage',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-first-launch', () => {
-          localStorage.setItem('reminderly-ff-tutorial-first-launch', 'false');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-first-launch');
+        withIsolatedKey('reminderly-config-tutorial-first-launch', () => {
+          localStorage.setItem('reminderly-config-tutorial-first-launch', 'false');
+          const stored = localStorage.getItem('reminderly-config-tutorial-first-launch');
           assert(stored === 'false', `Expected 'false', got '${stored}'`);
         });
       },
@@ -295,9 +295,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-first-launch-hydrate-true',
       name: 'Tutorial first-launch: hydrates true correctly from localStorage',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-first-launch', () => {
-          localStorage.setItem('reminderly-ff-tutorial-first-launch', 'true');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-first-launch');
+        withIsolatedKey('reminderly-config-tutorial-first-launch', () => {
+          localStorage.setItem('reminderly-config-tutorial-first-launch', 'true');
+          const stored = localStorage.getItem('reminderly-config-tutorial-first-launch');
           const hydrated = stored === 'false' ? false : true;
           assert(hydrated === true, `Expected true, got ${hydrated}`);
         });
@@ -308,9 +308,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-first-launch-hydrate-false',
       name: 'Tutorial first-launch: hydrates false correctly from localStorage',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-first-launch', () => {
-          localStorage.setItem('reminderly-ff-tutorial-first-launch', 'false');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-first-launch');
+        withIsolatedKey('reminderly-config-tutorial-first-launch', () => {
+          localStorage.setItem('reminderly-config-tutorial-first-launch', 'false');
+          const stored = localStorage.getItem('reminderly-config-tutorial-first-launch');
           const hydrated = stored === 'false' ? false : true;
           assert(hydrated === false, `Expected false, got ${hydrated}`);
         });
@@ -325,9 +325,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-every-start-default',
       name: 'Tutorial every-start: default is false when no value persisted',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-every-start', () => {
-          localStorage.removeItem('reminderly-ff-tutorial-every-start');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-every-start');
+        withIsolatedKey('reminderly-test-tutorial-every-start', () => {
+          localStorage.removeItem('reminderly-test-tutorial-every-start');
+          const stored = localStorage.getItem('reminderly-test-tutorial-every-start');
           assert(stored === null, 'Expected no stored value');
           // Default logic: if stored === 'true' return true, else return false
           const defaultValue = stored === 'true' ? true : false;
@@ -340,9 +340,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-every-start-persist-true',
       name: 'Tutorial every-start: true persists to localStorage',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-every-start', () => {
-          localStorage.setItem('reminderly-ff-tutorial-every-start', 'true');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-every-start');
+        withIsolatedKey('reminderly-test-tutorial-every-start', () => {
+          localStorage.setItem('reminderly-test-tutorial-every-start', 'true');
+          const stored = localStorage.getItem('reminderly-test-tutorial-every-start');
           assert(stored === 'true', `Expected 'true', got '${stored}'`);
         });
       },
@@ -352,9 +352,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-every-start-persist-false',
       name: 'Tutorial every-start: false persists to localStorage',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-every-start', () => {
-          localStorage.setItem('reminderly-ff-tutorial-every-start', 'false');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-every-start');
+        withIsolatedKey('reminderly-test-tutorial-every-start', () => {
+          localStorage.setItem('reminderly-test-tutorial-every-start', 'false');
+          const stored = localStorage.getItem('reminderly-test-tutorial-every-start');
           assert(stored === 'false', `Expected 'false', got '${stored}'`);
         });
       },
@@ -364,9 +364,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-every-start-hydrate-true',
       name: 'Tutorial every-start: hydrates true correctly from localStorage',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-every-start', () => {
-          localStorage.setItem('reminderly-ff-tutorial-every-start', 'true');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-every-start');
+        withIsolatedKey('reminderly-test-tutorial-every-start', () => {
+          localStorage.setItem('reminderly-test-tutorial-every-start', 'true');
+          const stored = localStorage.getItem('reminderly-test-tutorial-every-start');
           const hydrated = stored === 'true' ? true : false;
           assert(hydrated === true, `Expected true, got ${hydrated}`);
         });
@@ -377,9 +377,9 @@ export function getDevToolsChecks(): Check[] {
       id: 'tutorial-every-start-hydrate-false',
       name: 'Tutorial every-start: hydrates false correctly from localStorage',
       run: () => {
-        withIsolatedKey('reminderly-ff-tutorial-every-start', () => {
-          localStorage.setItem('reminderly-ff-tutorial-every-start', 'false');
-          const stored = localStorage.getItem('reminderly-ff-tutorial-every-start');
+        withIsolatedKey('reminderly-test-tutorial-every-start', () => {
+          localStorage.setItem('reminderly-test-tutorial-every-start', 'false');
+          const stored = localStorage.getItem('reminderly-test-tutorial-every-start');
           const hydrated = stored === 'true' ? true : false;
           assert(hydrated === false, `Expected false, got ${hydrated}`);
         });

@@ -199,3 +199,28 @@ export async function syncReminderNotifications(
         await LocalNotifications.schedule({ notifications });
     }
 }
+
+/**
+ * Reminders off: cancels every pending Reminderly notification, then removes every delivered one
+ * from Notification Centre, by identifier. Pending and delivered lists are read from iOS each time,
+ * which only returns this app's notifications. Needs no notification permission. Returns the counts.
+ */
+export async function clearReminderNotifications(): Promise<{ pending: number; delivered: number }> {
+    try {
+        const pending = await LocalNotifications.getPending();
+        if (pending.notifications.length > 0) {
+            await LocalNotifications.cancel({
+                notifications: pending.notifications.map((notification) => ({ id: notification.id })),
+            });
+        }
+        const delivered = await LocalNotifications.getDeliveredNotifications();
+        if (delivered.notifications.length > 0) {
+            await LocalNotifications.removeDeliveredNotifications({ notifications: delivered.notifications });
+        }
+        console.info(`Reminders off: cancelled ${pending.notifications.length} pending, removed ${delivered.notifications.length} delivered notifications`);
+        return { pending: pending.notifications.length, delivered: delivered.notifications.length };
+    } catch (error) {
+        console.error('Failed to clear reminder notifications:', error);
+        return { pending: 0, delivered: 0 };
+    }
+}

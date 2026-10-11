@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { Badge } from "@capawesome/capacitor-badge";
 import { App as CapacitorApp } from "@capacitor/app";
@@ -23,7 +23,9 @@ import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMo
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
-import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from "./notifications";
+import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
+import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
+import { keepRepeatRuleWhenOff } from "./settings/resolver";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
 import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
@@ -220,7 +222,6 @@ const OVERDUE_COLOUR = "#FF0000";
 // List blue constant for done styling
 const DONE_BLUE = "#4784F8";
 const APP_TEXT_DARK_BLUE = "#1C2C42";
-const DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY = 'reminderly-dev-default-templates-in-clean-state';
 const DONE_LIST_COLOUR = "#404040";
 type TutorialVariant = 'reminders' | 'lists';
 
@@ -917,42 +918,10 @@ export default function App() {
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
   const devToolsTopRef = useRef<number | null>(null);
   const [isDevToolsUnlocked, setIsDevToolsUnlocked] = useState(false);
-  const [isDevToolsPasswordRequired, setIsDevToolsPasswordRequired] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-dev-tools-password-required');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifReminderAlerts, setNotifReminderAlerts] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-reminder-alerts');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifAppBadge, setNotifAppBadge] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-app-badge');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-include-today-in-badge');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [isDevToolsPasswordRequired, setIsDevToolsPasswordRequired] = useStoredSetting('reminderly-dev-tools-password-required');
+  const [notifReminderAlerts, setNotifReminderAlerts] = useStoredSetting('reminderly-pref-notif-alerts');
+  const [notifAppBadge, setNotifAppBadge] = useStoredSetting('reminderly-pref-notif-badge');
+  const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useStoredSetting('reminderly-pref-notif-include-today');
   const [isRepeatsOverlayOpen, setIsRepeatsOverlayOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialVariant, setTutorialVariant] = useState<TutorialVariant>('reminders');
@@ -1001,36 +970,33 @@ export default function App() {
   // Used to allow second-click cancellation and prevent duplicate spawn.
   const pendingRepeatCompletionIdsRef = useRef<Set<string>>(new Set());
 
-  // Dev-only: NLC parsing mode for A/B testing (click vs auto)
-  const [nlcMode, setNlcMode] = useState<NlcMode>('auto');
+  // Natural Language Capture: availability flag (Dev tools) and the user's preferences (Reminders settings)
+  const [nlcFlag, setNlcFlag] = useStoredSetting('reminderly-ff-nlc');
+  const [nlcPrefOn, setNlcPrefOn] = useStoredSetting('reminderly-pref-nlc');
+  const [nlcPrefDate, setNlcPrefDate] = useStoredSetting('reminderly-pref-nlc-date');
+  const [nlcPrefTime, setNlcPrefTime] = useStoredSetting('reminderly-pref-nlc-time');
+  const [nlcPrefRepeats, setNlcPrefRepeats] = useStoredSetting('reminderly-pref-nlc-repeats');
+  const [nlcPrefAutoParsing, setNlcPrefAutoParsing] = useStoredSetting('reminderly-pref-nlc-auto-parsing');
+  const nlcMode: NlcMode = nlcPrefAutoParsing ? 'auto' : 'click';
+  const nlcRecognition: NlcRecognitionConfig = useMemo(() => ({ date: nlcPrefDate, time: nlcPrefTime, repeats: nlcPrefRepeats }), [nlcPrefDate, nlcPrefTime, nlcPrefRepeats]);
+  const nlcPrefs = { on: nlcPrefOn, date: nlcPrefDate, time: nlcPrefTime, repeats: nlcPrefRepeats, autoParsing: nlcPrefAutoParsing };
+  const nlcPrefSetters = { on: setNlcPrefOn, date: setNlcPrefDate, time: setNlcPrefTime, repeats: setNlcPrefRepeats, autoParsing: setNlcPrefAutoParsing };
 
-  // Dev-only: NLC feature flag — controls whether NLC parsing and UI are active
-  const [nlcEnabled, setNlcEnabled] = useState(false);
-
-  // Dev-only: NLC recognition config — granular category gates
-  const [nlcRecognition, setNlcRecognition] = useState<NlcRecognitionConfig>({ date: true, time: true, repeats: true });
+  // Haptics availability flag (Dev tools); the user's choices live in utils/haptics
+  const [hapticsFlag, setHapticsFlag] = useStoredSetting('reminderly-ff-haptics');
+  // Unbuilt features: flags default off and have no Dev tools control, so their rows stay hidden
+  const [calendarFlag] = useStoredSetting('reminderly-ff-calendar');
+  const [soundsFlag] = useStoredSetting('reminderly-ff-sounds');
 
   // Dev-only: onboarding tutorial feature flag — controls whether tutorial overlay is available
-  const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-onboarding-tutorial');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useStoredSetting('reminderly-ff-onboarding-tutorial');
 
-  // Dev-only: paywall feature flag — controls visibility of premium features
-  const [isListsEnabled, setIsListsEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('dev.listsEnabled');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  // Lists availability flag
+  const [isListsEnabled, setIsListsEnabled] = useStoredSetting('reminderly-ff-lists');
+  const [isRemindersEnabled, setIsRemindersEnabled] = useStoredSetting('reminderly-ff-reminders');
+  const [notificationsFlag, setNotificationsFlag] = useStoredSetting('reminderly-ff-notifications');
+  const [repeatRemindersFlag, setRepeatRemindersFlag] = useStoredSetting('reminderly-ff-repeat-reminders');
+  const [oneMinuteIncrementsFlag, setOneMinuteIncrementsFlag] = useStoredSetting('reminderly-ff-one-minute-increments');
 
   // Lists mode: active main tab (reminders or lists)
   const [activeMainTab, setActiveMainTab] = useState<'reminders' | 'lists'>(() => {
@@ -1042,92 +1008,39 @@ export default function App() {
       return 'reminders';
     }
   });
+  // The tab actually shown. With only one module on, that module is shown and the saved tab is kept.
+  const shownMainTab: 'reminders' | 'lists' = !isRemindersEnabled ? 'lists' : !isListsEnabled ? 'reminders' : activeMainTab;
 
   // Dev-only: show tutorial on first launch toggle
-  const [showTutorialOnFirstLaunch, setShowTutorialOnFirstLaunch] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-tutorial-first-launch');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [showTutorialOnFirstLaunch, setShowTutorialOnFirstLaunch] = useStoredSetting('reminderly-config-tutorial-first-launch');
 
   // Dev-only: show tutorial on every app start toggle
-  const [showTutorialOnEveryStart, setShowTutorialOnEveryStart] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-tutorial-every-start');
-      if (stored === 'true') return true;
-      return false;
-    } catch {
-      return false;
-    }
-  });
+  const [showTutorialOnEveryStart, setShowTutorialOnEveryStart] = useStoredSetting('reminderly-test-tutorial-every-start');
 
-  const [useOneMinuteTimeIncrements, setUseOneMinuteTimeIncrements] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-dev-one-minute-time-increments') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [useOneMinuteTimeIncrements, setUseOneMinuteTimeIncrements] = useStoredSetting('reminderly-pref-one-minute-increments');
 
-  const [smartRemindersFeatureEnabled, setSmartRemindersFeatureEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-smart-reminders') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-saved-lists') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-pinned-lists');
-      return stored == null ? true : stored === 'true';
-    } catch {
-      return true;
-    }
-  });
-  const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-settings-menu-v2');
-      return stored === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [showInfoIcons, setShowInfoIcons] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-info-icons') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-siri-shortcuts') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  // Settings panels phase 1 (UI only): System settings Siri toggle shared by the Reminders and Lists panels
-  const [remindersSettingsSiriOn, setRemindersSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
-  const [listsSettingsSiriOn, setListsSettingsSiriOn] = useState<boolean>(siriShortcutsEnabled);
-  const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY) === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const isSmartRemindersEnabled = isListsEnabled && smartRemindersFeatureEnabled;
+  const [smartRemindersFeatureEnabled, setSmartRemindersFeatureEnabled] = useStoredSetting('reminderly-ff-smart-reminders');
+  const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useStoredSetting('reminderly-ff-saved-lists');
+  const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useStoredSetting('reminderly-ff-pinned-lists');
+  const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useStoredSetting('reminderly-ff-settings-menu-v2');
+  const [showInfoIcons, setShowInfoIcons] = useStoredSetting('reminderly-ff-info-icons');
+  const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useStoredSetting('reminderly-ff-siri-reminders');
+  // Siri user preferences, one per settings panel
+  const [remindersSettingsSiriOn, setRemindersSettingsSiriOn] = useStoredSetting('reminderly-pref-siri-reminders');
+  const [listsSettingsSiriOn, setListsSettingsSiriOn] = useStoredSetting('reminderly-pref-siri-lists');
+  const [siriListsFlag] = useStoredSetting('reminderly-ff-siri-lists');
+  const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useStoredSetting('reminderly-config-templates-in-clean-state');
+  const isSmartRemindersEnabled = isRemindersEnabled && isListsEnabled && smartRemindersFeatureEnabled;
+  const isRepeatRemindersActive = isRemindersEnabled && repeatRemindersFlag;
+  const isOneMinuteAvailable = isRemindersEnabled && oneMinuteIncrementsFlag;
+  const isOneMinuteActive = isOneMinuteAvailable && useOneMinuteTimeIncrements;
+  const isSiriRemindersAvailable = isRemindersEnabled && siriShortcutsEnabled;
+  const isSiriRemindersActive = isSiriRemindersAvailable && remindersSettingsSiriOn;
+  const isSiriListsAvailable = isListsEnabled && siriListsFlag;
+  const isNlcAvailable = isRemindersEnabled && nlcFlag;
+  const isNlcActive = isNlcAvailable && nlcPrefOn;
+  // Repeat reminders off: NLC never recognises repeats
+  const nlcRecognitionForInput = useMemo(() => ({ ...nlcRecognition, repeats: nlcRecognition.repeats && isRepeatRemindersActive }), [nlcRecognition, isRepeatRemindersActive]);
 
   // Dev-only: hide overdue reminders from all views
   const [hideOverdue, setHideOverdue] = useState(false);
@@ -1142,11 +1055,6 @@ export default function App() {
     setActiveListFilter('all');
     if (!enabled) {
       setSavedListsPanelOpen(false);
-    }
-    try {
-      persistStringIfChanged('reminderly-ff-saved-lists', String(enabled));
-    } catch {
-      // Fail silently
     }
   }, []);
 
@@ -1314,107 +1222,33 @@ export default function App() {
   }, [reminders]);
 
   useEffect(() => {
+    // Reminders off: cancel pending, then remove delivered Reminderly notifications. Back on: reschedule.
+    if (!isRemindersEnabled) {
+      void clearReminderNotifications();
+      return;
+    }
     void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge);
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge]);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, isRemindersEnabled]);
 
-  // Persist onboarding tutorial feature flag to localStorage
+  // Reminders off: clear again each time the app returns to the foreground
   useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-onboarding-tutorial', String(isOnboardingTutorialEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [isOnboardingTutorialEnabled]);
+    if (isRemindersEnabled) return;
+    const listener = CapacitorApp.addListener('appStateChange', (state) => {
+      if (state.isActive) void clearReminderNotifications();
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, [isRemindersEnabled]);
 
-  // Persist paywall feature flag to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('dev.listsEnabled', String(isListsEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [isListsEnabled]);
 
-  // Persist tutorial first-launch toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-tutorial-first-launch', String(showTutorialOnFirstLaunch));
-    } catch {
-      // Fail silently
-    }
-  }, [showTutorialOnFirstLaunch]);
 
-  // Persist tutorial every-start toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-tutorial-every-start', String(showTutorialOnEveryStart));
-    } catch {
-      // Fail silently
-    }
-  }, [showTutorialOnEveryStart]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-dev-one-minute-time-increments', String(useOneMinuteTimeIncrements));
-    } catch {
-      // Fail silently
-    }
-  }, [useOneMinuteTimeIncrements]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-smart-reminders', String(smartRemindersFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [smartRemindersFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-saved-lists', String(savedListsFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [savedListsFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-pinned-lists', String(pinnedListsFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [pinnedListsFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-settings-menu-v2', String(settingsMenuFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [settingsMenuFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-info-icons', String(showInfoIcons));
-    } catch {
-      // Fail silently
-    }
-  }, [showInfoIcons]);
+
   useEffect(() => {
     setActiveFilter((current) => getFilterForSettingsMenu(current, settingsMenuFeatureEnabled));
   }, [settingsMenuFeatureEnabled]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-siri-shortcuts', String(siriShortcutsEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [siriShortcutsEnabled]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged(DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY, String(useDefaultTemplatesInCleanState));
-    } catch {
-      // Fail silently
-    }
-  }, [useDefaultTemplatesInCleanState]);
 
   useEffect(() => {
     if (!savedListMenuId && !templateEditorMenuId) {
@@ -1500,53 +1334,19 @@ export default function App() {
     return () => { clearTimeout(timerId); };
   }, [reminders, timeRefreshTick]);
 
-  useEffect(() => {
-    if (!isListsEnabled) {
-      setSmartRemindersFeatureEnabled(false);
-    }
-  }, [isListsEnabled]);
 
-  // Persist dev tools password required toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-dev-tools-password-required', String(isDevToolsPasswordRequired));
-    } catch {
-      // Fail silently
-    }
-  }, [isDevToolsPasswordRequired]);
+
+
+
 
   useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-reminder-alerts', String(notifReminderAlerts));
-    } catch {
-      // Fail silently
-    }
-  }, [notifReminderAlerts]);
-
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-app-badge', String(notifAppBadge));
-    } catch {
-      // Fail silently
-    }
-  }, [notifAppBadge]);
-
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-include-today-in-badge', String(notifIncludeTodayInBadge));
-    } catch {
-      // Fail silently
-    }
-  }, [notifIncludeTodayInBadge]);
-
-  useEffect(() => {
-    if (!notifAppBadge) {
+    if (!notifAppBadge || !isRemindersEnabled) {
       void Badge.clear();
       return;
     }
     const count = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date());
     void Badge.set({ count });
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick]);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled]);
 
   // Persist created lists to localStorage
   useEffect(() => {
@@ -1695,7 +1495,7 @@ export default function App() {
     if (pendingTappedReminderId) return;
     if (!isOnboardingTutorialEnabled) return;
     if (!showTutorialOnFirstLaunch && !showTutorialOnEveryStart) return;
-    const initialTutorialVariant: TutorialVariant = activeMainTab === 'lists' && isListsEnabled ? 'lists' : 'reminders';
+    const initialTutorialVariant: TutorialVariant = shownMainTab === 'lists' ? 'lists' : 'reminders';
     openTutorial(initialTutorialVariant);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1710,11 +1510,11 @@ export default function App() {
     if (!isOnboardingTutorialEnabled) return;
     if (!showTutorialOnFirstLaunch && !showTutorialOnEveryStart) return;
     if (isTutorialOpen) return;
-    const nextTutorialVariant: TutorialVariant = activeMainTab === 'lists' && isListsEnabled ? 'lists' : 'reminders';
+    const nextTutorialVariant: TutorialVariant = shownMainTab === 'lists' ? 'lists' : 'reminders';
     if (!tutorialVariantsShownThisSessionRef.current.has(nextTutorialVariant)) {
       openTutorial(nextTutorialVariant);
     }
-  }, [activeMainTab, isListsEnabled, isOnboardingTutorialEnabled, isTutorialOpen, openTutorial, showTutorialOnEveryStart, showTutorialOnFirstLaunch]);
+  }, [shownMainTab, isOnboardingTutorialEnabled, isTutorialOpen, openTutorial, showTutorialOnEveryStart, showTutorialOnFirstLaunch]);
 
 
   // Helper: cancel and delete entries for a given id from all timer maps.
@@ -1791,7 +1591,7 @@ export default function App() {
       if (!text) return;
       localStorage.removeItem(PENDING_SIRI_TEXT_KEY);
 
-      if (!siriShortcutsEnabled) return;
+      if (!isSiriRemindersActive) return;
 
       const tokens = parseTokens(text);
       const actions = computeAutoApplyResult(tokens, { date: false, time: false, repeats: false });
@@ -1850,7 +1650,8 @@ export default function App() {
         schedule = { kind: 'sometime' };
       }
 
-      const repeatRule = repeatConfigToRule(repeatConfig);
+      // Repeat reminders off: Siri never creates a repeat rule
+      const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
       const now = new Date();
       const displayText = schedule.kind === 'scheduled'
         ? normaliseReminderText(text, schedule, repeatRule, now, { skipDateInjection: true, skipTimeInjection: true })
@@ -1870,7 +1671,7 @@ export default function App() {
     handleSiriAdd();
     window.addEventListener(SIRI_ADD_EVENT, handleSiriAdd);
     return () => window.removeEventListener(SIRI_ADD_EVENT, handleSiriAdd);
-  }, [siriShortcutsEnabled, addReminder]);
+  }, [isSiriRemindersActive, addReminder, isRepeatRemindersActive]);
 
   const addReminders = useCallback((newReminders: Reminder[]) => {
     // Cancel any pending insert timer (last-one-wins)
@@ -2024,7 +1825,8 @@ export default function App() {
   useEffect(() => {
     _onPersistenceError = () => setPersistenceError(true);
     _onPersistenceSuccess = () => setPersistenceError(false);
-    return () => { _onPersistenceError = null; _onPersistenceSuccess = null; };
+    setSettingsWriteFailureListener(() => setPersistenceError(true));
+    return () => { _onPersistenceError = null; _onPersistenceSuccess = null; setSettingsWriteFailureListener(null); };
   }, []);
 
   // Calculate overlay top position based on viewport height
@@ -2059,12 +1861,12 @@ export default function App() {
   };
 
   const handleHeaderMenuClick = useCallback(() => {
-    if (isListsEnabled && activeMainTab === 'lists') {
+    if (shownMainTab === 'lists') {
       setIsListsSettingsPanelOpen(true);
       return;
     }
     setIsRemindersSettingsPanelOpen(true);
-  }, [activeMainTab, isListsEnabled]);
+  }, [shownMainTab]);
 
   // Reminders settings panel: re-run the tutorial from its first page, then close the panel behind it
   const handleRemindersSettingsTutorialOpen = () => {
@@ -2397,7 +2199,7 @@ export default function App() {
 
   // Logo tick click: toggle between done-deleted view and "all" list view
   const handleTickClick = () => {
-    if (isListsEnabled && activeMainTab === 'lists') {
+    if (shownMainTab === 'lists') {
       setViewMode((prev) => (prev === 'lists-done' ? 'list' : 'lists-done'));
     } else {
       setViewMode((prev) => (prev === "list" ? "done-deleted" : "list"));
@@ -3105,6 +2907,7 @@ export default function App() {
 
   useNotificationTapHandler({
     reminders,
+    remindersEnabled: isRemindersEnabled,
     setActiveMainTab,
     setIsTutorialOpen,
     setIsOverlayOpen,
@@ -3160,7 +2963,7 @@ export default function App() {
   const isClearAllDisabled =
     viewMode === 'done-deleted'
       ? visibleDoneDeletedReminderCount === 0
-      : (isListsEnabled && activeMainTab === 'lists' && viewMode === 'lists-done')
+      : (shownMainTab === 'lists' && viewMode === 'lists-done')
         ? visibleDoneDeletedListCount + visibleDeletedSavedListCount === 0
         : false;
 
@@ -3179,7 +2982,7 @@ export default function App() {
     setClearListStep(2);
     setDoneDeletedFilter('all');
 
-    if (isListsEnabled && activeMainTab === 'lists' && viewMode === 'lists-done') {
+    if (shownMainTab === 'lists' && viewMode === 'lists-done') {
       const savedListIdsToRemove = new Set(
         savedLists
           .filter((list) => (list.status ?? 'active') === 'deleted')
@@ -3326,7 +3129,7 @@ export default function App() {
       clearListTimerRef.current = null;
       setClearListStep(0);
     }, 500);
-  }, [activeMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
+  }, [shownMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
 
   const now = new Date();
 
@@ -3338,7 +3141,7 @@ export default function App() {
   }
 
   return (
-    <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
+    <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
         if ((clearListStep === 1 || clearListStep === 2) && clearAllButtonRef.current && !clearAllButtonRef.current.contains(e.target as Node)) {
           setClearListStep(0);
           if (clearListTimerRef.current !== null) {
@@ -3354,7 +3157,7 @@ export default function App() {
       )}
       {/* Header */}
       <div className="app-header relative shrink-0 w-full p-[20px]">
-        <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
+        <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
           <div className="content-stretch flex items-center justify-center pb-[20px] pt-[50px] relative shrink-0 w-full">
             <div ref={logoRef} className="h-[35.653px] relative shrink-0 w-[209.653px]" style={{ top: '7px' }}>
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 209.653 35.6533">
@@ -3449,7 +3252,7 @@ export default function App() {
       </div>
 
       {/* Reminders/Lists tab bar — Lists mode only */}
-      {isListsEnabled && (
+      {isListsEnabled && isRemindersEnabled && (
         <div ref={tabsBarRef} className="content-stretch flex gap-[10px] items-end justify-center px-[20px] relative w-full">
           <div
             className={`${activeMainTab === 'reminders' ? 'bg-white' : 'bg-[rgba(255,255,255,0.25)]'} flex-[1_0_0] min-h-px min-w-px relative rounded-tl-[12px] rounded-tr-[12px] cursor-pointer h-[52px]`}
@@ -3504,7 +3307,7 @@ export default function App() {
 
       {/* Reminder list container */}
       <div className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative rounded-tl-[15px] rounded-tr-[15px] w-full flex-1 min-h-[350px]`}>
-        {isListsEnabled && activeMainTab === 'lists' ? (
+        {shownMainTab === 'lists' ? (
           <>
           {viewMode === 'lists-done' && (
             <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
@@ -4535,6 +4338,7 @@ export default function App() {
                   onPointerDown={(event) => reminderSheetDragControls.start(event)}
                 />
                 <NewReminderOverlay
+                  repeatsEnabled={isRepeatRemindersActive}
                   onRepeatsOverlayOpen={() => setIsRepeatsOverlayOpen(true)}
                   repeatConfig={repeatConfig}
                   onRepeatConfigChange={setRepeatConfig}
@@ -4542,13 +4346,13 @@ export default function App() {
                   addReminder={addReminder}
                   onClose={handleOverlayClose}
                   nlcMode={nlcMode}
-                  nlcEnabled={nlcEnabled}
-                  nlcRecognition={nlcRecognition}
+                  nlcEnabled={isNlcActive}
+                  nlcRecognition={nlcRecognitionForInput}
                   editReminder={editingReminder}
                   updateReminder={updateReminder}
                   smartReminderCreateList={smartReminderCreateList}
                   onCreateSmartReminder={createSmartReminderFromPanel}
-                  useOneMinuteIncrements={useOneMinuteTimeIncrements}
+                  useOneMinuteIncrements={isOneMinuteActive}
                   autoFocusReady={isReminderOverlayFocusReady}
                 />
               </motion.div>
@@ -4559,7 +4363,7 @@ export default function App() {
 
       {/* Templates Overlay */}
       <AnimatePresence>
-        {isListsEnabled && activeMainTab === 'lists' && (savedListsPanelOpen || (isSavedListsOverlayOpen && restoreSavedListsPanelAfterOverlayClose)) && (
+        {shownMainTab === 'lists' && (savedListsPanelOpen || (isSavedListsOverlayOpen && restoreSavedListsPanelAfterOverlayClose)) && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -4717,7 +4521,7 @@ export default function App() {
 
       {/* Lists Overlay */}
       <AnimatePresence>
-        {isListsEnabled && activeMainTab === 'lists' && (isListsOverlayOpen || isSavedListsOverlayOpen) && (() => {
+        {shownMainTab === 'lists' && (isListsOverlayOpen || isSavedListsOverlayOpen) && (() => {
           const isSavedListCreateOverlay = isSavedListsOverlayOpen && !isListsOverlayOpen;
           const isSavedListEditOverlay = isSavedListCreateOverlay && editingSavedListId !== null;
           const overlayDisplayListItems = displayListItems;
@@ -4925,14 +4729,14 @@ export default function App() {
         })()}
       </AnimatePresence>
 
-      {isListSettingsOpen && isListsEnabled && activeMainTab === 'lists' && isListsOverlayOpen && (
+      {isListSettingsOpen && shownMainTab === 'lists' && isListsOverlayOpen && (
         <>
           <div
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={closeListSettingsOverlay}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
-            <div className="pointer-events-auto w-full max-w-[400px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
               <InfoOverlay sortMode={listSettingsSortModeDraft} onSortChange={setListSettingsSortModeDraft} listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
                 const listId = editingListId;
                 if (!listId) return;
@@ -4967,8 +4771,8 @@ export default function App() {
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setListInfoOverlayListId(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
-            <div className="pointer-events-auto w-full max-w-[400px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
               <ListInfoOverlay
                 listTitle={listInfoOverlayList.title}
                 smartReminders={(listInfoOverlayList.smartReminders ?? false) || pendingListInfoSmartReminderListId === listInfoOverlayList.id}
@@ -5049,9 +4853,9 @@ export default function App() {
               className="fixed inset-0 bg-black/50 z-[60]"
               onClick={() => setSavedListMenuId(null)}
             />
-            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
               <div
-                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
+                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
                 style={{ width: 340 }}
                 onClick={(event) => event.stopPropagation()}
               >
@@ -5150,9 +4954,9 @@ export default function App() {
               className="fixed inset-0 bg-black/50 z-[60]"
               onClick={() => setTemplateEditorMenuId(null)}
             />
-            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
               <div
-                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
+                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
                 style={{ width: 340 }}
                 onClick={(event) => event.stopPropagation()}
               >
@@ -5300,7 +5104,7 @@ export default function App() {
               className="fixed left-0 right-0 z-50 mx-auto w-full"
               style={{ bottom: 0 }}
             >
-              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={setNlcMode} nlcEnabled={nlcEnabled} onNlcEnabledChange={setNlcEnabled} nlcRecognition={nlcRecognition} onNlcRecognitionChange={setNlcRecognition} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
+              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
                 setCreatedLists([]);
                 setSavedLists(
                   useDefaultTemplatesInCleanState
@@ -5391,15 +5195,25 @@ export default function App() {
       {isRemindersSettingsPanelOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsRemindersSettingsPanelOpen(false)} />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
-              style={{ width: 340, maxHeight: 'calc(100% - 40px)', overflowY: 'auto' }}
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+              style={{ width: 340, overflowY: 'hidden' }}
               onClick={(e) => e.stopPropagation()}
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <RemindersSettingsContent
-                  useOneMinuteIncrements={useOneMinuteTimeIncrements}
+                  calendarAvailable={isRemindersEnabled && calendarFlag}
+                  soundsAvailable={soundsFlag}
+                  nlcAvailable={isNlcAvailable}
+                  nlcPrefs={nlcPrefs}
+                  onNlcChange={(key, value) => nlcPrefSetters[key](value)}
+                  repeatsAvailable={isRepeatRemindersActive}
+                  hapticsAvailable={hapticsFlag}
+                  oneMinuteAvailable={isOneMinuteAvailable}
+                  oneMinuteOn={useOneMinuteTimeIncrements}
+                  onOneMinuteChange={setUseOneMinuteTimeIncrements}
+                  siriAvailable={isSiriRemindersAvailable}
                   siriOn={remindersSettingsSiriOn}
                   onSiriChange={setRemindersSettingsSiriOn}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleRemindersSettingsTutorialOpen : undefined}
@@ -5413,14 +5227,17 @@ export default function App() {
       {isListsSettingsPanelOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsListsSettingsPanelOpen(false)} />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto outline-none"
-              style={{ width: 340, maxHeight: 'calc(100% - 40px)', overflowY: 'auto' }}
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+              style={{ width: 340, overflowY: 'hidden' }}
               onClick={(e) => e.stopPropagation()}
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <ListsSettingsContent
+                  soundsAvailable={soundsFlag}
+                  hapticsAvailable={hapticsFlag}
+                  siriAvailable={isSiriListsAvailable}
                   siriOn={listsSettingsSiriOn}
                   onSiriChange={setListsSettingsSiriOn}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}

@@ -902,3 +902,123 @@ Completed:
 - Both feature branches retained
 
 Test results: Vitest 53/53 passed. Type check clean. Production build successful after merge. Product owner visual sign-off confirmed.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 0)
+
+Branch: feature/settings-flags-model (created from main at 15c44d4, matching origin/main)
+
+Completed:
+- Settings and feature flags model agreed and approved by senior developer review: dev tools flags control availability, user settings control state, one flag per feature, flags never reset preferences, development defaults off with options inside a feature on, existing installs keep established behaviour
+- docs/settings-audit.md: item-by-item audit of dev tools and user settings, decisions, defaults and migration matrix, review outcome, Phase 0 corrections
+- docs/settings-flags-spec.md: Phase 0 specification covering baseline results, code-validated findings, resolver, parent flags, repeat reminders flag, notifications, storage migration mapping, NLC, Siri, UI approach, acceptance criteria per phase and decisions for approval
+- No application code changed
+
+Test results (baseline on unchanged code): Vitest 53/53 passed. Self Check 334/334 passed (desktop browser). Repo guard passed. Web build succeeded. iOS simulator build succeeded. Type check not run (no tsconfig or TypeScript compiler in the project). Not deployed to device.
+
+Decisions: D1 to D9 provisionally approved by senior developer review (D3 visual sign-off in Phase 3, D4 with migration regression tests, D6 with rollback verified, D8 spoken Siri reply recorded as a future improvement, D9 as a separate tracked fix). D10 ask state key and values awaiting confirmation. Spec updated with repeat flag enforcement points, ask state values, rollback behaviour and expanded acceptance criteria.
+
+Outstanding: D10 confirmation. Phase 1 awaits approval.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 1)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Phase 0 final review corrections recorded in docs/settings-flags-spec.md (independent alerts and badge, D10 refinements, Phase 1 boundary, existing-install detection check)
+- New src/app/settings/: keys.ts (storage keys and development defaults), resolver.ts (read-only isFeatureActive with parent flags, preferences and iOS permission), migration.ts (one-time copy of current keys to new keys, never overwrites, never deletes, schema marker reminderly-settings-schema = 1)
+- Migration runs in src/main.tsx before the app renders
+- Dev tools Enable reminders, Enable notifications and Repeat reminders toggles now saved (reminderly-ff-reminders, reminderly-ff-notifications, reminderly-ff-repeat-reminders). Nothing outside dev tools reads them yet
+- New Self Check suite "Settings foundation" (17 checks, in-memory storage), also run by Vitest (src/app/__tests__/settings.test.ts)
+- The app still reads its current keys. No user-facing behaviour change
+
+Test results: Vitest 70/70 passed. Self Check 351/351 passed (desktop browser). Repo guard passed. Web build succeeded. iOS simulator and iPhone builds succeeded with refreshed web assets. Existing-install detection verified (first launch with no data saves the detection keys). Simulator upgrade and rollback test passed (main -> Phase 1 -> main -> Phase 1: data and current keys unchanged, no second migration). iPhone 15 Pro upgrade verified with real data (25 reminders, 4 repeating, 17 lists): data and current keys unchanged, new keys correct.
+
+Outstanding: Phase 2 awaits approval. Phase 3 dependency on settings changed in dev tools after migration recorded in the spec.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 1.1)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- One authoritative storage key per setting. App.tsx reads 16 settings through useStoredSetting (src/app/settings/useStoredSetting.ts): read once, written only on change. The 16 write-on-startup effects were removed
+- Migrated settings now read and written only under their new keys (reminderly-ff-lists, reminderly-pref-one-minute-increments, reminderly-pref-notif-alerts, reminderly-pref-notif-badge, reminderly-pref-notif-include-today, reminderly-config-tutorial-first-launch, reminderly-test-tutorial-every-start, reminderly-config-templates-in-clean-state, reminderly-ff-siri-reminders). Haptics uses reminderly-pref-haptics. utils/featureFlags.ts (dummy lists) reads reminderly-ff-lists with the same fallback as the app
+- Transitional fallbacks equal to the current app defaults (TRANSITIONAL_FALLBACKS in keys.ts). Development defaults take effect at each integration phase without overwriting saved values
+- F8 fixed: turning Lists off no longer saves smart reminders as off
+- Dev tools tutorial checks now use the new tutorial keys
+- 8 new Self Check checks and a Vitest source scan that fails if any legacy settings key is used outside the migration
+
+Test results: Vitest 79/79 passed. Self Check 359/359 passed (desktop browser). Repo guard passed. Web build, simulator and iPhone builds succeeded. Browser: new install writes no settings keys, second launch writes nothing, a Dev tools change writes only the authoritative key and persists after reload, smart reminders unchanged through Lists off and on (on and off cases). Simulator: Phase 1 to 1.1, relaunch, rollback to main and re-upgrade, no keys changed. iPhone 15 Pro: Phase 1 to 1.1 and restart with real data (25 reminders, 4 repeating, 17 lists), no keys changed.
+
+Outstanding: Phase 2 awaits review.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 2)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Dev tools home grouped into Feature flags, Config, Testing tools, and Access and diagnostics, using the existing rows and section heading style
+- Feature pages now hold availability flags only. New pages: Siri (Siri for reminders, Siri for lists locked off), Config, Testing tools, User preferences (temporary home for preference controls until Phase 3)
+- New 1 minute time increments availability flag (reminderly-ff-one-minute-increments), not yet read by the app
+- Reminders and Lists cannot both be off: canChangeModuleFlag in the resolver, used by every Dev tools change to either flag
+- Settings writes report failures through the existing "Storage unavailable" banner
+- Self checks page title renamed from Testing to Self checks
+- Tests: 2 new Self Check checks (last module guard, write failure) and a Vitest check that each of the 44 Dev tools controls appears exactly once
+
+Test results: Vitest 125/125 passed. Self Check 361/361 passed (desktop browser). Repo guard passed. Web build, simulator and iPhone builds succeeded. Browser (375px): structure checked, last module guard both directions, preferences and data unchanged, Lists off persisted through reload. Simulator and iPhone 15 Pro: installed in place, no stored keys changed. Manual iPhone Dev tools checks outstanding.
+
+Outstanding: manual iPhone checks; Phase 3 awaits review.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 2 corrections)
+
+Branch: feature/settings-flags-model
+
+Completed (after iPhone acceptance testing and audit):
+- C1: Show tutorial on first launch moved to Feature flags > Onboarding (same key and behaviour)
+- C2: Unimplemented Siri for lists, Phone number recognition and Contact recognition rows removed from Dev tools (keys unchanged)
+- C3: Settings writes only raise the storage error, never clear it, so they cannot hide a reminder or list save failure
+- C4: Preference controls renamed "Temporary user preferences", with info text stating they are temporary and do not control availability. They are removed in Phase 3
+
+Test results: Vitest 122/122 passed. Self Check 361/361 passed (desktop browser). Web build, simulator and iPhone builds succeeded. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator, no stored keys changed. iPhone retest outstanding.
+- Temporary user preferences page removed from Dev tools. Decision made 2026-10-11 12:23 BST by John (product owner): Dev tools controls availability only, users control their own preferences. Until their user settings are wired (Phase 3, notifications Phase 4), 1 minute increments, NLC options, notification alerts, badge, include today and haptics stay at their saved values (NLC options at their defaults). Vitest 111/111 passed
+
+### 2026-10-11 (feature/settings-flags-model - Phase 3 progress)
+
+Branch: feature/settings-flags-model
+
+- Steps 1 to 5 implemented (foundation, Reminders master with Lists-only layout and notification safeguard, Repeat reminders flag, 1 minute increments, Siri). C1 fix: Reminders off cancels pending then removes delivered Reminderly notifications, at toggle, launch and resume
+- iPhone acceptance (product owner): steps 1-2 visual tests, C1-C4, C6, D1-D4, E1-E3, F1-F4 passed. C5 confirmed as expected behaviour: notifications missed while Reminders was off are not re-created; future reminders resume and the badge is recalculated
+- Siri (G1-G4): deferred, not failed. Siri is unusable and off by default; to be addressed and tested separately
+- Steps 6 and 7 built (NLC and Haptic feedback user pages, Haptics availability flag), awaiting visual approval
+
+### 2026-10-11 (feature/settings-flags-model - Phase 3 complete)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Step 8: Show calendar and Sounds rows hidden behind their flags (reminderly-ff-calendar, reminderly-ff-sounds, default off, no Dev tools control until built). "Use Smart Reminders" removed from Lists settings (smart reminders is admin-only). No saved preferences or data changed
+- NLC preferences stored as booleans (reminderly-pref-nlc, -date, -time, -repeats, -auto-parsing); the original mode and recognition keys were never written by any build, so there is nothing to migrate
+- Phase 3 summary: availability flags wired for Reminders (Lists-only layout and notification safeguard), Repeat reminders, 1 minute increments, Siri, NLC, Haptics, Calendar and Sounds. Every working preference is set in Reminders or Lists settings. Dev tools holds availability, config and testing only
+
+Deferred: Siri testing (G1-G4). Phase 4 (notifications) not started.
+
+### 2026-10-11 (feature/settings-flags-model - settings overlay fixes from testing)
+
+Branch: feature/settings-flags-model
+
+- Centred overlays: at least 100px from the top and bottom of the screen (and clear of the notch and home indicator); content that does not fit scrolls inside the card. Settings overlays keep the title fixed. viewport-fit=cover added so safe-area insets are available
+- Haptic feedback page (product owner decision): the top "Haptic feedback" toggle turns every action off in one go and the actions stay listed. Turning it back on restores each action's previous choice (or turns all on if none were on). Turning an action on while the top toggle is off turns on only that action and the top toggle; turning the last action off turns the top toggle off. The Dev tools Haptics flag also preserves saved choices
+
+### 2026-10-11 (feature/settings-flags-model - Phase 3 closed)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Haptics redesign approved (product owner and senior developer): per-panel Haptic feedback on/off plus three literal switches per panel (Reminders: Creating, Completing, Deleting a reminder; Lists: Ticking off a list item, Completing a list, Deleting a list item). Related actions follow their parent switch. Existing choices preserved; no migration
+- Clean-up: unused per-action list removed; resolver treats haptics as on while either panel is on; 3 new Self Check checks (every action in exactly one switch, preserved choices, resolver)
+- Baselines updated: src/app/dev/BASELINE.md (clean run regenerated from the actual checks), docs/06-quality-and-dev/tests-and-baselines.md
+- Phase 3 approved for closure by the senior developer after physical iPhone testing (haptic feedback, smart reminders, list item editing all passed)
+
+Test results: Vitest 120/120 passed. Self Check 366/366 passed. Repo guard passed. Web, simulator and iPhone builds succeeded.
+
+Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised. Not merged to main.
+

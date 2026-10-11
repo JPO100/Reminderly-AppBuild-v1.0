@@ -62,6 +62,15 @@ function NavRow({ label, onClick, plain }: { label: string; onClick: () => void;
   );
 }
 
+// Group heading on the Dev tools home page (same style as SectionSubtitle)
+function GroupTitle({ text }: { text: string }) {
+  return (
+    <div className="flex h-[10px] items-center w-full mt-[24px] mb-[6px] first:mt-0">
+      <p className="font-['Lato:SemiBold',sans-serif] text-[14px] text-[#939393] leading-[normal]">{text}</p>
+    </div>
+  );
+}
+
 function NavRowWithToggle({ label, isOn, onToggle, onClick }: { label: string; isOn: boolean; onToggle: () => void; onClick: () => void }) {
   return (
     <button
@@ -92,12 +101,46 @@ function NavRowWithToggle({ label, isOn, onToggle, onClick }: { label: string; i
   );
 }
 
+// Shown when the last enabled of Reminders and Lists is tapped: one module must stay on.
+export function LastModuleNotice({ onClose }: { onClose: () => void }) {
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+        <div
+          className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
+          style={{ width: 340 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
+            <p className="leading-[normal] whitespace-pre-wrap">One module must stay on</p>
+          </div>
+          <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
+            <p className="leading-[normal] whitespace-pre-wrap">At least one of Reminders or Lists must stay on. Turn the other on first.</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-[50px] rounded-[100px] cursor-pointer px-[16px] w-full"
+            style={{ backgroundColor: '#4784F8' }}
+          >
+            <div className="flex items-center justify-center size-full">
+              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
+                <p className="leading-[normal]">OK</p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 const homeOverlayCopy: Record<string, { onTitle: string; onSubtitle: string; offTitle: string; offSubtitle: string }> = {
   reminders: {
     onTitle: 'Turn on reminders?',
-    onSubtitle: 'The Reminders feature will be enabled, turning on access to repeat reminders, time increments, and dummy reminders.',
+    onSubtitle: 'Reminders will be shown again, with reminder notifications and the badge restored.',
     offTitle: 'Turn off reminders?',
-    offSubtitle: 'The Reminders feature will be disabled, turning off access to repeat reminders, time increments, and dummy reminders.',
+    offSubtitle: 'The app will show Lists only. Reminder notifications stop and the badge clears. Reminders and settings are kept.',
   },
   lists: {
     onTitle: 'Turn on Lists?',
@@ -134,6 +177,9 @@ export default function DevTools({
   onNavigateOnboarding,
   onNavigateTesting,
   onNavigateSystem,
+  onNavigateSiri,
+  onNavigateConfig,
+  onNavigateDevToolsPassword,
   enableReminders,
   onEnableRemindersChange,
   enableLists,
@@ -153,6 +199,9 @@ export default function DevTools({
   onNavigateOnboarding: () => void;
   onNavigateTesting: () => void;
   onNavigateSystem: () => void;
+  onNavigateSiri: () => void;
+  onNavigateConfig: () => void;
+  onNavigateDevToolsPassword: () => void;
   enableReminders: boolean;
   onEnableRemindersChange: (value: boolean) => void;
   enableLists: boolean;
@@ -165,6 +214,7 @@ export default function DevTools({
   onEnableOnboardingChange: (value: boolean) => void;
 }) {
   const [pendingToggle, setPendingToggle] = useState<{ feature: string; target: boolean } | null>(null);
+  const [showLastModuleNotice, setShowLastModuleNotice] = useState(false);
 
   const handleConfirm = () => {
     if (!pendingToggle) return;
@@ -187,28 +237,42 @@ export default function DevTools({
       <Header onClose={onClose} />
       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[32px] items-center min-h-px min-w-px relative w-full">
         <div className="content-stretch flex flex-col items-start relative w-full" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <GroupTitle text="Feature flags" />
           <div className="content-stretch flex flex-col items-start relative shrink-0 w-full divide-y divide-[#E4E4E4]">
-            <NavRowWithToggle label="Reminders" isOn={enableReminders} onToggle={() => setPendingToggle({ feature: 'reminders', target: !enableReminders })} onClick={onNavigateReminders} />
-            <NavRowWithToggle label="Lists" isOn={enableLists} onToggle={() => setPendingToggle({ feature: 'lists', target: !enableLists })} onClick={onNavigateLists} />
+            {/* Reminders and Lists cannot both be off: the last one on shows a notice */}
+            <NavRowWithToggle label="Reminders" isOn={enableReminders} onToggle={() => { if (enableReminders && !enableLists) { setShowLastModuleNotice(true); return; } setPendingToggle({ feature: 'reminders', target: !enableReminders }); }} onClick={onNavigateReminders} />
+            <NavRowWithToggle label="Lists" isOn={enableLists} onToggle={() => { if (enableLists && !enableReminders) { setShowLastModuleNotice(true); return; } setPendingToggle({ feature: 'lists', target: !enableLists }); }} onClick={onNavigateLists} />
             <NavRowWithToggle label="Natural Language Capture" isOn={enableNlc} onToggle={() => setPendingToggle({ feature: 'nlc', target: !enableNlc })} onClick={onNavigateNlc} />
             <NavRowWithToggle label="Notifications" isOn={enableNotifications} onToggle={() => setPendingToggle({ feature: 'notifications', target: !enableNotifications })} onClick={onNavigateNotifications} />
+            <NavRow label="Siri" onClick={onNavigateSiri} plain />
             <NavRowWithToggle label="Onboarding" isOn={enableOnboarding} onToggle={() => setPendingToggle({ feature: 'onboarding', target: !enableOnboarding })} onClick={onNavigateOnboarding} />
-            <NavRow label="Testing" onClick={onNavigateTesting} plain />
             <NavRow label="System" onClick={onNavigateSystem} plain />
-            <div />
+          </div>
+          <GroupTitle text="Config" />
+          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
+            <NavRow label="Config" onClick={onNavigateConfig} plain />
+          </div>
+          <GroupTitle text="Testing tools" />
+          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
+            <NavRow label="Testing tools" onClick={onNavigateTesting} plain />
+          </div>
+          <GroupTitle text="Access and diagnostics" />
+          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
+            <NavRow label="Dev tools password" onClick={onNavigateDevToolsPassword} plain />
           </div>
         </div>
       </div>
     </div>
+      {showLastModuleNotice && <LastModuleNotice onClose={() => setShowLastModuleNotice(false)} />}
       {pendingToggle && copy && (
         <>
           <div
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingToggle(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto"
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >

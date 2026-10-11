@@ -289,3 +289,11 @@ describe('getNextTimeRefreshBoundary', () => {
     expect(result).toBe(expectedMs);
   });
 });
+
+// Phase 3: with Reminders off the app syncs an empty list, which must schedule nothing
+// (the sync then cancels every pending Reminderly notification, including the midnight badge one).
+describe('reminders off safeguard', () => {
+  it('an empty reminder list builds no notifications', () => {
+    expect(buildScheduledNotifications([], true, true)).toEqual([]);
+  });
+});

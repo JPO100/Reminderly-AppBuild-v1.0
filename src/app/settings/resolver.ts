@@ -96,3 +96,8 @@ export function isFeatureActive(
   if (def.needsPermission && !permissionGranted) return false;
   return true;
 }
+
+/** Reminders and Lists cannot both be off: turning one off is allowed only while the other is on. */
+export function canChangeModuleFlag(next: boolean, otherModuleOn: boolean): boolean {
+  return next || otherModuleOn;
+}

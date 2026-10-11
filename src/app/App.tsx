@@ -24,7 +24,7 @@ import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from "./notifications";
-import { useStoredSetting } from "./settings/useStoredSetting";
+import { setSettingsWriteListener, useStoredSetting } from "./settings/useStoredSetting";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
 import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
@@ -1783,7 +1783,8 @@ export default function App() {
   useEffect(() => {
     _onPersistenceError = () => setPersistenceError(true);
     _onPersistenceSuccess = () => setPersistenceError(false);
-    return () => { _onPersistenceError = null; _onPersistenceSuccess = null; };
+    setSettingsWriteListener((ok) => setPersistenceError(!ok));
+    return () => { _onPersistenceError = null; _onPersistenceSuccess = null; setSettingsWriteListener(null); };
   }, []);
 
   // Calculate overlay top position based on viewport height

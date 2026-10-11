@@ -100,4 +100,5 @@ export const TRANSITIONAL_FALLBACKS: Record<string, boolean> = {
   'reminderly-ff-reminders': true,
   'reminderly-ff-notifications': true,
   'reminderly-ff-repeat-reminders': true,
+  'reminderly-ff-one-minute-increments': true,
 };

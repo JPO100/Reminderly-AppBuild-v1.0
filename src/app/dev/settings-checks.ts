@@ -10,9 +10,9 @@
 
 import type { Check } from './check-system';
 import { migrateSettings } from '../settings/migration';
-import { ALL_FEATURES, isFeatureActive, readSetting } from '../settings/resolver';
+import { ALL_FEATURES, canChangeModuleFlag, isFeatureActive, readSetting } from '../settings/resolver';
 import { SETTINGS_SCHEMA_KEY, TRANSITIONAL_FALLBACKS } from '../settings/keys';
-import { readStoredBool, writeStoredBool } from '../settings/useStoredSetting';
+import { readStoredBool, setSettingsWriteListener, writeStoredBool } from '../settings/useStoredSetting';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -318,6 +318,36 @@ export function getSettingsChecks(): Check[] {
         for (const key of Object.keys(TRANSITIONAL_FALLBACKS)) readStoredBool(key, undefined, storage);
         const prefKeys = Object.keys(storage.snapshot()).filter((key) => key.startsWith('reminderly-pref-'));
         assert(prefKeys.length === 0, `Unexpected preference keys: ${prefKeys.join(', ')}`);
+      },
+    },
+
+    {
+      id: 'settings-stored-write-failure',
+      name: 'Stored settings: a failed write is reported, a successful write clears it',
+      run: () => {
+        const results: boolean[] = [];
+        const previous = setSettingsWriteListener((ok) => results.push(ok));
+        try {
+          const failing = { getItem: () => null, setItem: () => { throw new Error('Quota exceeded'); } };
+          assert(writeStoredBool('reminderly-pref-notif-badge', false, failing) === false, 'Failed write should return false');
+          const working = memoryStorage();
+          assert(writeStoredBool('reminderly-pref-notif-badge', false, working) === true, 'Successful write should return true');
+          assert(working.getItem('reminderly-pref-notif-badge') === 'false', 'Value should be saved');
+        } finally {
+          setSettingsWriteListener(previous);
+        }
+        assert(JSON.stringify(results) === JSON.stringify([false, true]), `Expected [false, true], got ${JSON.stringify(results)}`);
+      },
+    },
+
+    // Dev tools (Phase 2)
+    {
+      id: 'settings-last-module',
+      name: 'Dev tools: the last enabled of Reminders and Lists cannot be turned off',
+      run: () => {
+        assert(!canChangeModuleFlag(false, false), 'Turning off Reminders with Lists off should be rejected');
+        assert(canChangeModuleFlag(false, true), 'Turning off Reminders with Lists on should be allowed');
+        assert(canChangeModuleFlag(true, false), 'Turning a module on should always be allowed');
       },
     },
 

@@ -62,6 +62,15 @@ function NavRow({ label, onClick, plain }: { label: string; onClick: () => void;
   );
 }
 
+// Group heading on the Dev tools home page (same style as SectionSubtitle)
+function GroupTitle({ text }: { text: string }) {
+  return (
+    <div className="flex h-[10px] items-center w-full mt-[24px] mb-[6px] first:mt-0">
+      <p className="font-['Lato:SemiBold',sans-serif] text-[14px] text-[#939393] leading-[normal]">{text}</p>
+    </div>
+  );
+}
+
 function NavRowWithToggle({ label, isOn, onToggle, onClick }: { label: string; isOn: boolean; onToggle: () => void; onClick: () => void }) {
   return (
     <button
@@ -134,6 +143,9 @@ export default function DevTools({
   onNavigateOnboarding,
   onNavigateTesting,
   onNavigateSystem,
+  onNavigateSiri,
+  onNavigateConfig,
+  onNavigateDevToolsPassword,
   enableReminders,
   onEnableRemindersChange,
   enableLists,
@@ -153,6 +165,9 @@ export default function DevTools({
   onNavigateOnboarding: () => void;
   onNavigateTesting: () => void;
   onNavigateSystem: () => void;
+  onNavigateSiri: () => void;
+  onNavigateConfig: () => void;
+  onNavigateDevToolsPassword: () => void;
   enableReminders: boolean;
   onEnableRemindersChange: (value: boolean) => void;
   enableLists: boolean;
@@ -187,15 +202,28 @@ export default function DevTools({
       <Header onClose={onClose} />
       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[32px] items-center min-h-px min-w-px relative w-full">
         <div className="content-stretch flex flex-col items-start relative w-full" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <GroupTitle text="Feature flags" />
           <div className="content-stretch flex flex-col items-start relative shrink-0 w-full divide-y divide-[#E4E4E4]">
-            <NavRowWithToggle label="Reminders" isOn={enableReminders} onToggle={() => setPendingToggle({ feature: 'reminders', target: !enableReminders })} onClick={onNavigateReminders} />
-            <NavRowWithToggle label="Lists" isOn={enableLists} onToggle={() => setPendingToggle({ feature: 'lists', target: !enableLists })} onClick={onNavigateLists} />
+            {/* Reminders and Lists cannot both be off: the last one on ignores the tap */}
+            <NavRowWithToggle label="Reminders" isOn={enableReminders} onToggle={() => { if (enableReminders && !enableLists) return; setPendingToggle({ feature: 'reminders', target: !enableReminders }); }} onClick={onNavigateReminders} />
+            <NavRowWithToggle label="Lists" isOn={enableLists} onToggle={() => { if (enableLists && !enableReminders) return; setPendingToggle({ feature: 'lists', target: !enableLists }); }} onClick={onNavigateLists} />
             <NavRowWithToggle label="Natural Language Capture" isOn={enableNlc} onToggle={() => setPendingToggle({ feature: 'nlc', target: !enableNlc })} onClick={onNavigateNlc} />
             <NavRowWithToggle label="Notifications" isOn={enableNotifications} onToggle={() => setPendingToggle({ feature: 'notifications', target: !enableNotifications })} onClick={onNavigateNotifications} />
+            <NavRow label="Siri" onClick={onNavigateSiri} plain />
             <NavRowWithToggle label="Onboarding" isOn={enableOnboarding} onToggle={() => setPendingToggle({ feature: 'onboarding', target: !enableOnboarding })} onClick={onNavigateOnboarding} />
-            <NavRow label="Testing" onClick={onNavigateTesting} plain />
             <NavRow label="System" onClick={onNavigateSystem} plain />
-            <div />
+          </div>
+          <GroupTitle text="Config" />
+          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
+            <NavRow label="Config" onClick={onNavigateConfig} plain />
+          </div>
+          <GroupTitle text="Testing tools" />
+          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
+            <NavRow label="Testing tools" onClick={onNavigateTesting} plain />
+          </div>
+          <GroupTitle text="Access and diagnostics" />
+          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full">
+            <NavRow label="Dev tools password" onClick={onNavigateDevToolsPassword} plain />
           </div>
         </div>
       </div>

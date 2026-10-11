@@ -49,3 +49,33 @@ describe('no legacy settings keys in active code', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+// Phase 2: every Dev tools control from docs/settings-audit.md appears exactly once.
+describe('dev tools controls', () => {
+  const files = ['components/DevToolsOverlay.tsx', '../imports/DevTools.tsx'].map((file) =>
+    fs.readFileSync(path.resolve(__dirname, '..', file), 'utf8'),
+  ).join('\n');
+  const controls = [
+    // Feature flags
+    'Reminders', 'Enable reminders', 'Repeat reminders', '1 minute time increments',
+    'Lists', 'Enable lists', 'Smart reminders', 'List templates', 'Pinned lists',
+    'Natural Language Capture', 'Enable Natural Language Capture', 'Phone number recognition', 'Contact recognition',
+    'Notifications', 'Enable notifications',
+    'Siri', 'Siri for reminders', 'Siri for lists',
+    'Onboarding', 'Enable onboarding',
+    'System', 'Settings menu', 'Show info icons',
+    // Config
+    'Config', 'Show tutorial on first launch', 'Use template set in clean state',
+    // Testing tools
+    'Testing tools', 'Self checks', 'Dummy reminders', 'Dummy lists', 'Show tutorial on every app start',
+    'User preferences', 'Display 1 minute time increments', 'Date recognition', 'Time recognition', 'Repeats recognition',
+    'Auto-parsing', 'Click-parsing', 'Reminder system notifications', 'Reminder app badge notifications',
+    'Include today in app badge count', 'Haptics',
+    // Access and diagnostics
+    'Dev tools password', 'Password required',
+  ];
+
+  it.each(controls)('%s appears exactly once', (label) => {
+    expect(files.split(`label="${label}"`).length - 1).toBe(1);
+  });
+});

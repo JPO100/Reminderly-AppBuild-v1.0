@@ -21,11 +21,25 @@ export function readStoredBool(
   return fallback;
 }
 
-export function writeStoredBool(key: string, value: boolean, storage: SettingsStorage = localStorage) {
+// Receives the result of every settings write, so the app can show its existing storage error.
+let writeListener: ((ok: boolean) => void) | null = null;
+
+/** Sets the write listener and returns the previous one. */
+export function setSettingsWriteListener(listener: ((ok: boolean) => void) | null) {
+  const previous = writeListener;
+  writeListener = listener;
+  return previous;
+}
+
+/** Returns false when the value could not be saved. */
+export function writeStoredBool(key: string, value: boolean, storage: SettingsStorage = localStorage): boolean {
   try {
     storage.setItem(key, String(value));
+    writeListener?.(true);
+    return true;
   } catch {
-    // Fail silently
+    writeListener?.(false);
+    return false;
   }
 }
 

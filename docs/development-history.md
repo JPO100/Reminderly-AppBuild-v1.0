@@ -1047,3 +1047,15 @@ Completed:
 - Decisions (senior developer): no TypeScript tooling added (check not applicable); SOUND_GROUPS defined in sounds.ts to avoid a circular import, kept in step with HAPTIC_GROUPS by Self Check
 
 Test results: Vitest 132/132 passed. Self Check 369/369 passed (Node run). Repo guard passed. Web, simulator and iPhone builds succeeded.
+
+### 2026-10-11 (feature/click-sounds merged into main)
+
+Branch: main
+
+Completed:
+- feature/click-sounds merged into main (merge commit 1b7cd66, branch head 30769b8), approved by the senior developer after physical iPhone testing passed. Merge introduced no changes beyond the branch (identical tree). Click sounds: Web Audio click on the same actions as haptics, Sounds pages in Reminders and Lists settings with choices saved separately from haptics (both panels off by default), Dev tools > System > Sounds availability flag (reminderly-ff-sounds, off by default), feedback on the New reminder and New list buttons, Creating a list switch added to Lists haptics and sounds
+- Branch retained
+
+Test results (post-merge on main): Vitest 132/132 passed. Repo guard passed. Production build succeeded. Self Check 369/369 passed on the branch (identical tree).
+
+Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised.

@@ -327,6 +327,15 @@ Acceptance criteria:
 - Enable reminders, Enable notifications and Repeat reminders are saved flags.
 - No visible change in behaviour for an existing install or a new install.
 
+Phase 1.1 - Single source of truth (approved after Phase 1)
+- Every setting the app or Dev tools reads is stored under one authoritative key: the new key for migrated settings (8.2), the existing key for the rest. Legacy keys are only read by the migration.
+- `useStoredSetting(key)` (`src/app/settings/useStoredSetting.ts`): reads the key once on mount; `'true'` or `'false'` as saved, otherwise the fallback (a malformed value is left as it is); writes only when the setter is called. The app no longer writes settings on startup.
+- Haptics keeps its own JSON load and merge logic in `utils/haptics.ts`, now under `reminderly-pref-haptics`.
+- F8 fixed: Lists off no longer saves smart reminders as off. The app already uses Lists AND smart reminders.
+- Transitional fallbacks (`TRANSITIONAL_FALLBACKS` in `keys.ts`) are the current app defaults, so behaviour is unchanged. Where they differ from the development defaults (alerts, badge, haptics, smart reminders, list templates), a new install behaves as today until the integration phase. Because nothing is written on startup, the key stays missing, and the switch to the development defaults in Phase 3 (Phase 4 for notifications) applies to new installs without overwriting any saved choice. Existing installs have explicit values (from the migration or from the old app), so the switch does not affect them.
+- Smart reminders and list templates for existing installs: explicitly saved values are kept, including `false`. A missing value takes the approved default of on once integrated. No forced enable.
+- Rollback: legacy keys are no longer written, so they stay at their pre-migration values for a `main` build.
+
 Phase 2 - Dev tools restructure
 - Dev tools shows the four groups. Every item in the audit is present in exactly one group.
 - The last master flag cannot be turned off.

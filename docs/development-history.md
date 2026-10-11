@@ -935,3 +935,19 @@ Test results: Vitest 70/70 passed. Self Check 351/351 passed (desktop browser). 
 
 Outstanding: Phase 2 awaits approval. Phase 3 dependency on settings changed in dev tools after migration recorded in the spec.
 
+### 2026-10-11 (feature/settings-flags-model - Phase 1.1)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- One authoritative storage key per setting. App.tsx reads 16 settings through useStoredSetting (src/app/settings/useStoredSetting.ts): read once, written only on change. The 16 write-on-startup effects were removed
+- Migrated settings now read and written only under their new keys (reminderly-ff-lists, reminderly-pref-one-minute-increments, reminderly-pref-notif-alerts, reminderly-pref-notif-badge, reminderly-pref-notif-include-today, reminderly-config-tutorial-first-launch, reminderly-test-tutorial-every-start, reminderly-config-templates-in-clean-state, reminderly-ff-siri-reminders). Haptics uses reminderly-pref-haptics. utils/featureFlags.ts (dummy lists) reads reminderly-ff-lists with the same fallback as the app
+- Transitional fallbacks equal to the current app defaults (TRANSITIONAL_FALLBACKS in keys.ts). Development defaults take effect at each integration phase without overwriting saved values
+- F8 fixed: turning Lists off no longer saves smart reminders as off
+- Dev tools tutorial checks now use the new tutorial keys
+- 8 new Self Check checks and a Vitest source scan that fails if any legacy settings key is used outside the migration
+
+Test results: Vitest 79/79 passed. Self Check 359/359 passed (desktop browser). Repo guard passed. Web build, simulator and iPhone builds succeeded. Browser: new install writes no settings keys, second launch writes nothing, a Dev tools change writes only the authoritative key and persists after reload, smart reminders unchanged through Lists off and on (on and off cases). Simulator: Phase 1 to 1.1, relaunch, rollback to main and re-upgrade, no keys changed. iPhone 15 Pro: Phase 1 to 1.1 and restart with real data (25 reminders, 4 repeating, 17 lists), no keys changed.
+
+Outstanding: Phase 2 awaits review.
+

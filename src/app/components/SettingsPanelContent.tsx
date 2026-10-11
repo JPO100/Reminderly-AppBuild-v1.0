@@ -63,17 +63,33 @@ function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; o
 }
 
 // Haptic feedback sub-page. The saved choices are shared by both settings panels.
+// The top toggle switches every action on or off in one go; the actions always stay listed.
 function HapticSettings() {
   const [config, setConfig] = useState<HapticsConfig>(getHapticsConfig);
   const update = (next: HapticsConfig) => {
     setConfig(next);
     setHapticsConfig(next);
   };
+  const setAll = (on: boolean) => {
+    const next = { ...config, allHaptics: on };
+    for (const { action } of HAPTIC_ACTION_LABELS) next[action] = on;
+    update(next);
+  };
+  const setAction = (action: (typeof HAPTIC_ACTION_LABELS)[number]['action'], on: boolean) => {
+    // While the top toggle is off every action counts as off, so turning one on enables only that one
+    const next = { ...config };
+    if (!config.allHaptics) for (const { action: a } of HAPTIC_ACTION_LABELS) next[a] = false;
+    next[action] = on;
+    // The top toggle is on while any action is on
+    next.allHaptics = HAPTIC_ACTION_LABELS.some(({ action: a }) => next[a]);
+    update(next);
+  };
+  const isOn = (action: (typeof HAPTIC_ACTION_LABELS)[number]['action']) => config.allHaptics && config[action];
   return (
     <>
-      <ToggleRow label="Haptic feedback" isOn={config.allHaptics} onToggle={() => update({ ...config, allHaptics: !config.allHaptics })} infoTitle="Small vibrations when you use Reminderly. Turn off to stop all of them." />
-      {config.allHaptics && HAPTIC_ACTION_LABELS.map(({ action, label, info }) => (
-        <ToggleRow key={action} label={label} isOn={config[action]} onToggle={() => update({ ...config, [action]: !config[action] })} infoTitle={info} />
+      <ToggleRow label="Haptic feedback" isOn={config.allHaptics} onToggle={() => setAll(!config.allHaptics)} infoTitle="Turns every vibration below on or off in one go." />
+      {HAPTIC_ACTION_LABELS.map(({ action, label, info }) => (
+        <ToggleRow key={action} label={label} isOn={isOn(action)} onToggle={() => setAction(action, !isOn(action))} infoTitle={info} />
       ))}
     </>
   );

@@ -15,7 +15,7 @@ Decision (2026-10-11 12:23 BST, John, product owner): Dev tools controls availab
 
 ## Self-Check Suite
 
-See [Self-Check System](./self-check-system.md). The current suite runs 361 checks across 10 sections, including the Settings foundation section (desktop browser, 2026-10-11).
+See [Self-Check System](./self-check-system.md). The current suite runs 361 checks from 10 suites, including the Settings foundation suite (desktop browser, 2026-10-11).
 
 ## Related Documentation
 

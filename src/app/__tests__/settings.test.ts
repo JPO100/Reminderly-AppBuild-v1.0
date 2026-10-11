@@ -61,11 +61,11 @@ describe('dev tools controls', () => {
     'Lists', 'Enable lists', 'Smart reminders', 'List templates', 'Pinned lists',
     'Natural Language Capture', 'Enable Natural Language Capture',
     'Notifications', 'Enable notifications',
-    'Siri', 'Siri for reminders',
+    'Siri shortcuts', 'Siri for reminders',
     'Onboarding', 'Enable onboarding', 'Show tutorial on first launch',
     'System', 'Haptics', 'Settings menu', 'Show info icons',
     // Config
-    'Config', 'Use template set in clean state',
+    'Config tools', 'Use template set in clean state',
     // Testing tools
     'Testing tools', 'Self checks', 'Dummy reminders', 'Dummy lists', 'Show tutorial on every app start',
     // Access and diagnostics

@@ -1,42 +1,9 @@
-import svgPaths from "./svg-enpj30u9ti";
 import { useState, useEffect, useRef } from "react";
-import { InfoIconWithOverlay } from "../app/components/DevToolsOverlay";
+import { InfoIconWithOverlay, DevHeader } from "../app/components/DevToolsOverlay";
 import { isListsEnabled } from "../app/utils/featureFlags";
 import { generateDummyLists } from "../app/utils/dummy-list-generator";
 import type { GeneratedDummyListsPayload } from "../app/utils/dummy-list-generator";
 
-function Header({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
-  return (
-    <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-name="header">
-      <div className="content-stretch flex gap-[20px] items-center relative shrink-0">
-        <button onClick={onBack} className="cursor-pointer shrink-0" aria-label="Back">
-          <div className="h-[17px] relative shrink-0 w-[9px]" data-name="Union">
-            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 9 17">
-              <path d={svgPaths.p347e8980} fill="var(--fill-0, #1C2C42)" id="Union" />
-            </svg>
-          </div>
-        </button>
-        <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] whitespace-nowrap">
-          <p className="leading-[normal]">Dummy lists</p>
-        </div>
-      </div>
-      <button
-        onClick={onClose}
-        className="flex items-center justify-center relative shrink-0 size-[25.456px] cursor-pointer"
-        aria-label="Close dev tools"
-        style={{ "--transform-inner-width": "1200", "--transform-inner-height": "19" } as React.CSSProperties}
-      >
-        <div className="flex-none rotate-45">
-          <div className="relative size-[18px]" data-name="Union">
-            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-              <path d={svgPaths.p1cbc7100} fill="var(--fill-0, #1C2C42)" id="Union" />
-            </svg>
-          </div>
-        </div>
-      </button>
-    </div>
-  );
-}
 
 export default function DummyLists({ onBack, onClose, onClearLists, onGenerateLists }: { onBack: () => void; onClose: () => void; onClearLists: () => void; onGenerateLists: (payload: GeneratedDummyListsPayload) => void }) {
   const [numberOfLists, setNumberOfLists] = useState("11");
@@ -102,10 +69,11 @@ export default function DummyLists({ onBack, onClose, onClearLists, onGenerateLi
   };
 
   return (
-    <div className="bg-white content-stretch flex flex-col gap-[30px] items-start pb-[30px] pt-[30px] px-[20px] relative rounded-tl-[20px] rounded-tr-[20px] size-full" data-name="dummy lists">
-      <Header onBack={onBack} onClose={onClose} />
+    <div className="content-stretch flex flex-col gap-[24px] items-start pb-[24px] pt-[24px] px-[20px] relative size-full" data-name="dummy lists">
+      <DevHeader title="Dummy lists" onBack={onBack} onClose={onClose} />
       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[32px] items-center min-h-px min-w-px relative w-full" style={!listsEnabled ? { opacity: 0.5, pointerEvents: 'none' } : undefined}>
-        <div className="content-stretch flex flex-col gap-[30px] items-start relative w-full" data-name="Scrollable List Area" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <div className="content-stretch flex flex-col items-start relative w-full" data-name="Scrollable List Area" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <div className="bg-white rounded-[6px] p-[20px] flex flex-col gap-[30px] items-start w-full shrink-0">
           <div className="content-stretch flex flex-col gap-[10px] items-start relative w-full">
             {/* Number of lists */}
             <div className="h-[51px] relative shrink-0 w-full">
@@ -210,6 +178,7 @@ export default function DummyLists({ onBack, onClose, onClearLists, onGenerateLi
                 </svg>
               </div>
             </button>
+          </div>
           </div>
         </div>
         {/* Clear lists and Generate lists buttons */}

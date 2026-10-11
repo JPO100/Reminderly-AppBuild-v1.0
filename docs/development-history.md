@@ -1067,3 +1067,18 @@ Branch: feature/ui-tweaks-2 (created from main at 1cabc35, approved by the produ
 Completed:
 - Settings overlay back arrow: the handler was wired, but only the 9x17 arrow glyph was tappable, so it appeared broken on iPhone. PanelHeader back button now has a 45x45 tap area with the arrow in the same position. Applies to every click-through page in Reminders and Lists settings. Dev tools back buttons have the same small tap area and are unchanged
 - Settings overlay height (product owner decision): Reminders and Lists settings cards are a fixed 450px tall, so moving between pages no longer resizes the card or moves the title. The existing centred overlay wrapper keeps at least 100px clear top and bottom; on shorter screens the card shrinks to fit and the rows scroll. Other centred overlays unchanged
+
+### 2026-10-11 (feature/dev-tools-restyle - Dev tools look and feel)
+
+Branch: feature/dev-tools-restyle (created from main at 1cabc35, approved by the product owner). Accepted by the product owner after iPhone testing, committed and pushed. Not merged.
+
+Completed:
+- Dev tools restyled to the product owner's mockups: #F7F7F7 page, 20px side and 24px top margins, 45px header (robot icon on home, blue back button on sub-pages, title centred, blue close button), white cards with 6px corners 24px apart, 60px rows with a full-width 1px #F7F7F7 separator
+- New Dev tools components in DevToolsOverlay.tsx (DevPage, DevHeader, DevCard, DevCardBody, DevToggleRow, DevNavToggleRow, DevMenuRow). Toggles sit to the left of the label. The shared ToggleRow, MenuRow and KeyLine used by the settings overlays and onboarding are unchanged
+- Home page: toggle rows grouped first, click-through rows after. Siri is now "Siri shortcuts" with a toggle (Siri for reminders flag, no confirmation) after Onboarding. Config row renamed "Config tools" (page title too), Testing card titled "Testing", Siri page titled "Siri shortcuts"
+- Login: robot logo, 70px password field with lock icon, 65px Login button, 6px corners. "Log-in to Reminderly" title and placeholder removed; eye icon, error and reveal behaviour kept
+- Other pages (Self checks, Dummy reminders, Dummy lists, Dev tools password) moved into white cards with their existing controls, for product owner review
+- settings.test.ts Dev tools label list updated for the renamed rows
+- Dev tools panel now opens level with the top of the logo (other sliding panels unchanged, still 28px below it), with 15px top corners visible. Pages inside the panel have no background of their own, because iOS painted the corners black when clipping scrolling content
+
+Test results: Vitest 132/132 passed. Self Check 369/369 passed (in-app). Repo guard passed.

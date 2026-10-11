@@ -11,11 +11,12 @@ import type { SoundsConfig } from "../utils/sounds";
 // Each panel has its own Siri preference, saved by App. Each row shows only when its Siri flag is on.
 
 // Centred overlay header: title centred, back arrow on the left for sub-pages.
+// The back button pads the 9x17 arrow to a 45x45 tap area; the negative left offset keeps the arrow in place.
 function PanelHeader({ title, onBack }: { title: string; onBack?: () => void }) {
   return (
     <div className="relative flex items-center justify-center shrink-0 w-full">
       {onBack && (
-        <button type="button" onClick={onBack} className="absolute left-0 top-1/2 -translate-y-1/2 cursor-pointer shrink-0 p-0 m-0 border-none bg-transparent" aria-label="Back">
+        <button type="button" onClick={onBack} className="absolute left-[-18px] top-1/2 -translate-y-1/2 cursor-pointer shrink-0 px-[18px] py-[14px] m-0 border-none bg-transparent z-[1]" aria-label="Back">
           <div className="h-[17px] relative shrink-0 w-[9px]">
             <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 9 17">
               <path d={svgPathsDummy.p347e8980} fill="#1C2C42" />

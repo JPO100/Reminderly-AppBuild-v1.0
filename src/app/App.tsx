@@ -5192,14 +5192,14 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Settings overlays (centred overlay standard) */}
+      {/* Settings overlays (centred overlay standard). Fixed 450px height so sub-pages do not resize the card; the wrapper keeps 100px clear top and bottom and shrinks the card on small screens, where rows scroll */}
       {isRemindersSettingsPanelOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsRemindersSettingsPanelOpen(false)} />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
               className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-              style={{ width: 340, overflowY: 'hidden' }}
+              style={{ width: 340, height: 450, overflowY: 'hidden' }}
               onClick={(e) => e.stopPropagation()}
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
@@ -5231,7 +5231,7 @@ export default function App() {
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
               className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-              style={{ width: 340, overflowY: 'hidden' }}
+              style={{ width: 340, height: 450, overflowY: 'hidden' }}
               onClick={(e) => e.stopPropagation()}
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>

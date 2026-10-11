@@ -1059,3 +1059,11 @@ Completed:
 Test results (post-merge on main): Vitest 132/132 passed. Repo guard passed. Production build succeeded. Self Check 369/369 passed on the branch (identical tree).
 
 Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised.
+
+### 2026-10-11 (feature/ui-tweaks-2 - UI tweaks)
+
+Branch: feature/ui-tweaks-2 (created from main at 1cabc35, approved by the product owner). Back arrow and overlay height changes accepted by the product owner after iPhone testing and committed. Not merged.
+
+Completed:
+- Settings overlay back arrow: the handler was wired, but only the 9x17 arrow glyph was tappable, so it appeared broken on iPhone. PanelHeader back button now has a 45x45 tap area with the arrow in the same position. Applies to every click-through page in Reminders and Lists settings. Dev tools back buttons have the same small tap area and are unchanged
+- Settings overlay height (product owner decision): Reminders and Lists settings cards are a fixed 450px tall, so moving between pages no longer resizes the card or moves the title. The existing centred overlay wrapper keeps at least 100px clear top and bottom; on shorter screens the card shrinks to fit and the rows scroll. Other centred overlays unchanged

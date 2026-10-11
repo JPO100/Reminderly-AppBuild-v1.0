@@ -1,7 +1,7 @@
 # Settings and feature flags - Phase 0 specification
 
 Branch: `feature/settings-flags-model` (created from `main` at `15c44d4`)
-Status: Phase 0 complete. Decisions D1 to D9 provisionally approved, D10 for confirmation (section 13). No application code changed. Phase 1 not started.
+Status: Phase 0 approved, including D1 to D10 and the corrections from the final review (sections 7.3, 7.4, 7.5, 8.1 and 12). Phase 1 authorised.
 Companion: `docs/settings-audit.md` (model, item-by-item audit, decisions, defaults and migration matrix)
 
 ## 1. Scope
@@ -167,25 +167,42 @@ Ask state key (D10): `reminderly-notif-ask-state`, a plain string.
 | `not-now-2` | Declined the in-app ask twice | None |
 | `accepted` | Accepted the in-app ask (the iOS prompt was then shown), or an existing install with permission already granted | None |
 
-- Any unrecognised value is treated as missing.
+- Accepting the in-app ask but denying the iOS prompt: the state stays `accepted`, so there are no further automatic asks. The user recovers through notification settings, which link to Reminderly's iOS Settings page.
+- Any unrecognised value suppresses automatic asks (it is not treated as missing). It is replaced only when the user interacts with notification settings.
 - The key records the in-app ask only. The iOS permission result is always read from iOS, never from this key.
 - Turning notifications on from settings while the state is `not-now-1` or `not-now-2` shows the iOS prompt (if iOS still allows it) and sets `accepted`.
 
 ### 7.4 Scheduled notifications and resync
 
+Alerts and badge are resolved independently. Each has its own active value from the resolver:
+- Alerts active = Reminders flag AND notifications flag AND alerts preference AND iOS permission.
+- Badge active = Reminders flag AND notifications flag AND badge preference AND iOS permission.
+
+What is scheduled:
+
+| Situation | Result |
+|---|---|
+| Alerts on, badge on | Schedule alerts carrying badge updates, plus the midnight badge notification |
+| Alerts on, badge off | Schedule alerts with no badge updates. Clear the badge |
+| Alerts off, badge on | Schedule silent badge-only updates, plus the midnight badge notification. No visible alerts |
+| Alerts off, badge off | Cancel all pending Reminderly notifications. Clear the badge |
+| Notifications flag off, or Reminders flag off | Cancel all pending Reminderly notifications. Clear the badge |
+| iOS permission not granted | Preferences unchanged. Nothing new is scheduled (iOS would not deliver it). Pending notifications are left as they are, as today. When permission returns, a resync schedules according to the saved preferences |
+
+- Turning one preference off never stops the other from working.
+- No permission state ever writes to the preferences.
+- The 64 pending-notification limit applies in every case.
+
 Resync (the existing cancel-and-reschedule-if-different logic) runs when:
 - Reminders change (as today).
-- Any notification preference or the notifications flag changes.
+- Any notification preference, the notifications flag or the Reminders flag changes.
 - The app returns to the foreground (new: re-check permission, then resync).
-- The Reminders flag changes.
-
-If the resolver says notifications are inactive (flag off, preferences off, or permission missing), pending Reminderly notifications are cancelled and the badge is cleared. The current code returns early without cancelling when permission is missing. With permission missing, iOS does not deliver them anyway, so cancelling is a clean-up rather than a behaviour change.
 
 ### 7.5 Existing installs
 
 - Alerts preference = saved `reminderly-notif-reminder-alerts` value, or on if never saved.
 - Badge and include today = their saved values, or on if never saved.
-- Ask state = `accepted` if iOS permission is already granted, so existing users are never asked again. If permission was never decided, the state stays missing and the normal ask applies.
+- Ask state: if the key is missing and iOS reports permission as granted, Phase 4 sets `accepted` at runtime, so existing users are never asked. This is done at runtime rather than in the migration, because permission must be read from iOS and the Phase 1 migration does not touch notification permission. If permission was never decided, the state stays missing and the normal ask applies.
 - Users who previously turned alerts off in dev tools: because of F1 they still received alerts. Their saved off value is honoured (D4, approved), so alerts stop for them. Covered by migration regression tests (section 12).
 
 ## 8. Storage and migration
@@ -197,7 +214,10 @@ If the resolver says notifications are inactive (flag off, preferences off, or p
 - Reads each old key. If present, copies the value as-is (an explicit `false` stays `false`). If absent, the new key is left unset and the default from the defaults table applies.
 - Old keys are left in place, not deleted, for one release to allow rollback. Deletion is a separate later change (D6, approved on condition that rollback is verified).
 - Rollback behaviour: a build from `main` installed over the new build reads only the old keys, which the migration never changes. That build sees settings as they were before migration. Changes made in the new build are not visible to it. Reminders and lists data are unaffected, because their storage is not migrated. Reinstalling the new build again finds `reminderly-settings-schema` = `1`, does not migrate again, and keeps the new keys.
-- New install versus existing install: an install is existing if `reminderly.reminders.v1`, `reminderly-created-lists` or `reminderly-active-main-tab` is present. The migration uses this only where the matrix gives new and existing installs different values (notifications, haptics, Siri, 1 minute increments).
+- New install versus existing install: an install is existing if `reminderly.reminders.v1`, `reminderly-created-lists` or `reminderly-active-main-tab` is present. The migration uses this only where the matrix gives new and existing installs different values (notifications and haptics).
+- Detection check: the current app saves these keys on its first launch even with no reminders or lists (for example `reminderly.reminders.v1` = `[]`). So any install that has opened the app once is detected as existing. Phase 1 verifies this with a fresh install of the `main` build that is opened and closed with no data. If it does not hold, the fallback is to treat the presence of any `reminderly` key as existing, and never to apply new-install defaults when unsure.
+- For existing installs, the migration writes explicit values wherever the existing-install value differs from the default. The defaults table can then hold one default per key, and the result does not depend on detecting the install type again later.
+- The migration only writes new keys. The app keeps reading its current keys until the integration phase for each setting (section 12, Phase 1 boundary).
 - Test keys (`reminderly-test-*`) are never read by the resolver for flags or preferences, so test overrides cannot change production behaviour.
 - Defaults live in one table in the settings module (needed for the later launch defaults review).
 
@@ -214,7 +234,7 @@ If the resolver says notifications are inactive (flag off, preferences off, or p
 | `reminderly-notif-reminder-alerts` | `reminderly-pref-notif-alerts` | New install: off. Existing: on | Copied (D4) |
 | `reminderly-notif-app-badge` | `reminderly-pref-notif-badge` | New install: off. Existing: on | Copied |
 | `reminderly-notif-include-today-in-badge` | `reminderly-pref-notif-include-today` | On | Copied |
-| - | `reminderly-notif-ask-state` (internal) | Missing (not asked). Existing install with permission granted: `accepted` | - |
+| - | `reminderly-notif-ask-state` (internal) | Missing (not asked). Not written by the migration. Set at runtime in Phase 4 (section 7.5) | - |
 | - | `reminderly-ff-haptics` | On | - |
 | `reminderly-haptics-config` | `reminderly-pref-haptics` | New install: all haptics off, actions on. Existing: all on (current default) | Copied |
 | `reminderly-ff-pinned-lists` | Unchanged | On | Kept |
@@ -277,14 +297,34 @@ Not migrated (data and internal state, unchanged): `reminderly.reminders.v1`, `r
 Each phase: small changes, Self Check extended, Vitest and Self Check pass, build, deploy to iPhone and simulator, manual checks below, report before the next phase.
 
 Phase 1 - Foundation (resolver, storage, migration)
+
+Scope: storage key definitions, defaults, the read-only resolver, the storage migration, persistence of the new flags, migration and resolver tests, Self Check coverage, and upgrade and rollback verification.
+
+Boundary: no user-facing change to navigation, recurrence, Siri, notification scheduling or permission, notification settings, NLC, settings layouts or dev tools organisation.
+- The app keeps reading and writing its current storage keys. Each setting moves to its new key in its integration phase: phase 3 for settings, phase 4 for notifications.
+- The new Enable reminders, Enable notifications and Repeat reminders flags are saved by the existing dev tools toggles, but nothing outside dev tools reads them in Phase 1. So turning them off cannot disable existing functionality.
+- The smart reminders and list templates default change (on where never saved) takes effect in Phase 3, when the app reads the resolver.
+- Dependency: values changed in dev tools after the migration has run are saved to the current keys only. Before the Phase 3 switch, either the new keys are refreshed from the current keys once, or development devices are reset. This only affects development devices, since these settings can only be changed in dev tools today. To be decided before Phase 3.
+
+Acceptance criteria:
 - Migration produces the mapping in 8.2 for: a new install, an existing install with all old keys, an existing install with some keys explicitly false, and a second run (no changes).
 - Migration regression tests (Vitest and Self Check) cover: alerts explicitly off stays off (D4), badge and include today explicitly off stay off, smart reminders and list templates explicitly off stay off, missing values take the matrix default, Siri on copies to the reminders flag and both preferences but not the lists flag.
 - Old keys are unchanged after migration (D6).
-- Rollback check: install the `main` build over the Phase 1 build on the simulator with real data. Reminders and lists intact, settings at their pre-migration values. Reinstall the Phase 1 build: no second migration, new values kept.
+- Existing-install detection verified: a `main` install opened once with no reminders or lists is detected as existing.
+- Upgrade and rollback test, with representative data and preferences:
+  1. Install the current `main` build with existing data and preferences.
+  2. Upgrade to the Phase 1 build.
+  3. Migration preserves reminders, lists and existing settings.
+  4. Install the `main` build over the Phase 1 build.
+  5. The `main` build still reads its existing data and preferences.
+  6. Reinstall the Phase 1 build.
+  7. Migration does not run again and new-format values are not overwritten.
+  Settings changed only in the Phase 1 build are not expected to appear in the `main` build. There is no two-way sync.
+- Vitest, Self Check (including new migration and resolver checks) and repo guard pass. Web build and iOS simulator build with refreshed web assets succeed. Deployed and checked on the physical iPhone.
 - Resolver returns the expected value for every flag, parent and preference combination in the matrix.
 - Turning any flag off and on leaves its preferences unchanged (including smart reminders after Lists off and on, F8).
 - Enable reminders, Enable notifications and Repeat reminders are saved flags.
-- No visible change in behaviour for an existing install.
+- No visible change in behaviour for an existing install or a new install.
 
 Phase 2 - Dev tools restructure
 - Dev tools shows the four groups. Every item in the audit is present in exactly one group.
@@ -302,8 +342,8 @@ Phase 3 - User settings connected
 Phase 4 - Notifications permission flow
 - Device checks for each permission state: not asked, accepted, not now, denied, and revoked then restored in iOS Settings.
 - The preference is unchanged by permission changes.
-- Each alerts and badge combination in 7.2 schedules as specified, checked in Vitest (`buildScheduledNotifications`) and on device. Alerts can be on with badge off, and badge on with alerts off. Badge count matches the existing badge rules.
-- Ask state values follow the table in 7.3, including unrecognised values treated as missing.
+- Every row of the table in 7.4 is tested in Vitest (`buildScheduledNotifications`) and on device: alerts on/badge on, alerts on/badge off, alerts off/badge on, alerts off/badge off, notifications flag off, Reminders flag off, and permission not granted then restored. Turning one preference off leaves the other working. Permission changes never change preferences. Badge count matches the existing badge rules. The 64 limit holds.
+- Ask state follows 7.3: missing, `not-now-1`, `not-now-2` and `accepted`, no further automatic asks after accepting and then denying the iOS prompt, and unrecognised values suppressing automatic asks.
 - Upgrade from the current `main` build keeps notifications working with no new prompt.
 
 Phase 5 - Integration and regression
@@ -324,7 +364,7 @@ Phase 5 - Integration and regression
 | D7 | Siri (lists) flag off until a Lists Siri action exists | Approved |
 | D8 | Siri request while Siri is inactive: keep silent discard | Approved. A spoken reply needs native work and is a future improvement |
 | D9 | Tutorial on first launch shows on every launch (F9) | Approved as a separate tracked fix, outside this work |
-| D10 | Ask state key `reminderly-notif-ask-state` with values missing, `not-now-1`, `not-now-2`, `accepted` (section 7.3) | For confirmation |
+| D10 | Ask state key `reminderly-notif-ask-state` with values missing, `not-now-1`, `not-now-2`, `accepted` (section 7.3) | Approved, with refinements: no further automatic asks after an iOS denial, and unrecognised values suppress automatic asks |
 
 ## 14. Future improvements (out of scope)
 

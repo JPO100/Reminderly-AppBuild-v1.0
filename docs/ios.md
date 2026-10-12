@@ -58,7 +58,7 @@ Scheduling, badge logic and the tap flow are described in [features/notification
 - `LocalNotificationsPlugin.swift`, `makeNotificationContent`: sets `content.badge` from the JS payload, so the icon badge updates when a notification fires, even with the app closed.
 - `LocalNotificationsHandler.swift`:
   - `willPresent`: stores the delivered badge in `UserDefaults` (`reminderly.nativeBadgeCount`).
-  - `didReceive`: for `mark-done` or `move-tomorrow`, reads `badgeDeltaOnAction` from the notification's `cap_extra`. If above 0, decrements the icon badge (not below 0), stores it, and reschedules every pending notification with its badge reduced by the same delta (under a background task).
+  - `didReceive`: for `mark-done` or `move-tomorrow`, reads `badgeDeltaOnAction` from the notification's `cap_extra`. If above 0, `correctBadgeAfterAction` decrements the icon badge (not below 0) and stores it, and `reschedulePendingBadges` re-adds every pending notification with its badge reduced by the same delta (under `beginBackgroundTask`).
 
 The badge correction affects counts only. The reminder change itself (done, moved, next repeat) happens in the web app when it next opens.
 

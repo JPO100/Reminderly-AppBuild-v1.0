@@ -161,13 +161,13 @@ Trigger: the filled circle on a done reminder in the archive.
 1. For repeating reminders, cancels any pending reschedule timer and computes the expected next occurrence.
 2. Clears `completedAt` immediately; the reminder reappears in the active list with fade-in and highlight.
 3. For repeating reminders, removes the spawned next occurrence if exactly one confident match exists (same original text, display text, repeat rule and expected schedule).
-4. The id stays in `pendingUncompleteIds` for 350ms so it remains visible in the archive while it fades out. Its original `completedAt` is held for stable sorting during the transition.
+4. The id stays in `pendingUncompleteIds` for 350ms so it remains visible in the archive while it fades out. Its original `completedAt` is held (`pendingUncompleteCompletedAtRef`) for stable sorting during the transition.
 
 ### Undelete (deleted to active or done)
 
 Trigger: the filled circle on a deleted reminder.
 
-1. Cancels any pending delete timer and captures the original `deletedAt` for stable sorting.
+1. Cancels any pending delete timer and captures the original `deletedAt` (`pendingUndeleteSortKeyRef`) for stable sorting.
 2. Clears `deletedAt` immediately. With no `completedAt` the reminder returns to the active list (fade-in, highlight); otherwise it stays in the archive as done.
 3. Stays in `pendingUndeleteIds` for 350ms, then fades from the deleted view.
 

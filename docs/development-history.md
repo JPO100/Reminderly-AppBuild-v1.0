@@ -41,6 +41,13 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### docs/rationalisation
+
+Created: 2026-10-12
+Parent: main (e194f02)
+Purpose: Documentation review and rationalisation (Phase 1 technical review, Phase 2 audit, approved by the CTO and John). About 64 active documents consolidated into about 16, each checked against the code: README, docs/architecture.md, docs/development.md, docs/ios.md, docs/design.md, docs/features/ (reminders, scheduling-and-nlc, notifications, lists, settings, onboarding), docs/plans/reminder-attachments.md. settings-flags-spec.md kept in place as the active specification. Dated reviews, completed plans and audits moved to docs/archive, including the Phase 1 review (docs/archive/codebase-review-2026-10-12.md). Removed: ARCHITECTURE.md, guidelines/Guidelines.md, the numbered docs/00-08 tree, the March restructure records, the Noterly specification and the 61 superseded files in docs/archive (original-docs and notes), all recoverable from Git history at e194f02. Three code comments updated to point at the new documents (comment-only). No application changes
+Status: Awaiting review by John and the CTO. Not merged
+
 ### feature/calendar-view
 
 Created: 2026-10-12

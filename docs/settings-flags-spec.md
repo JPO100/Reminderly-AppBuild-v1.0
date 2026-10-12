@@ -2,7 +2,7 @@
 
 Branch: `feature/settings-flags-model` (created from `main` at `15c44d4`)
 Status: Phase 0 approved, including D1 to D10 and the corrections from the final review (sections 7.3, 7.4, 7.5, 8.1 and 12). Phase 1 authorised.
-Companion: `docs/settings-audit.md` (model, item-by-item audit, decisions, defaults and migration matrix)
+Companion: `docs/archive/settings-audit.md` (model, item-by-item audit, decisions, defaults and migration matrix)
 
 ## 0. Decision record
 
@@ -298,7 +298,7 @@ Not migrated (data and internal state, unchanged): `reminderly.reminders.v1`, `r
 
 ### 11.1 UI and UX
 
-- All settings UI reuses the existing components and standards: `ToggleRow`, `MenuRow`, `PanelShell`, the centred overlay standard (`docs/05-design-and-layout/centred-overlay-ui.md`) and panel spacing (`docs/05-design-and-layout/sizing-spacing.md`). No new visual patterns.
+- All settings UI reuses the existing components and standards: `ToggleRow`, `MenuRow`, `PanelShell`, the centred overlay standard and panel spacing (`docs/design.md`). No new visual patterns.
 - Hidden rows are removed from the layout, not greyed out, so the overlays keep their spacing.
 - Three new pieces of UI have no existing pattern. Each will be built from existing components and shown for approval before it is finalised: the in-app notification ask, the "Turn on in Settings" row state, and the main screen when Reminders is off (D3).
 

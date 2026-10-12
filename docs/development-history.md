@@ -41,6 +41,13 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/calendar-view
+
+Created: 2026-10-12
+Parent: main (1b4b92d)
+Purpose: Calendar view on the Reminders tab - month grid with reminder dots, day selection, filter ranges, month navigation and New reminder date prefill. Behind `reminderly-ff-calendar` (Dev tools > Reminders) and the Show calendar setting `reminderly-pref-calendar`, both default off. Plan: docs/calendar-view-plan.md. Approved by the CTO and John
+Status: In progress
+
 ### feature/lock-screen-widget
 
 Created: 2026-10-12

@@ -46,7 +46,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 Created: 2026-10-12
 Parent: main (751ced4)
 Purpose: Circular lock screen widget - outstanding reminders for today (including overdue) with a completed-progress arc. Plan: docs/lock-screen-widget-plan.md
-Status: Committed on the branch, not merged or pushed (2026-10-12). Simulator test sheet passed; iPhone 15 Pro visual, count accuracy and flag off/on verified by the owner and from device data. Real overnight rollover accepted on simulator evidence
+Status: Merged into main (merge commit cf2c300, branch head ad60f1e, 2026-10-12). Pushed to origin
 
 ### feature/settings-panels-header-keyline
 
@@ -1101,3 +1101,14 @@ Completed:
 - Both branches retained
 
 Test results (post-merge on main): Vitest 132/132 passed. Self Check 369/369 passed (Node run). Repo guard passed. Production build succeeded.
+
+### 2026-10-12 (feature/lock-screen-widget merged into main)
+
+Branch: main
+
+Completed:
+- Merge approved by the senior developer after simulator test sheet (67 passed, 0 failed) and product owner iPhone 15 Pro checks (visual, count accuracy, flag off/on)
+- feature/lock-screen-widget merged into main (merge commit cf2c300, branch head ad60f1e), no conflicts: circular lock screen widget, WidgetBridge plugin, App Group, Dev tools > System > Lock screen widget flag (default on)
+- Branch pushed to origin and retained
+
+Test results (post-merge on main): Vitest 138/138 passed. Self Check 379/379 passed (Node run). TypeScript clean. Repo guard passed. Production build succeeded.

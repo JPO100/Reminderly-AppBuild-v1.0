@@ -45,8 +45,8 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 
 Created: 2026-10-12
 Parent: main (1b4b92d)
-Purpose: Calendar view on the Reminders tab - month grid with reminder dots, day selection, filter ranges, month navigation and New reminder date prefill. Behind `reminderly-ff-calendar` (Dev tools > Reminders) and the Show calendar setting `reminderly-pref-calendar`, both default off. Plan: docs/calendar-view-plan.md. Approved by the CTO and John
-Status: In progress
+Purpose: Calendar view on the Reminders tab - month grid with reminder dots, day selection, filter ranges, month navigation and New reminder date prefill. Behind `reminderly-ff-calendar` (Dev tools > Reminders) and the Show calendar setting `reminderly-pref-calendar`, both default off. Needs a screen at least 840pt tall. Plan: docs/calendar-view-plan.md. Approved by the CTO and John
+Status: Feature complete, pushed to origin, awaiting final CTO review and product owner device testing. Not merged
 
 ### feature/lock-screen-widget
 
@@ -1119,3 +1119,21 @@ Completed:
 - Branch pushed to origin and retained
 
 Test results (post-merge on main): Vitest 138/138 passed. Self Check 379/379 passed (Node run). TypeScript clean. Repo guard passed. Production build succeeded.
+
+### 2026-10-12 (feature/calendar-view - Calendar view)
+
+Branch: feature/calendar-view (created from main at 1b4b92d, approved by the CTO and John). Pushed. Not merged.
+
+Completed:
+- Month calendar between the filter row and the reminder list, behind the Dev tools > Reminders > Calendar flag and Reminders settings > Show calendar, both default off
+- Up to 4 dots per day by category; overdue stays on its original date; repeats show the current occurrence only; done, deleted and Sometime reminders have no dot
+- Tap a day to list its reminders (today includes overdue); filters highlight their date range and grey the rest; selecting a day clears the filter and the other way round
+- Month arrows and swipe; changing month clears the selected day and the list stays on today; active filters persist
+- New reminder from a selected future day starts with that date at 12pm
+- Empty day message "No reminders... take it easy!"; turning the calendar back on resets to today with no filter
+- Needs a screen at least 840pt tall; shorter screens keep the existing view and hide Show calendar (setting kept). Spacing tightened from the SVGs to fit 840pt (separate commit 0fe87e4, revertible)
+- Pure calendar helpers in reminder-utils.ts; RemindersCalendar component; no changes to scheduling, notifications, recurrence or badges
+
+Commits: fec8864 (flag and setting), c3c327e (calendar logic), 7bed069 (component), 9dc0772 (day selection), 350cf65 (navigation and New reminder date), 94707c5 (reset, empty day, 840pt minimum, tests), 0fe87e4 (spacing).
+
+Test results: Vitest 165/165 passed. Self Check 384/384 passed (Node run). Repo guard passed. Production build succeeded. Browser preview checks at 402x874, 390x844, 390x840 and 390x839. Built, installed and launched on the iPhone 17 Pro simulator and iPhone 15 Pro. Product owner on-device checks outstanding.

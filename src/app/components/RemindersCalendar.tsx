@@ -10,9 +10,7 @@ const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 const DATE_DARK = "#1C2C42";
 const DATE_GREY = "#D9D9D9";
 const ARROW_BLUE = "#0088FE";
-// Tightened from the SVGs (41pt rows, 45pt month row, 16.75 / 24pt heading gaps) so a 6-row month
-// leaves two reminder rows on an 840pt screen
-const ROW_HEIGHT = 38;
+const ROW_HEIGHT = 41;
 const SWIPE_MIN_PX = 50;
 
 export type CalendarColours = Record<CalendarDotKind, string>;
@@ -92,7 +90,7 @@ export default function RemindersCalendar({
       }}
     >
       {/* Month title and arrows */}
-      <div className="flex items-center justify-between h-[33px] w-full">
+      <div className="flex items-center justify-between h-[45px] w-full">
         <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] whitespace-nowrap pl-[10px]" style={{ color: DATE_DARK }}>
           {formatCalendarMonthTitle(year, month)}
         </p>
@@ -169,7 +167,7 @@ export default function RemindersCalendar({
       <div className="w-full h-px mt-[11px]" style={{ backgroundColor: "#E4E4E4" }} />
 
       {/* List heading, fixed above the scrolling list */}
-      <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] whitespace-nowrap" style={{ color: headingColour, marginTop: 10.75, marginBottom: -8.75 }}>
+      <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] whitespace-nowrap" style={{ color: headingColour, marginTop: 16.75, marginBottom: -2.75 }}>
         {heading}
       </p>
     </div>

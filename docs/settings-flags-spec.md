@@ -259,7 +259,7 @@ Resync (the existing cancel-and-reschedule-if-different logic) runs when:
 Phase 3 change: the NLC mode and recognition preferences are stored as boolean keys (above) instead of a mode string and a JSON object, so they use the same `useStoredSetting` path as every other preference. No build ever wrote the original keys, so there is nothing to migrate.
 | `reminderly-ff-settings-menu-v2` | Unchanged | Off | Kept |
 | `reminderly-ff-info-icons` | Unchanged | Off | Kept |
-| - | `reminderly-ff-calendar` | Off (Dev tools > Reminders > Calendar). With `reminderly-pref-calendar` (Show calendar, off) shows the calendar view on screens at least 880pt tall | - |
+| - | `reminderly-ff-calendar` | Off (Dev tools > Reminders > Calendar). With `reminderly-pref-calendar` (Show calendar, off) shows the calendar view on screens at least 852pt tall | - |
 | - | `reminderly-ff-sounds` | Off (turn on in Dev tools > System > Sounds) | - |
 | - | `reminderly-ff-lock-screen-widget` | On (Dev tools > System > Lock screen widget). Off stops publishing and clears shared widget data | - |
 | - | `reminderly-pref-sounds` | JSON: both panels off, actions on | - (never saved by an earlier build) |
@@ -292,7 +292,7 @@ Not migrated (data and internal state, unchanged): `reminderly.reminders.v1`, `r
 
 - Dev tools regrouped into Feature flags (by area), Config, Testing tools, and Access and diagnostics.
 - Dev tools holds no user preference controls (decision record, section 0). Preferences are set only in Reminders and Lists settings.
-- Show calendar is shown when the calendar flag is on and the screen is at least 880pt tall; its saved value is kept otherwise.
+- Show calendar is shown when the calendar flag is on and the screen is at least 852pt tall; its saved value is kept otherwise.
 - Rows for unbuilt features are hidden by their flags: the Haptic feedback page until wired, the Natural Language Capture page until wired. Sounds is built (section 12.2) and controlled by the Dev tools Sounds flag.
 - "Use Smart Reminders" is removed from Lists settings (built-in feature).
 

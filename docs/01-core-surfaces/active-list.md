@@ -126,7 +126,7 @@ When no reminders match the current filter:
 
 ## Calendar view
 
-Optional month calendar between the filter row and the list (Dev tools > Reminders > Calendar flag and Reminders settings > Show calendar, both default off; screens at least 880pt tall). See `docs/calendar-view-plan.md`.
+Optional month calendar between the filter row and the list (Dev tools > Reminders > Calendar flag and Reminders settings > Show calendar, both default off; screens at least 852pt tall). See `docs/calendar-view-plan.md`.
 
 - With no filter the list shows the selected day, or today (including overdue) by default. The heading above the list shows the date, or the active filter's name in its colour.
 - Filters work as above; the calendar greys days outside the filter's range.

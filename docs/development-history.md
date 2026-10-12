@@ -45,7 +45,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 
 Created: 2026-10-12
 Parent: main (1b4b92d)
-Purpose: Calendar view on the Reminders tab - month grid with reminder dots, day selection, filter ranges, month navigation and New reminder date prefill. Behind `reminderly-ff-calendar` (Dev tools > Reminders) and the Show calendar setting `reminderly-pref-calendar`, both default off. Needs a screen at least 880pt tall. Plan: docs/calendar-view-plan.md. Approved by the CTO and John
+Purpose: Calendar view on the Reminders tab - month grid with reminder dots, day selection, filter ranges, month navigation and New reminder date prefill. Behind `reminderly-ff-calendar` (Dev tools > Reminders) and the Show calendar setting `reminderly-pref-calendar`, both default off. Needs a screen at least 852pt tall (iPhone 15 Pro). Plan: docs/calendar-view-plan.md. Approved by the CTO and John
 Status: Feature complete, pushed to origin, awaiting final CTO review and product owner device testing. Not merged
 
 ### feature/lock-screen-widget
@@ -1131,9 +1131,9 @@ Completed:
 - Month arrows and swipe; changing month clears the selected day and the list stays on today; active filters persist
 - New reminder from a selected future day starts with that date at 12pm
 - Empty day message "No reminders... take it easy!"; turning the calendar back on resets to today with no filter
-- Needs a screen at least 880pt tall (Plus and Max models); shorter screens keep the existing view and hide Show calendar (setting kept). A tighter spacing that allowed 840pt (0fe87e4) was rejected after device testing and reverted (c946791); SVG spacing kept
+- Needs a screen at least 852pt tall (iPhone 15 Pro, product owner decision; 6-row months leave about one reminder row, below the CTO's 103pt guideline); shorter screens keep the existing view and hide Show calendar (setting kept). A tighter spacing that allowed 840pt (0fe87e4) was rejected after device testing and reverted (c946791); SVG spacing kept
 - Pure calendar helpers in reminder-utils.ts; RemindersCalendar component; no changes to scheduling, notifications, recurrence or badges
 
-Commits: fec8864 (flag and setting), c3c327e (calendar logic), 7bed069 (component), 9dc0772 (day selection), 350cf65 (navigation and New reminder date), 94707c5 (reset, empty day, minimum height, tests), 0fe87e4 (spacing, reverted by c946791), 880pt minimum and docs.
+Commits: fec8864 (flag and setting), c3c327e (calendar logic), 7bed069 (component), 9dc0772 (day selection), 350cf65 (navigation and New reminder date), 94707c5 (reset, empty day, minimum height, tests), 0fe87e4 (spacing, reverted by c946791), 8b6dac5 (880pt minimum, then set to 852pt) and docs.
 
-Test results: Vitest 165/165 passed. Self Check 384/384 passed (Node run). Repo guard passed. Production build succeeded. Browser preview checks at 440x956, 402x880, 402x879 and 402x874. Built, installed and launched on the iPhone 17 Pro simulator and iPhone 15 Pro. Product owner on-device checks outstanding.
+Test results: Vitest 165/165 passed. Self Check 384/384 passed (Node run). Repo guard passed. Production build succeeded. Browser preview checks at 402x874, 393x852 and 393x851. Built, installed and launched on the iPhone 17 Pro simulator and iPhone 15 Pro. Product owner on-device checks outstanding.

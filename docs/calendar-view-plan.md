@@ -111,7 +111,7 @@ Proposed Dev tools location (CTO decision): Dev tools > Reminders, a "Calendar" 
 
 Agreed during implementation (2026-10-12):
 
-- Minimum screen height: the calendar needs a screen at least 880pt tall. Below that the calendar and the Show calendar row are hidden, Reminders looks as it does today, and the saved setting is kept. 880pt fits a 6-row month with two full reminder rows (103pt) below it at the SVG spacing. Supported: Plus and Max models (926pt and taller). Not supported: other current iPhones, including the iPhone 15 Pro (852pt) and 17 Pro (874pt), and Display Zoom below 880pt.
+- Minimum screen height: the calendar needs a screen at least 852pt tall, the iPhone 15 Pro (product owner decision, so it works on the product owner's own phone). Below that the calendar and the Show calendar row are hidden, Reminders looks as it does today, and the saved setting is kept. At 852pt a 5-row month leaves 116pt for the list (two rows) and a 6-row month 75pt (about one row, the rest scrolls). This is below the CTO's two-row (103pt) guideline for 6-row months, accepted by John. Supported: iPhone 14 Pro, 15, 15 Pro, 16, 16 Pro, 17 family, and Plus and Max models. Not supported: iPhone 12, 13 and 14 standard (844pt), mini and 812pt models, SE, and Display Zoom below 852pt.
 - Spacing: a tighter layout (0fe87e4) that allowed an 840pt minimum was tried and reverted (c946791) after device testing; the SVG spacing is kept.
 - Empty day: "No reminders... take it easy!" in Lato Bold 17, #BABABA, as in `reminders-cal-empty.svg` (replaces the blank empty state).
 - Turning the calendar back on (Show calendar or the Dev tools flag) resets to the current month, today selected and no filter.

@@ -224,8 +224,9 @@ const OVERDUE_COLOUR = "#FF0000";
 // List blue constant for done styling
 const DONE_BLUE = "#4784F8";
 const APP_TEXT_DARK_BLUE = "#1C2C42";
-// Calendar view: shortest screen that fits a 6-row month with two full reminder rows (40 + 23 gap + 40) below it
-const CALENDAR_MIN_VIEWPORT_HEIGHT = 880;
+// Calendar view: shortest supported screen, the iPhone 15 Pro (product owner decision). 5-row months leave
+// two reminder rows below the calendar; 6-row months leave about one, with the rest scrolling.
+const CALENDAR_MIN_VIEWPORT_HEIGHT = 852;
 const DONE_LIST_COLOUR = "#404040";
 type TutorialVariant = 'reminders' | 'lists';
 

@@ -1151,7 +1151,7 @@ Test results (post-merge on main): Vitest 165/165 passed. Self Check 384/384 pas
 
 ### 2026-10-12 (fix/self-check-audit - Self Check coverage audit fixes)
 
-Branch: fix/self-check-audit (created from main at b584736, approved by John). Not committed.
+Branch: fix/self-check-audit (created from main at b584736, approved by John). Committed as c96f491 and pushed.
 
 Completed:
 - Self Check coverage audit agreed with the CTO and John; small, focused update only
@@ -1161,3 +1161,14 @@ Completed:
 - BASELINE.md, self-check-system.md, tests-and-baselines.md and dev-tools.md updated to the verified counts
 
 Test results: Self Check 354/354 passed (Node run, 10 suites: 384 - 33 + 1 + 2). Vitest 167/167 passed. Production build succeeded.
+
+### 2026-10-12 (fix/self-check-audit merged into main)
+
+Branch: main
+
+Completed:
+- Merge approved by the CTO after the product owner confirmed the in-app Self Check passed on the iPhone 15 Pro (354/354)
+- fix/self-check-audit fast-forwarded into main, b584736 to c96f491 (no merge commit), 8 files: Self Check audit fixes and baseline 354
+- Branch deleted locally and on the remote
+
+Test results: Self Check 354/354 passed (in-app on iPhone 15 Pro and Node run). Vitest 167/167 passed. Production build succeeded.

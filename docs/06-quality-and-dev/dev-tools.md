@@ -15,7 +15,7 @@ Decision (2026-10-11 12:23 BST, John, product owner): Dev tools controls availab
 
 ## Self-Check Suite
 
-See [Self-Check System](./self-check-system.md). The current suite runs 366 checks from 10 suites, including the Settings foundation suite (2026-10-11). See [Tests and Baselines](./tests-and-baselines.md).
+See [Self-Check System](./self-check-system.md). The current suite runs 354 checks from 10 suites (2026-10-12). See [Tests and Baselines](./tests-and-baselines.md).
 
 ## Related Documentation
 

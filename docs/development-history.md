@@ -1148,3 +1148,16 @@ Completed:
 - Branch retained
 
 Test results (post-merge on main): Vitest 165/165 passed. Self Check 384/384 passed (Node run). Repo guard passed. Production build succeeded.
+
+### 2026-10-12 (fix/self-check-audit - Self Check coverage audit fixes)
+
+Branch: fix/self-check-audit (created from main at b584736, approved by John). Not committed.
+
+Completed:
+- Self Check coverage audit agreed with the CTO and John; small, focused update only
+- Dev tools and feature flags suite: 33 checks that only exercised localStorage, local variables or copies of default rules replaced by 1 check of the real defaults path (readStoredBool and the resolver). Paywall now checked as default off, matching SETTINGS_DEFAULTS (the old check assumed on)
+- Calendar: month navigation and New reminder prefill checks added; calendar filter ranges check extended with combined Later and Sunday (no rest of week)
+- Vitest Dev tools controls guard extended to Sounds and Lock screen widget
+- BASELINE.md, self-check-system.md, tests-and-baselines.md and dev-tools.md updated to the verified counts
+
+Test results: Self Check 354/354 passed (Node run, 10 suites: 384 - 33 + 1 + 2). Vitest 167/167 passed. Production build succeeded.

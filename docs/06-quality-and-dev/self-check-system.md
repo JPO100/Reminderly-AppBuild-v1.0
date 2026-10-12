@@ -24,21 +24,25 @@ The current aggregation lives in `src/app/components/DevToolsOverlay.tsx`. The `
 - `getCompletionChecks()`
 - `getListChecks()`
 - `getDevToolsChecks()`
+- `getNotificationChecks()`
+- `getSettingsChecks()`
 
 ## Current Check Suites
 
-Reminderly currently has 8 suites and 425 checks.
+Reminderly currently has 10 suites and 354 checks (2026-10-12).
 
 | Suite | File | Checks | Scope |
 | --- | --- | ---: | --- |
 | Schedule and reminder logic | `src/app/dev/schedule-checks.ts` | 37 | Schedule equality, delta detection, and derived schedule helpers |
-| Persistence and hydration | `src/app/dev/reminder-checks.ts` | 143 | Reminder loading, validation, migration, categorisation, sorting, labels, overdue logic, rendering, and restore flows |
-| Natural language parsing | `src/app/dev/nlc-parser-checks.ts` | 53 | Token recognition and parser hardening |
-| Natural language interaction | `src/app/dev/nlc-interaction-checks.ts` | 45 | Token application, auto-apply behaviour, invalidation, and resolved schedule output |
-| Done, deleted, and completion | `src/app/dev/done-deleted-checks.ts` | 27 | Done/deleted view logic, filters, restore behaviour, ordering, and cleanup rules |
-| Done, deleted, and completion | `src/app/dev/completion-checks.ts` | 36 | Completion flows, repeat rescheduling, uncomplete handling, and completion guards |
-| Lists and smart reminders | `src/app/dev/list-checks.ts` | 38 | List persistence, smart reminder state, list lifecycle, pinning, templates, and empty-state behaviour |
-| Dev tools and feature flags | `src/app/dev/dev-tools-checks.ts` | 46 | Dev tool state, feature flags, settings toggles, and supporting helpers |
+| Persistence and hydration | `src/app/dev/reminder-checks.ts` | 90 | Reminder loading, validation, migration, categorisation, sorting, labels, overdue logic, rendering, and calendar view |
+| Natural language parsing | `src/app/dev/nlc-parser-checks.ts` | 61 | Token recognition and parser hardening |
+| Natural language interaction | `src/app/dev/nlc-interaction-checks.ts` | 48 | Token application, auto-apply behaviour, invalidation, and resolved schedule output |
+| Done, deleted, and completion | `src/app/dev/done-deleted-checks.ts` | 9 | Done/deleted view logic, filters, restore behaviour, ordering, and cleanup rules |
+| Done, deleted, and completion | `src/app/dev/completion-checks.ts` | 14 | Completion flows, repeat rescheduling, uncomplete handling, and completion guards |
+| Lists and smart reminders | `src/app/dev/list-checks.ts` | 26 | List persistence, smart reminder state, list lifecycle, pinning, templates, and empty-state behaviour |
+| Dev tools and feature flags | `src/app/dev/dev-tools-checks.ts` | 1 | Dev tools settings defaults through the real settings path |
+| Notification and badge | `src/app/dev/notification-checks.ts` | 31 | Badge count, notification payload, scheduling limits, midnight notification, refresh boundary, lock screen widget progress |
+| Settings foundation | `src/app/dev/settings-checks.ts` | 37 | Settings migration, stored settings, resolver, last-module guard, repeat flag, haptics, sounds, lock screen widget and calendar flags |
 
 ## Automated Tests Page
 
@@ -61,6 +65,8 @@ Results are grouped by the labels injected at aggregation time:
 - `Done, deleted, and completion`
 - `Lists and smart reminders`
 - `Dev tools and feature flags`
+- `Notification and badge`
+- `Settings foundation`
 
 ## Coverage Shape
 
@@ -72,7 +78,10 @@ The current suite covers:
 - NLC parsing and interaction flows
 - done, deleted, restore, and completion flows
 - list lifecycle, pinning, templates, and smart reminders
-- developer settings and feature flags
+- developer settings defaults and feature flags
+- badge, notification scheduling and lock screen widget progress
+- settings migration, stored settings and the feature resolver
+- calendar grid, dots, filter ranges, day lists, month navigation and New reminder date
 
 The system does not mount UI components and does not validate animation timing, gesture handling, or layout behaviour.
 
@@ -82,7 +91,7 @@ Expected clean-run output is documented in `src/app/dev/BASELINE.md`.
 
 The current documented baseline target is:
 
-- 425 passed
+- 354 passed
 - 0 failed
 
 ## Test Philosophy

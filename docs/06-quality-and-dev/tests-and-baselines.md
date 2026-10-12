@@ -2,20 +2,20 @@
 
 ## Current Test Coverage
 
-Reminderly currently has **369 self-checks across 10 suites** (shown in 9 sections; the two done, deleted and completion suites share one), plus **132 Vitest tests** (2026-10-11).
+Reminderly currently has **354 self-checks across 10 suites** (shown in 9 sections; the two done, deleted and completion suites share one), plus **167 Vitest tests** (2026-10-12).
 
 | Suite | Checks | Focus |
 | --- | ---: | --- |
 | Schedule and reminder logic | 37 | Schedule helpers and derived schedule state |
-| Persistence and hydration | 84 | Reminder validation, migration, persistence, categorisation, sorting, labels, overdue logic, and rendering |
+| Persistence and hydration | 90 | Reminder validation, migration, persistence, categorisation, sorting, labels, overdue logic, rendering, and calendar view |
 | Natural language parsing | 61 | Parser token recognition and hardening |
 | Natural language interaction | 48 | Token application and auto-apply behaviour |
 | Done, deleted, and completion | 9 | Done/deleted views, restore paths, ordering, and cleanup |
 | Done, deleted, and completion | 14 | Completion logic and repeat rescheduling |
 | Lists and smart reminders | 26 | Lists, templates, smart reminders, pinning, and list state rules |
-| Dev tools and feature flags | 33 | Developer settings and feature-flag behaviour |
-| Notification and badge | 22 | Badge count, notification payload, scheduling limits, midnight notification |
-| Settings foundation | 35 | Settings migration, single source of truth, flags and preferences, repeat flag, haptics, sounds |
+| Dev tools and feature flags | 1 | Dev tools settings defaults through the real settings path |
+| Notification and badge | 31 | Badge count, notification payload, scheduling limits, midnight notification, lock screen widget progress |
+| Settings foundation | 37 | Settings migration, single source of truth, flags and preferences, repeat flag, haptics, sounds, lock screen widget and calendar flags |
 
 ## Baseline Output
 
@@ -23,7 +23,7 @@ Expected clean-run output is tracked in `src/app/dev/BASELINE.md`.
 
 ### Clean Run Characteristics
 
-- all 369 checks pass
+- all 354 checks pass
 - failed count is 0
 - run invocation id varies per execution
 - duration varies per execution

@@ -1,8 +1,16 @@
 # Self-Check Baseline Report
 
-Last updated: 2026-10-11
+Last updated: 2026-10-12
 
-## Verified Baseline (2026-10-11, feature/click-sounds)
+## Verified Baseline (2026-10-12, fix/self-check-audit)
+
+- Vitest (`npm run test`): 167 passed, 0 failed (9 files). Dev tools controls guard now includes Sounds and Lock screen widget.
+- Self Check: 354 passed, 0 failed across 10 suites (Node run of the same checks).
+- Dev tools and feature flags: 33 checks that only exercised localStorage or local variables replaced by 1 check of the real defaults path (paywall defaults off).
+- Persistence and hydration: 2 calendar checks added (month navigation, New reminder prefill); calendar filter ranges check extended with combined Later and Sunday.
+- Since the click-sounds baseline, lock screen widget (+10) and calendar view (+5) checks were added, giving 384 before this change.
+
+## Previous baseline (2026-10-11, feature/click-sounds)
 
 - Vitest (`npm run test`): 132 passed, 0 failed (7 files). New file: sounds.test.ts (12 tests).
 - Self Check: 369 passed, 0 failed across 10 suites (Node run of the same checks). Settings foundation: 35 checks (3 new for sounds).
@@ -28,8 +36,7 @@ Reminderly Self-Checks Report
 Run invocation id: [varies]
 Ran at: [varies]
 Duration: [varies]ms
-Passed: 369 | Failed: 0
-
+Passed: 354 | Failed: 0
 Schedule and reminder logic
 
 ✓ Date equality: null equals null
@@ -156,6 +163,12 @@ Persistence and hydration
 ✓ getDisplayTitle: strips exact trailing " at <time>"
 ✓ getDisplayTitle: does NOT strip when same text appears mid-string
 ✓ getDisplayTitle: does NOT strip when no exact match exists
+✓ Calendar: Monday-first grid uses only the rows the month needs (4, 5, 6) and handles leap years
+✓ Calendar: max 4 dots per day; overdue on its original date; done, deleted and sometime excluded
+✓ Calendar: filter ranges match Today, This week and Later, past days never in range
+✓ Calendar: today lists due today plus overdue; another day lists only that date
+✓ Calendar: month navigation crosses year boundaries, returning to the current month follows today
+✓ Calendar: New reminder from a selected day prefills that local date at 12pm, nothing without a day
 
 Natural language parsing
 
@@ -329,39 +342,7 @@ Lists and smart reminders
 
 Dev tools and feature flags
 
-✓ Dev tools password: default is true when no value persisted
-✓ Dev tools password: true persists to localStorage
-✓ Dev tools password: false persists to localStorage
-✓ Dev tools password: hydrates true correctly from localStorage
-✓ Dev tools password: hydrates false correctly from localStorage
-✓ Paywall toggle: default is true when no value persisted
-✓ Paywall toggle: true persists to localStorage
-✓ Paywall toggle: false persists to localStorage
-✓ Paywall toggle: hydrates true correctly from localStorage
-✓ Paywall toggle: hydrates false correctly from localStorage
-✓ Onboarding tutorial enabled: default is true when no value persisted
-✓ Onboarding tutorial enabled: true persists to localStorage
-✓ Onboarding tutorial enabled: false persists to localStorage
-✓ Onboarding tutorial enabled: hydrates true correctly from localStorage
-✓ Onboarding tutorial enabled: hydrates false correctly from localStorage
-✓ Tutorial first-launch: default is true when no value persisted
-✓ Tutorial first-launch: true persists to localStorage
-✓ Tutorial first-launch: false persists to localStorage
-✓ Tutorial first-launch: hydrates true correctly from localStorage
-✓ Tutorial first-launch: hydrates false correctly from localStorage
-✓ Tutorial every-start: default is false when no value persisted
-✓ Tutorial every-start: true persists to localStorage
-✓ Tutorial every-start: false persists to localStorage
-✓ Tutorial every-start: hydrates true correctly from localStorage
-✓ Tutorial every-start: hydrates false correctly from localStorage
-✓ Tutorial reminders sentinel: absent by default (no value persisted)
-✓ Tutorial reminders sentinel: can be written to localStorage
-✓ Tutorial lists sentinel: absent by default (no value persisted)
-✓ Tutorial lists sentinel: can be written to localStorage
-✓ Hide overdue: default is false on initial load
-✓ Hide overdue: state can change to true
-✓ Hide overdue: state can change to false
-✓ Hide overdue: reinitialisation resets to default false
+✓ Dev tools defaults: password required on, paywall off, onboarding on, first-launch tutorial on, every-start tutorial off
 
 Notification and badge
 
@@ -387,6 +368,15 @@ Notification and badge
 ✓ Scheduling limits: all 64 slots for reminders when no midnight needed
 ✓ Refresh boundary: returns ms to midnight when no timed reminders today
 ✓ Refresh boundary: returns ms to next timed reminder when sooner than midnight
+✓ Widget progress: today and overdue reminders count as outstanding
+✓ Widget progress: reminders completed today count as done
+✓ Widget progress: all done gives 0 outstanding
+✓ Widget progress: nothing due gives 0 outstanding and 0 done
+✓ Widget progress: excludes deleted, sometime and future-dated reminders
+✓ Widget progress: reminders completed before today are not counted
+✓ Widget progress: reminders due tomorrow are counted separately for midnight rollover
+✓ Widget progress: reminder due tomorrow but completed today is not counted for midnight rollover
+✓ Widget progress: completed daily repeat counts as done, next occurrence is tomorrow
 
 Settings foundation
 
@@ -425,6 +415,9 @@ Settings foundation
 ✓ Resolver: alerts and badge resolve independently and need iOS permission
 ✓ Resolver: unrecognised values read as off, haptics reads its master switch
 ✓ Resolver: testing-only keys never change any feature
+✓ Lock screen widget: on by default, master flag turns it off and on, reminders unaffected
+✓ Calendar: flag and Show calendar both default off, active only when Reminders, flag and setting are on
+
 ```
 
 ## Check Count Breakdown
@@ -435,7 +428,7 @@ Settings foundation
   - RepeatRule equality: 8
   - Delta detection: 14
   - Derived properties: 4
-- **Reminder checks** (reminder-checks.ts): 84 (per-section split not itemised since the 77-check baseline)
+- **Reminder checks** (reminder-checks.ts): 90 (per-section split not itemised since the 77-check baseline; includes 6 calendar checks)
 - **NLC parser checks** (nlc-parser-checks.ts): 61
   - Date token recognition: 6
   - Month-name date recognition: 8
@@ -482,22 +475,17 @@ Settings foundation
   - List settings (sort apply, uncheck all): 3
   - Smart reminder overlay flows: 5
   - Smart reminder sync: 4
-- **Dev tools and feature flags checks** (dev-tools-checks.ts): 33
-  - Dev tools password: 5
-  - Paywall toggle: 5
-  - Onboarding tutorial enabled: 5
-  - Tutorial first-launch: 5
-  - Tutorial every-start: 5
-  - Tutorial sentinels (reminders + lists): 4
-  - Hide overdue: 4
-- **Notification checks** (notification-checks.ts): 22
+- **Dev tools and feature flags checks** (dev-tools-checks.ts): 1
+  - Dev tools defaults (password, paywall, onboarding, tutorial first launch and every start): 1
+- **Notification checks** (notification-checks.ts): 31
   - Badge count: 7
   - Notification payload: 2
   - Badge delta: 2
   - Scheduling limits: 3
   - Midnight notification: 6
   - Refresh boundary: 2
-- **Settings foundation checks** (settings-checks.ts): 35
+  - Widget progress: 9
+- **Settings foundation checks** (settings-checks.ts): 37
   - Migration: 10
   - Stored settings (single source of truth, write failures): 9
   - Dev tools last-module guard: 1
@@ -505,7 +493,9 @@ Settings foundation
   - Haptics (per-panel switches, preserved choices, resolver): 3
   - Sounds (switches match haptics, defaults, resolver and flag): 3
   - Resolver: 7
-- **Total**: 369 checks across 10 suites
+  - Lock screen widget flag: 1
+  - Calendar flag and Show calendar: 1
+- **Total**: 354 checks across 10 suites
 
 ## Runner Integrity Check
 

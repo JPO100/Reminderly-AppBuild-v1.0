@@ -22,11 +22,13 @@ import {
   getCalendarDots,
   getCalendarDayReminders,
   isDateInFilterRange,
+  stepCalendarMonth,
+  toDateKey,
 } from '../reminder-utils';
 import type { Reminder } from '../reminder-utils';
 import { normaliseReminderText } from '../utils/normalise-text';
 import { renderReminderText, getDisplayTitle } from '../utils/render-text';
-import { formatSelectedDate } from '../../imports/NewReminderOverlay';
+import { formatSelectedDate, getCalendarPrefill } from '../../imports/NewReminderOverlay';
 
 /**
  * Simple assertion helper (mirrors schedule-checks convention)
@@ -1440,6 +1442,9 @@ export function getReminderChecks(): Check[] {
         assert(isDateInFilterRange('2026-01-04', 'this-week', now), 'Sunday 4 January in This week across the year boundary');
         assert(isDateInFilterRange('2026-01-05', 'later', now), 'Monday 5 January in Later');
         assert(!isDateInFilterRange('2025-12-30', 'all', now), 'Past days never in range');
+        assert(isDateInFilterRange('2026-01-05', 'other', now) && !isDateInFilterRange('2026-01-04', 'other', now), 'Combined Later matches Later only');
+        const sunday = new Date(2026, 0, 11, 9, 0);
+        assert(!isDateInFilterRange('2026-01-11', 'this-week', sunday) && isDateInFilterRange('2026-01-12', 'later', sunday), 'Sunday has no rest of week');
       },
     },
     {
@@ -1453,6 +1458,29 @@ export function getReminderChecks(): Check[] {
         const all = [future, today, overdue];
         assert(getCalendarDayReminders(all, '2026-01-06', now).map((r) => r.id).join() === 'o,t', 'Today should list overdue then today');
         assert(getCalendarDayReminders(all, '2026-01-15', now).map((r) => r.id).join() === 'f', 'The 15th should list only its reminder');
+      },
+    },
+    {
+      id: 'calendar-month-navigation',
+      name: 'Calendar: month navigation crosses year boundaries, returning to the current month follows today',
+      run: () => {
+        const now = new Date(2026, 0, 6, 13, 0);
+        const forward = stepCalendarMonth({ year: 2026, month: 11 }, 1, now);
+        assert(forward?.year === 2027 && forward.month === 0, 'December 2026 forward should be January 2027');
+        const back = stepCalendarMonth({ year: 2026, month: 0 }, -1, now);
+        assert(back?.year === 2025 && back.month === 11, 'January 2026 back should be December 2025');
+        assert(stepCalendarMonth({ year: 2026, month: 1 }, -1, now) === null, 'Back to the current month should return null');
+        assert(stepCalendarMonth({ year: 2025, month: 11 }, 1, now) === null, 'Forward to the current month should return null');
+      },
+    },
+    {
+      id: 'calendar-new-reminder-prefill',
+      name: 'Calendar: New reminder from a selected day prefills that local date at 12pm, nothing without a day',
+      run: () => {
+        const prefill = getCalendarPrefill('2026-01-22');
+        assert(prefill !== null && toDateKey(prefill.date) === '2026-01-22', 'Prefill should keep the selected local date');
+        assert(prefill?.time.hour === 12 && prefill.time.minute === 0, 'Prefill time should be 12:00');
+        assert(getCalendarPrefill(null) === null, 'No selected day should prefill nothing');
       },
     },
   ];

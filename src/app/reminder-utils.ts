@@ -443,7 +443,7 @@ export function formatRepeatLabel(repeatRule: RepeatRule | null | undefined, tim
   return label;
 }
 
-// Calendar view (docs/calendar-view-plan.md). Pure helpers: dates are local "YYYY-MM-DD" keys,
+// Calendar view (docs/features/scheduling-and-nlc.md). Pure helpers: dates are local "YYYY-MM-DD" keys,
 // the same format as schedule.date, so no time zone conversion is involved.
 
 export type CalendarDayCategory = "past" | "today" | "this-week" | "later";

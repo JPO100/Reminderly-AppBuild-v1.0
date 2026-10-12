@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { formatCalendarMonthTitle, getCalendarDayCategory, getCalendarWeeks, isDateInFilterRange } from "../reminder-utils";
 import type { CalendarDotKind, ReminderCategory } from "../reminder-utils";
 
-// Calendar view (docs/calendar-view-plan.md), measured from the supplied SVGs.
+// Calendar view (docs/features/scheduling-and-nlc.md), measured from the supplied SVGs.
 // Presentational: the parent owns the shown month, selection and filter.
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];

@@ -10,24 +10,17 @@ Last updated: 2026-10-12
 - Persistence and hydration: 2 calendar checks added (month navigation, New reminder prefill); calendar filter ranges check extended with combined Later and Sunday.
 - Since the click-sounds baseline, lock screen widget (+10) and calendar view (+5) checks were added, giving 384 before this change.
 
-## Previous baseline (2026-10-11, feature/click-sounds)
+## Earlier baselines
 
-- Vitest (`npm run test`): 132 passed, 0 failed (7 files). New file: sounds.test.ts (12 tests).
-- Self Check: 369 passed, 0 failed across 10 suites (Node run of the same checks). Settings foundation: 35 checks (3 new for sounds).
+Full detail is in `docs/development-history.md`.
 
-## Previous baseline (2026-10-11, feature/settings-flags-model Phase 3 close-out)
+| Date | Branch | Vitest | Self Check |
+|------|--------|--------|------------|
+| 2026-10-11 | feature/click-sounds | 132 (7 files; sounds.test.ts added) | 369 (Settings foundation 35) |
+| 2026-10-11 | feature/settings-flags-model, Phase 3 close-out | 120 (6 files) | 366 (new Settings foundation suite, 32) |
+| 2026-10-09 | main, feature/lists-disabled-ui-refinement, settings-menu-phase1 | 36 | 340 on iPhone 15 Pro and iPhone 17 Pro simulator; later 327 after removing 13 grouped-filter checks, then 334 after 7 settings-menu checks |
 
-- Vitest (`npm run test`): 120 passed, 0 failed (6 files).
-- Self Check: 366 passed, 0 failed across 10 suites (desktop browser and a Node run of the same checks). New suite: Settings foundation (32 checks).
-- Device: Phase 3 behaviour verified on physical iPhone 15 Pro by the product owner; Self Check itself was not run on device.
-
-## Previous baseline (2026-10-09)
-
-- Vitest (`npm run test`): 36 passed, 0 failed, 0 skipped.
-- In-app Self Check: 340 passed, 0 failed, verified on physical iPhone 15 Pro and iPhone 17 Pro simulator.
-- feature/lists-disabled-ui-refinement: 13 Self Check checks for the removed grouped filters layout (Filters menu: 5, Show date/time subtitles: 8) were removed. Self Check result is now 327 passed, 0 failed, verified on device.
-- settings-menu-phase1: 7 Self Check checks added for the combined Later/Sometime presentation and filter handover. Self Check result is now 334 passed, 0 failed (desktop browser run, device run pending).
-- Five outdated midnight badge expectations in `src/app/__tests__/notifications.test.ts` were corrected to match the intentionally restored `hasActiveDateOnlyReminder` guard in `buildMidnightBadgeNotification` (restored 2026-06-18).
+Note: five midnight badge expectations in `src/app/__tests__/notifications.test.ts` were corrected to match the intentionally restored `hasActiveDateOnlyReminder` guard in `buildMidnightBadgeNotification` (restored 2026-06-18).
 
 ## Clean Run (Expected)
 

@@ -1,110 +1,55 @@
 # Reminderly
 
-A lightweight reminders app. This is a reminders app, not a framework.
+A lightweight iPhone reminders and lists app. Built with React, TypeScript and Tailwind CSS, shipped to iOS with Capacitor. All data stays on the device.
 
-Built with React, TypeScript, and Tailwind CSS. Designed for simplicity over abstraction.
+Build an app, not a rocket ship.
 
-## Overview
+## What it does
 
-Reminderly is a mobile-first reminders application targeting iPhone 16 Pro (402x874px), responsive across all devices. Core features include natural language capture, recurring reminders, filter system, done/delete workflows, and localStorage persistence.
+- Reminders with an optional date, time and repeat (hourly to yearly, or chosen weekdays), grouped as Today, This week, Later and Sometime. Overdue reminders are highlighted and pinned to the top.
+- Done and deleted archive with restore and Clear all.
+- Lists with progress categories, pinning, templates and smart reminders that link a list to a reminder.
+- Natural language capture: dates, times and repeats picked out of the text as you type ("tomorrow at 3pm", "every Monday"). Deterministic, no AI.
+- Local notifications with Mark as done and Move to tomorrow actions, an app icon badge, a lock screen widget and a Siri shortcut.
+- Optional calendar view, haptics and click sounds, and an animated tutorial.
+- Hidden dev tools for feature flags, test data and the in-app Self Check suite.
 
-For detailed feature documentation, see [docs/README.md](./docs/README.md).
+Features are controlled by flags; see [docs/features/settings.md](./docs/features/settings.md).
 
-## Project structure
+## Quick start
 
-Core logic lives in three places:
-
-- `src/app/App.tsx` - primary state and orchestration
-- `src/app/reminder-utils.ts` - categorisation, overdue, sorting, persistence sanitisation
-- `src/app/utils/` - NLC and helper logic
-
-```
-src/
-  app/
-    App.tsx                     # Main component - state, rendering, core logic
-    reminder-utils.ts           # Non-component exports
-    components/
-      DevToolsOverlay.tsx
-      ReminderInfoOverlay.tsx
-      RepeatsOverlay.tsx
-      figma/
-        ImageWithFallback.tsx
-      ui/                       # Platform-managed, unused (see below)
-    dev/                        # Self-checks and debug tools
-    types/
-      reminder.ts               # RepeatRule, Schedule, ScheduleSources
-    utils/
-      nlc-parser.ts             # NLC token parser (regex-based)
-      nlc-interaction.ts        # NLC interaction logic
-      normalise-text.ts         # Display text normalisation
-      render-text.ts            # today/tomorrow substitution
-      schedule.ts               # Schedule equality, delta, date utilities
-      dummy-generator.ts        # Dummy reminder data generator
-  imports/
-    NewReminderOverlay.tsx
-    TimePicker.tsx
-    DevTools.tsx
-    DummyReminders.tsx
-    LaterBtn.tsx
-    svg-*.ts                    # SVG path data
-  styles/
-    fonts.css
-    index.css
-    tailwind.css
-    theme.css
-
-docs/                           # Detailed documentation
-  README.md                     # Full feature and architecture docs
-  build-guide.md
-  calendar-module.md
-  colour-styles.md
-  component-hierarchy.md
-  and others...
+```bash
+npm install          # also applies the local notifications patch
+npm run dev          # browser preview (native features unavailable)
+npm run test         # Vitest
+npx vite build && npx cap copy ios && open ios/App/App.xcodeproj
 ```
 
-## Platform constraints
+Full instructions: [docs/development.md](./docs/development.md).
 
-### src/app/components/ui
+## Documentation
 
-The `src/app/components/ui` folder is platform-managed by Figma Make. It contains 48 shadcn/ui component files.
+| Document | Contents |
+|----------|----------|
+| [docs/architecture.md](./docs/architecture.md) | Stack, structure, state, data model, storage, conventions, known constraints |
+| [docs/development.md](./docs/development.md) | Setup, commands, iOS build, dev tools, testing, baselines |
+| [docs/ios.md](./docs/ios.md) | Native layer: Siri, widget, notifications patch, project settings |
+| [docs/design.md](./docs/design.md) | Colours, typography, spacing, panel and overlay standards |
+| [docs/features/reminders.md](./docs/features/reminders.md) | Reminder list, filters, lifecycle, archive, overlays |
+| [docs/features/scheduling-and-nlc.md](./docs/features/scheduling-and-nlc.md) | Dates, times, repeats, calendar view, natural language capture, text normalisation |
+| [docs/features/notifications.md](./docs/features/notifications.md) | Notifications, badge, actions |
+| [docs/features/lists.md](./docs/features/lists.md) | Lists, templates, pinning, smart reminders |
+| [docs/features/settings.md](./docs/features/settings.md) | Feature flags, preferences, migration, settings panels |
+| [docs/features/onboarding.md](./docs/features/onboarding.md) | Tutorial |
+| [docs/settings-flags-spec.md](./docs/settings-flags-spec.md) | Active settings specification (Phase 4 outstanding) |
+| [docs/plans/](./docs/plans/) | Planned features not yet built |
+| [docs/development-history.md](./docs/development-history.md) | Authoritative project history |
+| [docs/archive/](./docs/archive/) | Dated reviews, completed plans and audits, kept for reference |
 
-- Reminderly application code does not import or use any of them.
-- They must not be imported or modified.
-- They cannot be deleted in the Figma Make environment.
-- They remain present solely due to platform scaffolding and protection.
+`Claude.md` holds the working rules for AI-assisted development. `ATTRIBUTIONS.md` holds third-party licence notices.
 
-In a normal git environment, the folder can be removed with `rm -rf src/app/components/ui`.
+## Keeping docs current
 
-### ATTRIBUTIONS.md
-
-ATTRIBUTIONS.md is platform-protected and cannot be edited in Figma Make. See Ticket 7 (blocked) for context.
-
-## Development
-
-```
-npm run dev      # Start development server
-npm run build    # Production build
-npm run test     # Run tests
-```
-
-## Rules of engagement
-
-### Dependencies
-
-Do not remove dependencies unless:
-
-1. They are unused repo-wide, including platform-managed folders, and
-2. A build can be verified in the target environment.
-
-### Code changes
-
-All changes follow the constraints in [Claude.md](./Claude.md):
-
-- Surgical changes only - smallest safe change set.
-- No taste refactors, no "while I'm here" improvements.
-- Preserve existing UX and motion behaviour.
-- No unintended changes to behaviour, styling, or timing.
-
-### Documentation
-
-Detailed docs live in [docs/](./docs/). The root README.md (this file) is the single authoritative entry point.
+- Update the relevant feature document in the same change as the behaviour it describes.
+- Record completed features, merges and significant fixes in `docs/development-history.md`.
+- Put new feature plans in `docs/plans/`; when built, fold the current behaviour into the feature document and move the plan to `docs/archive/`.

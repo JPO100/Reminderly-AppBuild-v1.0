@@ -71,6 +71,7 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-settings-menu-v2': 'true',
   'reminderly-ff-info-icons': 'false',
   'reminderly-ff-paywall': 'false',
+  'reminderly-ff-lock-screen-widget': 'true',
 };
 
 // Transitional fallbacks: the previous app defaults, still used for settings not yet integrated

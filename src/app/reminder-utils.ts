@@ -135,6 +135,41 @@ export function computeBadgeCount(
   return count;
 }
 
+export type TodayProgress = {
+  date: string; // YYYY-MM-DD the snapshot was taken
+  outstanding: number; // due today or overdue, not done
+  done: number; // completed today, was due today or overdue
+  dueTomorrow: number; // not done, due tomorrow (lets the widget roll over at midnight)
+};
+
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Lock screen widget: today's workload. Sometime, future-dated and deleted reminders are excluded.
+export function getTodayProgress(reminders: Reminder[], now: Date): TodayProgress {
+  const today = toDateKey(now);
+  const tomorrowDate = new Date(now);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = toDateKey(tomorrowDate);
+
+  let outstanding = 0;
+  let done = 0;
+  let dueTomorrow = 0;
+  for (const r of reminders) {
+    if (r.deletedAt || r.schedule.kind !== 'scheduled') continue;
+    const date = r.schedule.date;
+    if (r.completedAt) {
+      if (date <= today && toDateKey(new Date(r.completedAt)) === today) done++;
+    } else if (date <= today) {
+      outstanding++;
+    } else if (date === tomorrow) {
+      dueTomorrow++;
+    }
+  }
+  return { date: today, outstanding, done, dueTomorrow };
+}
+
 export function getNextTimeRefreshBoundary(reminders: Reminder[], now: Date): number | null {
   const todayStart = new Date(now);
   todayStart.setHours(0, 0, 0, 0);

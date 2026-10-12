@@ -576,5 +576,19 @@ export function getSettingsChecks(): Check[] {
         assert(JSON.stringify(before) === JSON.stringify(after), 'Test keys should not affect features');
       },
     },
+    {
+      id: 'settings-lock-screen-widget-flag',
+      name: 'Lock screen widget: on by default, master flag turns it off and on, reminders unaffected',
+      run: () => {
+        assert(SETTINGS_DEFAULTS['reminderly-ff-lock-screen-widget'] === 'true', 'Lock screen widget should default on');
+        const storage = memoryStorage({});
+        assert(isFeatureActive('lockScreenWidget', { storage }), 'Never saved should be on');
+        storage.setItem('reminderly-ff-lock-screen-widget', 'false');
+        assert(!isFeatureActive('lockScreenWidget', { storage }), 'Flag off should be inactive');
+        assert(isFeatureActive('reminders', { storage }), 'Reminders should be unaffected');
+        storage.setItem('reminderly-ff-lock-screen-widget', 'true');
+        assert(isFeatureActive('lockScreenWidget', { storage }), 'Flag back on should be active');
+      },
+    },
   ];
 }

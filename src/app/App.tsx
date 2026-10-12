@@ -10,11 +10,12 @@ import DevToolsOverlay, { ShowInfoIconsContext } from "./components/DevToolsOver
 import RepeatsOverlay from "./components/RepeatsOverlay";
 import ReminderInfoOverlay from "./components/ReminderInfoOverlay";
 import TutorialOverlay from "./components/TutorialOverlay";
+import RemindersCalendar from "./components/RemindersCalendar";
 import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
-import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu } from "./reminder-utils";
+import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, toDateKey } from "./reminder-utils";
 import { syncWidget } from "./utils/widget";
 import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
 import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
@@ -3915,6 +3916,19 @@ export default function App() {
             </>
           )}
         </div>
+        {/* Calendar view: fixed above the scrolling list (Dev tools flag and Show calendar setting) */}
+        {isRemindersEnabled && calendarFlag && calendarPref && viewMode !== "done-deleted" && (
+          <RemindersCalendar
+            year={now.getFullYear()}
+            month={now.getMonth()}
+            now={now}
+            todayKey={toDateKey(now)}
+            selectedKey={null}
+            filter={activeFilter}
+            dots={getCalendarDots(hideOverdue ? reminders.filter(r => !isOverdue(r, now)) : reminders, now)}
+            colours={{ overdue: OVERDUE_COLOUR, today: CATEGORY_COLOURS.today, "this-week": CATEGORY_COLOURS["this-week"], later: CATEGORY_COLOURS.later }}
+          />
+        )}
         {/* Scrollable area */}
         <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full max-w-[768px] rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {(() => {

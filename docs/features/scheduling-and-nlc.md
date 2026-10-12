@@ -45,6 +45,7 @@ Inline month calendar in the New reminder overlay, opened from the Date row.
 - Two wheel columns: hours 0-23 and minutes.
 - Minutes in 15-minute steps (00, 15, 30, 45), or every minute when 1 minute increments are active (`reminderly-ff-one-minute-increments` available and `reminderly-pref-one-minute-increments` on). The current minute snaps to the nearest valid value.
 - Default 12:00.
+- The "1 minute time increments" info text in the app wrongly says 5-minute steps (see [settings.md](./settings.md), Known UI issues).
 
 Drawers open and close only on user action, never because NLC applied a value.
 

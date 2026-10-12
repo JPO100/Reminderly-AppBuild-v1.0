@@ -279,6 +279,6 @@ Current characteristics to keep in mind. None is scheduled for change unless sta
 6. No type-check or lint step. There is no `tsconfig.json` and TypeScript is not installed; Vite does not type-check, so type errors do not fail a build.
 7. Local-time model. No stored time zone, so travel and DST changes shift how reminders are interpreted.
 8. The dev tools password is hard-coded in `DevToolsOverlay.tsx`.
-9. The tutorial "shown" keys (`reminderly-tutorial-*-shown`) are written but not read, so Show tutorial on first launch opens the tutorial on every app start. See [features/onboarding.md](./features/onboarding.md).
+9. Tutorial first launch does not yet match the confirmed requirement (show once on first launch). The "shown" keys (`reminderly-tutorial-*-shown`) are written but not read, so the tutorial opens on every app start. See [features/onboarding.md](./features/onboarding.md).
 
 History: a dated technical review is kept at [archive/codebase-review-2026-10-12.md](./archive/codebase-review-2026-10-12.md).

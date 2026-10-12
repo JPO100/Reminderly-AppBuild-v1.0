@@ -147,6 +147,10 @@ Lists settings:
 
 With the settings menu off there is no settings entry point. The legacy settings bottom sheet, its "Show date and time subtitles" setting and the premium marketing section were removed (see [../development-history.md](../development-history.md)).
 
+## Known UI issues
+
+- Time increments info text (recorded 2026-10-12, not yet fixed): the info pop-ups for "1 minute time increments" in Reminders settings (`SettingsPanelContent.tsx`) and Dev tools (`DevToolsOverlay.tsx`) say the time picker uses 5-minute steps when the setting is off. The picker actually uses 15-minute steps (00, 15, 30, 45; `TimePicker.tsx`). The Dev tools text also refers to a removed "Testing tools > User preferences" page.
+
 ## Files
 
 - `src/app/settings/keys.ts`, `resolver.ts`, `useStoredSetting.ts`, `migration.ts`

@@ -13,7 +13,17 @@ The animated tutorial for Reminders and Lists, shown in a slide-up overlay with 
 - Automatic opening: on mount, unless a notification tap is pending, if either launch setting is on, the tutorial for the visible tab opens. Switching to the other tab later in the session opens that tab's tutorial once.
 - Manual: Reminders settings > Reminders tutorial, or Lists settings > Lists tutorial (settings menu on). Always starts at the first page.
 - The variant follows the shown tab: Lists tab gives the Lists tutorial, otherwise Reminders.
-- Closing writes `reminderly-tutorial-reminders-shown` or `reminderly-tutorial-lists-shown`. These keys are not currently read by the app, so "Show tutorial on first launch" opens the tutorial on each app start, not only the first.
+- Closing writes `reminderly-tutorial-reminders-shown` or `reminderly-tutorial-lists-shown`. These keys are not currently read by the app.
+
+### Confirmed requirement and current discrepancy
+
+Confirmed product requirement (John, 2026-10-12):
+
+- Show the tutorial automatically once, on first launch.
+- Record that it has been shown, so it does not appear automatically on later launches.
+- Keep it available manually through the existing settings rows.
+
+Current implementation (not yet aligned): because the "shown" keys are never read, "Show tutorial on first launch" opens the tutorial automatically on every app start (once per tab variant per session). Manual access works as required. The fix is to be made separately on a development branch with focused testing and regression checks.
 
 ## Structure
 

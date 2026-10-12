@@ -7,7 +7,7 @@ import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics"
 import { getSoundsConfig, setSoundsConfig, SOUND_GROUPS, panelMasterKey as soundsMasterKey } from "../utils/sounds";
 import type { SoundsConfig } from "../utils/sounds";
 
-// Phase 1: UI only. Toggles hold local state and nothing is saved; click-through rows open empty pages.
+// Settings panel content. App owns and saves the values; rows show only when their feature is available.
 // Each panel has its own Siri preference, saved by App. Each row shows only when its Siri flag is on.
 
 // Centred overlay header: title centred, back arrow on the left for sub-pages.

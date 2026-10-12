@@ -10,11 +10,12 @@ import DevToolsOverlay, { ShowInfoIconsContext } from "./components/DevToolsOver
 import RepeatsOverlay from "./components/RepeatsOverlay";
 import ReminderInfoOverlay from "./components/ReminderInfoOverlay";
 import TutorialOverlay from "./components/TutorialOverlay";
+import RemindersCalendar from "./components/RemindersCalendar";
 import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
-import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu } from "./reminder-utils";
+import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, stepCalendarMonth, toDateKey } from "./reminder-utils";
 import { syncWidget } from "./utils/widget";
 import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
 import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
@@ -223,6 +224,9 @@ const OVERDUE_COLOUR = "#FF0000";
 // List blue constant for done styling
 const DONE_BLUE = "#4784F8";
 const APP_TEXT_DARK_BLUE = "#1C2C42";
+// Calendar view: shortest supported screen, the iPhone 15 Pro (product owner decision). 5-row months leave
+// two reminder rows below the calendar; 6-row months leave about one, with the rest scrolling.
+const CALENDAR_MIN_VIEWPORT_HEIGHT = 852;
 const DONE_LIST_COLOUR = "#404040";
 type TutorialVariant = 'reminders' | 'lists';
 
@@ -988,8 +992,13 @@ export default function App() {
   // Sounds availability flag (Dev tools); the user's choices live in utils/sounds
   const [soundsFlag, setSoundsFlag] = useStoredSetting('reminderly-ff-sounds');
   const [lockScreenWidgetFlag, setLockScreenWidgetFlag] = useStoredSetting('reminderly-ff-lock-screen-widget');
-  // Unbuilt features: flags default off and have no Dev tools control, so their rows stay hidden
-  const [calendarFlag] = useStoredSetting('reminderly-ff-calendar');
+  // Calendar view: availability flag (Dev tools > Reminders) and the user's Show calendar setting. Both default off
+  const [calendarFlag, setCalendarFlag] = useStoredSetting('reminderly-ff-calendar');
+  const [calendarPref, setCalendarPref] = useStoredSetting('reminderly-pref-calendar');
+  // Calendar day selected by the user; null shows today (the default view)
+  const [calendarSelectedDate, setCalendarSelectedDate] = useState<string | null>(null);
+  // Month shown by the calendar; null follows the current month
+  const [calendarShownMonth, setCalendarShownMonth] = useState<{ year: number; month: number } | null>(null);
 
   // Dev-only: onboarding tutorial feature flag — controls whether tutorial overlay is available
   const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useStoredSetting('reminderly-ff-onboarding-tutorial');
@@ -997,6 +1006,28 @@ export default function App() {
   // Lists availability flag
   const [isListsEnabled, setIsListsEnabled] = useStoredSetting('reminderly-ff-lists');
   const [isRemindersEnabled, setIsRemindersEnabled] = useStoredSetting('reminderly-ff-reminders');
+  // Calendar view needs a screen at least CALENDAR_MIN_VIEWPORT_HEIGHT tall (room for two reminder rows
+  // below a 6-row month). Shorter screens keep the existing Reminders view and hide Show calendar.
+  const [isCalendarScreenTallEnough, setIsCalendarScreenTallEnough] = useState(() => window.innerHeight >= CALENDAR_MIN_VIEWPORT_HEIGHT);
+  useEffect(() => {
+    const update = () => setIsCalendarScreenTallEnough(window.innerHeight >= CALENDAR_MIN_VIEWPORT_HEIGHT);
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  // Calendar view is shown when Reminders, the flag and Show calendar are all on and the screen is tall enough
+  const isCalendarEnabled = isRemindersEnabled && calendarFlag && calendarPref;
+  const isCalendarActive = isCalendarEnabled && isCalendarScreenTallEnough;
+  // Every time the calendar is turned back on (Show calendar or the Dev tools flag): current month,
+  // today selected, no filter
+  const wasCalendarEnabledRef = useRef(isCalendarEnabled);
+  useEffect(() => {
+    if (isCalendarEnabled && !wasCalendarEnabledRef.current) {
+      setCalendarShownMonth(null);
+      setCalendarSelectedDate(null);
+      setActiveFilter("all");
+    }
+    wasCalendarEnabledRef.current = isCalendarEnabled;
+  }, [isCalendarEnabled]);
   const [notificationsFlag, setNotificationsFlag] = useStoredSetting('reminderly-ff-notifications');
   const [repeatRemindersFlag, setRepeatRemindersFlag] = useStoredSetting('reminderly-ff-repeat-reminders');
   const [oneMinuteIncrementsFlag, setOneMinuteIncrementsFlag] = useStoredSetting('reminderly-ff-one-minute-increments');
@@ -3146,6 +3177,39 @@ export default function App() {
   }, [shownMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
 
   const now = new Date();
+  // Calendar view: with no filter, the list shows the selected day, or today when nothing is selected
+  // (or the selection has passed)
+  const calendarTodayKey = toDateKey(now);
+  const calendarDayKey = isCalendarActive && activeFilter === "all"
+    ? (calendarSelectedDate && calendarSelectedDate > calendarTodayKey ? calendarSelectedDate : calendarTodayKey)
+    : null;
+  const calendarMonth = calendarShownMonth ?? { year: now.getFullYear(), month: now.getMonth() };
+  // Changing month clears the selected day (today's list stays). Back on the current month, today is selected.
+  // An active filter stays active.
+  const changeCalendarMonth = (delta: number) => {
+    setCalendarShownMonth(stepCalendarMonth(calendarMonth, delta, now));
+    setCalendarSelectedDate(null);
+  };
+  const calendarElement = isCalendarActive && viewMode !== "done-deleted" ? (
+    <RemindersCalendar
+      year={calendarMonth.year}
+      month={calendarMonth.month}
+      now={now}
+      todayKey={calendarTodayKey}
+      selectedKey={calendarDayKey}
+      filter={activeFilter}
+      dots={getCalendarDots(hideOverdue ? reminders.filter(r => !isOverdue(r, now)) : reminders, now)}
+      colours={{ overdue: OVERDUE_COLOUR, today: CATEGORY_COLOURS.today, "this-week": CATEGORY_COLOURS["this-week"], later: CATEGORY_COLOURS.later }}
+      heading={calendarDayKey ? formatCalendarDayHeading(calendarDayKey) : getCategoryLabel(activeFilter as ReminderCategory)}
+      headingColour={calendarDayKey ? APP_TEXT_DARK_BLUE : CATEGORY_COLOURS[activeFilter] ?? APP_TEXT_DARK_BLUE}
+      onSelectDay={(dateKey) => {
+        setCalendarSelectedDate(dateKey === calendarTodayKey ? null : dateKey);
+        setActiveFilter("all");
+      }}
+      onPrevMonth={() => changeCalendarMonth(-1)}
+      onNextMonth={() => changeCalendarMonth(1)}
+    />
+  ) : null;
 
   // Dev tools panel sits level with the top of the logo
   if (isDevToolsOpen && devToolsTopRef.current === null) {
@@ -3877,6 +3941,7 @@ export default function App() {
                 key={filter}
                 onClick={() => {
                   setActiveFilter(activeFilter === filter ? "all" : filter);
+                  setCalendarSelectedDate(null);
                 }}
                 className={`${
                   isActive
@@ -3914,6 +3979,23 @@ export default function App() {
             </>
           )}
         </div>
+        {/* Calendar view: fixed above the scrolling list. Turning it on or off expands or collapses it, so the
+            list slides down or up. The column's 24px gap sits inside the animated area (margin -24, padding 24) */}
+        <AnimatePresence initial={false}>
+          {calendarElement && (
+            <motion.div
+              key="reminders-calendar"
+              className="w-full shrink-0"
+              style={{ overflow: "hidden", marginBottom: -24 }}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <div style={{ paddingBottom: 24 }}>{calendarElement}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* Scrollable area */}
         <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full max-w-[768px] rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {(() => {
@@ -4068,7 +4150,8 @@ export default function App() {
             const activeReminders = displayReminders.filter((r) =>
               (r.completedAt == null && r.deletedAt == null) || pendingDeleteIds.has(r.id)
             );
-            const filtered = activeReminders.filter((r) => {
+            // Calendar view with no filter: the selected day's reminders (today includes overdue)
+            const filtered = calendarDayKey ? getCalendarDayReminders(activeReminders, calendarDayKey, now) : activeReminders.filter((r) => {
               if (activeFilter === "all") return true;
               // Overdue reminders appear in every filter view
               if (isOverdue(r, now)) return true;
@@ -4081,7 +4164,7 @@ export default function App() {
             return (
               <>
               <div className="flex flex-col gap-[23px] w-full" style={{ position: 'relative', zIndex: 1 }}>
-                <AnimatePresence key={`${viewMode}-${activeFilter}`}>
+                <AnimatePresence key={`${viewMode}-${activeFilter}-${calendarDayKey ?? ""}`}>
                 {sortedFiltered.map((reminder) => {
                   const isPendingDone = pendingDoneIds.has(reminder.id);
                   const isPendingDelete = pendingDeleteIds.has(reminder.id);
@@ -4206,7 +4289,13 @@ export default function App() {
                 })}
                 </AnimatePresence>
               </div>
-              {filtered.length === 0 && (() => {
+              {/* Calendar day with nothing due (design: reminders-cal-empty.svg, text box 52.75px below the list top) */}
+              {filtered.length === 0 && calendarDayKey && (
+                <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] text-[#BABABA] text-center w-full" style={{ marginTop: 52.75 }}>
+                  No reminders... take it easy!
+                </p>
+              )}
+              {filtered.length === 0 && !calendarDayKey && (() => {
                 const emptyMessages: Record<ReminderCategory | "all", string> = {
                   all: "No reminders... take it easy!",
                   today: "No reminders today... take it easy!",
@@ -4370,6 +4459,7 @@ export default function App() {
                   onCreateSmartReminder={createSmartReminderFromPanel}
                   useOneMinuteIncrements={isOneMinuteActive}
                   autoFocusReady={isReminderOverlayFocusReady}
+                  initialDate={!editingReminder && !smartReminderCreateList && calendarDayKey && calendarDayKey !== calendarTodayKey ? calendarDayKey : null}
                 />
               </motion.div>
             </motion.div>
@@ -5120,7 +5210,7 @@ export default function App() {
               className="fixed left-0 right-0 z-50 mx-auto w-full"
               style={{ bottom: 0 }}
             >
-              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} soundsFlag={soundsFlag} onSoundsFlagChange={setSoundsFlag} lockScreenWidgetFlag={lockScreenWidgetFlag} onLockScreenWidgetFlagChange={setLockScreenWidgetFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
+              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} soundsFlag={soundsFlag} onSoundsFlagChange={setSoundsFlag} lockScreenWidgetFlag={lockScreenWidgetFlag} onLockScreenWidgetFlagChange={setLockScreenWidgetFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} calendarFlag={calendarFlag} onCalendarFlagChange={setCalendarFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
                 setCreatedLists([]);
                 setSavedLists(
                   useDefaultTemplatesInCleanState
@@ -5219,7 +5309,9 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <RemindersSettingsContent
-                  calendarAvailable={isRemindersEnabled && calendarFlag}
+                  calendarAvailable={isRemindersEnabled && calendarFlag && isCalendarScreenTallEnough}
+                  calendarOn={calendarPref}
+                  onCalendarChange={setCalendarPref}
                   soundsAvailable={soundsFlag}
                   nlcAvailable={isNlcAvailable}
                   nlcPrefs={nlcPrefs}

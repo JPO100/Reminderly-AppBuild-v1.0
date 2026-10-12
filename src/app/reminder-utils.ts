@@ -142,7 +142,7 @@ export type TodayProgress = {
   dueTomorrow: number; // not done, due tomorrow (lets the widget roll over at midnight)
 };
 
-function toDateKey(d: Date): string {
+export function toDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
@@ -441,4 +441,101 @@ export function formatRepeatLabel(repeatRule: RepeatRule | null | undefined, tim
   }
 
   return label;
+}
+
+// Calendar view (docs/calendar-view-plan.md). Pure helpers: dates are local "YYYY-MM-DD" keys,
+// the same format as schedule.date, so no time zone conversion is involved.
+
+export type CalendarDayCategory = "past" | "today" | "this-week" | "later";
+export type CalendarDotKind = "overdue" | "today" | "this-week" | "later";
+
+const CALENDAR_MAX_DOTS = 4;
+const MONTH_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Month grid, Monday first. Each week has 7 cells: a date key, or null before the 1st and after the last day.
+// Only the weeks the month needs are returned (4, 5 or 6). month is 0-based.
+export function getCalendarWeeks(year: number, month: number): (string | null)[][] {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDow = new Date(year, month, 1).getDay(); // 0=Sun
+  const offset = firstDow === 0 ? 6 : firstDow - 1;
+  const cells: (string | null)[] = Array(offset).fill(null);
+  for (let day = 1; day <= daysInMonth; day++) cells.push(toDateKey(new Date(year, month, day)));
+  while (cells.length % 7 !== 0) cells.push(null);
+  const weeks: (string | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}
+
+// Step months across year boundaries. month is 0-based.
+export function addCalendarMonths(year: number, month: number, delta: number): { year: number; month: number } {
+  const d = new Date(year, month + delta, 1);
+  return { year: d.getFullYear(), month: d.getMonth() };
+}
+
+// Calendar month after moving by delta from the shown month. Null means the current month,
+// which the calendar follows (and where today is selected).
+export function stepCalendarMonth(shown: { year: number; month: number }, delta: number, now: Date): { year: number; month: number } | null {
+  const next = addCalendarMonths(shown.year, shown.month, delta);
+  return next.year === now.getFullYear() && next.month === now.getMonth() ? null : next;
+}
+
+// Where a day sits relative to today, using the existing Monday-Sunday categorisation.
+export function getCalendarDayCategory(dateKey: string, now: Date): CalendarDayCategory {
+  if (dateKey < toDateKey(now)) return "past";
+  const category = categoriseReminder({ schedule: { kind: "scheduled", date: dateKey } } as Reminder, now);
+  return category === "today" || category === "this-week" ? category : "later";
+}
+
+// Whether a day is inside the active filter's range. Past days are never in range.
+// "other" is the combined Later filter (Settings menu on). Sometime has no dates.
+export function isDateInFilterRange(dateKey: string, filter: ReminderCategory | "all", now: Date): boolean {
+  const category = getCalendarDayCategory(dateKey, now);
+  if (category === "past") return false;
+  if (filter === "all") return true;
+  if (filter === "other") return category === "later";
+  return category === filter;
+}
+
+function isActiveReminder(reminder: Reminder): boolean {
+  return reminder.completedAt == null && reminder.deletedAt == null;
+}
+
+// Up to 4 dots per day, one per active scheduled reminder on its own date, in list sort order.
+// Overdue reminders stay on their original date only. Repeating reminders show their current occurrence only.
+export function getCalendarDots(reminders: Reminder[], now: Date): Map<string, CalendarDotKind[]> {
+  const scheduled = reminders.filter((r) => isActiveReminder(r) && r.schedule.kind === "scheduled");
+  const dots = new Map<string, CalendarDotKind[]>();
+  for (const reminder of sortReminders(scheduled, now)) {
+    const date = (reminder.schedule as { kind: "scheduled"; date: string }).date;
+    const day = dots.get(date) ?? [];
+    if (day.length >= CALENDAR_MAX_DOTS) continue;
+    const category = categoriseReminder(reminder, now);
+    day.push(isOverdue(reminder, now) ? "overdue" : category === "today" || category === "this-week" ? category : "later");
+    dots.set(date, day);
+  }
+  return dots;
+}
+
+// Reminders listed under a selected day. Today matches the Today filter (due today plus overdue).
+// Any other day lists the active reminders scheduled on that date.
+export function getCalendarDayReminders(reminders: Reminder[], dateKey: string, now: Date): Reminder[] {
+  const isToday = dateKey === toDateKey(now);
+  const matches = reminders.filter((r) => {
+    if (!isActiveReminder(r) || r.schedule.kind !== "scheduled") return false;
+    if (isToday && isOverdue(r, now)) return true;
+    return r.schedule.date === dateKey;
+  });
+  return sortReminders(matches, now);
+}
+
+// "Tuesday 6th January"
+export function formatCalendarDayHeading(dateKey: string): string {
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return `${WEEKDAY_LONG[date.getDay()]} ${formatOrdinalDay(d)} ${MONTH_LONG[m - 1]}`;
+}
+
+// "January 2026". month is 0-based.
+export function formatCalendarMonthTitle(year: number, month: number): string {
+  return `${MONTH_LONG[month]} ${year}`;
 }

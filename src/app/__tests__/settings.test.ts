@@ -57,7 +57,7 @@ describe('dev tools controls', () => {
   ).join('\n');
   const controls = [
     // Feature flags
-    'Reminders', 'Enable reminders', 'Repeat reminders', '1 minute time increments',
+    'Reminders', 'Enable reminders', 'Repeat reminders', '1 minute time increments', 'Calendar',
     'Lists', 'Enable lists', 'Smart reminders', 'List templates', 'Pinned lists',
     'Natural Language Capture', 'Enable Natural Language Capture',
     'Notifications', 'Enable notifications',

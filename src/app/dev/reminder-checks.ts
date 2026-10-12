@@ -18,6 +18,10 @@ import {
   STORAGE_KEY,
   getDisplayCategory,
   getFilterForSettingsMenu,
+  getCalendarWeeks,
+  getCalendarDots,
+  getCalendarDayReminders,
+  isDateInFilterRange,
 } from '../reminder-utils';
 import type { Reminder } from '../reminder-utils';
 import { normaliseReminderText } from '../utils/normalise-text';
@@ -1396,6 +1400,59 @@ export function getReminderChecks(): Check[] {
         r.displayText = 'Call mum about the 9pm booking';
         const result = getDisplayTitle(r);
         assert(result === 'Call mum about the 9pm booking', `Expected "Call mum about the 9pm booking", got "${result}"`);
+      },
+    },
+    {
+      id: 'calendar-grid-rows',
+      name: 'Calendar: Monday-first grid uses only the rows the month needs (4, 5, 6) and handles leap years',
+      run: () => {
+        assert(getCalendarWeeks(2027, 1).length === 4, 'February 2027 should have 4 rows');
+        assert(getCalendarWeeks(2026, 0).length === 5, 'January 2026 should have 5 rows');
+        assert(getCalendarWeeks(2026, 2).length === 6, 'March 2026 should have 6 rows');
+        assert(getCalendarWeeks(2026, 0)[0][3] === '2026-01-01', '1 January 2026 should be a Thursday');
+        assert(getCalendarWeeks(2028, 1).flat().filter(Boolean).length === 29, 'February 2028 should have 29 days');
+      },
+    },
+    {
+      id: 'calendar-dots',
+      name: 'Calendar: max 4 dots per day; overdue on its original date; done, deleted and sometime excluded',
+      run: () => {
+        const now = new Date(2026, 0, 6, 13, 0);
+        const day = (id: string, date: string, extra: Partial<Reminder> = {}) => makeReminder({ id, schedule: { kind: 'scheduled', date }, ...extra });
+        const dots = getCalendarDots([
+          day('a', '2026-01-10'), day('b', '2026-01-10'), day('c', '2026-01-10'), day('d', '2026-01-10'), day('e', '2026-01-10'),
+          day('f', '2026-01-05'), day('g', '2026-01-08', { completedAt: 1 }), day('h', '2026-01-08', { deletedAt: 1 }),
+          makeReminder({ id: 'i', schedule: { kind: 'sometime' } }),
+        ], now);
+        assert(dots.get('2026-01-10')?.length === 4, 'Expected 4 dots on the 10th');
+        assert(JSON.stringify(dots.get('2026-01-05')) === '["overdue"]', 'Expected an overdue dot on the original date');
+        assert(!dots.has('2026-01-06'), 'Today should not get a dot for an earlier overdue reminder');
+        assert(!dots.has('2026-01-08') && dots.size === 2, 'Done, deleted and sometime should have no dots');
+      },
+    },
+    {
+      id: 'calendar-filter-ranges',
+      name: 'Calendar: filter ranges match Today, This week and Later, past days never in range',
+      run: () => {
+        const now = new Date(2025, 11, 31, 10, 0); // Wednesday 31 December 2025
+        assert(isDateInFilterRange('2025-12-31', 'today', now), 'Today in Today');
+        assert(!isDateInFilterRange('2025-12-31', 'this-week', now), 'Today not in This week');
+        assert(isDateInFilterRange('2026-01-04', 'this-week', now), 'Sunday 4 January in This week across the year boundary');
+        assert(isDateInFilterRange('2026-01-05', 'later', now), 'Monday 5 January in Later');
+        assert(!isDateInFilterRange('2025-12-30', 'all', now), 'Past days never in range');
+      },
+    },
+    {
+      id: 'calendar-day-reminders',
+      name: 'Calendar: today lists due today plus overdue; another day lists only that date',
+      run: () => {
+        const now = new Date(2026, 0, 6, 13, 0);
+        const overdue = makeReminder({ id: 'o', schedule: { kind: 'scheduled', date: '2026-01-04' } });
+        const today = makeReminder({ id: 't', schedule: { kind: 'scheduled', date: '2026-01-06', time: '17:00' } });
+        const future = makeReminder({ id: 'f', schedule: { kind: 'scheduled', date: '2026-01-15' } });
+        const all = [future, today, overdue];
+        assert(getCalendarDayReminders(all, '2026-01-06', now).map((r) => r.id).join() === 'o,t', 'Today should list overdue then today');
+        assert(getCalendarDayReminders(all, '2026-01-15', now).map((r) => r.id).join() === 'f', 'The 15th should list only its reminder');
       },
     },
   ];

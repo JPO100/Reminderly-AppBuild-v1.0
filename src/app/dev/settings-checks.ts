@@ -590,5 +590,26 @@ export function getSettingsChecks(): Check[] {
         assert(isFeatureActive('lockScreenWidget', { storage }), 'Flag back on should be active');
       },
     },
+    {
+      id: 'settings-calendar-flag-and-pref',
+      name: 'Calendar: flag and Show calendar both default off, active only when Reminders, flag and setting are on',
+      run: () => {
+        assert(SETTINGS_DEFAULTS['reminderly-ff-calendar'] === 'false', 'Calendar flag should default off');
+        assert(SETTINGS_DEFAULTS['reminderly-pref-calendar'] === 'false', 'Show calendar should default off');
+        const storage = memoryStorage({});
+        assert(!isFeatureActive('calendar', { storage }), 'Never saved should be off');
+        storage.setItem('reminderly-ff-calendar', 'true');
+        assert(!isFeatureActive('calendar', { storage }), 'Flag on with setting off should be off');
+        writeStoredBool('reminderly-pref-calendar', true, storage);
+        assert(readStoredBool('reminderly-pref-calendar', false, storage), 'Show calendar should be saved');
+        assert(isFeatureActive('calendar', { storage }), 'Flag and setting on should be active');
+        storage.setItem('reminderly-ff-calendar', 'false');
+        assert(!isFeatureActive('calendar', { storage }), 'Flag off should hide the calendar');
+        assert(storage.getItem('reminderly-pref-calendar') === 'true', 'Flag off should keep the user setting');
+        storage.setItem('reminderly-ff-calendar', 'true');
+        storage.setItem('reminderly-ff-reminders', 'false');
+        assert(!isFeatureActive('calendar', { storage }), 'Reminders off should hide the calendar');
+      },
+    },
   ];
 }

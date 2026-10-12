@@ -42,6 +42,7 @@ Full instructions: [docs/development.md](./docs/development.md).
 | [docs/features/settings.md](./docs/features/settings.md) | Feature flags, preferences, migration, settings panels |
 | [docs/features/onboarding.md](./docs/features/onboarding.md) | Tutorial |
 | [docs/settings-flags-spec.md](./docs/settings-flags-spec.md) | Active settings specification (Phase 4 outstanding) |
+| [docs/release-readiness.md](./docs/release-readiness.md) | Living App Store release readiness plan and checklist |
 | [docs/plans/](./docs/plans/) | Planned features not yet built |
 | [docs/development-history.md](./docs/development-history.md) | Authoritative project history |
 | [docs/archive/](./docs/archive/) | Dated reviews, completed plans and audits, kept for reference |

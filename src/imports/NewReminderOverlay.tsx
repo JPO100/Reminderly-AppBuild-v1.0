@@ -567,7 +567,7 @@ function ReminderOptions({
   );
 }
 
-function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean }) {
+function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null }) {
   const isEditMode = !!editReminder;
   const isSmartReminderCreate = !!smartReminderCreateList;
   const isSmartReminderEdit = editReminder?.isSmartReminder === true;
@@ -576,10 +576,13 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   const [isDateOn, setIsDateOn] = useState(() => {
     if (smartReminderCreateList) return true;
     if (editReminder?.schedule.kind === 'scheduled') return true;
+    // Calendar view: a new reminder from a selected day starts with that date and the usual 12pm time
+    if (initialDate && !editReminder) return true;
     return false;
   });
   const [isTimeOn, setIsTimeOn] = useState(() => {
     if (smartReminderCreateList) return true;
+    if (initialDate && !editReminder) return true;
     if (editReminder?.schedule.kind === 'scheduled' && editReminder.schedule.time) return true;
     return false;
   });
@@ -603,10 +606,14 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
       date.setHours(0, 0, 0, 0);
       return date;
     }
+    if (initialDate && !editReminder) {
+      const [y, m, d] = initialDate.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
     return null;
   });
   const [selectedTime, setSelectedTime] = useState<{ hour: number; minute: number } | null>(() => {
-    if (smartReminderCreateList) {
+    if (smartReminderCreateList || (initialDate && !editReminder)) {
       return { hour: 12, minute: 0 };
     }
     if (editReminder?.schedule.kind === 'scheduled' && editReminder.schedule.time) {
@@ -1290,10 +1297,10 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   );
 }
 
-export default function NewReminderOverlay({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean }) {
+export default function NewReminderOverlay({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null }) {
   return (
     <div className="bg-white content-stretch flex flex-col items-center relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="new-reminder-overlay">
-      <NewReminderElements repeatsEnabled={repeatsEnabled} onRepeatsOverlayOpen={onRepeatsOverlayOpen} repeatConfig={repeatConfig} onRepeatConfigChange={onRepeatConfigChange} isRepeatsOverlayOpen={isRepeatsOverlayOpen} addReminder={addReminder} onClose={onClose} nlcMode={nlcMode} nlcEnabled={nlcEnabled} nlcRecognition={nlcRecognition} editReminder={editReminder} updateReminder={updateReminder} smartReminderCreateList={smartReminderCreateList} onCreateSmartReminder={onCreateSmartReminder} useOneMinuteIncrements={useOneMinuteIncrements} autoFocusReady={autoFocusReady} />
+      <NewReminderElements repeatsEnabled={repeatsEnabled} onRepeatsOverlayOpen={onRepeatsOverlayOpen} repeatConfig={repeatConfig} onRepeatConfigChange={onRepeatConfigChange} isRepeatsOverlayOpen={isRepeatsOverlayOpen} addReminder={addReminder} onClose={onClose} nlcMode={nlcMode} nlcEnabled={nlcEnabled} nlcRecognition={nlcRecognition} editReminder={editReminder} updateReminder={updateReminder} smartReminderCreateList={smartReminderCreateList} onCreateSmartReminder={onCreateSmartReminder} useOneMinuteIncrements={useOneMinuteIncrements} autoFocusReady={autoFocusReady} initialDate={initialDate} />
     </div>
   );
 }

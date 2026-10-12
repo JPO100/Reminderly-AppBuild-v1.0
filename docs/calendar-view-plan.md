@@ -104,7 +104,7 @@ Proposed Dev tools location (CTO decision): Dev tools > Reminders, a "Calendar" 
 
 ### New reminder
 
-- If a day other than today is selected, New reminder opens with that date filled in. The time uses the existing default.
+- If a day other than today is selected, New reminder opens with that date filled in. The time uses the existing default for a new date: on, at 12pm, because a new reminder with a date needs a time. Both can be changed before saving.
 - If today is selected, a filter is active or the calendar is off, behaviour is unchanged.
 
 ## In scope

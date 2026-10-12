@@ -15,7 +15,7 @@ import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
-import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, toDateKey } from "./reminder-utils";
+import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, addCalendarMonths, toDateKey } from "./reminder-utils";
 import { syncWidget } from "./utils/widget";
 import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
 import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
@@ -994,6 +994,8 @@ export default function App() {
   const [calendarPref, setCalendarPref] = useStoredSetting('reminderly-pref-calendar');
   // Calendar day selected by the user; null shows today (the default view)
   const [calendarSelectedDate, setCalendarSelectedDate] = useState<string | null>(null);
+  // Month shown by the calendar; null follows the current month
+  const [calendarShownMonth, setCalendarShownMonth] = useState<{ year: number; month: number } | null>(null);
 
   // Dev-only: onboarding tutorial feature flag — controls whether tutorial overlay is available
   const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useStoredSetting('reminderly-ff-onboarding-tutorial');
@@ -3157,6 +3159,15 @@ export default function App() {
   const calendarDayKey = isCalendarActive && activeFilter === "all"
     ? (calendarSelectedDate && calendarSelectedDate > calendarTodayKey ? calendarSelectedDate : calendarTodayKey)
     : null;
+  const calendarMonth = calendarShownMonth ?? { year: now.getFullYear(), month: now.getMonth() };
+  // Changing month clears the selected day (today's list stays). Back on the current month, today is selected.
+  // An active filter stays active.
+  const changeCalendarMonth = (delta: number) => {
+    const next = addCalendarMonths(calendarMonth.year, calendarMonth.month, delta);
+    const isCurrentMonth = next.year === now.getFullYear() && next.month === now.getMonth();
+    setCalendarShownMonth(isCurrentMonth ? null : next);
+    setCalendarSelectedDate(null);
+  };
 
   // Dev tools panel sits level with the top of the logo
   if (isDevToolsOpen && devToolsTopRef.current === null) {
@@ -3929,8 +3940,8 @@ export default function App() {
         {/* Calendar view: fixed above the scrolling list (Dev tools flag and Show calendar setting) */}
         {isCalendarActive && viewMode !== "done-deleted" && (
           <RemindersCalendar
-            year={now.getFullYear()}
-            month={now.getMonth()}
+            year={calendarMonth.year}
+            month={calendarMonth.month}
             now={now}
             todayKey={calendarTodayKey}
             selectedKey={calendarDayKey}
@@ -3943,6 +3954,8 @@ export default function App() {
               setCalendarSelectedDate(dateKey === calendarTodayKey ? null : dateKey);
               setActiveFilter("all");
             }}
+            onPrevMonth={() => changeCalendarMonth(-1)}
+            onNextMonth={() => changeCalendarMonth(1)}
           />
         )}
         {/* Scrollable area */}
@@ -4403,6 +4416,7 @@ export default function App() {
                   onCreateSmartReminder={createSmartReminderFromPanel}
                   useOneMinuteIncrements={isOneMinuteActive}
                   autoFocusReady={isReminderOverlayFocusReady}
+                  initialDate={!editingReminder && !smartReminderCreateList && calendarDayKey && calendarDayKey !== calendarTodayKey ? calendarDayKey : null}
                 />
               </motion.div>
             </motion.div>

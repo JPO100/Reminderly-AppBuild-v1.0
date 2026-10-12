@@ -15,7 +15,7 @@ import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
-import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, toDateKey } from "./reminder-utils";
+import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, toDateKey } from "./reminder-utils";
 import { syncWidget } from "./utils/widget";
 import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
 import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
@@ -992,6 +992,8 @@ export default function App() {
   // Calendar view: availability flag (Dev tools > Reminders) and the user's Show calendar setting. Both default off
   const [calendarFlag, setCalendarFlag] = useStoredSetting('reminderly-ff-calendar');
   const [calendarPref, setCalendarPref] = useStoredSetting('reminderly-pref-calendar');
+  // Calendar day selected by the user; null shows today (the default view)
+  const [calendarSelectedDate, setCalendarSelectedDate] = useState<string | null>(null);
 
   // Dev-only: onboarding tutorial feature flag — controls whether tutorial overlay is available
   const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useStoredSetting('reminderly-ff-onboarding-tutorial');
@@ -3148,6 +3150,13 @@ export default function App() {
   }, [shownMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
 
   const now = new Date();
+  // Calendar view: shown when Reminders, the flag and Show calendar are on. With no filter, the list shows
+  // the selected day, or today when nothing is selected (or the selection has passed)
+  const isCalendarActive = isRemindersEnabled && calendarFlag && calendarPref;
+  const calendarTodayKey = toDateKey(now);
+  const calendarDayKey = isCalendarActive && activeFilter === "all"
+    ? (calendarSelectedDate && calendarSelectedDate > calendarTodayKey ? calendarSelectedDate : calendarTodayKey)
+    : null;
 
   // Dev tools panel sits level with the top of the logo
   if (isDevToolsOpen && devToolsTopRef.current === null) {
@@ -3879,6 +3888,7 @@ export default function App() {
                 key={filter}
                 onClick={() => {
                   setActiveFilter(activeFilter === filter ? "all" : filter);
+                  setCalendarSelectedDate(null);
                 }}
                 className={`${
                   isActive
@@ -3917,16 +3927,22 @@ export default function App() {
           )}
         </div>
         {/* Calendar view: fixed above the scrolling list (Dev tools flag and Show calendar setting) */}
-        {isRemindersEnabled && calendarFlag && calendarPref && viewMode !== "done-deleted" && (
+        {isCalendarActive && viewMode !== "done-deleted" && (
           <RemindersCalendar
             year={now.getFullYear()}
             month={now.getMonth()}
             now={now}
-            todayKey={toDateKey(now)}
-            selectedKey={null}
+            todayKey={calendarTodayKey}
+            selectedKey={calendarDayKey}
             filter={activeFilter}
             dots={getCalendarDots(hideOverdue ? reminders.filter(r => !isOverdue(r, now)) : reminders, now)}
             colours={{ overdue: OVERDUE_COLOUR, today: CATEGORY_COLOURS.today, "this-week": CATEGORY_COLOURS["this-week"], later: CATEGORY_COLOURS.later }}
+            heading={calendarDayKey ? formatCalendarDayHeading(calendarDayKey) : getCategoryLabel(activeFilter as ReminderCategory)}
+            headingColour={calendarDayKey ? APP_TEXT_DARK_BLUE : CATEGORY_COLOURS[activeFilter] ?? APP_TEXT_DARK_BLUE}
+            onSelectDay={(dateKey) => {
+              setCalendarSelectedDate(dateKey === calendarTodayKey ? null : dateKey);
+              setActiveFilter("all");
+            }}
           />
         )}
         {/* Scrollable area */}
@@ -4083,7 +4099,8 @@ export default function App() {
             const activeReminders = displayReminders.filter((r) =>
               (r.completedAt == null && r.deletedAt == null) || pendingDeleteIds.has(r.id)
             );
-            const filtered = activeReminders.filter((r) => {
+            // Calendar view with no filter: the selected day's reminders (today includes overdue)
+            const filtered = calendarDayKey ? getCalendarDayReminders(activeReminders, calendarDayKey, now) : activeReminders.filter((r) => {
               if (activeFilter === "all") return true;
               // Overdue reminders appear in every filter view
               if (isOverdue(r, now)) return true;
@@ -4096,7 +4113,7 @@ export default function App() {
             return (
               <>
               <div className="flex flex-col gap-[23px] w-full" style={{ position: 'relative', zIndex: 1 }}>
-                <AnimatePresence key={`${viewMode}-${activeFilter}`}>
+                <AnimatePresence key={`${viewMode}-${activeFilter}-${calendarDayKey ?? ""}`}>
                 {sortedFiltered.map((reminder) => {
                   const isPendingDone = pendingDoneIds.has(reminder.id);
                   const isPendingDelete = pendingDeleteIds.has(reminder.id);
@@ -4221,7 +4238,8 @@ export default function App() {
                 })}
                 </AnimatePresence>
               </div>
-              {filtered.length === 0 && (() => {
+              {/* Calendar day with nothing due: heading only, no message */}
+              {filtered.length === 0 && !calendarDayKey && (() => {
                 const emptyMessages: Record<ReminderCategory | "all", string> = {
                   all: "No reminders... take it easy!",
                   today: "No reminders today... take it easy!",

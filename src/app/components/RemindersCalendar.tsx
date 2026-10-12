@@ -37,6 +37,8 @@ export default function RemindersCalendar({
   filter,
   dots,
   colours,
+  heading,
+  headingColour,
   onSelectDay,
   onPrevMonth,
   onNextMonth,
@@ -49,6 +51,8 @@ export default function RemindersCalendar({
   filter: ReminderCategory | "all";
   dots: Map<string, CalendarDotKind[]>;
   colours: CalendarColours;
+  heading: string; // list heading: the selected day, or the active filter's name
+  headingColour: string;
   onSelectDay?: (dateKey: string) => void;
   onPrevMonth?: () => void;
   onNextMonth?: () => void;
@@ -128,6 +132,11 @@ export default function RemindersCalendar({
 
       {/* Divider between the calendar and the list */}
       <div className="w-full h-px mt-[11px]" style={{ backgroundColor: "#E4E4E4" }} />
+
+      {/* List heading, fixed above the scrolling list */}
+      <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] whitespace-nowrap" style={{ color: headingColour, marginTop: 16.75, marginBottom: -2.75 }}>
+        {heading}
+      </p>
     </div>
   );
 }

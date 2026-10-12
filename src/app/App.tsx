@@ -225,7 +225,7 @@ const OVERDUE_COLOUR = "#FF0000";
 const DONE_BLUE = "#4784F8";
 const APP_TEXT_DARK_BLUE = "#1C2C42";
 // Calendar view: shortest screen that fits a 6-row month with two full reminder rows (40 + 23 gap + 40) below it
-const CALENDAR_MIN_VIEWPORT_HEIGHT = 840;
+const CALENDAR_MIN_VIEWPORT_HEIGHT = 880;
 const DONE_LIST_COLOUR = "#404040";
 type TutorialVariant = 'reminders' | 'lists';
 

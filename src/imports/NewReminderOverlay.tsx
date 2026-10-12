@@ -76,6 +76,14 @@ export function canSubmitReminder({ text, requiresScheduledReminder, isDateOn, s
   return selectedDate !== null && isTimeOn && selectedTime !== null;
 }
 
+// Calendar view: a new reminder from a selected day starts with that date and the usual 12pm time
+// (a new reminder with a date needs a time). Null when there is no selected day.
+export function getCalendarPrefill(initialDate: string | null): { date: Date; time: { hour: number; minute: number } } | null {
+  if (!initialDate) return null;
+  const [y, m, d] = initialDate.split('-').map(Number);
+  return { date: new Date(y, m - 1, d), time: { hour: 12, minute: 0 } };
+}
+
 export function formatSelectedDate(date: Date | null, now?: Date): string | null {
   if (!date) return null;
   
@@ -572,17 +580,17 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   const isSmartReminderCreate = !!smartReminderCreateList;
   const isSmartReminderEdit = editReminder?.isSmartReminder === true;
   const isSmartReminderMode = isSmartReminderEdit || isSmartReminderCreate;
+  const calendarPrefill = editReminder ? null : getCalendarPrefill(initialDate);
 
   const [isDateOn, setIsDateOn] = useState(() => {
     if (smartReminderCreateList) return true;
     if (editReminder?.schedule.kind === 'scheduled') return true;
-    // Calendar view: a new reminder from a selected day starts with that date and the usual 12pm time
-    if (initialDate && !editReminder) return true;
+    if (calendarPrefill) return true;
     return false;
   });
   const [isTimeOn, setIsTimeOn] = useState(() => {
     if (smartReminderCreateList) return true;
-    if (initialDate && !editReminder) return true;
+    if (calendarPrefill) return true;
     if (editReminder?.schedule.kind === 'scheduled' && editReminder.schedule.time) return true;
     return false;
   });
@@ -606,16 +614,14 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
       date.setHours(0, 0, 0, 0);
       return date;
     }
-    if (initialDate && !editReminder) {
-      const [y, m, d] = initialDate.split('-').map(Number);
-      return new Date(y, m - 1, d);
-    }
+    if (calendarPrefill) return calendarPrefill.date;
     return null;
   });
   const [selectedTime, setSelectedTime] = useState<{ hour: number; minute: number } | null>(() => {
-    if (smartReminderCreateList || (initialDate && !editReminder)) {
+    if (smartReminderCreateList) {
       return { hour: 12, minute: 0 };
     }
+    if (calendarPrefill) return calendarPrefill.time;
     if (editReminder?.schedule.kind === 'scheduled' && editReminder.schedule.time) {
       const [hh, mm] = editReminder.schedule.time.split(':').map(Number);
       return { hour: hh, minute: mm };

@@ -15,7 +15,7 @@ import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
-import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, addCalendarMonths, toDateKey } from "./reminder-utils";
+import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, stepCalendarMonth, toDateKey } from "./reminder-utils";
 import { syncWidget } from "./utils/widget";
 import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
 import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
@@ -224,6 +224,8 @@ const OVERDUE_COLOUR = "#FF0000";
 // List blue constant for done styling
 const DONE_BLUE = "#4784F8";
 const APP_TEXT_DARK_BLUE = "#1C2C42";
+// Calendar view: shortest screen that fits a 6-row month with two full reminder rows (40 + 23 gap + 40) below it
+const CALENDAR_MIN_VIEWPORT_HEIGHT = 840;
 const DONE_LIST_COLOUR = "#404040";
 type TutorialVariant = 'reminders' | 'lists';
 
@@ -1003,6 +1005,28 @@ export default function App() {
   // Lists availability flag
   const [isListsEnabled, setIsListsEnabled] = useStoredSetting('reminderly-ff-lists');
   const [isRemindersEnabled, setIsRemindersEnabled] = useStoredSetting('reminderly-ff-reminders');
+  // Calendar view needs a screen at least CALENDAR_MIN_VIEWPORT_HEIGHT tall (room for two reminder rows
+  // below a 6-row month). Shorter screens keep the existing Reminders view and hide Show calendar.
+  const [isCalendarScreenTallEnough, setIsCalendarScreenTallEnough] = useState(() => window.innerHeight >= CALENDAR_MIN_VIEWPORT_HEIGHT);
+  useEffect(() => {
+    const update = () => setIsCalendarScreenTallEnough(window.innerHeight >= CALENDAR_MIN_VIEWPORT_HEIGHT);
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  // Calendar view is shown when Reminders, the flag and Show calendar are all on and the screen is tall enough
+  const isCalendarEnabled = isRemindersEnabled && calendarFlag && calendarPref;
+  const isCalendarActive = isCalendarEnabled && isCalendarScreenTallEnough;
+  // Every time the calendar is turned back on (Show calendar or the Dev tools flag): current month,
+  // today selected, no filter
+  const wasCalendarEnabledRef = useRef(isCalendarEnabled);
+  useEffect(() => {
+    if (isCalendarEnabled && !wasCalendarEnabledRef.current) {
+      setCalendarShownMonth(null);
+      setCalendarSelectedDate(null);
+      setActiveFilter("all");
+    }
+    wasCalendarEnabledRef.current = isCalendarEnabled;
+  }, [isCalendarEnabled]);
   const [notificationsFlag, setNotificationsFlag] = useStoredSetting('reminderly-ff-notifications');
   const [repeatRemindersFlag, setRepeatRemindersFlag] = useStoredSetting('reminderly-ff-repeat-reminders');
   const [oneMinuteIncrementsFlag, setOneMinuteIncrementsFlag] = useStoredSetting('reminderly-ff-one-minute-increments');
@@ -3152,9 +3176,8 @@ export default function App() {
   }, [shownMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
 
   const now = new Date();
-  // Calendar view: shown when Reminders, the flag and Show calendar are on. With no filter, the list shows
-  // the selected day, or today when nothing is selected (or the selection has passed)
-  const isCalendarActive = isRemindersEnabled && calendarFlag && calendarPref;
+  // Calendar view: with no filter, the list shows the selected day, or today when nothing is selected
+  // (or the selection has passed)
   const calendarTodayKey = toDateKey(now);
   const calendarDayKey = isCalendarActive && activeFilter === "all"
     ? (calendarSelectedDate && calendarSelectedDate > calendarTodayKey ? calendarSelectedDate : calendarTodayKey)
@@ -3163,11 +3186,29 @@ export default function App() {
   // Changing month clears the selected day (today's list stays). Back on the current month, today is selected.
   // An active filter stays active.
   const changeCalendarMonth = (delta: number) => {
-    const next = addCalendarMonths(calendarMonth.year, calendarMonth.month, delta);
-    const isCurrentMonth = next.year === now.getFullYear() && next.month === now.getMonth();
-    setCalendarShownMonth(isCurrentMonth ? null : next);
+    setCalendarShownMonth(stepCalendarMonth(calendarMonth, delta, now));
     setCalendarSelectedDate(null);
   };
+  const calendarElement = isCalendarActive && viewMode !== "done-deleted" ? (
+    <RemindersCalendar
+      year={calendarMonth.year}
+      month={calendarMonth.month}
+      now={now}
+      todayKey={calendarTodayKey}
+      selectedKey={calendarDayKey}
+      filter={activeFilter}
+      dots={getCalendarDots(hideOverdue ? reminders.filter(r => !isOverdue(r, now)) : reminders, now)}
+      colours={{ overdue: OVERDUE_COLOUR, today: CATEGORY_COLOURS.today, "this-week": CATEGORY_COLOURS["this-week"], later: CATEGORY_COLOURS.later }}
+      heading={calendarDayKey ? formatCalendarDayHeading(calendarDayKey) : getCategoryLabel(activeFilter as ReminderCategory)}
+      headingColour={calendarDayKey ? APP_TEXT_DARK_BLUE : CATEGORY_COLOURS[activeFilter] ?? APP_TEXT_DARK_BLUE}
+      onSelectDay={(dateKey) => {
+        setCalendarSelectedDate(dateKey === calendarTodayKey ? null : dateKey);
+        setActiveFilter("all");
+      }}
+      onPrevMonth={() => changeCalendarMonth(-1)}
+      onNextMonth={() => changeCalendarMonth(1)}
+    />
+  ) : null;
 
   // Dev tools panel sits level with the top of the logo
   if (isDevToolsOpen && devToolsTopRef.current === null) {
@@ -3937,27 +3978,8 @@ export default function App() {
             </>
           )}
         </div>
-        {/* Calendar view: fixed above the scrolling list (Dev tools flag and Show calendar setting) */}
-        {isCalendarActive && viewMode !== "done-deleted" && (
-          <RemindersCalendar
-            year={calendarMonth.year}
-            month={calendarMonth.month}
-            now={now}
-            todayKey={calendarTodayKey}
-            selectedKey={calendarDayKey}
-            filter={activeFilter}
-            dots={getCalendarDots(hideOverdue ? reminders.filter(r => !isOverdue(r, now)) : reminders, now)}
-            colours={{ overdue: OVERDUE_COLOUR, today: CATEGORY_COLOURS.today, "this-week": CATEGORY_COLOURS["this-week"], later: CATEGORY_COLOURS.later }}
-            heading={calendarDayKey ? formatCalendarDayHeading(calendarDayKey) : getCategoryLabel(activeFilter as ReminderCategory)}
-            headingColour={calendarDayKey ? APP_TEXT_DARK_BLUE : CATEGORY_COLOURS[activeFilter] ?? APP_TEXT_DARK_BLUE}
-            onSelectDay={(dateKey) => {
-              setCalendarSelectedDate(dateKey === calendarTodayKey ? null : dateKey);
-              setActiveFilter("all");
-            }}
-            onPrevMonth={() => changeCalendarMonth(-1)}
-            onNextMonth={() => changeCalendarMonth(1)}
-          />
-        )}
+        {/* Calendar view: fixed above the scrolling list */}
+        {calendarElement}
         {/* Scrollable area */}
         <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full max-w-[768px] rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {(() => {
@@ -4251,7 +4273,12 @@ export default function App() {
                 })}
                 </AnimatePresence>
               </div>
-              {/* Calendar day with nothing due: heading only, no message */}
+              {/* Calendar day with nothing due (design: reminders-cal-empty.svg, text box 52.75px below the list top) */}
+              {filtered.length === 0 && calendarDayKey && (
+                <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] text-[#BABABA] text-center w-full" style={{ marginTop: 52.75 }}>
+                  No reminders... take it easy!
+                </p>
+              )}
               {filtered.length === 0 && !calendarDayKey && (() => {
                 const emptyMessages: Record<ReminderCategory | "all", string> = {
                   all: "No reminders... take it easy!",
@@ -5266,7 +5293,7 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <RemindersSettingsContent
-                  calendarAvailable={isRemindersEnabled && calendarFlag}
+                  calendarAvailable={isRemindersEnabled && calendarFlag && isCalendarScreenTallEnough}
                   calendarOn={calendarPref}
                   onCalendarChange={setCalendarPref}
                   soundsAvailable={soundsFlag}

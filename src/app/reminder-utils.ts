@@ -472,6 +472,13 @@ export function addCalendarMonths(year: number, month: number, delta: number): {
   return { year: d.getFullYear(), month: d.getMonth() };
 }
 
+// Calendar month after moving by delta from the shown month. Null means the current month,
+// which the calendar follows (and where today is selected).
+export function stepCalendarMonth(shown: { year: number; month: number }, delta: number, now: Date): { year: number; month: number } | null {
+  const next = addCalendarMonths(shown.year, shown.month, delta);
+  return next.year === now.getFullYear() && next.month === now.getMonth() ? null : next;
+}
+
 // Where a day sits relative to today, using the existing Monday-Sunday categorisation.
 export function getCalendarDayCategory(dateKey: string, now: Date): CalendarDayCategory {
   if (dateKey < toDateKey(now)) return "past";

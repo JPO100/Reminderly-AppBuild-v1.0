@@ -8,8 +8,10 @@ import {
   getCalendarDots,
   getCalendarWeeks,
   isDateInFilterRange,
+  stepCalendarMonth,
   toDateKey,
 } from '../reminder-utils';
+import { canSubmitReminder, formatSelectedDate, getCalendarPrefill } from '../../imports/NewReminderOverlay';
 import type { Reminder } from '../reminder-utils';
 
 // Tuesday 6 January 2026, 1pm local time (the mockup's today)
@@ -169,5 +171,43 @@ describe('calendar day reminders', () => {
 
   it('returns an empty list for a day with nothing due', () => {
     expect(getCalendarDayReminders(all, '2026-01-20', NOW)).toEqual([]);
+  });
+});
+
+describe('calendar month navigation (option A)', () => {
+  it('returns null (follow the current month) when stepping back to the current month', () => {
+    expect(stepCalendarMonth({ year: 2026, month: 1 }, -1, NOW)).toBeNull();
+    expect(stepCalendarMonth({ year: 2025, month: 11 }, 1, NOW)).toBeNull();
+  });
+
+  it('returns the shown month when moving away, across year boundaries', () => {
+    expect(stepCalendarMonth({ year: 2026, month: 0 }, 1, NOW)).toEqual({ year: 2026, month: 1 });
+    expect(stepCalendarMonth({ year: 2026, month: 0 }, -1, NOW)).toEqual({ year: 2025, month: 11 });
+    expect(stepCalendarMonth({ year: 2026, month: 11 }, 1, NOW)).toEqual({ year: 2027, month: 0 });
+  });
+
+  it('has no limit in either direction', () => {
+    expect(stepCalendarMonth({ year: 2026, month: 0 }, 120, NOW)).toEqual({ year: 2036, month: 0 });
+    expect(stepCalendarMonth({ year: 2026, month: 0 }, -120, NOW)).toEqual({ year: 2016, month: 0 });
+  });
+});
+
+describe('New reminder date from the calendar', () => {
+  it('prefills the selected day with the usual 12pm time', () => {
+    const prefill = getCalendarPrefill('2026-01-22');
+    expect(prefill?.time).toEqual({ hour: 12, minute: 0 });
+    expect(toDateKey(prefill!.date)).toBe('2026-01-22');
+    expect(formatSelectedDate(prefill!.date, NOW)).toBe('Jan 22nd');
+  });
+
+  it('prefills nothing without a selected day', () => {
+    expect(getCalendarPrefill(null)).toBeNull();
+  });
+
+  it('can be saved once text is entered, as a new scheduled reminder', () => {
+    const prefill = getCalendarPrefill('2026-01-22')!;
+    const base = { requiresScheduledReminder: true, isDateOn: true, selectedDate: prefill.date, isTimeOn: true, selectedTime: prefill.time };
+    expect(canSubmitReminder({ ...base, text: '' })).toBe(false);
+    expect(canSubmitReminder({ ...base, text: 'Pick up parcel' })).toBe(true);
   });
 });

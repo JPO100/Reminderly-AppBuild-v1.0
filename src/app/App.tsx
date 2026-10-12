@@ -3979,8 +3979,23 @@ export default function App() {
             </>
           )}
         </div>
-        {/* Calendar view: fixed above the scrolling list */}
-        {calendarElement}
+        {/* Calendar view: fixed above the scrolling list. Turning it on or off expands or collapses it, so the
+            list slides down or up. The column's 24px gap sits inside the animated area (margin -24, padding 24) */}
+        <AnimatePresence initial={false}>
+          {calendarElement && (
+            <motion.div
+              key="reminders-calendar"
+              className="w-full shrink-0"
+              style={{ overflow: "hidden", marginBottom: -24 }}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <div style={{ paddingBottom: 24 }}>{calendarElement}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* Scrollable area */}
         <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full max-w-[768px] rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {(() => {

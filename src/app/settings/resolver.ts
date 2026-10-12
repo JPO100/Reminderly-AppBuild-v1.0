@@ -27,7 +27,8 @@ export type Feature =
   | 'onboarding'
   | 'settingsMenu'
   | 'infoIcons'
-  | 'paywall';
+  | 'paywall'
+  | 'lockScreenWidget';
 
 interface FeatureDef {
   flag: string;
@@ -59,6 +60,7 @@ const FEATURES: Record<Feature, FeatureDef> = {
   settingsMenu: { flag: 'reminderly-ff-settings-menu-v2' },
   infoIcons: { flag: 'reminderly-ff-info-icons' },
   paywall: { flag: 'reminderly-ff-paywall' },
+  lockScreenWidget: { flag: 'reminderly-ff-lock-screen-widget' },
 };
 
 export const ALL_FEATURES = Object.keys(FEATURES) as Feature[];

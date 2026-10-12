@@ -130,6 +130,16 @@ Adds badge correction and tracking:
 
 The `postinstall` script in `package.json` runs `patch-package` so the patch is applied automatically on `npm install`. If upgrading `@capacitor/local-notifications`, the patch must be regenerated or verified against the new version.
 
+## Lock screen widget
+
+A WidgetKit extension (`ios/App/ReminderlyWidget`, bundle id `com.reminderly.app.widget`, iOS 16+) provides one circular lock screen widget.
+
+- The web app computes `getTodayProgress` (`reminder-utils.ts`) whenever reminders change, on resume and at time boundaries, and sends it through the local `WidgetBridge` plugin (`App/WidgetBridgePlugin.swift`, registered in `App/MainViewController.swift`).
+- The plugin writes `todayProgress` (`date`, `outstanding`, `done`, `dueTomorrow`) to the App Group `group.com.reminderly.app` and reloads widget timelines.
+- The widget shows `outstanding` in the centre and `done / (outstanding + done)` as an open arc (full when nothing is outstanding), with the Reminderly tick (template image). Its timeline includes a midnight entry: a snapshot from an earlier day shows `outstanding + dueTomorrow` with done reset.
+- Tapping the widget opens the app. iOS controls when the widget redraws.
+- Dev tools > System > Lock screen widget (`reminderly-ff-lock-screen-widget`, default on) is the master flag. Off: the app calls `clearSnapshot`, which removes `todayProgress` from the App Group, and the widget shows a neutral empty state (track arc and tick, no number). The same empty state shows before the app has first run.
+
 ## Relationship Between Native and Web Layers
 
 The current relationship is:

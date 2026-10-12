@@ -41,6 +41,13 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/lock-screen-widget
+
+Created: 2026-10-12
+Parent: main (751ced4)
+Purpose: Circular lock screen widget - outstanding reminders for today (including overdue) with a completed-progress arc. Plan: docs/lock-screen-widget-plan.md
+Status: Committed on the branch, not merged or pushed (2026-10-12). Simulator test sheet passed; iPhone 15 Pro visual, count accuracy and flag off/on verified by the owner and from device data. Real overnight rollover accepted on simulator evidence
+
 ### feature/settings-panels-header-keyline
 
 Created: 2026-10-09

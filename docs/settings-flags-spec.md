@@ -261,6 +261,7 @@ Phase 3 change: the NLC mode and recognition preferences are stored as boolean k
 | `reminderly-ff-info-icons` | Unchanged | Off | Kept |
 | - | `reminderly-ff-calendar` | Off | - |
 | - | `reminderly-ff-sounds` | Off (turn on in Dev tools > System > Sounds) | - |
+| - | `reminderly-ff-lock-screen-widget` | On (Dev tools > System > Lock screen widget). Off stops publishing and clears shared widget data | - |
 | - | `reminderly-pref-sounds` | JSON: both panels off, actions on | - (never saved by an earlier build) |
 | - | `reminderly-ff-nlc-phone`, `reminderly-ff-nlc-contacts` (temporary) | Off | - |
 | `reminderly-ff-paywall` | Unchanged | Off | Kept |

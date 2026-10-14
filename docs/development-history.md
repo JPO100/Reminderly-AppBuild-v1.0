@@ -13,7 +13,12 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of reminder-attachments (2026-10-14)
+Tip: merge of fix/tutorial-first-launch (2026-10-14)
+
+Merge - 2026-10-14: Tutorial first-launch fix (D9 / F9)
+- Merge commit of fix/tutorial-first-launch (ce86ac7) into main (60bb9a8). No conflicts
+- Verification on main: Vitest 182/182, Self Check 372/372, production build successful
+
 
 Merge - 2026-10-14: Reminder attachments
 - Merge commit of reminder-attachments (9007529) into main (3f04e30). No conflicts
@@ -219,7 +224,19 @@ Summary:
 - Restored notifications.test.ts to its pre-f98d81f expectations, matching the hasActiveDateOnlyReminder guard restored on 2026-06-18
 - Updated src/app/dev/BASELINE.md with the verified baseline
 
-### reminder-attachments
+### fix/tutorial-first-launch
+
+Created: 2026-10-14
+Parent: main (60bb9a8)
+Purpose: Tutorial first-launch fix (D9 / F9), recovered from the uncommitted claude/great-shannon-fbec22 worktree (preserved unchanged on recovery/tutorial-first-launch-wip, 2411d04)
+Status: Merged into main 2026-10-14. Fresh-install simulator check: tutorial opens on first launch
+
+Summary:
+- "Show tutorial on first launch" reads the saved shown keys: each variant auto-opens only until it has been closed once. "Show tutorial on every start" unchanged. Manual access unchanged
+- `shouldAutoOpenTutorial` (utils/tutorial-pages.ts) as recovered; App.tsx guard on start and on tab switch
+- Adapted to current main: Self Checks rewritten without the removed storage helper; unit test added for an existing user who has seen only one tutorial
+- Verification: Vitest 182/182, Self Check 372/372, production build successful
+
 
 Created: 2026-08-25
 Parent: main

@@ -20,3 +20,16 @@ export function getTutorialPageIds(config: TutorialPageConfig): number[] {
   if (config.settingsMenuEnabled) pages.push(5);
   return pages;
 }
+
+export type TutorialAutoOpenConfig = {
+  showOnFirstLaunch: boolean;
+  showOnEveryStart: boolean;
+  hasSeenVariant: boolean;
+};
+
+// Every start always auto-opens. First launch only auto-opens a variant whose shown key is not 'true'.
+export function shouldAutoOpenTutorial(config: TutorialAutoOpenConfig): boolean {
+  if (config.showOnEveryStart) return true;
+  if (config.showOnFirstLaunch) return !config.hasSeenVariant;
+  return false;
+}

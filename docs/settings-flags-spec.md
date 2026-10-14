@@ -435,7 +435,7 @@ Added on feature/click-sounds (2026-10-11). A soft click, generated in code with
 | D6 | Keep old storage keys for one release | Approved on condition that rollback is verified (sections 8.1 and 12) |
 | D7 | Siri (lists) flag off until a Lists Siri action exists | Approved |
 | D8 | Siri request while Siri is inactive: keep silent discard | Approved. A spoken reply needs native work and is a future improvement |
-| D9 | Tutorial on first launch shows on every launch (F9) | Approved as a separate tracked fix, outside this work |
+| D9 | Tutorial on first launch shows on every launch (F9) | Approved as a separate tracked fix. Implemented on fix/tutorial-first-launch (2026-10-14) |
 | D10 | Ask state key `reminderly-notif-ask-state` with values missing, `not-now-1`, `not-now-2`, `accepted` (section 7.3) | Approved, with refinements: no further automatic asks after an iOS denial, and unrecognised values suppress automatic asks |
 
 ## 14. Future improvements (out of scope)

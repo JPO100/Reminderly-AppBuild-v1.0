@@ -236,6 +236,8 @@ Recovered fixes - 2026-10-14 (approved by John)
 - Header and UI work-in-progress from 9cd01c6 kept excluded
 - Tests: recovered-fixes.test.ts (10 tests). Vitest 177/177, Self Check 370/370, production build successful, simulator and physical iPhone build, install and launch successful
 
+Repeats tick - 2026-10-14 (approved by John): Repeats panel inactive tick matches the List header and New reminder panel (#D9D9D9 circle, white tick). Active colours and 50px size unchanged. Other 9cd01c6 UI changes (app-wide text selection, auto-generated list title) remain excluded
+
 Summary:
 - Step 7A: Choose a File via @capawesome/capacitor-file-picker with metadata-first validation, 25 MB limit, pending attachment lifecycle, generic file tile, delete confirmation
 - Step 7B: Choose a Photo via Camera.getPhoto() with CameraSource.Photos opening standard iOS PHPickerViewController with album navigation, JPEG output, same pending attachment lifecycle

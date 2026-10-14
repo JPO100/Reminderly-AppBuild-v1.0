@@ -1,4 +1,6 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
+import { configDefaults } from 'vitest/config'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
@@ -19,4 +21,9 @@ export default defineConfig({
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+
+  // Keep Vitest's defaults and skip local Claude worktrees, which contain copies of the test files
+  test: {
+    exclude: [...configDefaults.exclude, '.claude/**'],
+  },
 })

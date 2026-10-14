@@ -1,43 +1,10 @@
-import svgPaths from "./svg-enpj30u9ti";
 import doneSvgPaths from "./svg-a4qyyq2khw";
 import repeatIconPaths from "./svg-cep8nozhxy";
 import { useState, useEffect, useRef } from "react";
-import { InfoIconWithOverlay } from "../app/components/DevToolsOverlay";
+import { InfoIconWithOverlay, DevHeader } from "../app/components/DevToolsOverlay";
 import type { Reminder } from "../app/reminder-utils";
 import { generateDummyReminders } from "../app/utils/dummy-generator";
 
-function Header({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
-  return (
-    <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-name="header">
-      <div className="content-stretch flex gap-[20px] items-center relative shrink-0">
-        <button onClick={onBack} className="cursor-pointer shrink-0" aria-label="Back">
-          <div className="h-[17px] relative shrink-0 w-[9px]" data-name="Union">
-            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 9 17">
-              <path d={svgPaths.p347e8980} fill="var(--fill-0, #1C2C42)" id="Union" />
-            </svg>
-          </div>
-        </button>
-        <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] whitespace-nowrap">
-          <p className="leading-[normal]">Dummy reminders</p>
-        </div>
-      </div>
-      <button
-        onClick={onClose}
-        className="flex items-center justify-center relative shrink-0 size-[25.456px] cursor-pointer"
-        aria-label="Close dev tools"
-        style={{ "--transform-inner-width": "1200", "--transform-inner-height": "19" } as React.CSSProperties}
-      >
-        <div className="flex-none rotate-45">
-          <div className="relative size-[18px]" data-name="Union">
-            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-              <path d={svgPaths.p1cbc7100} fill="var(--fill-0, #1C2C42)" id="Union" />
-            </svg>
-          </div>
-        </div>
-      </button>
-    </div>
-  );
-}
 
 function ReminderRow({ label, color, defaultCount, value, onChange, textColor, isDone, strikethrough, repeatActive, onToggleRepeat }: { label: string; color: string; defaultCount: string; value: string; onChange: (val: string) => void; textColor?: string; isDone?: boolean; strikethrough?: boolean; repeatActive?: boolean; onToggleRepeat?: () => void }) {
   return (
@@ -165,10 +132,11 @@ export default function DummyReminders({ onBack, onClose, addReminders, hideOver
   };
 
   return (
-    <div className="bg-white content-stretch flex flex-col gap-[30px] items-start pb-[30px] pt-[30px] px-[20px] relative rounded-tl-[20px] rounded-tr-[20px] size-full" data-name="dummy reminders">
-      <Header onBack={onBack} onClose={onClose} />
+    <div className="content-stretch flex flex-col gap-[24px] items-start pb-[24px] pt-[24px] px-[20px] relative size-full" data-name="dummy reminders">
+      <DevHeader title="Dummy reminders" onBack={onBack} onClose={onClose} />
       <div className="content-stretch flex flex-[1_0_0] flex-col gap-[32px] items-center min-h-px min-w-px relative w-full">
-        <div className="content-stretch flex flex-col gap-[10px] items-start relative w-full" data-name="Scrollable List Area" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <div className="content-stretch flex flex-col items-start relative w-full" data-name="Scrollable List Area" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <div className="bg-white rounded-[6px] p-[20px] flex flex-col gap-[10px] items-start w-full shrink-0">
           {/* Hide overdue toggle */}
           <div className="content-stretch flex h-[40px] items-center justify-between relative shrink-0 w-full">
             <div className="content-stretch flex gap-[16px] items-center relative shrink-0">
@@ -193,6 +161,7 @@ export default function DummyReminders({ onBack, onClose, addReminders, hideOver
           <ReminderRow label="'Sometime' reminders" color="#939393" defaultCount="02" value={counts.sometime} onChange={updateCount('sometime')} />
           <ReminderRow label="'Done' reminders" color="#4784F8" defaultCount="05" value={counts.done} onChange={updateCount('done')} isDone repeatActive={repeats.done} onToggleRepeat={toggleRepeat('done')} />
           <ReminderRow label="'Deleted' reminders" color="#939393" defaultCount="03" value={counts.deleted} onChange={updateCount('deleted')} strikethrough textColor="#939393" repeatActive={repeats.deleted} onToggleRepeat={toggleRepeat('deleted')} />
+          </div>
         </div>
         <div className="flex gap-[30px] items-center relative shrink-0 w-full">
           <button

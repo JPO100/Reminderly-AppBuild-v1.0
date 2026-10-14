@@ -1,6 +1,6 @@
 import type { Check } from './check-system';
 import type { Reminder } from '../reminder-utils';
-import { computeBadgeCount, getNextTimeRefreshBoundary } from '../reminder-utils';
+import { computeBadgeCount, getNextTimeRefreshBoundary, getTodayProgress } from '../reminder-utils';
 import { buildScheduledNotifications } from '../notifications';
 
 function assert(condition: boolean, message: string): void {
@@ -356,6 +356,133 @@ export function getNotificationChecks(): Check[] {
         const expectedMs = expected.getTime() - now.getTime();
         const result = getNextTimeRefreshBoundary(reminders, now);
         assert(result === expectedMs, `Expected ${expectedMs}, got ${result}`);
+      },
+    },
+    {
+      id: 'widget-progress-none-done',
+      name: 'Widget progress: today and overdue reminders count as outstanding',
+      run: () => {
+        const now = new Date();
+        now.setHours(12, 0, 0, 0);
+        const reminders = [
+          makeReminder({ id: 'r1', schedule: { kind: 'scheduled', date: todayDate(), time: '18:00' } }),
+          makeReminder({ id: 'r2', schedule: { kind: 'scheduled', date: todayDate() } }),
+          makeReminder({ id: 'r3', schedule: { kind: 'scheduled', date: yesterdayDate(), time: '08:00' } }),
+        ];
+        const p = getTodayProgress(reminders, now);
+        assert(p.outstanding === 3 && p.done === 0, `Expected 3/0, got ${p.outstanding}/${p.done}`);
+        assert(p.date === todayDate(), `Expected date ${todayDate()}, got ${p.date}`);
+      },
+    },
+    {
+      id: 'widget-progress-some-done',
+      name: 'Widget progress: reminders completed today count as done',
+      run: () => {
+        const now = new Date();
+        now.setHours(12, 0, 0, 0);
+        const doneAt = new Date(now).setHours(9, 0, 0, 0);
+        const reminders = [
+          makeReminder({ id: 'r1', schedule: { kind: 'scheduled', date: todayDate() } }),
+          makeReminder({ id: 'r2', schedule: { kind: 'scheduled', date: todayDate() }, completedAt: doneAt }),
+          makeReminder({ id: 'r3', schedule: { kind: 'scheduled', date: yesterdayDate() }, completedAt: doneAt }),
+        ];
+        const p = getTodayProgress(reminders, now);
+        assert(p.outstanding === 1 && p.done === 2, `Expected 1/2, got ${p.outstanding}/${p.done}`);
+      },
+    },
+    {
+      id: 'widget-progress-all-done',
+      name: 'Widget progress: all done gives 0 outstanding',
+      run: () => {
+        const now = new Date();
+        now.setHours(12, 0, 0, 0);
+        const doneAt = new Date(now).setHours(9, 0, 0, 0);
+        const reminders = [
+          makeReminder({ id: 'r1', schedule: { kind: 'scheduled', date: todayDate() }, completedAt: doneAt }),
+          makeReminder({ id: 'r2', schedule: { kind: 'scheduled', date: todayDate() }, completedAt: doneAt }),
+        ];
+        const p = getTodayProgress(reminders, now);
+        assert(p.outstanding === 0 && p.done === 2, `Expected 0/2, got ${p.outstanding}/${p.done}`);
+      },
+    },
+    {
+      id: 'widget-progress-nothing-due',
+      name: 'Widget progress: nothing due gives 0 outstanding and 0 done',
+      run: () => {
+        const p = getTodayProgress([], new Date());
+        assert(p.outstanding === 0 && p.done === 0 && p.dueTomorrow === 0, `Expected all 0, got ${JSON.stringify(p)}`);
+      },
+    },
+    {
+      id: 'widget-progress-exclusions',
+      name: 'Widget progress: excludes deleted, sometime and future-dated reminders',
+      run: () => {
+        const now = new Date();
+        now.setHours(12, 0, 0, 0);
+        const reminders = [
+          makeReminder({ id: 'r1', schedule: { kind: 'scheduled', date: todayDate() }, deletedAt: now.getTime() }),
+          makeReminder({ id: 'r2', schedule: { kind: 'sometime' } }),
+          makeReminder({ id: 'r3', schedule: { kind: 'scheduled', date: futureDate(3) } }),
+          makeReminder({ id: 'r4', schedule: { kind: 'scheduled', date: futureDate(3) }, completedAt: now.getTime() }),
+        ];
+        const p = getTodayProgress(reminders, now);
+        assert(p.outstanding === 0 && p.done === 0, `Expected 0/0, got ${p.outstanding}/${p.done}`);
+      },
+    },
+    {
+      id: 'widget-progress-completed-yesterday',
+      name: 'Widget progress: reminders completed before today are not counted',
+      run: () => {
+        const now = new Date();
+        now.setHours(12, 0, 0, 0);
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const reminders = [
+          makeReminder({ id: 'r1', schedule: { kind: 'scheduled', date: yesterdayDate() }, completedAt: yesterday.getTime() }),
+        ];
+        const p = getTodayProgress(reminders, now);
+        assert(p.outstanding === 0 && p.done === 0, `Expected 0/0, got ${p.outstanding}/${p.done}`);
+      },
+    },
+    {
+      id: 'widget-progress-due-tomorrow',
+      name: 'Widget progress: reminders due tomorrow are counted separately for midnight rollover',
+      run: () => {
+        const now = new Date();
+        now.setHours(12, 0, 0, 0);
+        const reminders = [
+          makeReminder({ id: 'r1', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '09:00' } }),
+        ];
+        const p = getTodayProgress(reminders, now);
+        assert(p.outstanding === 0 && p.dueTomorrow === 1, `Expected 0 outstanding and 1 tomorrow, got ${JSON.stringify(p)}`);
+      },
+    },
+    {
+      id: 'widget-progress-tomorrow-completed-early',
+      name: 'Widget progress: reminder due tomorrow but completed today is not counted for midnight rollover',
+      run: () => {
+        const now = new Date();
+        now.setHours(12, 0, 0, 0);
+        const reminders = [
+          makeReminder({ id: 'r1', schedule: { kind: 'scheduled', date: tomorrowDate() }, completedAt: now.getTime() }),
+        ];
+        const p = getTodayProgress(reminders, now);
+        assert(p.outstanding === 0 && p.done === 0 && p.dueTomorrow === 0, `Expected all 0, got ${JSON.stringify(p)}`);
+      },
+    },
+    {
+      id: 'widget-progress-repeating',
+      name: 'Widget progress: completed daily repeat counts as done, next occurrence is tomorrow',
+      run: () => {
+        const now = new Date();
+        now.setHours(12, 0, 0, 0);
+        const repeatRule = { frequency: 'daily' as const, interval: 1, byDay: null };
+        const reminders = [
+          makeReminder({ id: 'r1', schedule: { kind: 'scheduled', date: todayDate(), time: '08:00' }, repeatRule, completedAt: now.getTime() }),
+          makeReminder({ id: 'r2', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '08:00' }, repeatRule }),
+        ];
+        const p = getTodayProgress(reminders, now);
+        assert(p.outstanding === 0 && p.done === 1 && p.dueTomorrow === 1, `Expected 0/1/1, got ${JSON.stringify(p)}`);
       },
     },
   ];

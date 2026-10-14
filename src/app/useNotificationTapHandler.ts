@@ -4,12 +4,12 @@ import { NOTIFICATION_TAP_EVENT, PENDING_NOTIFICATION_REMINDER_ID_KEY, PENDING_N
 
 type NotificationTapHandlerOptions = {
     reminders: Reminder[];
+    remindersEnabled: boolean;
     setActiveMainTab: (value: "reminders" | "lists") => void;
     setIsTutorialOpen: (value: boolean) => void;
     setIsOverlayOpen: (value: boolean) => void;
     setIsListsOverlayOpen: (value: boolean) => void;
     setIsRepeatsOverlayOpen: (value: boolean) => void;
-    setIsSettingsOpen: (value: boolean) => void;
     setViewMode: (value: ViewMode) => void;
     setActiveFilter: (value: ReminderCategory | "all") => void;
     setInfoReminder: (reminder: Reminder | null) => void;
@@ -19,12 +19,12 @@ type NotificationTapHandlerOptions = {
 
 export function useNotificationTapHandler({
     reminders,
+    remindersEnabled,
     setActiveMainTab,
     setIsTutorialOpen,
     setIsOverlayOpen,
     setIsListsOverlayOpen,
     setIsRepeatsOverlayOpen,
-    setIsSettingsOpen,
     setViewMode,
     setActiveFilter,
     setInfoReminder,
@@ -41,6 +41,9 @@ export function useNotificationTapHandler({
             const actionId = localStorage.getItem(PENDING_NOTIFICATION_ACTION_KEY);
             localStorage.removeItem(PENDING_NOTIFICATION_REMINDER_ID_KEY);
             localStorage.removeItem(PENDING_NOTIFICATION_ACTION_KEY);
+
+            // Reminders off: never open, complete or move a hidden reminder
+            if (!remindersEnabled) return;
 
             const tappedReminder = reminders.find((reminder) => reminder.id === reminderId);
             if (!tappedReminder) return;
@@ -59,7 +62,6 @@ export function useNotificationTapHandler({
             setIsOverlayOpen(false);
             setIsListsOverlayOpen(false);
             setIsRepeatsOverlayOpen(false);
-            setIsSettingsOpen(false);
             setActiveMainTab("reminders");
             setViewMode("list");
             setActiveFilter("all");
@@ -83,13 +85,13 @@ export function useNotificationTapHandler({
         };
     }, [
         reminders,
+        remindersEnabled,
         setActiveMainTab,
         setActiveFilter,
         setInfoReminder,
         setIsListsOverlayOpen,
         setIsOverlayOpen,
         setIsRepeatsOverlayOpen,
-        setIsSettingsOpen,
         setIsTutorialOpen,
         setViewMode,
         onMarkAsDone,

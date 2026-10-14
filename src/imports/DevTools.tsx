@@ -1,106 +1,46 @@
 import { useState } from "react";
-import svgPaths from "./svg-7kpmedzeqd";
-function ToggleBtn({ isOn, onToggle }: { isOn: boolean; onToggle: () => void }) {
-  return (
-    <div className="h-[30px] relative shrink-0 w-[56px]" data-name="toggle-btn" onClick={(e) => { e.stopPropagation(); onToggle(); }} style={{ cursor: 'pointer' }}>
-      <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 56 30">
-        <g id="toggle-btn">
-          <rect fill={isOn ? "#4784F8" : "#C9C9C9"} height="30" rx="15" width="56" />
-          <circle cx={isOn ? "41" : "15"} cy="15" fill="white" id="btn" r="11.25" style={{ transition: 'cx 0.2s ease' }} />
-        </g>
-      </svg>
-    </div>
-  );
-}
+import { DevPage, DevCard, DevNavToggleRow, DevMenuRow } from "../app/components/DevToolsOverlay";
 
-function Header({ onClose }: { onClose: () => void }) {
+// Shown when the last enabled of Reminders and Lists is tapped: one module must stay on.
+export function LastModuleNotice({ onClose }: { onClose: () => void }) {
   return (
-    <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-name="header">
-      <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] whitespace-nowrap">
-        <p className="leading-[normal]">Dev tools</p>
-      </div>
-      <button
-        onClick={onClose}
-        className="flex items-center justify-center relative shrink-0 size-[25.456px] cursor-pointer"
-        aria-label="Close dev tools"
-        style={{ "--transform-inner-width": "1200", "--transform-inner-height": "19" } as React.CSSProperties}
-      >
-        <div className="flex-none rotate-45">
-          <div className="relative size-[18px]" data-name="Union">
-            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 18 18">
-              <path d={svgPaths.p1cbc7100} fill="var(--fill-0, #1C2C42)" id="Union" />
-            </svg>
+    <>
+      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
+      <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+        <div
+          className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
+          style={{ width: 340 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
+            <p className="leading-[normal] whitespace-pre-wrap">One module must stay on</p>
           </div>
-        </div>
-      </button>
-    </div>
-  );
-}
-
-function NavRow({ label, onClick, plain }: { label: string; onClick: () => void; plain?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`${plain ? 'h-[60px]' : 'h-[50px] bg-[#f5f5f5] rounded-[100px]'} relative shrink-0 w-full cursor-pointer`}
-    >
-      <div className="flex flex-row items-center size-full">
-        <div className={`content-stretch flex items-center ${plain ? 'pr-[15px]' : 'px-[30px]'} py-[15px] relative size-full`}>
-          <div className="content-stretch flex flex-[1_0_0] items-center justify-between min-h-px min-w-px relative">
-            <div className={`flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative min-w-0 ${plain ? 'text-[#1C2C42] text-[17px]' : 'text-[#939393] text-[17px]'} whitespace-nowrap`}>
-              <p className="leading-[normal] truncate">{label}</p>
-            </div>
-            <div className="flex items-center justify-center relative shrink-0">
-              <div className="-scale-y-100 flex-none rotate-180">
-                <div className="h-[13px] relative w-[7px]" data-name="Union">
-                  <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 13">
-                    <path d={svgPaths.p1b692f00} fill="var(--fill-0, #939393)" id="Union" />
-                  </svg>
-                </div>
+          <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
+            <p className="leading-[normal] whitespace-pre-wrap">At least one of Reminders or Lists must stay on. Turn the other on first.</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="h-[50px] rounded-[100px] cursor-pointer px-[16px] w-full"
+            style={{ backgroundColor: '#4784F8' }}
+          >
+            <div className="flex items-center justify-center size-full">
+              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
+                <p className="leading-[normal]">OK</p>
               </div>
             </div>
-          </div>
+          </button>
         </div>
       </div>
-    </button>
-  );
-}
-
-function NavRowWithToggle({ label, isOn, onToggle, onClick }: { label: string; isOn: boolean; onToggle: () => void; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="h-[60px] relative shrink-0 w-full"
-      style={{ cursor: 'pointer' }}
-    >
-      <div className="flex flex-row items-center size-full">
-        <div className="content-stretch flex items-center pr-[15px] py-[15px] relative size-full gap-[16px]">
-          <ToggleBtn isOn={isOn} onToggle={onToggle} />
-          <div className="content-stretch flex flex-[1_0_0] items-center justify-between min-h-px min-w-px relative">
-            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative min-w-0 text-[17px] whitespace-nowrap" style={{ color: isOn ? '#1C2C42' : '#D9D9D9' }}>
-              <p className="leading-[normal] truncate">{label}</p>
-            </div>
-            <div className="flex items-center justify-center relative shrink-0">
-              <div className="-scale-y-100 flex-none rotate-180">
-                <div className="h-[13px] relative w-[7px]" data-name="Union">
-                  <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 13">
-                    <path d={svgPaths.p1b692f00} fill={isOn ? '#939393' : '#D9D9D9'} />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </button>
+    </>
   );
 }
 
 const homeOverlayCopy: Record<string, { onTitle: string; onSubtitle: string; offTitle: string; offSubtitle: string }> = {
   reminders: {
     onTitle: 'Turn on reminders?',
-    onSubtitle: 'The Reminders feature will be enabled, turning on access to repeat reminders, time increments, and dummy reminders.',
+    onSubtitle: 'Reminders will be shown again, with reminder notifications and the badge restored.',
     offTitle: 'Turn off reminders?',
-    offSubtitle: 'The Reminders feature will be disabled, turning off access to repeat reminders, time increments, and dummy reminders.',
+    offSubtitle: 'The app will show Lists only. Reminder notifications stop and the badge clears. Reminders and settings are kept.',
   },
   lists: {
     onTitle: 'Turn on Lists?',
@@ -137,6 +77,9 @@ export default function DevTools({
   onNavigateOnboarding,
   onNavigateTesting,
   onNavigateSystem,
+  onNavigateSiri,
+  onNavigateConfig,
+  onNavigateDevToolsPassword,
   enableReminders,
   onEnableRemindersChange,
   enableLists,
@@ -147,6 +90,8 @@ export default function DevTools({
   onEnableNotificationsChange,
   enableOnboarding,
   onEnableOnboardingChange,
+  enableSiri,
+  onEnableSiriChange,
 }: {
   onClose: () => void;
   onNavigateReminders: () => void;
@@ -156,6 +101,9 @@ export default function DevTools({
   onNavigateOnboarding: () => void;
   onNavigateTesting: () => void;
   onNavigateSystem: () => void;
+  onNavigateSiri: () => void;
+  onNavigateConfig: () => void;
+  onNavigateDevToolsPassword: () => void;
   enableReminders: boolean;
   onEnableRemindersChange: (value: boolean) => void;
   enableLists: boolean;
@@ -166,8 +114,11 @@ export default function DevTools({
   onEnableNotificationsChange: (value: boolean) => void;
   enableOnboarding: boolean;
   onEnableOnboardingChange: (value: boolean) => void;
+  enableSiri: boolean;
+  onEnableSiriChange: (value: boolean) => void;
 }) {
   const [pendingToggle, setPendingToggle] = useState<{ feature: string; target: boolean } | null>(null);
+  const [showLastModuleNotice, setShowLastModuleNotice] = useState(false);
 
   const handleConfirm = () => {
     if (!pendingToggle) return;
@@ -186,33 +137,41 @@ export default function DevTools({
 
   return (
     <>
-    <div className="bg-white content-stretch flex flex-col gap-[30px] items-start pb-[30px] pt-[30px] px-[20px] relative rounded-tl-[20px] rounded-tr-[20px] size-full" data-name="dev-tools">
-      <Header onClose={onClose} />
-      <div className="content-stretch flex flex-[1_0_0] flex-col gap-[32px] items-center min-h-px min-w-px relative w-full">
-        <div className="content-stretch flex flex-col items-start relative w-full" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-          <div className="content-stretch flex flex-col items-start relative shrink-0 w-full divide-y divide-[#E4E4E4]">
-            <NavRowWithToggle label="Reminders" isOn={enableReminders} onToggle={() => setPendingToggle({ feature: 'reminders', target: !enableReminders })} onClick={onNavigateReminders} />
-            <NavRowWithToggle label="Lists" isOn={enableLists} onToggle={() => setPendingToggle({ feature: 'lists', target: !enableLists })} onClick={onNavigateLists} />
-            <NavRowWithToggle label="Natural Language Capture" isOn={enableNlc} onToggle={() => setPendingToggle({ feature: 'nlc', target: !enableNlc })} onClick={onNavigateNlc} />
-            <NavRowWithToggle label="Notifications" isOn={enableNotifications} onToggle={() => setPendingToggle({ feature: 'notifications', target: !enableNotifications })} onClick={onNavigateNotifications} />
-            <NavRowWithToggle label="Onboarding" isOn={enableOnboarding} onToggle={() => setPendingToggle({ feature: 'onboarding', target: !enableOnboarding })} onClick={onNavigateOnboarding} />
-            <NavRow label="Testing" onClick={onNavigateTesting} plain />
-            <NavRow label="System" onClick={onNavigateSystem} plain />
-            <div />
-          </div>
-        </div>
-      </div>
+    <div className="flex flex-col size-full" data-name="dev-tools">
+      {/* Feature rows with a toggle come first, click-through rows after */}
+      <DevPage title="Dev tools" onClose={onClose}>
+        <DevCard title="Feature flags">
+          {/* Reminders and Lists cannot both be off: the last one on shows a notice */}
+          <DevNavToggleRow label="Reminders" isOn={enableReminders} onToggle={() => { if (enableReminders && !enableLists) { setShowLastModuleNotice(true); return; } setPendingToggle({ feature: 'reminders', target: !enableReminders }); }} onClick={onNavigateReminders} />
+          <DevNavToggleRow label="Lists" isOn={enableLists} onToggle={() => { if (enableLists && !enableReminders) { setShowLastModuleNotice(true); return; } setPendingToggle({ feature: 'lists', target: !enableLists }); }} onClick={onNavigateLists} />
+          <DevNavToggleRow label="Natural Language Capture" isOn={enableNlc} onToggle={() => setPendingToggle({ feature: 'nlc', target: !enableNlc })} onClick={onNavigateNlc} />
+          <DevNavToggleRow label="Notifications" isOn={enableNotifications} onToggle={() => setPendingToggle({ feature: 'notifications', target: !enableNotifications })} onClick={onNavigateNotifications} />
+          <DevNavToggleRow label="Onboarding" isOn={enableOnboarding} onToggle={() => setPendingToggle({ feature: 'onboarding', target: !enableOnboarding })} onClick={onNavigateOnboarding} />
+          <DevNavToggleRow label="Siri shortcuts" isOn={enableSiri} onToggle={() => onEnableSiriChange(!enableSiri)} onClick={onNavigateSiri} />
+          <DevMenuRow label="System" onClick={onNavigateSystem} />
+        </DevCard>
+        <DevCard title="Config">
+          <DevMenuRow label="Config tools" onClick={onNavigateConfig} />
+        </DevCard>
+        <DevCard title="Testing">
+          <DevMenuRow label="Testing tools" onClick={onNavigateTesting} />
+        </DevCard>
+        <DevCard title="Access and diagnostics">
+          <DevMenuRow label="Dev tools password" onClick={onNavigateDevToolsPassword} />
+        </DevCard>
+      </DevPage>
     </div>
+      {showLastModuleNotice && <LastModuleNotice onClose={() => setShowLastModuleNotice(false)} />}
       {pendingToggle && copy && (
         <>
           <div
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setPendingToggle(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col gap-[35px] items-center py-[40px] px-[34px] rounded-[32px] pointer-events-auto"
-              style={{ width: 322 }}
+              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
+              style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
@@ -225,7 +184,7 @@ export default function DevTools({
                   {pendingToggle.target ? copy.onSubtitle : copy.offSubtitle}
                 </p>
               </div>
-              <div className="flex gap-[16px] w-full justify-between">
+              <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingToggle(null)}
                   className="h-[50px] rounded-[100px] cursor-pointer px-[16px]"

@@ -309,7 +309,7 @@ export function TutorialSmartReminderSheet({ onTickButtonElementChange }: { onTi
         <div className="content-stretch flex flex-col gap-[22px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
           <div className="flex items-center justify-between w-full">
             <span className="font-['Lato:Bold',sans-serif] not-italic text-[#1C2C42] text-[20px] whitespace-nowrap">Add smart reminder</span>
-            <div ref={onTickButtonElementChange} className="flex items-center justify-center relative shrink-0 size-[45px]">
+            <div ref={onTickButtonElementChange} className="flex items-center justify-center relative shrink-0 size-[50px]">
               <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 50 50">
                 <rect fill="#4784F8" height="50" rx="25" width="50" />
                 <path d={reminderOverlaySvgPaths.p1635b2f0} fill="#F0FAFE" />
@@ -399,9 +399,11 @@ export function OnboardingPage3Text() {
 function ReminderList({
   setMenuTargetElement,
   onOverlayOpenChange,
+  combineLaterSometime = false,
 }: {
   setMenuTargetElement: (element: HTMLDivElement | null) => void;
   onOverlayOpenChange?: (open: boolean) => void;
+  combineLaterSometime?: boolean;
 }) {
   const [menuTargetElement, setLocalMenuTargetElement] = useState<HTMLDivElement | null>(null);
   const [menuTargetRect, setMenuTargetRect] = useState<{ left: number; top: number } | null>(null);
@@ -476,6 +478,7 @@ function ReminderList({
     <div className="content-stretch flex flex-[1_0_0] flex-col items-start min-h-px min-w-px w-full relative" data-name="Reminder list">
       <TutorialStaticReminderList
         menuTargetReminderId="today"
+        combineLaterSometime={combineLaterSometime}
         onMenuTargetElementChange={(element) => {
           setLocalMenuTargetElement(element);
           setMenuTargetElement(element);
@@ -512,14 +515,17 @@ function ReminderList({
 
 export default function OnboardingPage3Content({
   onOverlayOpenChange,
+  combineLaterSometime = false,
 }: {
   onOverlayOpenChange?: (open: boolean) => void;
+  combineLaterSometime?: boolean;
 }) {
   return (
     <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
       <ReminderList
         setMenuTargetElement={() => {}}
         onOverlayOpenChange={onOverlayOpenChange}
+        combineLaterSometime={combineLaterSometime}
       />
     </div>
   );

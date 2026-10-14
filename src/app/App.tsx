@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { Badge } from "@capawesome/capacitor-badge";
 import { App as CapacitorApp } from "@capacitor/app";
@@ -6,29 +6,31 @@ import { motion, AnimatePresence, useDragControls } from "motion/react";
 import svgPaths from "../imports/svg-tzdfx9foxi";
 import doneTickPaths from "../imports/svg-c9judk5sbu";
 import NewReminderOverlay from "../imports/NewReminderOverlay";
-import DevToolsOverlay from "./components/DevToolsOverlay";
+import DevToolsOverlay, { ShowInfoIconsContext } from "./components/DevToolsOverlay";
 import RepeatsOverlay from "./components/RepeatsOverlay";
 import ReminderInfoOverlay from "./components/ReminderInfoOverlay";
-import SettingsOverlay from "./components/SettingsOverlay";
 import TutorialOverlay from "./components/TutorialOverlay";
+import RemindersCalendar from "./components/RemindersCalendar";
 import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
-import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getNextTimeRefreshBoundary } from "./reminder-utils";
+import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, stepCalendarMonth, toDateKey } from "./reminder-utils";
+import { syncWidget } from "./utils/widget";
 import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
 import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
 import { normaliseReminderText } from "./utils/normalise-text";
 import { repeatConfigToRule } from "./utils/repeat-conversion";
-import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMode, FiltersMenuVariant } from "./reminder-utils";
+import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMode } from "./reminder-utils";
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
-import { PENDING_NOTIFICATION_REMINDER_ID_KEY, syncReminderNotifications } from "./notifications";
+import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
+import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
+import { keepRepeatRuleWhenOff } from "./settings/resolver";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
-import listInfoOverlayPaths from "../imports/svg-oxn8g14l6y";
-import LaterBtn from "../imports/LaterBtn-146-39";
+import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
 import ListsHeader from "../imports/Header";
 import InfoOverlay from "../imports/InfoOverlay";
 import ListInfoOverlay from "../imports/list-info-overlay";
@@ -225,7 +227,9 @@ const OVERDUE_COLOUR = "#FF0000";
 // List blue constant for done styling
 const DONE_BLUE = "#4784F8";
 const APP_TEXT_DARK_BLUE = "#1C2C42";
-const DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY = 'reminderly-dev-default-templates-in-clean-state';
+// Calendar view: shortest supported screen, the iPhone 15 Pro (product owner decision). 5-row months leave
+// two reminder rows below the calendar; 6-row months leave about one, with the rest scrolling.
+const CALENDAR_MIN_VIEWPORT_HEIGHT = 852;
 const DONE_LIST_COLOUR = "#404040";
 type TutorialVariant = 'reminders' | 'lists';
 
@@ -233,28 +237,6 @@ type TutorialVariant = 'reminders' | 'lists';
 // Deleted grey constant for deleted styling
 const DELETED_GREY = "#939393";
 const DELETED_LIST_COLOUR = "#898989";
-
-function HeaderMenuIcon() {
-  return (
-    <svg
-      className="block h-[20px] w-[22px] shrink-0"
-      width="22"
-      height="20"
-      viewBox="0 0 22 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M1.5 1.5H20.5M1.5 10H20.5M1.5 18.5H20.5"
-        stroke="white"
-        strokeOpacity="0.5"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 // Completion delay before setting completedAt (ms)
 const COMPLETION_DELAY = 350; // ms 
@@ -272,11 +254,13 @@ const NEW_REMINDER_INSERT_DELAY = 500;
 // Duration of the temporary "just inserted" text/icon highlight (ms)
 const INSERT_HIGHLIGHT_MS = 1000;
 
-function RowMenuButton({ onClick }: { onClick?: () => void }) {
+function RowMenuButton({ onClick, alignWithSettingsButton = false }: { onClick?: () => void; alignWithSettingsButton?: boolean }) {
   return (
     <button
       className="relative shrink-0 self-stretch w-[20px] cursor-pointer flex items-center justify-center"
-      style={{ padding: 0, background: 'none', border: 'none', lineHeight: 0 }}
+      // Settings menu on: inset from the right so the dots centre on the 45px Settings button's dots, keeping the 16px text gap:
+      // 22.5 (Settings half-width) - 10 (this button's half-width) - 1 (row px-px) = 11.5px
+      style={{ padding: 0, background: 'none', border: 'none', lineHeight: 0, marginRight: alignWithSettingsButton ? '11.5px' : undefined }}
       aria-label="Item menu"
       type="button"
       onClick={(event) => {
@@ -447,23 +431,6 @@ const DEFAULT_LIST_NAMES = [
 
 let _onPersistenceError: (() => void) | null = null;
 let _onPersistenceSuccess: (() => void) | null = null;
-
-// Diagnostic: detect and log when a populated list unexpectedly becomes blank.
-// Stored in localStorage as a small rolling array (max 20 entries).
-const LIST_CORRUPTION_LOG_KEY = 'reminderly-debug-list-corruption-log';
-function logListCorruptionEvent(entry: {
-  ts: number; listId: string; prevTitle: string; prevItemCount: number;
-  nextTitle: string; nextItemCount: number; editingListId: string | null;
-  overlayOpen: boolean; overlayMode: string;
-}) {
-  try {
-    const raw = localStorage.getItem(LIST_CORRUPTION_LOG_KEY);
-    const log: unknown[] = raw ? JSON.parse(raw) : [];
-    log.push(entry);
-    if (log.length > 20) log.splice(0, log.length - 20);
-    localStorage.setItem(LIST_CORRUPTION_LOG_KEY, JSON.stringify(log));
-  } catch { /* best-effort */ }
-}
 
 function persistStringIfChanged(key: string, value: string) {
   try {
@@ -655,7 +622,6 @@ export default function App() {
       return [];
     }
   });
-  const prevCreatedListsRef = useRef(createdLists);
   const [savedLists, setSavedLists] = useState<SavedListTemplate[]>(() => {
     try {
       const stored = localStorage.getItem('reminderly-saved-lists');
@@ -916,6 +882,7 @@ export default function App() {
   const currentListAccentColor = LIST_CATEGORY_PILL_COLOURS[currentListCategory] || "#939393";
   const listItemHighlightTimerRef = useRef<number | null>(null);
   const tabsBarRef = useRef<HTMLDivElement | null>(null);
+  const logoRef = useRef<HTMLDivElement | null>(null);
   const listInfoOverlayList = listInfoOverlayListId == null
     ? null
     : createdLists.find((list) => list.id === listInfoOverlayListId) ?? null;
@@ -959,44 +926,11 @@ export default function App() {
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
   const devToolsTopRef = useRef<number | null>(null);
   const [isDevToolsUnlocked, setIsDevToolsUnlocked] = useState(false);
-  const [isDevToolsPasswordRequired, setIsDevToolsPasswordRequired] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-dev-tools-password-required');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifReminderAlerts, setNotifReminderAlerts] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-reminder-alerts');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifAppBadge, setNotifAppBadge] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-app-badge');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
-  const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-notif-include-today-in-badge');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [isDevToolsPasswordRequired, setIsDevToolsPasswordRequired] = useStoredSetting('reminderly-dev-tools-password-required');
+  const [notifReminderAlerts, setNotifReminderAlerts] = useStoredSetting('reminderly-pref-notif-alerts');
+  const [notifAppBadge, setNotifAppBadge] = useStoredSetting('reminderly-pref-notif-badge');
+  const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useStoredSetting('reminderly-pref-notif-include-today');
   const [isRepeatsOverlayOpen, setIsRepeatsOverlayOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialVariant, setTutorialVariant] = useState<TutorialVariant>('reminders');
   const [isRemindersSettingsPanelOpen, setIsRemindersSettingsPanelOpen] = useState(false);
@@ -1044,46 +978,66 @@ export default function App() {
   // Used to allow second-click cancellation and prevent duplicate spawn.
   const pendingRepeatCompletionIdsRef = useRef<Set<string>>(new Set());
 
-  // Dev-only: NLC parsing mode for A/B testing (click vs auto)
-  const [nlcMode, setNlcMode] = useState<NlcMode>('auto');
+  // Natural Language Capture: availability flag (Dev tools) and the user's preferences (Reminders settings)
+  const [nlcFlag, setNlcFlag] = useStoredSetting('reminderly-ff-nlc');
+  const [nlcPrefOn, setNlcPrefOn] = useStoredSetting('reminderly-pref-nlc');
+  const [nlcPrefDate, setNlcPrefDate] = useStoredSetting('reminderly-pref-nlc-date');
+  const [nlcPrefTime, setNlcPrefTime] = useStoredSetting('reminderly-pref-nlc-time');
+  const [nlcPrefRepeats, setNlcPrefRepeats] = useStoredSetting('reminderly-pref-nlc-repeats');
+  const [nlcPrefAutoParsing, setNlcPrefAutoParsing] = useStoredSetting('reminderly-pref-nlc-auto-parsing');
+  const nlcMode: NlcMode = nlcPrefAutoParsing ? 'auto' : 'click';
+  const nlcRecognition: NlcRecognitionConfig = useMemo(() => ({ date: nlcPrefDate, time: nlcPrefTime, repeats: nlcPrefRepeats }), [nlcPrefDate, nlcPrefTime, nlcPrefRepeats]);
+  const nlcPrefs = { on: nlcPrefOn, date: nlcPrefDate, time: nlcPrefTime, repeats: nlcPrefRepeats, autoParsing: nlcPrefAutoParsing };
+  const nlcPrefSetters = { on: setNlcPrefOn, date: setNlcPrefDate, time: setNlcPrefTime, repeats: setNlcPrefRepeats, autoParsing: setNlcPrefAutoParsing };
 
-  // Dev-only: NLC feature flag — controls whether NLC parsing and UI are active
-  const [nlcEnabled, setNlcEnabled] = useState(false);
-
-  // Dev-only: NLC recognition config — granular category gates
-  const [nlcRecognition, setNlcRecognition] = useState<NlcRecognitionConfig>({ date: true, time: true, repeats: true });
+  // Haptics availability flag (Dev tools); the user's choices live in utils/haptics
+  const [hapticsFlag, setHapticsFlag] = useStoredSetting('reminderly-ff-haptics');
+  // Sounds availability flag (Dev tools); the user's choices live in utils/sounds
+  const [soundsFlag, setSoundsFlag] = useStoredSetting('reminderly-ff-sounds');
+  const [lockScreenWidgetFlag, setLockScreenWidgetFlag] = useStoredSetting('reminderly-ff-lock-screen-widget');
+  // Calendar view: availability flag (Dev tools > Reminders) and the user's Show calendar setting. Both default off
+  const [calendarFlag, setCalendarFlag] = useStoredSetting('reminderly-ff-calendar');
+  const [calendarPref, setCalendarPref] = useStoredSetting('reminderly-pref-calendar');
+  // Calendar day selected by the user; null shows today (the default view)
+  const [calendarSelectedDate, setCalendarSelectedDate] = useState<string | null>(null);
+  // Month shown by the calendar; null follows the current month
+  const [calendarShownMonth, setCalendarShownMonth] = useState<{ year: number; month: number } | null>(null);
 
   // Dev-only: onboarding tutorial feature flag — controls whether tutorial overlay is available
-  const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-onboarding-tutorial');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [isOnboardingTutorialEnabled, setIsOnboardingTutorialEnabled] = useStoredSetting('reminderly-ff-onboarding-tutorial');
 
-  // Dev-only: paywall feature flag — controls visibility of premium features
-  const [isListsEnabled, setIsListsEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('dev.listsEnabled');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
+  // Lists availability flag
+  const [isListsEnabled, setIsListsEnabled] = useStoredSetting('reminderly-ff-lists');
+  const [isRemindersEnabled, setIsRemindersEnabled] = useStoredSetting('reminderly-ff-reminders');
+  // Calendar view needs a screen at least CALENDAR_MIN_VIEWPORT_HEIGHT tall (room for two reminder rows
+  // below a 6-row month). Shorter screens keep the existing Reminders view and hide Show calendar.
+  const [isCalendarScreenTallEnough, setIsCalendarScreenTallEnough] = useState(() => window.innerHeight >= CALENDAR_MIN_VIEWPORT_HEIGHT);
+  useEffect(() => {
+    const update = () => setIsCalendarScreenTallEnough(window.innerHeight >= CALENDAR_MIN_VIEWPORT_HEIGHT);
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  // Calendar view is shown when Reminders, the flag and Show calendar are all on and the screen is tall enough
+  const isCalendarEnabled = isRemindersEnabled && calendarFlag && calendarPref;
+  const isCalendarActive = isCalendarEnabled && isCalendarScreenTallEnough;
+  // Every time the calendar is turned back on (Show calendar or the Dev tools flag): current month,
+  // today selected, no filter
+  const wasCalendarEnabledRef = useRef(isCalendarEnabled);
+  useEffect(() => {
+    if (isCalendarEnabled && !wasCalendarEnabledRef.current) {
+      setCalendarShownMonth(null);
+      setCalendarSelectedDate(null);
+      setActiveFilter("all");
     }
-  });
+    wasCalendarEnabledRef.current = isCalendarEnabled;
+  }, [isCalendarEnabled]);
+  const [notificationsFlag, setNotificationsFlag] = useStoredSetting('reminderly-ff-notifications');
+  const [repeatRemindersFlag, setRepeatRemindersFlag] = useStoredSetting('reminderly-ff-repeat-reminders');
+  const [oneMinuteIncrementsFlag, setOneMinuteIncrementsFlag] = useStoredSetting('reminderly-ff-one-minute-increments');
 
-  // Dev-only: reminder attachments feature flag — controls visibility of attachment UI
-  const [isReminderAttachmentsEnabled, setIsReminderAttachmentsEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-reminder-attachments');
-      return stored === 'true';
-    } catch {
-      return false;
-    }
-  });
+  // Reminder attachments flag: controls visibility of attachment UI. Turning it off hides attachments but keeps them
+  const [attachmentsFlag, setAttachmentsFlag] = useStoredSetting('reminderly-ff-reminder-attachments');
+  const isReminderAttachmentsEnabled = isRemindersEnabled && attachmentsFlag;
 
   // Lists mode: active main tab (reminders or lists)
   const [activeMainTab, setActiveMainTab] = useState<'reminders' | 'lists'>(() => {
@@ -1095,128 +1049,53 @@ export default function App() {
       return 'reminders';
     }
   });
+  // The tab actually shown. With only one module on, that module is shown and the saved tab is kept.
+  const shownMainTab: 'reminders' | 'lists' = !isRemindersEnabled ? 'lists' : !isListsEnabled ? 'reminders' : activeMainTab;
 
   // Dev-only: show tutorial on first launch toggle
-  const [showTutorialOnFirstLaunch, setShowTutorialOnFirstLaunch] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-tutorial-first-launch');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
+  const [showTutorialOnFirstLaunch, setShowTutorialOnFirstLaunch] = useStoredSetting('reminderly-config-tutorial-first-launch');
 
   // Dev-only: show tutorial on every app start toggle
-  const [showTutorialOnEveryStart, setShowTutorialOnEveryStart] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-tutorial-every-start');
-      if (stored === 'true') return true;
-      return false;
-    } catch {
-      return false;
-    }
-  });
+  const [showTutorialOnEveryStart, setShowTutorialOnEveryStart] = useStoredSetting('reminderly-test-tutorial-every-start');
 
-  const [useOneMinuteTimeIncrements, setUseOneMinuteTimeIncrements] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-dev-one-minute-time-increments') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const [useOneMinuteTimeIncrements, setUseOneMinuteTimeIncrements] = useStoredSetting('reminderly-pref-one-minute-increments');
 
-  const [smartRemindersFeatureEnabled, setSmartRemindersFeatureEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-smart-reminders') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-saved-lists') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-pinned-lists');
-      return stored == null ? true : stored === 'true';
-    } catch {
-      return true;
-    }
-  });
-  const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-ff-settings-menu');
-      return stored == null ? true : stored === 'true';
-    } catch {
-      return true;
-    }
-  });
-  const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('reminderly-ff-siri-shortcuts') === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY) === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const isSmartRemindersEnabled = isListsEnabled && smartRemindersFeatureEnabled;
-
-  // Dev-only: filters menu variant for A/B testing (standard vs grouped)
-  const [filtersMenuVariant, setFiltersMenuVariant] = useState<FiltersMenuVariant>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly-filters-menu-variant');
-      if (stored === 'standard' || stored === 'grouped') return stored;
-      return 'grouped';
-    } catch {
-      return 'grouped';
-    }
-  });
+  const [smartRemindersFeatureEnabled, setSmartRemindersFeatureEnabled] = useStoredSetting('reminderly-ff-smart-reminders');
+  const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useStoredSetting('reminderly-ff-saved-lists');
+  const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useStoredSetting('reminderly-ff-pinned-lists');
+  const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useStoredSetting('reminderly-ff-settings-menu-v2');
+  const [showInfoIcons, setShowInfoIcons] = useStoredSetting('reminderly-ff-info-icons');
+  const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useStoredSetting('reminderly-ff-siri-reminders');
+  // Siri user preferences, one per settings panel
+  const [remindersSettingsSiriOn, setRemindersSettingsSiriOn] = useStoredSetting('reminderly-pref-siri-reminders');
+  const [listsSettingsSiriOn, setListsSettingsSiriOn] = useStoredSetting('reminderly-pref-siri-lists');
+  const [siriListsFlag] = useStoredSetting('reminderly-ff-siri-lists');
+  const [useDefaultTemplatesInCleanState, setUseDefaultTemplatesInCleanState] = useStoredSetting('reminderly-config-templates-in-clean-state');
+  const isSmartRemindersEnabled = isRemindersEnabled && isListsEnabled && smartRemindersFeatureEnabled;
+  const isRepeatRemindersActive = isRemindersEnabled && repeatRemindersFlag;
+  const isOneMinuteAvailable = isRemindersEnabled && oneMinuteIncrementsFlag;
+  const isOneMinuteActive = isOneMinuteAvailable && useOneMinuteTimeIncrements;
+  const isSiriRemindersAvailable = isRemindersEnabled && siriShortcutsEnabled;
+  const isSiriRemindersActive = isSiriRemindersAvailable && remindersSettingsSiriOn;
+  const isSiriListsAvailable = isListsEnabled && siriListsFlag;
+  const isNlcAvailable = isRemindersEnabled && nlcFlag;
+  const isNlcActive = isNlcAvailable && nlcPrefOn;
+  // Repeat reminders off: NLC never recognises repeats
+  const nlcRecognitionForInput = useMemo(() => ({ ...nlcRecognition, repeats: nlcRecognition.repeats && isRepeatRemindersActive }), [nlcRecognition, isRepeatRemindersActive]);
 
   // Dev-only: hide overdue reminders from all views
   const [hideOverdue, setHideOverdue] = useState(false);
-
-  // Setting: show date and time subtitles (persisted, default true)
-  const [showDateAndTimeSubtitles, setShowDateAndTimeSubtitles] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem('reminderly.showDateAndTimeSubtitles');
-      if (stored === 'false') return false;
-      return true;
-    } catch {
-      return true;
-    }
-  });
 
   // Conditional empty-placeholder delay: only active when the user removes the last visible item
   // in the current active list (complete or delete). Navigation-to-empty is always immediate.
   const emptyPlaceholderDelayRef = useRef<{ untilMs: number; filterKey: string } | null>(null);
   const [, setEmptyRerenderTick] = useState(0);
 
-  const handleFiltersMenuVariantChange = (variant: FiltersMenuVariant) => {
-    setFiltersMenuVariant(variant);
-    setActiveFilter("all");
-    setActiveListFilter("all");
-  };
   const handleSavedListsFeatureEnabledChange = useCallback((enabled: boolean) => {
     setSavedListsFeatureEnabled(enabled);
     setActiveListFilter('all');
     if (!enabled) {
       setSavedListsPanelOpen(false);
-    }
-    try {
-      persistStringIfChanged('reminderly-ff-saved-lists', String(enabled));
-    } catch {
-      // Fail silently
     }
   }, []);
 
@@ -1241,7 +1120,6 @@ export default function App() {
     previousTime: string | null;
   } | null>(null);
   const smartReminderCreateDidSaveRef = useRef(false);
-  const pendingSmartReminderAnimateListIdRef = useRef<string | null>(null);
   const smartReminderSetupTimerRef = useRef<number | null>(null);
 
   // UI-only: id of reminder that just reinserted via repeat reschedule (drives fade-in)
@@ -1385,115 +1263,33 @@ export default function App() {
   }, [reminders]);
 
   useEffect(() => {
+    // Reminders off: cancel pending, then remove delivered Reminderly notifications. Back on: reschedule.
+    if (!isRemindersEnabled) {
+      void clearReminderNotifications();
+      return;
+    }
     void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge);
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge]);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, isRemindersEnabled]);
 
-  // Persist showDateAndTimeSubtitles to localStorage
+  // Reminders off: clear again each time the app returns to the foreground
   useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly.showDateAndTimeSubtitles', String(showDateAndTimeSubtitles));
-    } catch {
-      // Fail silently
-    }
-  }, [showDateAndTimeSubtitles]);
+    if (isRemindersEnabled) return;
+    const listener = CapacitorApp.addListener('appStateChange', (state) => {
+      if (state.isActive) void clearReminderNotifications();
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, [isRemindersEnabled]);
 
-  // Persist onboarding tutorial feature flag to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-onboarding-tutorial', String(isOnboardingTutorialEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [isOnboardingTutorialEnabled]);
 
-  // Persist paywall feature flag to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('dev.listsEnabled', String(isListsEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [isListsEnabled]);
 
-  // Persist reminder attachments feature flag to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-reminder-attachments', String(isReminderAttachmentsEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [isReminderAttachmentsEnabled]);
 
-  // Persist tutorial first-launch toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-tutorial-first-launch', String(showTutorialOnFirstLaunch));
-    } catch {
-      // Fail silently
-    }
-  }, [showTutorialOnFirstLaunch]);
 
-  // Persist tutorial every-start toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-tutorial-every-start', String(showTutorialOnEveryStart));
-    } catch {
-      // Fail silently
-    }
-  }, [showTutorialOnEveryStart]);
 
   useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-dev-one-minute-time-increments', String(useOneMinuteTimeIncrements));
-    } catch {
-      // Fail silently
-    }
-  }, [useOneMinuteTimeIncrements]);
-
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-smart-reminders', String(smartRemindersFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [smartRemindersFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-saved-lists', String(savedListsFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [savedListsFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-pinned-lists', String(pinnedListsFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [pinnedListsFeatureEnabled]);
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-settings-menu', String(settingsMenuFeatureEnabled));
-    } catch {
-      // Fail silently
-    }
+    setActiveFilter((current) => getFilterForSettingsMenu(current, settingsMenuFeatureEnabled));
   }, [settingsMenuFeatureEnabled]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-ff-siri-shortcuts', String(siriShortcutsEnabled));
-    } catch {
-      // Fail silently
-    }
-  }, [siriShortcutsEnabled]);
 
-  useEffect(() => {
-    try {
-      persistStringIfChanged(DEFAULT_TEMPLATES_IN_CLEAN_STATE_STORAGE_KEY, String(useDefaultTemplatesInCleanState));
-    } catch {
-      // Fail silently
-    }
-  }, [useDefaultTemplatesInCleanState]);
 
   useEffect(() => {
     if (!savedListMenuId && !templateEditorMenuId) {
@@ -1579,82 +1375,34 @@ export default function App() {
     return () => { clearTimeout(timerId); };
   }, [reminders, timeRefreshTick]);
 
-  useEffect(() => {
-    if (!isListsEnabled) {
-      setSmartRemindersFeatureEnabled(false);
-    }
-  }, [isListsEnabled]);
 
-  // Persist dev tools password required toggle to localStorage
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-dev-tools-password-required', String(isDevToolsPasswordRequired));
-    } catch {
-      // Fail silently
-    }
-  }, [isDevToolsPasswordRequired]);
+
+
+
 
   useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-reminder-alerts', String(notifReminderAlerts));
-    } catch {
-      // Fail silently
-    }
-  }, [notifReminderAlerts]);
-
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-app-badge', String(notifAppBadge));
-    } catch {
-      // Fail silently
-    }
-  }, [notifAppBadge]);
-
-  useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-notif-include-today-in-badge', String(notifIncludeTodayInBadge));
-    } catch {
-      // Fail silently
-    }
-  }, [notifIncludeTodayInBadge]);
-
-  useEffect(() => {
-    if (!notifAppBadge) {
+    if (!notifAppBadge || !isRemindersEnabled) {
       void Badge.clear();
       return;
     }
     const count = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date());
     void Badge.set({ count });
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick]);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled]);
 
-  // Persist filters menu variant to localStorage
+  // Lock screen widget: refresh today's progress on any reminder change, on resume and at time boundaries.
+  // Flag off: clear the shared data so the widget shows its neutral empty state.
   useEffect(() => {
-    try {
-      persistStringIfChanged('reminderly-filters-menu-variant', filtersMenuVariant);
-    } catch {
-      // Fail silently
+    if (!lockScreenWidgetFlag) {
+      syncWidget(null);
+      return;
     }
-  }, [filtersMenuVariant]);
+    const now = new Date();
+    syncWidget(isRemindersEnabled ? getTodayProgress(reminders, now) : getTodayProgress([], now));
+  }, [reminders, timeRefreshTick, isRemindersEnabled, lockScreenWidgetFlag]);
 
   // Persist created lists to localStorage
   useEffect(() => {
     try {
-      // Diagnostic: detect populated list → blank transitions
-      const prev = prevCreatedListsRef.current;
-      for (const next of createdLists) {
-        if (next.title === '' && next.items.length === 0) {
-          const old = prev.find(l => l.id === next.id);
-          if (old && (old.title !== '' || old.items.length > 0)) {
-            logListCorruptionEvent({
-              ts: Date.now(), listId: next.id,
-              prevTitle: old.title, prevItemCount: old.items.length,
-              nextTitle: next.title, nextItemCount: next.items.length,
-              editingListId, overlayOpen: isListsOverlayOpen, overlayMode: listOverlayMode,
-            });
-          }
-        }
-      }
-      prevCreatedListsRef.current = createdLists;
       persistStringIfChanged('reminderly-created-lists', JSON.stringify(createdLists));
     } catch {
       // Fail silently
@@ -1753,19 +1501,6 @@ export default function App() {
         if (!smartReminder) continue;
         next.push(smartReminder);
         changed = true;
-        // Trigger fade-in and insert highlight when created from the reminder panel
-        if (pendingSmartReminderAnimateListIdRef.current === list.id) {
-          pendingSmartReminderAnimateListIdRef.current = null;
-          setReinsertedId(smartReminder.id);
-          setInsertHighlightId(smartReminder.id);
-          if (insertHighlightTimerRef.current !== null) {
-            clearTimeout(insertHighlightTimerRef.current);
-          }
-          insertHighlightTimerRef.current = window.setTimeout(() => {
-            insertHighlightTimerRef.current = null;
-            setInsertHighlightId(null);
-          }, INSERT_HIGHLIGHT_MS);
-        }
       }
 
       return changed ? next : prev;
@@ -1812,7 +1547,7 @@ export default function App() {
     if (pendingTappedReminderId) return;
     if (!isOnboardingTutorialEnabled) return;
     if (!showTutorialOnFirstLaunch && !showTutorialOnEveryStart) return;
-    const initialTutorialVariant: TutorialVariant = activeMainTab === 'lists' && isListsEnabled ? 'lists' : 'reminders';
+    const initialTutorialVariant: TutorialVariant = shownMainTab === 'lists' ? 'lists' : 'reminders';
     openTutorial(initialTutorialVariant);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1827,24 +1562,12 @@ export default function App() {
     if (!isOnboardingTutorialEnabled) return;
     if (!showTutorialOnFirstLaunch && !showTutorialOnEveryStart) return;
     if (isTutorialOpen) return;
-    const nextTutorialVariant: TutorialVariant = activeMainTab === 'lists' && isListsEnabled ? 'lists' : 'reminders';
+    const nextTutorialVariant: TutorialVariant = shownMainTab === 'lists' ? 'lists' : 'reminders';
     if (!tutorialVariantsShownThisSessionRef.current.has(nextTutorialVariant)) {
       openTutorial(nextTutorialVariant);
     }
-  }, [activeMainTab, isListsEnabled, isOnboardingTutorialEnabled, isTutorialOpen, openTutorial, showTutorialOnEveryStart, showTutorialOnFirstLaunch]);
+  }, [shownMainTab, isOnboardingTutorialEnabled, isTutorialOpen, openTutorial, showTutorialOnEveryStart, showTutorialOnFirstLaunch]);
 
-  // Auto-reset: when leaving grouped filters with subtitles off, reset to on
-  useEffect(() => {
-    if (filtersMenuVariant !== 'grouped' && !showDateAndTimeSubtitles) {
-      setShowDateAndTimeSubtitles(true);
-    }
-  }, [filtersMenuVariant, showDateAndTimeSubtitles]);
-
-  // Derived: whether subtitles should be shown
-  const showSubtitles = !(filtersMenuVariant === 'grouped' && !showDateAndTimeSubtitles);
-
-  // Derived: effective filter variant for rendering (lists mode forces standard)
-  const effectiveFiltersVariant = isListsEnabled ? 'standard' : filtersMenuVariant;
 
   // Helper: cancel and delete entries for a given id from all timer maps.
   const cancelAllTimersForId = (id: string) => {
@@ -1920,7 +1643,7 @@ export default function App() {
       if (!text) return;
       localStorage.removeItem(PENDING_SIRI_TEXT_KEY);
 
-      if (!siriShortcutsEnabled) return;
+      if (!isSiriRemindersActive) return;
 
       const tokens = parseTokens(text);
       const actions = computeAutoApplyResult(tokens, { date: false, time: false, repeats: false });
@@ -1979,7 +1702,8 @@ export default function App() {
         schedule = { kind: 'sometime' };
       }
 
-      const repeatRule = repeatConfigToRule(repeatConfig);
+      // Repeat reminders off: Siri never creates a repeat rule
+      const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
       const now = new Date();
       const displayText = schedule.kind === 'scheduled'
         ? normaliseReminderText(text, schedule, repeatRule, now, { skipDateInjection: true, skipTimeInjection: true })
@@ -1999,7 +1723,7 @@ export default function App() {
     handleSiriAdd();
     window.addEventListener(SIRI_ADD_EVENT, handleSiriAdd);
     return () => window.removeEventListener(SIRI_ADD_EVENT, handleSiriAdd);
-  }, [siriShortcutsEnabled, addReminder]);
+  }, [isSiriRemindersActive, addReminder, isRepeatRemindersActive]);
 
   const addReminders = useCallback((newReminders: Reminder[]) => {
     // Cancel any pending insert timer (last-one-wins)
@@ -2077,32 +1801,23 @@ export default function App() {
 
   const createSmartReminderFromPanel = useCallback(({ listId, date, time }: { listId: string; date: string; time: string | null }) => {
     smartReminderCreateDidSaveRef.current = true;
-    hapticTap('createReminder');
-    pendingSmartReminderAnimateListIdRef.current = listId;
-    // Delay list state update to match normal reminder insert timing
-    if (newReminderInsertTimerRef.current !== null) {
-      clearTimeout(newReminderInsertTimerRef.current);
+    setCreatedLists((prev) =>
+      prev.map((list) =>
+        list.id === listId
+          ? {
+              ...list,
+              smartReminders: true,
+              smartReminderDueDate: date,
+              smartReminderTime: time ?? getSmartReminderTime(list.smartReminderTime),
+            }
+          : list
+      )
+    );
+    if (editingListId === listId) {
+      setListSmartReminders(true);
+      setListSmartReminderDueDate(date);
+      setListSmartReminderTime(time ?? getSmartReminderTime(listSmartReminderTime));
     }
-    newReminderInsertTimerRef.current = window.setTimeout(() => {
-      newReminderInsertTimerRef.current = null;
-      setCreatedLists((prev) =>
-        prev.map((list) =>
-          list.id === listId
-            ? {
-                ...list,
-                smartReminders: true,
-                smartReminderDueDate: date,
-                smartReminderTime: time ?? getSmartReminderTime(list.smartReminderTime),
-              }
-            : list
-        )
-      );
-      if (editingListId === listId) {
-        setListSmartReminders(true);
-        setListSmartReminderDueDate(date);
-        setListSmartReminderTime(time ?? getSmartReminderTime(listSmartReminderTime));
-      }
-    }, NEW_REMINDER_INSERT_DELAY);
     setPendingListInfoSmartReminderListId(null);
     pendingSmartReminderCreateRef.current = null;
     setSmartReminderCreateListId(null);
@@ -2162,7 +1877,8 @@ export default function App() {
   useEffect(() => {
     _onPersistenceError = () => setPersistenceError(true);
     _onPersistenceSuccess = () => setPersistenceError(false);
-    return () => { _onPersistenceError = null; _onPersistenceSuccess = null; };
+    setSettingsWriteFailureListener(() => setPersistenceError(true));
+    return () => { _onPersistenceError = null; _onPersistenceSuccess = null; setSettingsWriteFailureListener(null); };
   }, []);
 
   // Calculate overlay top position based on viewport height
@@ -2177,10 +1893,11 @@ export default function App() {
     return DEFAULT_TOP;
   };
 
+  // Sliding panels stop 28px below the logo, with Lists on or off
   const getBottomSheetTopPosition = () => {
-    const tabsTop = tabsBarRef.current?.getBoundingClientRect().top;
-    if (typeof tabsTop === "number" && Number.isFinite(tabsTop)) {
-      return tabsTop - 2;
+    const logoBottom = logoRef.current?.getBoundingClientRect().bottom;
+    if (typeof logoBottom === "number" && Number.isFinite(logoBottom)) {
+      return logoBottom + 28;
     }
     return getOverlayTopPosition();
   };
@@ -2188,27 +1905,31 @@ export default function App() {
   const reminderSheetDragControls = useDragControls();
   const listsSheetDragControls = useDragControls();
   const repeatsSheetDragControls = useDragControls();
-  const settingsSheetDragControls = useDragControls();
   const tutorialSheetDragControls = useDragControls();
-  const remindersSettingsSheetDragControls = useDragControls();
-  const listsSettingsSheetDragControls = useDragControls();
+  const templatesSheetDragControls = useDragControls();
 
   const shouldCloseBottomSheetFromDrag = (offsetY: number, velocityY: number) => {
     return offsetY > 120 || velocityY > 600;
   };
 
-  const handleTutorialOpen = () => {
-    openTutorial(activeMainTab === 'lists' && isListsEnabled ? 'lists' : 'reminders');
-    setTimeout(() => setIsSettingsOpen(false), 250);
-  };
-
   const handleHeaderMenuClick = useCallback(() => {
-    if (isListsEnabled && activeMainTab === 'lists') {
+    if (shownMainTab === 'lists') {
       setIsListsSettingsPanelOpen(true);
       return;
     }
     setIsRemindersSettingsPanelOpen(true);
-  }, [activeMainTab, isListsEnabled]);
+  }, [shownMainTab]);
+
+  // Reminders settings panel: re-run the tutorial from its first page, then close the panel behind it
+  const handleRemindersSettingsTutorialOpen = () => {
+    setIsRemindersSettingsPanelOpen(false);
+    openTutorial('reminders');
+  };
+
+  const handleListsSettingsTutorialOpen = () => {
+    setIsListsSettingsPanelOpen(false);
+    openTutorial('lists');
+  };
 
   const openSavedListEditor = (list: SavedListTemplate) => {
     setListTitle(list.title);
@@ -2246,20 +1967,29 @@ export default function App() {
       openListEditorTimerRef.current = null;
     }
     setListInfoOverlayListId(null);
-    setRevealedDeleteListItemId(null);
-    setListItemReinsertedId(null);
-    setListItemHighlightId(null);
-    setAlphabeticalPinnedListItemId(null);
-    setAlphabeticalPinnedListItemIndex(0);
-    setListTitle(list.title);
-    setListItems(list.items.map((item) => ({ id: (item as any).id || crypto.randomUUID(), ...item })));
-    setListSortMode(list.sortMode || 'insertion');
-    setListSmartReminders(list.smartReminders ?? false);
-    setListSmartReminderDueDate(list.smartReminderDueDate ?? null);
-    setListSmartReminderTime(list.smartReminderTime ?? null);
+    setListTitle("");
+    setListItems([]);
+    setListSortMode('insertion');
+    setListSmartReminders(false);
+    setListSmartReminderDueDate(null);
+    setListSmartReminderTime(null);
     setListOverlayMode('edit');
     setEditingListId(list.id);
     setIsListsOverlayOpen(true);
+    openListEditorTimerRef.current = window.setTimeout(() => {
+      openListEditorTimerRef.current = null;
+      setRevealedDeleteListItemId(null);
+      setListItemReinsertedId(null);
+      setListItemHighlightId(null);
+      setAlphabeticalPinnedListItemId(null);
+      setAlphabeticalPinnedListItemIndex(0);
+      setListTitle(list.title);
+      setListItems(list.items.map((item) => ({ id: (item as any).id || crypto.randomUUID(), ...item })));
+      setListSortMode(list.sortMode || 'insertion');
+      setListSmartReminders(list.smartReminders ?? false);
+      setListSmartReminderDueDate(list.smartReminderDueDate ?? null);
+      setListSmartReminderTime(list.smartReminderTime ?? null);
+    }, 0);
   };
 
   const useSavedList = (list: SavedListTemplate) => {
@@ -2521,7 +2251,7 @@ export default function App() {
 
   // Logo tick click: toggle between done-deleted view and "all" list view
   const handleTickClick = () => {
-    if (isListsEnabled && activeMainTab === 'lists') {
+    if (shownMainTab === 'lists') {
       setViewMode((prev) => (prev === 'lists-done' ? 'list' : 'lists-done'));
     } else {
       setViewMode((prev) => (prev === "list" ? "done-deleted" : "list"));
@@ -3177,20 +2907,15 @@ export default function App() {
         setCreatedLists((prev) =>
           prev.map((list) =>
             list.id === linkedSmartListId
-              ? { ...list, smartReminders: false, smartReminderDueDate: null, smartReminderTime: null }
+              ? { ...list, smartReminders: false }
               : list
           )
         );
-        if (editingListId === linkedSmartListId) {
-          setListSmartReminders(false);
-          setListSmartReminderDueDate(null);
-          setListSmartReminderTime(null);
-        }
       }
     }, COMPLETION_DELAY);
 
     pendingDeleteTimersRef.current.set(reminderId, timer);
-  }, [reminders, editingListId]);
+  }, [reminders]);
 
   const handleMoveReminderToTomorrow = useCallback((reminderId: string) => {
     const targetReminder = reminders.find((reminder) => reminder.id === reminderId);
@@ -3234,12 +2959,12 @@ export default function App() {
 
   useNotificationTapHandler({
     reminders,
+    remindersEnabled: isRemindersEnabled,
     setActiveMainTab,
     setIsTutorialOpen,
     setIsOverlayOpen,
     setIsListsOverlayOpen,
     setIsRepeatsOverlayOpen,
-    setIsSettingsOpen,
     setViewMode,
     setActiveFilter,
     setInfoReminder,
@@ -3290,7 +3015,7 @@ export default function App() {
   const isClearAllDisabled =
     viewMode === 'done-deleted'
       ? visibleDoneDeletedReminderCount === 0
-      : (isListsEnabled && activeMainTab === 'lists' && viewMode === 'lists-done')
+      : (shownMainTab === 'lists' && viewMode === 'lists-done')
         ? visibleDoneDeletedListCount + visibleDeletedSavedListCount === 0
         : false;
 
@@ -3309,7 +3034,7 @@ export default function App() {
     setClearListStep(2);
     setDoneDeletedFilter('all');
 
-    if (isListsEnabled && activeMainTab === 'lists' && viewMode === 'lists-done') {
+    if (shownMainTab === 'lists' && viewMode === 'lists-done') {
       const savedListIdsToRemove = new Set(
         savedLists
           .filter((list) => (list.status ?? 'active') === 'deleted')
@@ -3463,19 +3188,54 @@ export default function App() {
       clearListTimerRef.current = null;
       setClearListStep(0);
     }, 500);
-  }, [activeMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
+  }, [shownMainTab, clearListStep, doneDeletedFilter, isClearAllDisabled, isListsEnabled, pendingUncompleteIds, pendingUndeleteIds, pendingUndoneListIds, pendingUndeletedListIds, viewMode]);
 
   const now = new Date();
+  // Calendar view: with no filter, the list shows the selected day, or today when nothing is selected
+  // (or the selection has passed)
+  const calendarTodayKey = toDateKey(now);
+  const calendarDayKey = isCalendarActive && activeFilter === "all"
+    ? (calendarSelectedDate && calendarSelectedDate > calendarTodayKey ? calendarSelectedDate : calendarTodayKey)
+    : null;
+  const calendarMonth = calendarShownMonth ?? { year: now.getFullYear(), month: now.getMonth() };
+  // Changing month clears the selected day (today's list stays). Back on the current month, today is selected.
+  // An active filter stays active.
+  const changeCalendarMonth = (delta: number) => {
+    setCalendarShownMonth(stepCalendarMonth(calendarMonth, delta, now));
+    setCalendarSelectedDate(null);
+  };
+  const calendarElement = isCalendarActive && viewMode !== "done-deleted" ? (
+    <RemindersCalendar
+      year={calendarMonth.year}
+      month={calendarMonth.month}
+      now={now}
+      todayKey={calendarTodayKey}
+      selectedKey={calendarDayKey}
+      filter={activeFilter}
+      dots={getCalendarDots(hideOverdue ? reminders.filter(r => !isOverdue(r, now)) : reminders, now)}
+      colours={{ overdue: OVERDUE_COLOUR, today: CATEGORY_COLOURS.today, "this-week": CATEGORY_COLOURS["this-week"], later: CATEGORY_COLOURS.later }}
+      heading={calendarDayKey ? formatCalendarDayHeading(calendarDayKey) : getCategoryLabel(activeFilter as ReminderCategory)}
+      headingColour={calendarDayKey ? APP_TEXT_DARK_BLUE : CATEGORY_COLOURS[activeFilter] ?? APP_TEXT_DARK_BLUE}
+      onSelectDay={(dateKey) => {
+        setCalendarSelectedDate(dateKey === calendarTodayKey ? null : dateKey);
+        setActiveFilter("all");
+      }}
+      onPrevMonth={() => changeCalendarMonth(-1)}
+      onNextMonth={() => changeCalendarMonth(1)}
+    />
+  ) : null;
 
+  // Dev tools panel sits level with the top of the logo
   if (isDevToolsOpen && devToolsTopRef.current === null) {
-    devToolsTopRef.current = getBottomSheetTopPosition();
+    const logoTop = logoRef.current?.getBoundingClientRect().top;
+    devToolsTopRef.current = typeof logoTop === "number" && Number.isFinite(logoTop) ? logoTop : getBottomSheetTopPosition();
   }
   if (!isDevToolsOpen) {
     devToolsTopRef.current = null;
   }
 
   return (
-    <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
+    <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
         if ((clearListStep === 1 || clearListStep === 2) && clearAllButtonRef.current && !clearAllButtonRef.current.contains(e.target as Node)) {
           setClearListStep(0);
           if (clearListTimerRef.current !== null) {
@@ -3491,36 +3251,9 @@ export default function App() {
       )}
       {/* Header */}
       <div className="app-header relative shrink-0 w-full p-[20px]">
-        <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (isListsEnabled && activeMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
+        <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
           <div className="content-stretch flex items-center justify-center pb-[20px] pt-[50px] relative shrink-0 w-full">
-            {settingsMenuFeatureEnabled && (
-              <>
-                <button
-                  className="absolute flex items-center justify-center cursor-pointer p-0 m-0 border-none bg-transparent"
-                  type="button"
-                  onClick={handleHeaderMenuClick}
-                  aria-label={isListsEnabled && activeMainTab === 'lists' ? 'Open lists settings' : 'Open reminders settings'}
-                  style={{
-                    top: '57px',
-                    right: 'calc((100vw - 100%) / -2 + 20px)',
-                    width: '17px',
-                    height: '35.653px',
-                  }}
-                />
-                <div
-                  className="pointer-events-none absolute flex items-center justify-center"
-                  style={{
-                    top: '57px',
-                    right: 'calc((100vw - 100%) / -2 + 20px)',
-                    width: '17px',
-                    height: '35.653px',
-                  }}
-                >
-                  <HeaderMenuIcon />
-                </div>
-              </>
-            )}
-            <div className="h-[35.653px] relative shrink-0 w-[209.653px]" style={{ top: '7px' }}>
+            <div ref={logoRef} className="h-[35.653px] relative shrink-0 w-[209.653px]" style={{ top: '7px' }}>
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 209.653 35.6533">
                 <g>
                   {/* Text portion */}
@@ -3609,140 +3342,11 @@ export default function App() {
               />
             </div>
           </div>
-
-          {/* Filter buttons — hidden when Lists mode is active (rendered inside container instead) */}
-          {!isListsEnabled && (
-          <div className="filters-menu flex items-center justify-between relative shrink-0 w-full" style={{ marginTop: 2 }}>
-            {viewMode === "done-deleted" ? (<div
-              className="flex items-center justify-between w-full"
-            >
-              {/* Done/deleted view filters */}
-              <div className="flex items-center gap-[12px]">
-                <button
-                  onClick={() => setViewMode("list")}
-                  className="hidden relative shrink-0 self-center cursor-pointer"
-                  style={{ width: 50, height: 40 }}
-                  aria-label="Back to reminders"
-                >
-                  <svg className="block" style={{ width: 50, height: 40 }} fill="none" viewBox="0 0 50 40">
-                    <rect fill="white" fillOpacity="0.15" height="39" rx="19.5" width="49" x="0.5" y="0.5" />
-                    <rect height="39" rx="19.5" stroke="white" width="49" x="0.5" y="0.5" />
-                  </svg>
-                  <svg className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ width: 8, height: 13 }} fill="none" viewBox="20.88 13.38 7.76 13.24">
-                    <path d={laterBtnPaths.p17336800} fill="white" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => {
-                    setDoneDeletedFilter(doneDeletedFilter === 'done' ? 'all' : 'done');
-                  }}
-                  className={`${
-                    doneDeletedFilter === 'done'
-                      ? "bg-white"
-                      : "bg-[rgba(255,255,255,0.15)] text-white"
-                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
-                  style={doneDeletedFilter === 'done' ? { boxShadow: `inset 0 0 0 2px ${DONE_BLUE}`, color: DONE_BLUE } : { boxShadow: 'inset 0 0 0 1px #FFFFFF' }}
-                >
-                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                    Done
-                  </div>
-                </button>
-                <button
-                  onClick={() => {
-                    setDoneDeletedFilter(doneDeletedFilter === 'deleted' ? 'all' : 'deleted');
-                  }}
-                  className={`${
-                    doneDeletedFilter === 'deleted'
-                      ? "bg-white"
-                      : "bg-[rgba(255,255,255,0.15)] text-white"
-                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
-                  style={doneDeletedFilter === 'deleted' ? { boxShadow: `inset 0 0 0 2px ${DELETED_GREY}`, color: DELETED_GREY } : { boxShadow: 'inset 0 0 0 1px #FFFFFF' }}
-                >
-                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                    Deleted
-                  </div>
-                </button>
-              </div>
-              {/* Clear all button */}
-              <button
-                ref={clearAllButtonRef}
-                onClick={isClearAllDisabled ? undefined : handleClearListClick}
-                disabled={isClearAllDisabled}
-                className={`${
-                  isClearAllDisabled
-                    ? "text-[#CCCCCC]"
-                    : clearListStep === 0
-                    ? "bg-[rgba(255,255,255,0.15)] text-white"
-                    : "bg-white text-[#4784F8]"
-                } content-stretch flex items-center justify-center h-[45px] w-[95px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-white"}`}
-              >
-                <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                  {clearListStep === 0 ? "Clear all" : clearListStep === 1 ? "Clear all?" : "Cleared!"}
-                </div>
-              </button>
-            </div>) : filtersMenuVariant === "grouped" ? (
-              <>
-                <div className="flex items-center gap-[12px]">
-                  {(["today", "this-week", "other"] as ReminderCategory[]).map((filter) => {
-                    const isActive = activeFilter === filter;
-                    return (
-                    <button
-                      key={filter}
-                      onClick={() => {
-                        setActiveFilter(activeFilter === filter ? "all" : filter);
-                      }}
-                      className={`${
-                        isActive
-                          ? "bg-white"
-                          : "bg-[rgba(255,255,255,0.15)] text-white"
-                      } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                        filter === "other" ? "hidden min-[390px]:flex" : ""
-                      }`}
-                      style={getReminderFilterPillStyle(filter, activeFilter, !isListsEnabled)}
-                    >
-                      <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                        {getCategoryLabel(filter)}
-                      </div>
-                    </button>
-                    );
-                  })}
-                </div>
-                <div className="shrink-0 h-[40px] cursor-pointer" onClick={() => setIsSettingsOpen(true)}>
-                  <LaterBtn />
-                </div>
-              </>
-            ) : (
-              (["today", "this-week", "later", "sometime"] as ReminderCategory[]).map((filter) => {
-                const isActive = activeFilter === filter;
-                return (
-                <button
-                  key={filter}
-                  onClick={() => {
-                    setActiveFilter(activeFilter === filter ? "all" : filter);
-                  }}
-                  className={`${
-                    isActive
-                      ? "bg-white"
-                      : "bg-[rgba(255,255,255,0.15)] text-white"
-                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                    filter === "sometime" ? "hidden min-[390px]:flex" : ""
-                  }`}
-                  style={getReminderFilterPillStyle(filter, activeFilter, !isListsEnabled)}
-                >
-                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                    {getCategoryLabel(filter)}
-                  </div>
-                </button>
-                );
-              })
-            )}
-          </div>
-          )}
         </div>
       </div>
 
       {/* Reminders/Lists tab bar — Lists mode only */}
-      {isListsEnabled && (
+      {isListsEnabled && isRemindersEnabled && (
         <div ref={tabsBarRef} className="content-stretch flex gap-[10px] items-end justify-center px-[20px] relative w-full">
           <div
             className={`${activeMainTab === 'reminders' ? 'bg-white' : 'bg-[rgba(255,255,255,0.25)]'} flex-[1_0_0] min-h-px min-w-px relative rounded-tl-[12px] rounded-tr-[12px] cursor-pointer h-[52px]`}
@@ -3796,8 +3400,8 @@ export default function App() {
       )}
 
       {/* Reminder list container */}
-      <div className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative ${isListsEnabled ? 'rounded-tl-[15px] rounded-tr-[15px]' : 'rounded-tl-[20px] rounded-tr-[20px]'} w-full flex-1 min-h-[350px]`}>
-        {isListsEnabled && activeMainTab === 'lists' ? (
+      <div className={`bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative rounded-tl-[15px] rounded-tr-[15px] w-full flex-1 min-h-[350px]`}>
+        {shownMainTab === 'lists' ? (
           <>
           {viewMode === 'lists-done' && (
             <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
@@ -3987,7 +3591,7 @@ export default function App() {
                                 </div>
                               </div>
                             </div>
-                            <RowMenuButton onClick={() => isSavedList ? setSavedDeletedListInfoId(list.id) : setDoneInfoTarget({ kind: 'list', id: list.id })} />
+                            <RowMenuButton onClick={() => isSavedList ? setSavedDeletedListInfoId(list.id) : setDoneInfoTarget({ kind: 'list', id: list.id })} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                           </div>
                         </motion.div>
                       );
@@ -4000,106 +3604,87 @@ export default function App() {
             <>
             <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0">
             {/* List filter pills */}
-            {(
-              <div className="filters-menu flex items-center gap-[18px] relative shrink-0 w-full">
-                {savedListsFeatureEnabled ? (
-                  <>
-                    <div className="flex items-center justify-between flex-1 min-w-0">
-                      {(["todo", "started", "complete"] as const).map((filter) => {
-                        const isActive = activeListFilter === filter;
-                        return (
-                        <button
-                          key={filter}
-                          onClick={() => {
-                            setActiveListFilter(activeListFilter === filter ? "all" : filter);
-                          }}
-                          className={`${
-                            isActive
-                              ? "bg-white"
-                              : "text-[#4784F8]"
-                          } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
-                          style={getListFilterPillStyle(filter, activeListFilter)}
-                        >
-                          <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                            {filter === "complete" ? "Done" : filter === "started" ? "Started" : "Todo"}
-                          </div>
-                        </button>
-                        );
-                      })}
+            {(() => {
+              const templatesButton = (
+                <button
+                  type="button"
+                  onClick={() => setSavedListsPanelOpen(true)}
+                  aria-label="Open templates"
+                  className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+                >
+                  <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                    <path d="M27.0977 30.8908C27.5421 30.8908 27.9023 31.251 27.9023 31.6954C27.9023 32.1398 27.5421 32.5 27.0977 32.5H24.3391C23.8947 32.5 23.5345 32.1398 23.5345 31.6954C23.5345 31.251 23.8947 30.8908 24.3391 30.8908H27.0977Z" fill="white"/>
+                    <path d="M19.5833 29.0679C20.0189 28.9806 20.4423 29.2627 20.5298 29.6983C20.6147 30.1207 20.7478 30.3342 20.9474 30.4984C21.1681 30.6799 21.4932 30.8173 22.1085 30.898C22.5489 30.9558 22.8592 31.3592 22.8017 31.7996C22.7439 32.2402 22.3398 32.5506 21.8992 32.4928C21.139 32.3931 20.4749 32.1923 19.9255 31.7403C19.367 31.2809 19.0898 30.6959 18.9529 30.0144C18.8656 29.5788 19.1478 29.1554 19.5833 29.0679Z" fill="white"/>
+                    <path d="M30.907 29.6983C30.9945 29.2627 31.4179 28.9806 31.8534 29.0679C32.289 29.1554 32.5711 29.5788 32.4838 30.0144C32.3469 30.6959 32.0698 31.2809 31.5113 31.7403C30.9618 32.1923 30.2978 32.3931 29.5375 32.4928C29.0969 32.5506 28.6928 32.2402 28.6351 31.7996C28.5776 31.3592 28.8879 30.9558 29.3283 30.898C29.9436 30.8173 30.2687 30.6799 30.4894 30.4984C30.689 30.3342 30.8221 30.1207 30.907 29.6983Z" fill="white"/>
+                    <path d="M20.2012 12.5C21.6929 12.5 22.8825 12.4983 23.8236 12.6096C24.7825 12.7229 25.5877 12.9628 26.2635 13.5174C26.4905 13.7037 26.6986 13.9119 26.8849 14.1388C27.4104 14.7792 27.6534 15.5357 27.7739 16.4296C27.8919 17.3056 27.9012 18.3947 27.9023 19.7405C27.9023 19.9771 27.7991 20.1895 27.6365 20.3367C27.6149 20.3563 27.5928 20.3753 27.5691 20.3924C27.4784 20.4582 27.374 20.5065 27.2602 20.5298C27.208 20.5405 27.1539 20.5459 27.0986 20.546L27.0977 20.5451L24.3391 20.546C23.8947 20.546 23.5345 20.1857 23.5345 19.7414C23.5345 19.297 23.8947 18.9368 24.3391 18.9368H26.2895C26.2824 17.974 26.259 17.2386 26.1791 16.6451C26.0806 15.9141 25.907 15.4838 25.6412 15.1598C25.5218 15.0143 25.388 14.8805 25.2425 14.7611C24.901 14.481 24.4416 14.3034 23.6351 14.208C22.8103 14.1105 21.7323 14.1092 20.2012 14.1092C18.67 14.1092 17.592 14.1105 16.7672 14.208C15.9607 14.3034 15.5013 14.481 15.1598 14.7611C15.0143 14.8805 14.8805 15.0143 14.7611 15.1598C14.481 15.5013 14.3034 15.9607 14.208 16.7672C14.1105 17.592 14.1092 18.67 14.1092 20.2012C14.1092 21.7323 14.1105 22.8103 14.208 23.6351C14.3034 24.4416 14.481 24.901 14.7611 25.2425C14.8805 25.388 15.0143 25.5218 15.1598 25.6412C15.4838 25.907 15.9141 26.0806 16.6451 26.1791C17.2386 26.259 17.974 26.2815 18.9368 26.2886V24.3391C18.9368 23.8947 19.297 23.5345 19.7414 23.5345C20.1857 23.5345 20.546 23.8947 20.546 24.3391V27.0977C20.546 27.2365 20.5109 27.3672 20.449 27.4811C20.4182 27.5377 20.3796 27.5891 20.3367 27.6365C20.3123 27.6635 20.2866 27.6893 20.2586 27.7128C20.2516 27.7187 20.2443 27.7242 20.2371 27.7299C20.1003 27.8373 19.9287 27.9023 19.7414 27.9023L19.7405 27.9014C18.3947 27.9003 17.3056 27.8919 16.4296 27.7739C15.5357 27.6534 14.7792 27.4104 14.1388 26.8849C13.9119 26.6986 13.7037 26.4905 13.5174 26.2635C12.9628 25.5877 12.7229 24.7825 12.6096 23.8236C12.4983 22.8825 12.5 21.6929 12.5 20.2012C12.5 18.7094 12.4983 17.5198 12.6096 16.5787C12.7229 15.6198 12.9628 14.8146 13.5174 14.1388C13.7037 13.9119 13.9119 13.7037 14.1388 13.5174C14.8146 12.9628 15.6198 12.7229 16.5787 12.6096C17.5198 12.4983 18.7094 12.5 20.2012 12.5Z" fill="white"/>
+                    <path d="M31.6954 23.5345C32.1398 23.5345 32.5 23.8947 32.5 24.3391V27.0977C32.5 27.5421 32.1398 27.9023 31.6954 27.9023C31.251 27.9023 30.8908 27.5421 30.8908 27.0977V24.3391C30.8908 23.8947 31.251 23.5345 31.6954 23.5345Z" fill="white"/>
+                    <path d="M21.8992 18.944C22.3398 18.8862 22.7439 19.1966 22.8017 19.6372C22.8592 20.0776 22.5489 20.481 22.1085 20.5388C21.4932 20.6195 21.1681 20.7569 20.9474 20.9384C20.7478 21.1026 20.6147 21.3161 20.5298 21.7385C20.4423 22.1741 20.0189 22.4562 19.5833 22.3689C19.1478 22.2814 18.8656 21.858 18.9529 21.4224C19.0898 20.7408 19.367 20.1559 19.9255 19.6965C20.4749 19.2445 21.139 19.0437 21.8992 18.944Z" fill="white"/>
+                    <path d="M29.5375 18.944C30.2978 19.0437 30.9618 19.2445 31.5113 19.6965C32.0698 20.1559 32.3469 20.7408 32.4838 21.4224C32.5712 21.858 32.289 22.2814 31.8534 22.3689C31.4179 22.4562 30.9945 22.1741 30.907 21.7385C30.8221 21.3161 30.689 21.1026 30.4894 20.9384C30.2687 20.7569 29.9436 20.6195 29.3283 20.5388C28.8879 20.481 28.5776 20.0776 28.6351 19.6372C28.6928 19.1966 29.0969 18.8862 29.5375 18.944Z" fill="white"/>
+                  </svg>
+                </button>
+              );
+              const listsSettingsButton = (
+                <button
+                  type="button"
+                  onClick={handleHeaderMenuClick}
+                  aria-label="Open lists settings"
+                  className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+                >
+                  <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                    <circle cx="16" cy="22.5" r="1.75" fill="white"/>
+                    <circle cx="22.5" cy="22.5" r="1.75" fill="white"/>
+                    <circle cx="29" cy="22.5" r="1.75" fill="white"/>
+                  </svg>
+                </button>
+              );
+              const filterPills = (savedListsFeatureEnabled
+                ? (["todo", "started", "complete"] as const)
+                : (["complete", "almost", "started", "todo"] as const)
+              ).map((filter) => {
+                const isActive = activeListFilter === filter;
+                return (
+                <button
+                  key={filter}
+                  onClick={() => {
+                    setActiveListFilter(activeListFilter === filter ? "all" : filter);
+                  }}
+                  className={`${
+                    isActive
+                      ? "bg-white"
+                      : "text-[#4784F8]"
+                  } content-stretch flex items-center justify-center ${savedListsFeatureEnabled ? "px-[13px] min-[390px]:px-[16px]" : !settingsMenuFeatureEnabled ? "px-[16px]" : "px-[11px] min-[375px]:px-[13px] min-[390px]:px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                    filter !== "started" ? "" : !savedListsFeatureEnabled ? (settingsMenuFeatureEnabled ? "max-[440px]:hidden" : "max-[389px]:hidden") : settingsMenuFeatureEnabled ? "max-[360px]:hidden" : ""
+                  }`}
+                  style={getListFilterPillStyle(filter, activeListFilter)}
+                >
+                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
+                    {savedListsFeatureEnabled
+                      ? (filter === "complete" ? "Done" : filter === "started" ? "Started" : "Todo")
+                      : (filter === "complete" ? "Complete" : filter === "almost" ? "Almost" : filter === "started" ? "Started" : "Todo")}
+                  </div>
+                </button>
+                );
+              });
+              // Settings menu or List templates on: visible filters grouped left with 10px gaps, action buttons grouped right with 10px gaps
+              if (settingsMenuFeatureEnabled || savedListsFeatureEnabled) {
+                return (
+                  <div className="filters-menu flex items-center justify-between gap-[10px] relative shrink-0 w-full">
+                    <div className="flex items-center gap-[10px]">{filterPills}</div>
+                    <div className="flex items-center gap-[10px]">
+                      {savedListsFeatureEnabled && templatesButton}
+                      {settingsMenuFeatureEnabled && listsSettingsButton}
                     </div>
-                    <button
-                      className="bg-[#4784F8] content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer"
-                      type="button"
-                      onClick={() => setSavedListsPanelOpen(true)}
-                    >
-                      <div className="content-stretch flex items-center justify-center gap-[8px] relative">
-                        <div className="font-['Lato',sans-serif] font-bold text-[14px] text-white whitespace-nowrap">
-                          Templates
-                        </div>
-                        <svg className="block shrink-0" width="7" height="10" viewBox="0 0 7 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path d="M1.72101 0.269035C1.34568 -0.0896783 0.737045 -0.0896783 0.361708 0.269035C-0.0135638 0.627741 -0.0135771 1.20921 0.361708 1.56791L3.91284 4.96154L0.281458 8.43209C-0.0938212 8.79079 -0.0938182 9.37226 0.281458 9.73096C0.656796 10.0897 1.26543 10.0897 1.64076 9.73096L5.80081 5.75517C5.86027 5.71933 5.91677 5.67686 5.96858 5.62735C6.34382 5.26866 6.3438 4.68717 5.96858 4.32847L1.72101 0.269035Z" fill="white"/>
-                        </svg>
-                      </div>
-                    </button>
-                  </>
-                ) : effectiveFiltersVariant === "grouped" ? (
-                  <>
-                    <div className="flex items-center gap-[12px]">
-                      {(["complete", "almost", "grouped-todo"] as const).map((filter) => {
-                        const isActive = activeListFilter === filter;
-                        return (
-                        <button
-                          key={filter}
-                          onClick={() => {
-                            setActiveListFilter(activeListFilter === filter ? "all" : filter);
-                          }}
-                          className={`${
-                            isActive
-                              ? "bg-white"
-                              : "text-[#4784F8]"
-                          } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                            filter === "grouped-todo" ? "hidden min-[390px]:flex" : ""
-                          }`}
-                          style={getListFilterPillStyle(filter, activeListFilter)}
-                        >
-                          <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                            {filter === "complete" ? "Complete" : filter === "almost" ? "Almost" : "Todo"}
-                          </div>
-                        </button>
-                        );
-                      })}
-                    </div>
-                    <div className="shrink-0 h-[40px] cursor-pointer" onClick={() => setIsSettingsOpen(true)}>
-                      <LaterBtn />
-                    </div>
-                  </>
-                ) : (
-                  (["complete", "almost", "started", "todo"] as const).map((filter) => {
-                    const isActive = activeListFilter === filter;
-                    return (
-                    <button
-                      key={filter}
-                      onClick={() => {
-                        setActiveListFilter(activeListFilter === filter ? "all" : filter);
-                      }}
-                      className={`${
-                        isActive
-                          ? "bg-white"
-                          : "text-[#4784F8]"
-                      } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                        filter === "started" ? "max-[389px]:hidden" : ""
-                      }`}
-                      style={getListFilterPillStyle(filter, activeListFilter)}
-                    >
-                      <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                        {filter === "complete" ? "Complete" : filter === "almost" ? "Almost" : filter === "started" ? "Started" : "Todo"}
-                      </div>
-                    </button>
-                    );
-                  })
-                )}
-              </div>
-            )}
+                  </div>
+                );
+              }
+              return (
+                <div className="filters-menu flex items-center gap-[18px] min-[389px]:max-[406px]:gap-[10px] relative shrink-0 w-full">
+                  {filterPills}
+                </div>
+              );
+            })()}
             <div className="relative w-full max-w-[768px] flex-1 min-h-0">
               {/* Scrollable lists container */}
               <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto', height: '100%' }}>
@@ -4220,7 +3805,7 @@ export default function App() {
                               </div>
                             </div>
                           </div>
-                          <RowMenuButton onClick={() => setListInfoOverlayListId(list.id)} />
+                          <RowMenuButton onClick={() => setListInfoOverlayListId(list.id)} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                         </div>
                       </motion.div>
                     );
@@ -4268,11 +3853,11 @@ export default function App() {
               </div>
             </div>
             {/* Add new list button */}
-            <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[34px] shrink-0">
+            <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
               <button
                 className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full transition-colors"
                 style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
-                onClick={() => { setListTitle(pickDefaultListName(createdLists.map(l => l.title))); setListItems([]); setListOverlayMode('create'); setEditingListId(null); setListSortMode('insertion'); setListSmartReminders(false); setListSmartReminderDueDate(null); setListSmartReminderTime(null); setIsListsOverlayOpen(true); }}
+                onClick={() => { hapticTap('createList'); setListTitle(pickDefaultListName(createdLists.map(l => l.title))); setListItems([]); setListOverlayMode('create'); setEditingListId(null); setListSortMode('insertion'); setListSmartReminders(false); setListSmartReminderDueDate(null); setListSmartReminderTime(null); setIsListsOverlayOpen(true); }}
               >
                 <div className="relative shrink-0 size-[15px]">
                   <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
@@ -4284,127 +3869,13 @@ export default function App() {
                 </div>
               </button>
             </div>
-            {(savedListsPanelOpen || (isSavedListsOverlayOpen && restoreSavedListsPanelAfterOverlayClose)) && (
-                <div
-                  className="absolute inset-0 bg-white"
-                  style={{ zIndex: 2, pointerEvents: savedListsPanelOpen ? 'auto' : 'none' }}
-                >
-                  <div className="relative flex flex-col gap-[24px] w-full h-full min-h-0 pt-[0px]">
-                    <div className="flex items-center shrink-0 w-full h-[40px]">
-                      <button
-                        className="flex items-center gap-[10px] cursor-pointer shrink-0 bg-transparent border-none p-0"
-                        type="button"
-                        onClick={() => setSavedListsPanelOpen(false)}
-                        aria-label="Back to lists"
-                      >
-                        <svg width="18" height="33" viewBox="0 0 18 33" fill="none" xmlns="http://www.w3.org/2000/svg" className="block shrink-0">
-                          <path d="M6.13811 8.87479C6.6468 8.30085 7.47168 8.30085 7.98037 8.87479C8.48897 9.44872 8.48899 10.3791 7.98037 10.953L3.16754 16.3828L8.08913 21.9357C8.59774 22.5096 8.59774 23.44 8.08913 24.0139C7.58044 24.5878 6.75556 24.5878 6.24687 24.0139L0.60879 17.6526C0.528196 17.5953 0.451622 17.5273 0.381409 17.4481C-0.127153 16.8742 -0.12712 15.9438 0.381409 15.3699L6.13811 8.87479Z" fill="#1C2C42"/>
-                        </svg>
-                        <span className="font-['Lato:Bold',sans-serif] not-italic text-[#1C2C42] text-[20px] whitespace-nowrap">List templates</span>
-                      </button>
-                    </div>
-                    <div className="relative w-full max-w-[768px] flex-1 min-h-0">
-                      <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: savedListsPanelOpen ? 'auto' : 'hidden', height: '100%' }}>
-                        {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).length === 0 ? (
-                          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
-                            <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
-                              No list templates yet.. get busy!
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-[23px] w-full" style={{ position: 'relative', zIndex: 1 }}>
-                            <AnimatePresence initial={false}>
-                            {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).map((list) => {
-                              const isPendingDeletedSavedList = pendingDeletedSavedListIds.has(list.id);
-                              const deletedSavedListColor = '#898989';
-                              return (
-                              <motion.div
-                                key={list.id}
-                                layout
-                                exit={{ opacity: 0 }}
-                                transition={{ layout: { duration: 0.25 } }}
-                              >
-                              <div className="content-stretch flex items-start justify-between px-px relative w-full">
-                                <div className="flex-[1_0_0] min-h-px min-w-px relative">
-                                  <div className="flex flex-row items-start size-full">
-                                    <div className="content-stretch flex gap-[16px] items-start pr-[16px] relative w-full min-w-0">
-                                      <div className="relative shrink-0 size-[25px]" style={{ marginTop: '3px' }}>
-                                        <SavedListTemplateIcon color={isPendingDeletedSavedList ? deletedSavedListColor : undefined} />
-                                      </div>
-                                      <div className="flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] justify-start min-h-px min-w-0 not-italic overflow-visible relative" style={{ gap: '9px', minHeight: '38px' }}>
-                                        <div
-                                          className={`overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer${isPendingDeletedSavedList ? ' line-through' : ''}`}
-                                          style={{ color: isPendingDeletedSavedList ? deletedSavedListColor : '#1C2C42', textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#1C2C42', clipPath: 'inset(0 0 -4px 0)' }}
-                                          onClick={() => openSavedListEditor(list)}
-                                        >
-                                          <p style={{ fontSize: '17px', fontWeight: 700, lineHeight: 1, overflow: 'visible', transform: 'translateY(-1px)' }}>
-                                            {list.title}
-                                          </p>
-                                        </div>
-                                        <div
-                                          className={`flex items-center overflow-visible cursor-pointer${isPendingDeletedSavedList ? ' line-through' : ''} min-w-0`}
-                                          style={{ textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}
-                                          onClick={() => openSavedListEditor(list)}
-                                        >
-                                          <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}>
-                                            {list.items.length} {list.items.length === 1 ? 'item' : 'items'}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                                <RowMenuButton onClick={() => setSavedListMenuId(list.id)} />
-                              </div>
-                              </motion.div>
-                            );
-                            })}
-                            </AnimatePresence>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[34px] shrink-0">
-                      <button
-                        type="button"
-                        className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
-                        style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
-                        onClick={() => {
-                          setListTitle(pickDefaultListName(createdLists.map(l => l.title)));
-                          setListItems([]);
-                          setListOverlayMode('create');
-                          setEditingListId(null);
-                          setEditingSavedListId(null);
-                          setListSortMode('alphabetical');
-                          setListSmartReminders(false);
-                          setListSmartReminderDueDate(null);
-                          setListSmartReminderTime(null);
-                          setRestoreSavedListsPanelAfterOverlayClose(true);
-                          setSavedListsPanelOpen(false);
-                          setIsSavedListsOverlayOpen(true);
-                        }}
-                      >
-                        <div className="relative shrink-0 size-[15px]">
-                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                            <path d={svgPaths.p1e67ad80} fill="white" />
-                          </svg>
-                        </div>
-                        <div className="font-['Lato',sans-serif] font-bold text-[20px] text-white whitespace-nowrap">
-                          New template
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-            )}
             </div>
             </>
           )}
           </>
         ) : (
         <>
-        {/* Filter buttons — Lists mode: rendered here inside the container */}
-        {isListsEnabled && (
+        {/* Filter buttons — rendered inside the container */}
         <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
           {viewMode === "done-deleted" ? (<div
             className="flex items-center justify-between w-full"
@@ -4474,51 +3945,23 @@ export default function App() {
                 {clearListStep === 0 ? "Clear all" : clearListStep === 1 ? "Clear all?" : "Cleared!"}
               </div>
             </button>
-          </div>) : effectiveFiltersVariant === "grouped" ? (
+          </div>) : (
             <>
-              <div className="flex items-center gap-[12px]">
-                {(["today", "this-week", "other"] as ReminderCategory[]).map((filter) => {
-                  const isActive = activeFilter === filter;
-                  return (
-                  <button
-                    key={filter}
-                    onClick={() => {
-                      setActiveFilter(activeFilter === filter ? "all" : filter);
-                    }}
-                    className={`${
-                      isActive
-                        ? "bg-white"
-                        : "text-[#4784f8]"
-                    } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                      filter === "other" ? "hidden min-[390px]:flex" : ""
-                    }`}
-                    style={getReminderFilterPillStyle(filter, activeFilter)}
-                  >
-                    <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                      {getCategoryLabel(filter)}
-                    </div>
-                  </button>
-                  );
-                })}
-              </div>
-              <div className="shrink-0 h-[40px] cursor-pointer" onClick={() => setIsSettingsOpen(true)}>
-                <LaterBtn />
-              </div>
-            </>
-          ) : (
-            (["today", "this-week", "later", "sometime"] as ReminderCategory[]).map((filter) => {
+            {(() => {
+            const filterPills = ((settingsMenuFeatureEnabled ? ["today", "this-week", "other"] : ["today", "this-week", "later", "sometime"]) as ReminderCategory[]).map((filter) => {
               const isActive = activeFilter === filter;
               return (
               <button
                 key={filter}
                 onClick={() => {
                   setActiveFilter(activeFilter === filter ? "all" : filter);
+                  setCalendarSelectedDate(null);
                 }}
                 className={`${
                   isActive
                     ? "bg-white"
                     : "text-[#4784f8]"
-                } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                } content-stretch flex items-center justify-center ${settingsMenuFeatureEnabled ? "px-[13px] min-[375px]:px-[16px]" : "px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
                   filter === "sometime" ? "hidden min-[390px]:flex" : ""
                 }`}
                 style={getReminderFilterPillStyle(filter, activeFilter)}
@@ -4528,10 +3971,45 @@ export default function App() {
                 </div>
               </button>
               );
-            })
+            });
+            // Settings menu on: filters grouped left with 10px gaps, Settings button pushed right by justify-between
+            return settingsMenuFeatureEnabled ? <div className="flex items-center gap-[10px]">{filterPills}</div> : filterPills;
+            })()}
+            {settingsMenuFeatureEnabled && (
+              <button
+                type="button"
+                onClick={handleHeaderMenuClick}
+                aria-label="Open reminders settings"
+                className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+              >
+                <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                  <circle cx="16" cy="22.5" r="1.75" fill="white"/>
+                  <circle cx="22.5" cy="22.5" r="1.75" fill="white"/>
+                  <circle cx="29" cy="22.5" r="1.75" fill="white"/>
+                </svg>
+              </button>
+            )}
+            </>
           )}
         </div>
-        )}
+        {/* Calendar view: fixed above the scrolling list. Turning it on or off expands or collapses it, so the
+            list slides down or up. The column's 24px gap sits inside the animated area (margin -24, padding 24) */}
+        <AnimatePresence initial={false}>
+          {calendarElement && (
+            <motion.div
+              key="reminders-calendar"
+              className="w-full shrink-0"
+              style={{ overflow: "hidden", marginBottom: -24 }}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <div style={{ paddingBottom: 24 }}>{calendarElement}</div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {/* Scrollable area */}
         <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full max-w-[768px] rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {(() => {
@@ -4590,7 +4068,7 @@ export default function App() {
                                 {(pendingUncompleteIds.has(item.id) || pendingUndeleteIds.has(item.id)) ? (() => {
                                   const cat = categoriseReminder(item, now);
                                   const overdue = isOverdue(item, now);
-                                  const circleCol = overdue ? OVERDUE_COLOUR : CATEGORY_COLOURS[cat] ?? "#939393";
+                                  const circleCol = overdue ? OVERDUE_COLOUR : CATEGORY_COLOURS[getDisplayCategory(cat, settingsMenuFeatureEnabled)] ?? "#939393";
                                   return (
                                     <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 25 25">
                                       <circle cx="12.5" cy="12.5" fill="white" r="11.5" stroke={circleCol} strokeWidth="2" />
@@ -4613,7 +4091,6 @@ export default function App() {
                                     <div className={`overflow-hidden text-ellipsis whitespace-nowrap${isPendingRestore ? '' : ' line-through'}`} style={{ textDecorationColor: textCol, clipPath: 'inset(0 0 -4px 0)' }}>
                                       <p style={{ fontSize: '17px', fontWeight: 700, lineHeight: 1, overflow: 'visible', transform: 'translateY(-1px)' }}>{getDisplayTitle(item)}</p>
                                     </div>
-                                    {showSubtitles && (
                                       <div className={`flex items-center overflow-visible${isPendingRestore ? '' : ' line-through'}`} style={{ textDecorationColor: subtitleCol }}>
                                         <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: subtitleCol }}>{(() => {
                                           if (isSmartReminder && item.linkedListId && item.schedule.kind === 'scheduled' && item.schedule.date) {
@@ -4667,14 +4144,13 @@ export default function App() {
                                           </div>
                                         )}
                                       </div>
-                                    )}
                                   </div>
                                 );
                               })()}
                             </div>
                           </div>
                         </div>
-                        <RowMenuButton onClick={() => setDoneInfoTarget({ kind: 'reminder', id: item.id })} />
+                        <RowMenuButton onClick={() => setDoneInfoTarget({ kind: 'reminder', id: item.id })} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                       </div>
                     </motion.div>
                   ))}
@@ -4688,7 +4164,8 @@ export default function App() {
             const activeReminders = displayReminders.filter((r) =>
               (r.completedAt == null && r.deletedAt == null) || pendingDeleteIds.has(r.id)
             );
-            const filtered = activeReminders.filter((r) => {
+            // Calendar view with no filter: the selected day's reminders (today includes overdue)
+            const filtered = calendarDayKey ? getCalendarDayReminders(activeReminders, calendarDayKey, now) : activeReminders.filter((r) => {
               if (activeFilter === "all") return true;
               // Overdue reminders appear in every filter view
               if (isOverdue(r, now)) return true;
@@ -4701,7 +4178,7 @@ export default function App() {
             return (
               <>
               <div className="flex flex-col gap-[23px] w-full" style={{ position: 'relative', zIndex: 1 }}>
-                <AnimatePresence key={`${viewMode}-${activeFilter}`}>
+                <AnimatePresence key={`${viewMode}-${activeFilter}-${calendarDayKey ?? ""}`}>
                 {sortedFiltered.map((reminder) => {
                   const isPendingDone = pendingDoneIds.has(reminder.id);
                   const isPendingDelete = pendingDeleteIds.has(reminder.id);
@@ -4709,7 +4186,7 @@ export default function App() {
                   const pendingColour = isPendingDelete ? DELETED_GREY : (isListsEnabled ? '#3F3F3F' : DONE_BLUE);
                   const category = categoriseReminder(reminder, now);
                   const overdue = isOverdue(reminder, now);
-                  const circleColour = overdue ? OVERDUE_COLOUR : CATEGORY_COLOURS[category] ?? "#939393";
+                  const circleColour = overdue ? OVERDUE_COLOUR : CATEGORY_COLOURS[getDisplayCategory(category, settingsMenuFeatureEnabled)] ?? "#939393";
                   const isHighlighted = insertHighlightId === reminder.id;
                   const textColour = isPendingAway ? "#BABABA" : (isHighlighted ? circleColour : (overdue ? OVERDUE_COLOUR : APP_TEXT_DARK_BLUE));
                   const isReinserted = reinsertedId === reminder.id;
@@ -4775,7 +4252,6 @@ export default function App() {
                                     <p style={{ display: 'block', width: '100%', minWidth: 0, fontSize: '17px', fontWeight: 700, lineHeight: '17px', transform: 'translateY(-1px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingBottom: '2px', boxSizing: 'content-box' }}>{getDisplayTitle(reminder)}</p>
                                   )}
                                 </div>
-                                {showSubtitles && (
                                   <div className={`flex items-center overflow-visible${isPendingAway ? ' line-through' : ''}`} style={{ textDecorationColor: isPendingAway ? pendingColour : '#BABABA' }}>
                                     <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingAway ? pendingColour : '#BABABA' }}>{(() => {
                                       if (isSmartReminder && reminder.linkedListId && reminder.schedule.kind === 'scheduled' && reminder.schedule.date) {
@@ -4829,19 +4305,24 @@ export default function App() {
                                       </div>
                                     )}
                                   </div>
-                                )}
                               </div>
                             </div>
                           </div>
                         </div>
-                        <RowMenuButton onClick={() => setInfoReminder(reminder)} />
+                        <RowMenuButton onClick={() => setInfoReminder(reminder)} alignWithSettingsButton={settingsMenuFeatureEnabled} />
                       </div>
                     </motion.div>
                   );
                 })}
                 </AnimatePresence>
               </div>
-              {filtered.length === 0 && (() => {
+              {/* Calendar day with nothing due (design: reminders-cal-empty.svg, text box 52.75px below the list top) */}
+              {filtered.length === 0 && calendarDayKey && (
+                <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] text-[#BABABA] text-center w-full" style={{ marginTop: 52.75 }}>
+                  No reminders... take it easy!
+                </p>
+              )}
+              {filtered.length === 0 && !calendarDayKey && (() => {
                 const emptyMessages: Record<ReminderCategory | "all", string> = {
                   all: "No reminders... take it easy!",
                   today: "No reminders today... take it easy!",
@@ -4959,11 +4440,11 @@ export default function App() {
 
         {/* New reminder button - fixed at bottom */}
         {viewMode !== "done-deleted" && (
-        <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[34px] shrink-0">
+        <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
           <button
             className="bg-[#4784f8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full transition-colors"
             style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
-            onClick={() => setIsOverlayOpen(true)}
+            onClick={() => { hapticTap('createReminder'); setIsOverlayOpen(true); }}
           >
             <div className="relative shrink-0 size-[15px]">
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
@@ -5024,6 +4505,7 @@ export default function App() {
                   onPointerDown={(event) => reminderSheetDragControls.start(event)}
                 />
                 <NewReminderOverlay
+                  repeatsEnabled={isRepeatRemindersActive}
                   onRepeatsOverlayOpen={() => setIsRepeatsOverlayOpen(true)}
                   repeatConfig={repeatConfig}
                   onRepeatConfigChange={setRepeatConfig}
@@ -5031,16 +4513,175 @@ export default function App() {
                   addReminder={addReminder}
                   onClose={handleOverlayClose}
                   nlcMode={nlcMode}
-                  nlcEnabled={nlcEnabled}
-                  nlcRecognition={nlcRecognition}
+                  nlcEnabled={isNlcActive}
+                  nlcRecognition={nlcRecognitionForInput}
                   editReminder={editingReminder}
                   updateReminder={updateReminder}
                   smartReminderCreateList={smartReminderCreateList}
                   onCreateSmartReminder={createSmartReminderFromPanel}
-                  useOneMinuteIncrements={useOneMinuteTimeIncrements}
+                  useOneMinuteIncrements={isOneMinuteActive}
                   autoFocusReady={isReminderOverlayFocusReady}
                   isReminderAttachmentsEnabled={isReminderAttachmentsEnabled}
+                  initialDate={!editingReminder && !smartReminderCreateList && calendarDayKey && calendarDayKey !== calendarTodayKey ? calendarDayKey : null}
                 />
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Templates Overlay */}
+      <AnimatePresence>
+        {shownMainTab === 'lists' && (savedListsPanelOpen || (isSavedListsOverlayOpen && restoreSavedListsPanelAfterOverlayClose)) && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => setSavedListsPanelOpen(false)}
+              className="fixed inset-0 bg-black/0 z-40"
+              style={{ pointerEvents: savedListsPanelOpen ? 'auto' : 'none' }}
+            />
+
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0, top: getBottomSheetTopPosition() }}
+              exit={{ y: "100%" }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="fixed left-0 right-0 z-50 mx-auto w-full"
+              style={{ bottom: 0, pointerEvents: savedListsPanelOpen ? 'auto' : 'none' }}
+            >
+              <motion.div
+                drag="y"
+                dragControls={templatesSheetDragControls}
+                dragListener={false}
+                dragConstraints={{ top: 0, bottom: viewportHeight }}
+                dragElastic={0}
+                dragMomentum={false}
+                onDragEnd={(_, info) => {
+                  if (!shouldCloseBottomSheetFromDrag(info.offset.y, info.velocity.y)) return;
+                  setSavedListsPanelOpen(false);
+                }}
+                className="bg-white relative rounded-tl-[15px] rounded-tr-[15px] size-full"
+              >
+                <div
+                  className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
+                  onPointerDown={(event) => templatesSheetDragControls.start(event)}
+                />
+                <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
+                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
+                    <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
+                      <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
+                        Templates
+                      </div>
+                      <button
+                        className="relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center cursor-pointer w-[45px] h-[45px]"
+                        type="button"
+                        onClick={() => setSavedListsPanelOpen(false)}
+                        aria-label="Close templates"
+                      >
+                        <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                          <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0 px-[24px] mt-[24px]">
+                    <div className="relative w-full max-w-[768px] flex-1 min-h-0">
+                      <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: savedListsPanelOpen ? 'auto' : 'hidden', height: '100%' }}>
+                        {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).length === 0 ? (
+                          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
+                            <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
+                              No list templates yet.. get busy!
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-[23px] w-full" style={{ position: 'relative', zIndex: 1 }}>
+                            <AnimatePresence initial={false}>
+                            {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).map((list) => {
+                              const isPendingDeletedSavedList = pendingDeletedSavedListIds.has(list.id);
+                              const deletedSavedListColor = '#898989';
+                              return (
+                              <motion.div
+                                key={list.id}
+                                layout
+                                exit={{ opacity: 0 }}
+                                transition={{ layout: { duration: 0.25 } }}
+                              >
+                              <div className="content-stretch flex items-start justify-between px-px relative w-full">
+                                <div className="flex-[1_0_0] min-h-px min-w-px relative">
+                                  <div className="flex flex-row items-start size-full">
+                                    <div className="content-stretch flex gap-[16px] items-start pr-[16px] relative w-full min-w-0">
+                                      <div className="relative shrink-0 size-[25px]" style={{ marginTop: '3px' }}>
+                                        <SavedListTemplateIcon color={isPendingDeletedSavedList ? deletedSavedListColor : undefined} />
+                                      </div>
+                                      <div className="flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] justify-start min-h-px min-w-0 not-italic overflow-visible relative" style={{ gap: '9px', minHeight: '38px' }}>
+                                        <div
+                                          className={`overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer${isPendingDeletedSavedList ? ' line-through' : ''}`}
+                                          style={{ color: isPendingDeletedSavedList ? deletedSavedListColor : '#1C2C42', textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#1C2C42', clipPath: 'inset(0 0 -4px 0)' }}
+                                          onClick={() => openSavedListEditor(list)}
+                                        >
+                                          <p style={{ fontSize: '17px', fontWeight: 700, lineHeight: 1, overflow: 'visible', transform: 'translateY(-1px)' }}>
+                                            {list.title}
+                                          </p>
+                                        </div>
+                                        <div
+                                          className={`flex items-center overflow-visible cursor-pointer${isPendingDeletedSavedList ? ' line-through' : ''} min-w-0`}
+                                          style={{ textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}
+                                          onClick={() => openSavedListEditor(list)}
+                                        >
+                                          <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}>
+                                            {list.items.length} {list.items.length === 1 ? 'item' : 'items'}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <RowMenuButton onClick={() => setSavedListMenuId(list.id)} alignWithSettingsButton={settingsMenuFeatureEnabled} />
+                              </div>
+                              </motion.div>
+                            );
+                            })}
+                            </AnimatePresence>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
+                      <button
+                        type="button"
+                        className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
+                        style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
+                        onClick={() => {
+                          setListTitle(pickDefaultListName(createdLists.map(l => l.title)));
+                          setListItems([]);
+                          setListOverlayMode('create');
+                          setEditingListId(null);
+                          setEditingSavedListId(null);
+                          setListSortMode('alphabetical');
+                          setListSmartReminders(false);
+                          setListSmartReminderDueDate(null);
+                          setListSmartReminderTime(null);
+                          setRestoreSavedListsPanelAfterOverlayClose(true);
+                          setSavedListsPanelOpen(false);
+                          setIsSavedListsOverlayOpen(true);
+                        }}
+                      >
+                        <div className="relative shrink-0 size-[15px]">
+                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+                            <path d={svgPaths.p1e67ad80} fill="white" />
+                          </svg>
+                        </div>
+                        <div className="font-['Lato',sans-serif] font-bold text-[20px] text-white whitespace-nowrap">
+                          New template
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             </motion.div>
           </>
@@ -5049,7 +4690,7 @@ export default function App() {
 
       {/* Lists Overlay */}
       <AnimatePresence>
-        {isListsEnabled && activeMainTab === 'lists' && (isListsOverlayOpen || isSavedListsOverlayOpen) && (() => {
+        {shownMainTab === 'lists' && (isListsOverlayOpen || isSavedListsOverlayOpen) && (() => {
           const isSavedListCreateOverlay = isSavedListsOverlayOpen && !isListsOverlayOpen;
           const isSavedListEditOverlay = isSavedListCreateOverlay && editingSavedListId !== null;
           const overlayDisplayListItems = displayListItems;
@@ -5129,7 +4770,7 @@ export default function App() {
                   onPointerDown={(event) => listsSheetDragControls.start(event)}
                 />
                 <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
+                  <div className="content-stretch flex flex-col gap-[26px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
                     <ListsHeader
                       value={listTitle}
                       onChange={setListTitle}
@@ -5149,7 +4790,6 @@ export default function App() {
                       showSmartRemindersSubtitle={!isSavedListCreateOverlay && isSmartRemindersEnabled && listSmartReminders}
                       reserveSmartRemindersSubtitleSpace={!isSavedListCreateOverlay && isSmartRemindersEnabled}
                       showMenuButton={!isSavedListCreateOverlay || isSavedListEditOverlay}
-                      autoGeneratedTitle={listOverlayMode === 'create' && DEFAULT_LIST_NAMES.includes(listTitle) ? listTitle : undefined}
                     />
                     <AddListItemInput onAdd={(text: string) => {
                       const newId = crypto.randomUUID();
@@ -5258,14 +4898,14 @@ export default function App() {
         })()}
       </AnimatePresence>
 
-      {isListSettingsOpen && isListsEnabled && activeMainTab === 'lists' && isListsOverlayOpen && (
+      {isListSettingsOpen && shownMainTab === 'lists' && isListsOverlayOpen && (
         <>
           <div
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={closeListSettingsOverlay}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
-            <div className="pointer-events-auto w-full max-w-[400px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
               <InfoOverlay sortMode={listSettingsSortModeDraft} onSortChange={setListSettingsSortModeDraft} listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
                 const listId = editingListId;
                 if (!listId) return;
@@ -5300,8 +4940,8 @@ export default function App() {
             className="fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setListInfoOverlayListId(null)}
           />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
-            <div className="pointer-events-auto w-full max-w-[400px]">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
               <ListInfoOverlay
                 listTitle={listInfoOverlayList.title}
                 smartReminders={(listInfoOverlayList.smartReminders ?? false) || pendingListInfoSmartReminderListId === listInfoOverlayList.id}
@@ -5382,9 +5022,9 @@ export default function App() {
               className="fixed inset-0 bg-black/50 z-[60]"
               onClick={() => setSavedListMenuId(null)}
             />
-            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
               <div
-                className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
                 style={{ width: 340 }}
                 onClick={(event) => event.stopPropagation()}
               >
@@ -5483,9 +5123,9 @@ export default function App() {
               className="fixed inset-0 bg-black/50 z-[60]"
               onClick={() => setTemplateEditorMenuId(null)}
             />
-            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px]">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
               <div
-                className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
                 style={{ width: 340 }}
                 onClick={(event) => event.stopPropagation()}
               >
@@ -5529,7 +5169,7 @@ export default function App() {
                               transition: `opacity ${useButtonStage === 'go' ? '250ms' : '150ms'} ease`,
                             }}
                           >
-                            <p className="leading-[normal]">{useButtonStage === 'go' ? 'Go to list?' : (useButtonStage === 'blank' || useButtonStage === 'fill') ? '' : 'Use a list'}</p>
+                            <p className="leading-[normal]">{useButtonStage === 'go' ? 'Go to list?' : (useButtonStage === 'blank' || useButtonStage === 'fill') ? '' : 'Use as list'}</p>
                           </div>
                         )}
                       </div>
@@ -5633,7 +5273,7 @@ export default function App() {
               className="fixed left-0 right-0 z-50 mx-auto w-full"
               style={{ bottom: 0 }}
             >
-              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={setNlcMode} nlcEnabled={nlcEnabled} onNlcEnabledChange={setNlcEnabled} nlcRecognition={nlcRecognition} onNlcRecognitionChange={setNlcRecognition} filtersMenuVariant={filtersMenuVariant} onFiltersMenuVariantChange={handleFiltersMenuVariantChange} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isReminderAttachmentsEnabled={isReminderAttachmentsEnabled} onReminderAttachmentsEnabledChange={setIsReminderAttachmentsEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
+              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} soundsFlag={soundsFlag} onSoundsFlagChange={setSoundsFlag} lockScreenWidgetFlag={lockScreenWidgetFlag} onLockScreenWidgetFlagChange={setLockScreenWidgetFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} calendarFlag={calendarFlag} onCalendarFlagChange={setCalendarFlag} attachmentsFlag={attachmentsFlag} onAttachmentsFlagChange={setAttachmentsFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
                 setCreatedLists([]);
                 setSavedLists(
                   useDefaultTemplatesInCleanState
@@ -5720,232 +5360,64 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Settings Overlay */}
-      <AnimatePresence>
-        {isRemindersSettingsPanelOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setIsRemindersSettingsPanelOpen(false)}
-              className="fixed inset-0 bg-black/0 z-40"
-            />
-
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="fixed left-0 right-0 z-50 mx-auto w-full"
-              style={{ bottom: 0 }}
+      {/* Settings overlays (centred overlay standard). Fixed 450px height so sub-pages do not resize the card; the wrapper keeps 100px clear top and bottom and shrinks the card on small screens, where rows scroll */}
+      {isRemindersSettingsPanelOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsRemindersSettingsPanelOpen(false)} />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+              style={{ width: 340, height: 450, overflowY: 'hidden' }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div
-                drag="y"
-                dragControls={remindersSettingsSheetDragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: viewportHeight }}
-                dragElastic={0}
-                dragMomentum={false}
-                onDragEnd={(_, info) => {
-                  if (!shouldCloseBottomSheetFromDrag(info.offset.y, info.velocity.y)) return;
-                  setIsRemindersSettingsPanelOpen(false);
-                }}
-                className="bg-white relative rounded-tl-[15px] rounded-tr-[15px] size-full"
-              >
-                <div
-                  className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
-                  onPointerDown={(event) => remindersSettingsSheetDragControls.start(event)}
+                <ShowInfoIconsContext.Provider value={showInfoIcons}>
+                <RemindersSettingsContent
+                  calendarAvailable={isRemindersEnabled && calendarFlag && isCalendarScreenTallEnough}
+                  calendarOn={calendarPref}
+                  onCalendarChange={setCalendarPref}
+                  soundsAvailable={soundsFlag}
+                  nlcAvailable={isNlcAvailable}
+                  nlcPrefs={nlcPrefs}
+                  onNlcChange={(key, value) => nlcPrefSetters[key](value)}
+                  repeatsAvailable={isRepeatRemindersActive}
+                  hapticsAvailable={hapticsFlag}
+                  oneMinuteAvailable={isOneMinuteAvailable}
+                  oneMinuteOn={useOneMinuteTimeIncrements}
+                  onOneMinuteChange={setUseOneMinuteTimeIncrements}
+                  siriAvailable={isSiriRemindersAvailable}
+                  siriOn={remindersSettingsSiriOn}
+                  onSiriChange={setRemindersSettingsSiriOn}
+                  onOpenTutorial={isOnboardingTutorialEnabled ? handleRemindersSettingsTutorialOpen : undefined}
                 />
-                <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
-                    <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[40px]">
-                      <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
-                        Reminders settings
-                      </div>
-                      <button
-                        className="relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center cursor-pointer w-[30px] h-[30px]"
-                        type="button"
-                        onClick={() => setIsRemindersSettingsPanelOpen(false)}
-                        aria-label="Close reminders settings"
-                      >
-                        <svg className="block shrink-0" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path d="M11.7528 0.439116C12.3385 -0.146356 13.2882 -0.146389 13.8739 0.439116C14.4596 1.02493 14.4596 1.97537 13.8739 2.56119L9.27819 7.15787L13.8739 11.7536C14.4596 12.3394 14.4596 13.2898 13.8739 13.8756C13.2882 14.4612 12.3385 14.4611 11.7528 13.8756L7.15709 9.27896L2.56041 13.8756C1.97466 14.461 1.02496 14.4612 0.439319 13.8756C-0.14644 13.2898 -0.146439 12.3394 0.439319 11.7536L5.03502 7.15787L0.439319 2.56119C-0.146439 1.97537 -0.14644 1.02493 0.439319 0.439116C1.02496 -0.146462 1.97466 -0.146282 2.56041 0.439116L7.15709 5.0358L11.7528 0.439116Z" fill="#BABABA"/>
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
-                      <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full">
-                        <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]" data-name="Union">
-                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">
-                            <g id="Union">
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p23b20a00} fill="#1C2C42" fillRule="evenodd" />
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p15d6fbb2} fill="#1C2C42" fillRule="evenodd" />
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p1797f00} fill="#1C2C42" fillRule="evenodd" />
-                            </g>
-                          </svg>
-                        </div>
-                        <div className="content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative">
-                          <div className="flex flex-col justify-start max-w-full min-w-0 overflow-visible relative shrink-0 text-[17px] text-[#1C2C42] w-full whitespace-nowrap">
-                            <p className="block leading-[17px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap w-full" style={{ boxSizing: 'content-box', fontSize: 17, fontWeight: 700, lineHeight: '17px', margin: 0, paddingBottom: 2, transform: 'translateY(-1px)' }}>Setting title</p>
-                          </div>
-                          <div className="flex flex-col justify-start relative shrink-0 text-[14px] text-[#bababa] w-full">
-                            <p className="leading-[14px]" style={{ fontWeight: 700, color: '#BABABA' }}>Setting subtitle</p>
-                          </div>
-                        </div>
-                        <div className="bg-[#4784F8] content-stretch flex h-[30px] items-center self-start p-[3.75px] relative rounded-[37.5px] shrink-0 w-[56px] justify-end">
-                          <div className="relative shrink-0 size-[22.5px]">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.5 22.5">
-                              <circle cx="11.25" cy="11.25" fill="var(--fill-0, white)" r="11.25" />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                </ShowInfoIconsContext.Provider>
+            </div>
+          </div>
+        </>
+      )}
 
-      <AnimatePresence>
-        {isListsSettingsPanelOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setIsListsSettingsPanelOpen(false)}
-              className="fixed inset-0 bg-black/0 z-40"
-            />
-
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="fixed left-0 right-0 z-50 mx-auto w-full"
-              style={{ bottom: 0 }}
+      {isListsSettingsPanelOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsListsSettingsPanelOpen(false)} />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+              style={{ width: 340, height: 450, overflowY: 'hidden' }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div
-                drag="y"
-                dragControls={listsSettingsSheetDragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: viewportHeight }}
-                dragElastic={0}
-                dragMomentum={false}
-                onDragEnd={(_, info) => {
-                  if (!shouldCloseBottomSheetFromDrag(info.offset.y, info.velocity.y)) return;
-                  setIsListsSettingsPanelOpen(false);
-                }}
-                className="bg-white relative rounded-tl-[15px] rounded-tr-[15px] size-full"
-              >
-                <div
-                  className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
-                  onPointerDown={(event) => listsSettingsSheetDragControls.start(event)}
+                <ShowInfoIconsContext.Provider value={showInfoIcons}>
+                <ListsSettingsContent
+                  soundsAvailable={soundsFlag}
+                  hapticsAvailable={hapticsFlag}
+                  siriAvailable={isSiriListsAvailable}
+                  siriOn={listsSettingsSiriOn}
+                  onSiriChange={setListsSettingsSiriOn}
+                  onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}
                 />
-                <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
-                    <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[40px]">
-                      <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
-                        Lists settings
-                      </div>
-                      <button
-                        className="relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center cursor-pointer w-[30px] h-[30px]"
-                        type="button"
-                        onClick={() => setIsListsSettingsPanelOpen(false)}
-                        aria-label="Close lists settings"
-                      >
-                        <svg className="block shrink-0" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path d="M11.7528 0.439116C12.3385 -0.146356 13.2882 -0.146389 13.8739 0.439116C14.4596 1.02493 14.4596 1.97537 13.8739 2.56119L9.27819 7.15787L13.8739 11.7536C14.4596 12.3394 14.4596 13.2898 13.8739 13.8756C13.2882 14.4612 12.3385 14.4611 11.7528 13.8756L7.15709 9.27896L2.56041 13.8756C1.97466 14.461 1.02496 14.4612 0.439319 13.8756C-0.14644 13.2898 -0.146439 12.3394 0.439319 11.7536L5.03502 7.15787L0.439319 2.56119C-0.146439 1.97537 -0.14644 1.02493 0.439319 0.439116C1.02496 -0.146462 1.97466 -0.146282 2.56041 0.439116L7.15709 5.0358L11.7528 0.439116Z" fill="#BABABA"/>
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
-                      <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full">
-                        <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]" data-name="Union">
-                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">
-                            <g id="Union">
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p23b20a00} fill="#1C2C42" fillRule="evenodd" />
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p15d6fbb2} fill="#1C2C42" fillRule="evenodd" />
-                              <path clipRule="evenodd" d={listInfoOverlayPaths.p1797f00} fill="#1C2C42" fillRule="evenodd" />
-                            </g>
-                          </svg>
-                        </div>
-                        <div className="content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative">
-                          <div className="flex flex-col justify-start max-w-full min-w-0 overflow-visible relative shrink-0 text-[17px] text-[#1C2C42] w-full whitespace-nowrap">
-                            <p className="block leading-[17px] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap w-full" style={{ boxSizing: 'content-box', fontSize: 17, fontWeight: 700, lineHeight: '17px', margin: 0, paddingBottom: 2, transform: 'translateY(-1px)' }}>Setting title</p>
-                          </div>
-                          <div className="flex flex-col justify-start relative shrink-0 text-[14px] text-[#bababa] w-full">
-                            <p className="leading-[14px]" style={{ fontWeight: 700, color: '#BABABA' }}>Setting subtitle</p>
-                          </div>
-                        </div>
-                        <div className="bg-[#4784F8] content-stretch flex h-[30px] items-center self-start p-[3.75px] relative rounded-[37.5px] shrink-0 w-[56px] justify-end">
-                          <div className="relative shrink-0 size-[22.5px]">
-                            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.5 22.5">
-                              <circle cx="11.25" cy="11.25" fill="var(--fill-0, white)" r="11.25" />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {isSettingsOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setIsSettingsOpen(false)}
-              className="fixed inset-0 bg-black/0 z-40"
-            />
-
-            {/* Overlay sliding from bottom */}
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="fixed left-0 right-0 z-50 mx-auto w-full"
-              style={{ bottom: 0 }}
-            >
-              <motion.div
-                drag="y"
-                dragControls={settingsSheetDragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: viewportHeight }}
-                dragElastic={0}
-                dragMomentum={false}
-                onDragEnd={(_, info) => {
-                  if (!shouldCloseBottomSheetFromDrag(info.offset.y, info.velocity.y)) return;
-                  setIsSettingsOpen(false);
-                }}
-                className="relative"
-              >
-                <div
-                  className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
-                  onPointerDown={(event) => settingsSheetDragControls.start(event)}
-                />
-                <SettingsOverlay onClose={() => setIsSettingsOpen(false)} showDateAndTimeSubtitles={showDateAndTimeSubtitles} onShowDateAndTimeSubtitlesChange={setShowDateAndTimeSubtitles} onTutorialOpen={handleTutorialOpen} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} />
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+                </ShowInfoIconsContext.Provider>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Tutorial Overlay */}
       <AnimatePresence>
@@ -5987,7 +5459,7 @@ export default function App() {
                   className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} filtersMenuVariant={filtersMenuVariant} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} />
               </motion.div>
             </motion.div>
           </>

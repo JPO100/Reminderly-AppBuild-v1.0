@@ -80,9 +80,9 @@ function Frame3({ sortMode, onSortChange, smartReminders, onSmartRemindersChange
   };
 
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
+    <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
       {showSmartReminders && (
-        <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
+        <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
           <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full cursor-pointer" onClick={handleSmartRemindersRowClick}>
             <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]" data-name="Union">
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">
@@ -105,7 +105,7 @@ function Frame3({ sortMode, onSortChange, smartReminders, onSmartRemindersChange
         </div>
       )}
       {showSortRows && (
-        <div className="content-stretch flex flex-col gap-[24px] items-start w-full">
+        <div className="content-stretch flex flex-col gap-[30px] items-start w-full">
           <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full cursor-pointer" onClick={() => onSortChange(isInsertion ? 'alphabetical' : 'insertion')}>
             <div className="h-[20.824px] relative shrink-0 w-[20.83px]" data-name="Union">
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20.8301 20.8242">
@@ -316,9 +316,9 @@ export default function InfoOverlay({ sortMode, onSortChange, listTitle, onUnche
   };
 
   return (
-    <div className="bg-white content-stretch flex flex-col gap-[33px] items-center justify-start px-[32px] py-[35px] relative rounded-[32px] mx-auto" style={{ width: 340 }} data-name="info-overlay">
-      <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic overflow-hidden relative shrink-0 text-[#1C2C42] text-[20px] text-ellipsis text-center w-full whitespace-nowrap">
-        <p className="leading-[normal] overflow-hidden" style={{ fontWeight: 700 }}>{listTitle}</p>
+    <div className="bg-white content-stretch flex flex-col gap-[40px] items-center justify-start px-[30px] py-[40px] relative rounded-[32px] mx-auto" style={{ width: 340 }} data-name="info-overlay">
+      <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center w-full">
+        <p className="leading-[normal] whitespace-pre-wrap break-words" style={{ fontWeight: 700 }}>{listTitle}</p>
       </div>
       <Frame3 sortMode={sortMode} onSortChange={onSortChange} smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} showSmartReminders={showSmartReminders} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />
       <Buttons onUncheckAll={onUncheckAll} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} allUnchecked={allUnchecked} showUncheckAll={!smartRemindersActive || !isDatePickerOpen} />

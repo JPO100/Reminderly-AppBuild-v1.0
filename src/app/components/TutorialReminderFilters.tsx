@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import SettingsBtnSml from "@/imports/SettingsBtnSml";
 
 export type TutorialFilterKey =
   | "today"
@@ -24,13 +23,6 @@ export interface TutorialFilterItem {
   hideOnNarrow?: boolean;
 }
 
-export const GROUPED_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = [
-  { key: "today", label: "Today", color: "#00AFEE" },
-  { key: "thisWeek", label: "This week", color: "#E466FD" },
-  { key: "later", label: "Other", color: "#FDB146" },
-  { key: "sometime", label: "Sometime", color: "#939393", hideOnNarrow: true },
-];
-
 export const UNGROUPED_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = [
   { key: "today", label: "Today", color: "#00AFEE" },
   { key: "thisWeek", label: "This week", color: "#E466FD" },
@@ -38,11 +30,34 @@ export const UNGROUPED_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = [
   { key: "sometime", label: "Sometime", color: "#939393", hideOnNarrow: true },
 ];
 
-export const GROUPED_TUTORIAL_LIST_FILTER_ITEMS: TutorialFilterItem[] = [
-  { key: "complete", label: "Complete", color: "#005BE3" },
-  { key: "almost", label: "Almost", color: "#9468D5" },
-  { key: "grouped-todo", label: "Todo", color: "#939393", hideOnNarrow: true },
-];
+// Settings menu on: Sometime is combined into Later and the Settings button sits on the right
+export const SETTINGS_MENU_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = UNGROUPED_TUTORIAL_FILTER_ITEMS.filter((item) => item.key !== "sometime");
+
+// Settings button scaled to match the tutorial Templates button height (45px in the app)
+export function TutorialSettingsButton() {
+  return (
+    <svg className="block shrink-0" width="32.308" height="32.308" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="45" height="45" rx="22.5" fill="#4784F8" />
+      <circle cx="16" cy="22.5" r="1.75" fill="white" />
+      <circle cx="22.5" cy="22.5" r="1.75" fill="white" />
+      <circle cx="29" cy="22.5" r="1.75" fill="white" />
+    </svg>
+  );
+}
+
+export function TutorialRemindersFilterRow({ settingsMenuEnabled, activeKey }: { settingsMenuEnabled: boolean; activeKey?: TutorialFilterKey }) {
+  if (settingsMenuEnabled) {
+    return (
+      <TutorialReminderFilters
+        items={SETTINGS_MENU_TUTORIAL_FILTER_ITEMS}
+        activeKey={activeKey}
+        trailing={<TutorialSettingsButton />}
+        groupGapClassName="gap-[7.18px]"
+      />
+    );
+  }
+  return <TutorialReminderFilters items={UNGROUPED_TUTORIAL_FILTER_ITEMS} activeKey={activeKey} showHiddenItems />;
+}
 
 export const UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS: TutorialFilterItem[] = [
   { key: "complete", label: "Complete", color: "#005BE3" },
@@ -78,7 +93,7 @@ function TutorialReminderFilterPill({
 
   return (
     <div
-      className={`content-stretch flex items-center justify-center px-[11.144px] py-[10.448px] relative rounded-[69.652px] shrink-0 h-[31px] ${isGhost ? "bg-[rgba(255,255,255,0.15)]" : isActive ? "bg-white" : "bg-transparent"}`}
+      className={`content-stretch flex items-center justify-center px-[11.144px] py-[10.448px] relative rounded-[69.652px] shrink-0 h-[31.5px] ${isGhost ? "bg-[rgba(255,255,255,0.15)]" : isActive ? "bg-white" : "bg-transparent"}`}
       style={{ boxShadow: `inset 0 0 0 ${isGhost ? "1px" : isActive ? "1.5px" : "1px"} ${isGhost ? "#FFFFFF" : color}` }}
     >
       <div
@@ -94,7 +109,6 @@ function TutorialReminderFilterPill({
 export default function TutorialReminderFilters({
   items,
   activeKey,
-  showSettings = false,
   leading,
   trailing,
   layout = "between",
@@ -106,7 +120,6 @@ export default function TutorialReminderFilters({
 }: {
   items: TutorialFilterItem[];
   activeKey?: TutorialFilterKey;
-  showSettings?: boolean;
   leading?: ReactNode;
   trailing?: ReactNode;
   layout?: "between" | "inline";
@@ -116,7 +129,7 @@ export default function TutorialReminderFilters({
   pillVariant?: "default" | "ghost";
   onTrailingElementChange?: (element: HTMLDivElement | null) => void;
 }) {
-  const hasTrailingControl = trailing != null || showSettings;
+  const hasTrailingControl = trailing != null;
   const isFullWidthBetweenLayout = layout === "between" && !hasTrailingControl;
   const visibleItems = items.filter((item) => showHiddenItems || isFullWidthBetweenLayout || !item.hideOnNarrow);
 
@@ -139,10 +152,6 @@ export default function TutorialReminderFilters({
         )}
         {trailing ? (
           <div ref={onTrailingElementChange} className="shrink-0">{trailing}</div>
-        ) : showSettings ? (
-          <div className="shrink-0" style={{ width: "35px", height: "28px" }}>
-            <SettingsBtnSml />
-          </div>
         ) : null}
       </div>
     </div>

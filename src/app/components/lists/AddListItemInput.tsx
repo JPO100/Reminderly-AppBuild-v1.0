@@ -109,7 +109,8 @@ export default function AddListItemInput({
                         className="font-['Lato:Bold',sans-serif] w-full border-none bg-transparent text-[17px] not-italic text-[#1C2C42] caret-[#1C2C42] outline-none placeholder-[#D9D9D9]"
                     />
                 </div>
-                <div className="flex items-center" onClick={handleAdd}>
+                {/* 4px inset (plus the row's 1px) centres the 35px + under the 45px header tick button */}
+                <div className="flex items-center mr-[4px]" onClick={handleAdd}>
                     <AddTickButton active={hasTypedText} buttonRef={onAddButtonElementChange} />
                 </div>
             </div>

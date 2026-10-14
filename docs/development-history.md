@@ -13,7 +13,204 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: a6ee791
+Tip: d079bbb
+
+Merge - 2026-10-09: Panel header standardisation
+- Fast-forward merge of feature/settings-panels-header-keyline into main, 83f5a77 to d079bbb (no merge commit)
+- Settings panel keyline below headers; New reminder and list panel headers 45px with standard 45 x 45 buttons (10px apart, #D9D9D9 inactive); list add-item + centred under the header tick; list header subtitle gap matched to the Lists list rows
+- Verification on main: Vitest 53/53, production build successful. Self Check 334/334 on the branch
+
+Merge - 2026-10-09: Settings panels phase 1 (UI only)
+- Fast-forward merge of feature/settings-panels-ui into main, 81f8306 to 9271189 (no merge commit)
+- Reminders and Lists settings panels use Dev Tools style click-through and toggle rows with info pop-ups, a key line and a System settings section. Click-through rows open empty titled pages. Toggles are not saved; Use Siri shortcuts is shared by both panels. Functionality to be wired in phase 2
+- Verification on main: Vitest 53/53, production build successful. Self Check not run
+
+Merge - 2026-10-09: Reminder three-dot alignment
+- Fast-forward merge of feature/reminder-menu-alignment into main, d5660d4 to 9dfaf5e (no merge commit)
+- Settings menu on: reminder row three-dot buttons inset 11.5px (margin-right) so they centre on the Reminders Settings button's dots, with the 16px text-to-dots gap preserved. Settings menu off unchanged
+- Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Settings on: dots aligned, 16px gap. Settings off: unchanged
+
+Merge - 2026-10-09: Templates slide-up panel
+- Fast-forward merge of feature/templates-slide-up-panel into main, a002abc to b8877aa (no merge commit)
+- Templates presented as a Settings-style slide-up panel with the standard 45px header and close button; Back button removed; template content and behaviour unchanged
+- Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Drag-down dismissal passed on physical iPhone 15 Pro
+
+Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
+- Fast-forward merge of settings-panel-header-update into main, b724d52 to 3356673 (no merge commit)
+- Includes Settings Menu Phase 2 (Lists Settings button, redesigned Templates button, Lists filter spacing correction), 45px Settings panel headers with Close SVGs, and standardised sliding panel positioning
+- Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
+- Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
+
+### docs/rationalisation
+
+Created: 2026-10-12
+Parent: main (e194f02)
+Purpose: Documentation review and rationalisation (Phase 1 technical review, Phase 2 audit, approved by the CTO and John). About 64 active documents consolidated into about 16, each checked against the code: README, docs/architecture.md, docs/development.md, docs/ios.md, docs/design.md, docs/features/ (reminders, scheduling-and-nlc, notifications, lists, settings, onboarding), docs/plans/reminder-attachments.md. settings-flags-spec.md kept in place as the active specification. Dated reviews, completed plans and audits moved to docs/archive, including the Phase 1 review (docs/archive/codebase-review-2026-10-12.md). Removed: ARCHITECTURE.md, guidelines/Guidelines.md, the numbered docs/00-08 tree, the March restructure records, the Noterly specification and the 61 superseded files in docs/archive (original-docs and notes), all recoverable from Git history at e194f02. Three code comments updated to point at the new documents (comment-only). No application changes
+Status: Awaiting review by John and the CTO. Not merged
+
+### feature/calendar-view
+
+Created: 2026-10-12
+Parent: main (1b4b92d)
+Purpose: Calendar view on the Reminders tab - month grid with reminder dots, day selection, filter ranges, month navigation and New reminder date prefill. Behind `reminderly-ff-calendar` (Dev tools > Reminders) and the Show calendar setting `reminderly-pref-calendar`, both default off. Needs a screen at least 852pt tall (iPhone 15 Pro). Plan: docs/calendar-view-plan.md. Approved by the CTO and John
+Status: Merged into main (merge commit 93c9917, branch head b70b24e, 2026-10-12). Pushed to origin and retained
+
+### feature/lock-screen-widget
+
+Created: 2026-10-12
+Parent: main (751ced4)
+Purpose: Circular lock screen widget - outstanding reminders for today (including overdue) with a completed-progress arc. Plan: docs/lock-screen-widget-plan.md
+Status: Merged into main (merge commit cf2c300, branch head ad60f1e, 2026-10-12). Pushed to origin
+
+### feature/settings-panels-header-keyline
+
+Created: 2026-10-09
+Parent: main (83f5a77)
+Purpose: Header standardisation - keyline below the settings panel headers; 45px New reminder and list panel headers with 45 x 45 buttons; list add-item button aligned under the header tick
+Status: Merged into main (fast-forward to d079bbb, 2026-10-09). Pushed to origin
+
+### feature/settings-panels-ui
+
+Created: 2026-10-09
+Parent: main (81f8306)
+Purpose: Settings panels phase 1 - Dev Tools style rows in the Reminders and Lists header settings panels (UI only)
+Status: Merged into main (fast-forward to 9271189, 2026-10-09)
+
+### feature/reminder-menu-alignment
+
+Created: 2026-10-09
+Parent: main (d5660d4)
+Purpose: Align reminder row three-dot buttons with the Reminders Settings button when the settings menu is on
+Status: Merged into main (fast-forward to 9dfaf5e, 2026-10-09)
+
+### feature/templates-slide-up-panel
+
+Created: 2026-10-09
+Parent: main (a002abc)
+Purpose: Present the List templates panel as a Settings-style slide-up panel
+Status: Merged into main (fast-forward to b8877aa, 2026-10-09)
+
+### settings-panel-header-update
+
+Created: 2026-10-09
+Parent: settings-menu-phase2-lists (4cb973d). Branched from Phase 2 because it is not yet merged into main (b724d52)
+Purpose: Reminders Settings and Lists Settings panel header update
+
+Status: Merged into main (fast-forward to 3356673, 2026-10-09)
+
+Summary:
+- Header row height changed from 40px to 45px in both panels; title remains left-aligned and vertically centred
+- Close button changed from a 30 x 30px button with a grey 15px X to the supplied 45 x 45px blue circle Close SVG (stroke attributes written in JSX form)
+- Same implementation in both panels. Horizontal margins (24px), 30px gap to panel content, panel positioning, drag-to-close and close behaviour unchanged
+- Verified at 320, 375, 390 and 430px in both panels: header 45px, Close SVG 45 x 45px, title centre offset 0px, no overflow or clipping, both Close buttons close their panels
+- Tests: Vitest 53 passed. Self Check 334 passed, 0 failed (headless). Vite build succeeded. Deployed to iPhone 17 Pro simulator and physical iPhone 15 Pro
+
+Correction - Reminders Settings panel alignment with Lists off:
+- Issue (predates the header update): with Lists off there is no tab bar, so getBottomSheetTopPosition fell back to fixed values (121.653px, or 54px at 570px height or less). The Reminders Settings panel opened 24px (91.64px on short screens) above the Reminders panel at 145.64px
+- Fix: added mainPanelRef on the main white panel and getRemindersSettingsTopPosition. With Lists off it returns the panel's measured top minus 2px (same convention as Lists on); otherwise it uses getBottomSheetTopPosition. Used by the Reminders Settings panel only
+- Shared bottom-sheet fallback and the New Reminder, Repeats, Tutorial, Dev Tools and Lists Settings positioning unchanged
+- Verified at 320 x 568, 375 x 667, 390 x 844 and 430 x 932: settings top 143.64px, 2px above the Reminders panel (Lists off) and the tab bar (Lists on). Bottom edge unchanged. Header 45px, Close SVG 45 x 45px. At 320 x 568 all content visible; Close button and backdrop both close the panel
+- Tests: Vitest 53 passed. Self Check 334 passed, 0 failed (headless). Vite build succeeded. Deployed to iPhone 17 Pro simulator and physical iPhone 15 Pro
+
+Standardised sliding panel positioning (supersedes the Lists-off correction above):
+- Decision: all sliding panels that use getBottomSheetTopPosition stop 28px below the rendered bottom edge of the Reminderly logo, with Lists on or off. No dependency on the Lists tab bar
+- getBottomSheetTopPosition now measures the logo (new logoRef) and returns logo bottom + 28px. getOverlayTopPosition kept as the fallback if the logo has not rendered
+- Removed getRemindersSettingsTopPosition and mainPanelRef; Reminders Settings uses the shared function again
+- Panels affected: New reminder, Repeats, Tutorial, Dev Tools, Reminders Settings, Lists Settings, New/edit list. Bottom edges unchanged (screen bottom)
+- Verified at 320 x 568, 375 x 667, 390 x 844 and 430 x 932 with Lists on and off: logo bottom 112.64px, panel top 140.64px, gap 28px for every panel
+- 320 x 568: New reminder content scrolls fully with Date and Time on; Repeats opens at the same position. Dev Tools position verified on its log-in screen
+- Storage unavailable banner (simulated, 51px): logo and panels move down together, gap stays 28px
+- Tests: Vitest 53 passed. Self Check 334 passed, 0 failed (headless). Vite build succeeded. Deployed to iPhone 17 Pro simulator and physical iPhone 15 Pro
+
+### settings-menu-phase2-lists
+
+Created: 2026-10-09
+Parent: main (b724d52)
+Purpose: Settings Menu Phase 2 - Lists tab Settings button and redesigned Templates button
+
+Status: Merged into main (fast-forward to 3356673, 2026-10-09)
+
+Summary:
+- Templates pill replaced by the supplied 45 x 45px Templates SVG whenever List templates is on, regardless of the Settings menu toggle. Click behaviour unchanged (opens the templates panel)
+- Lists Settings button (same SVG as Reminders Settings) shown when the Settings menu toggle is on, independent of List templates. Opens the existing Lists Settings placeholder via handleHeaderMenuClick; Reminders Settings still opens Reminders Settings. No new flag
+- Settings on: visible filters grouped left and action buttons grouped right, 10px gaps, buttons 45 x 45px
+- Settings on, Templates on: pill padding 13px below 390px; Started hidden below 360px (only needed at 320px)
+- Settings on, Templates off: Started hidden below 440px; pill padding 11px below 375px, 13px from 375px, 16px from 390px
+- Settings off, Templates on (correction after device testing): Todo, Started and Done now grouped left with 10px gaps, matching Settings on, with the Templates button at the far right. Pill padding 13px below 390px; no filters hidden at any width
+- Settings off, Templates off: legacy layout unchanged apart from a gap correction. At 389-405px (Started visible) the gap between the four filters is 10px instead of 18px, fixing the pre-existing 16px overflow at 390px. 18px elsewhere
+- No horizontal overflow at 320, 360, 375, 390 and 430px in the three affected combinations
+- Pre-existing 16px overflow at 390px with Settings and Templates both off: corrected (see gap correction above)
+- Lists Settings panel contents and the onboarding tutorial unchanged
+
+### integration-settings-sometime
+
+Created: 2026-10-09
+Parent: settings-menu-phase1 (15967cf)
+Purpose: Combined build of Settings Menu Phase 1 and the undated Sometime reminder fix (cherry-picked ce3fe6a from fix-undated-reminder-add)
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Needed because fix-undated-reminder-add was branched from main, which lacks the unmerged Settings Menu Phase 1 commits (including 60cb9b6, legacy hamburger removal), so its build showed the legacy hamburger
+- Source applied cleanly; conflicts only in this file and the generated iOS asset reference
+
+### settings-menu-phase1
+
+Created: 2026-10-09
+Parent: main (ed7e849)
+Purpose: Settings Menu Phase 1 - Settings button in the reminder filter row and combined Later/Sometime presentation, behind the Dev Tools > System > Settings menu toggle
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Toggle now stored as reminderly-ff-settings-menu-v2, default off, so existing installs (which persisted the old default of true) start with the feature off. Off keeps the separate Later and Sometime filters and colours
+- On: Reminders tab filter row is Today, This week, Later grouped left (10px gaps) with the Settings button (45px SVG, existing settings action) right-aligned. Below 375px pill side padding is 13px so the row fits at 320px
+- Post-testing correction: legacy header hamburger removed in both states. Accepted loss: no access to the placeholder Lists settings panel, and with the toggle off no manual tutorial re-run
+- On: Later uses the existing combined 'other' filter (Later and Sometime), and Sometime circles use the Later colour. Presentation only - no reminder data, categorisation or persistence changes
+- Active filter is remapped when the toggle changes so it is never left on a hidden filter
+- Tutorial reflects the toggle: no hamburger in either state; on shows grouped filters, the blue Settings button, combined Later/Sometime and the re-run page pointing to the blue settings button; off keeps the Sometime filter and omits the re-run page
+- Calendar not applicable (no calendar in use). A future calendar must respect the combined Later/Sometime behaviour
+
+### fix-undated-reminder-add
+
+Created: 2026-10-09
+Parent: main (ed7e849)
+Purpose: Allow undated Sometime reminders to be added from New reminder
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Root cause: commit f3d0de7 made the Add tick and submit handler require Date and Time in create mode, blocking Sometime reminders
+- Fix: shared canSubmitReminder check. Text is mandatory; Date OFF saves as Sometime; Date ON still requires a selected date and Time ON with a selected time (Date ON, Time OFF stays disabled)
+- Unchanged: date/time toggle interactions (Date ON still auto-enables Time at 12:00), data structures, parsing, notifications, categorisation, edit and smart reminder modes
+- Tests: src/app/__tests__/add-reminder-validation.test.ts (9 tests). Vitest 53 passed. Self Check schedule, persistence, natural language interaction and notification sections 184 passed, 0 failed (headless). Verified on iPhone 17 Pro simulator; deployed to physical iPhone 15 Pro
+
+### feature/lists-disabled-ui-refinement
+
+Created: 2026-10-09
+Parent: main (96327aa)
+Purpose: Lists-disabled UI refinement - filters inside the white panel, Sometime filter restored, legacy settings cog removed
+
+Status: Active (pushed, not merged)
+
+Summary:
+- Removed the Dev Tools grouped filters layout, its legacy settings cog, SettingsOverlay and the show date/time subtitles setting
+- Lists off: Today, This week, Later and Sometime filters (and Done/Deleted filters) render inside the white panel, reusing the Lists-on filter row
+- Header settings button and its panels unchanged
+
+### fix/midnight-badge-tests
+
+Created: 2026-10-09
+Parent: main (4675087)
+Purpose: Correct outdated midnight badge notification tests
+
+Status: Merged
+Merged into: main (normal merge)
+Final commit: see merge history
+
+Summary:
+- Restored notifications.test.ts to its pre-f98d81f expectations, matching the hasActiveDateOnlyReminder guard restored on 2026-06-18
+- Updated src/app/dev/BASELINE.md with the verified baseline
 
 ### reminder-attachments
 
@@ -21,7 +218,16 @@ Created: 2026-08-25
 Parent: main
 Purpose: Reminder attachments feature - attach files and photos to reminders
 
-Status: Active
+Status: Active. Integrated with main 2026-10-14, merge into main pending device checks
+
+Integration - 2026-10-14: main (10c6216) merged into reminder-attachments
+- Approved by John (Option 1). Main is authoritative: every non-attachment conflict resolved to main
+- Flag migrated to the settings model: `reminderly-ff-reminder-attachments` via useStoredSetting, default off in SETTINGS_DEFAULTS, toggle in Dev tools > Reminders > Features (John, 2026-10-14). Active only when Reminders is on. Off hides attachment UI and keeps attachments and files
+- Excluded from the merge (kept as on main, not attachment scope): Claude.md to agents.md rename and Codex config, list data loss diagnostic and openListEditor change (c9baa91), smart reminder insert animation and smart reminder deletion fix (a3a56c3), Move to tomorrow restricted to overdue (84dacf3), header close button, tick colours and global user-select WIP (9cd01c6), 31px tutorial pills
+- pdf.js now loaded on first PDF preview (dynamic import), so modules importing NewReminderOverlay load without browser globals
+- Attachment Self Checks for the flag rewritten on the settings path (main removed the old helper)
+- Branch docs (animation and wheel picker audits, attachment viewing handover, list data loss investigation) moved to docs/archive
+- Verification: Vitest 167/167, Self Check 370/370 (14 attachment), production build successful, simulator and physical iPhone build, install and launch successful
 
 Summary:
 - Step 7A: Choose a File via @capawesome/capacitor-file-picker with metadata-first validation, 25 MB limit, pending attachment lifecycle, generic file tile, delete confirmation
@@ -517,4 +723,488 @@ Completed:
 
 Outcome: Pending commit.
 
+### 2026-10-09 (midnight badge test fix)
 
+Branch: fix/midnight-badge-tests
+Commits: bb9ceef
+
+Issue: Vitest baseline was 30 passed, 5 failed. All failures were midnight badge notification tests.
+Root cause: The 2026-06-16 badge-midnight-fix (f98d81f) changed the Vitest expectations to match removal of the hasActiveDateOnlyReminder guard. The guard was restored on 2026-06-18 (b81c142), but the Vitest file was not reverted.
+Resolution: Restored notifications.test.ts to its pre-f98d81f content. Midnight notifications are expected only when an active date-only reminder exists; 64-notification limit coverage retained. No application code changed.
+Test results: Vitest 36 passed, 0 failed, 0 skipped. Self Check 340 passed, 0 failed on physical iPhone 15 Pro and iPhone 17 Pro simulator. Both devices built, installed and launched successfully.
+
+Outcome: Merged to main.
+
+### 2026-10-09 (lists-disabled UI refinement)
+
+Branch: feature/lists-disabled-ui-refinement
+
+Completed:
+- Removed the grouped filters layout entirely (decision: user approved removal over leaving an inert Dev Tools option): Dev Tools Filters menu page, legacy filter-row settings cog, SettingsOverlay and its show date/time subtitles setting, tutorial grouped variants
+- Lists off: filter row moved from the blue header into the white panel by reusing the existing Lists-on in-panel row; panel now starts directly below the logo
+- Sometime filter available when Lists are off; existing rule hiding it below 390px width retained
+- Removed 13 Self Check checks covering the removed settings; expected Self Check count is 327
+
+Test results: Vitest 36 passed, 0 failed. Visual checks at 402px and 375px with Lists off and on.
+
+### 2026-10-09 (onboarding state consistency)
+
+Branch: feature/lists-disabled-ui-refinement
+
+Completed:
+- Tutorial phone mock-ups hide the Reminders/Lists tab bar when Lists are off, matching the app layout
+- Tutorial pages are selected from feature state (getTutorialPageIds): Reminders 5 pages, 6 with the header settings menu; Lists 3 core pages plus smart reminders and list templates pages when those features are on
+- Removed three placeholder Lists tutorial pages
+- Added a Reminderly tutorial row to the header Reminders settings panel (shown when the tutorial is enabled), restoring the re-run entry point lost with the legacy settings sheet
+- Tutorial filter pills scaled to the 45px app buttons; unused tutorial cog option removed
+
+Test results: Vitest 44 passed (8 new tutorial page tests). Tutorial walked through for Lists on/off, settings menu on/off, smart reminders on/off and saved lists on/off.
+
+### 2026-10-09 (templates slide-up panel)
+
+Branch: feature/templates-slide-up-panel
+
+Completed:
+- Templates panel moved out of the inline Lists container into a fixed bottom sheet that reuses the Settings panel pattern: slide-up/slide-down (0.25s easeInOut), transparent backdrop tap to close, drag-down to close, top 28px below the logo
+- Standard 45px header titled Templates with the 45 x 45px close (X) button; the < Back control is removed
+- Template rows, empty state, row menu, editor round-trip and New template button unchanged. Panel stays mounted beneath the template editor and is restored when the editor closes, as before
+- Content uses the Settings panel 24px side padding; 34px bottom inset retained
+
+Test results: Vitest 53 passed. Production build successful. Browser checks at 402px: open/close transitions, header geometry, scrolling with fixed header, editor open/close round-trip, New template, row menu and Use as list. Create template from list then Go to template opens Templates and the editor. Self Check 334 passed, 0 failed. Drag-down dismissal passed on physical iPhone 15 Pro. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (reminder menu alignment)
+
+Branch: feature/reminder-menu-alignment
+
+Completed:
+- Settings menu on: reminder row three-dot buttons inset with margin-right: 11.5px so their centre sits on the same X axis as the dots in the 45px Reminders Settings button. The title/subtitle area ends 11.5px earlier so the 16px text-to-dots gap is preserved (an initial relative-positioning approach reduced the gap to 4.5px and failed testing). Offset derived from fixed geometry: 22.5 (Settings half-width) - 10 (row button half-width) - 1 (row px-px), so it holds at any width
+- Applied via an optional alignWithSettingsButton prop on RowMenuButton, set only on the main Reminders list rows. Title/subtitle start positions, status circles and other RowMenuButton usages unchanged
+- Settings menu off: no change
+
+Test results: Vitest 53 passed. Self Check 334 passed, 0 failed. Production build successful. Browser checks with Settings on: dots centres matched exactly at 320, 375, 393 and 430px with a 16px text-to-dots gap at each width; title start and circle positions unchanged; row menu opens the reminder info overlay. Settings off: row dots unchanged at original position. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (settings panels UI, phase 1)
+
+Branch: feature/settings-panels-ui
+
+Completed:
+- Reminders and Lists header settings panels populated with Dev Tools row types (UI only, phase 1). The Setting title / Setting subtitle placeholder row is removed; the Reminderly tutorial row is kept at the top of the Reminders panel
+- Reminders panel: Natural Language Capture, Haptic feedback and Sounds click-through rows; Show calendar, Use 1 minute time increments and Show reminder sub-titles toggles; key line; System settings subtitle; Use Siri shortcuts toggle
+- Lists panel: Sounds click-through row; Use Smart Reminders and Use list templates toggles; key line; System settings subtitle; Use Siri shortcuts toggle
+- Every row has an (i) info pop-up with new user-facing copy
+- Click-through rows open an empty page inside the panel with a back chevron, title and the panel close button
+- Toggles hold local state only and are not saved. All start off except Use 1 minute time increments and Use Siri shortcuts, which start at the current Dev Tools values. Functionality to be wired in phase 2
+- System settings Use Siri shortcuts toggle is shared by both panels (state held in App, UI only), so it stays in sync between panels and is kept when a panel is closed and reopened. Resets to the Dev Tools value on app restart
+- ToggleRow, MenuRow, SectionSubtitle and KeyLine exported from DevToolsOverlay and reused in the new SettingsPanelContent component
+
+Test results: Vitest 53 passed. Production build successful. Simulator checks: both panels render, a toggle flips, an info pop-up opens and closes, a click-through page opens and back returns with the toggle state kept. Siri toggled on in the Lists panel shows on in the Reminders panel. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (settings panels header keyline)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- Reminders and Lists settings panels: grey keyline (Dev Tools KeyLine) below the header, with 24px above and 24px below to the first setting row. Also shown under the header on the click-through pages
+- Spacing between setting rows unchanged at 30px
+
+Test results: Production build successful. Simulator: keyline and 24px gaps confirmed on the Reminders panel and the Sounds page. Lists panel uses the same component. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (New reminder header standardised)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- New reminder panel header set to 45px high, matching the settings panels
+- Add tick button reduced from 50 x 50 to 45 x 45. The SVG viewBox crops the original 50px artwork, so the tick icon keeps its size and stays centred. Active and inactive colours unchanged
+- Applies to every title using this header: New reminder, Edit reminder, Add smart reminder, Edit smart reminder
+
+Test results: Production build successful. Simulator: header 45px, tick button 45 x 45 and aligned with the settings close button position; inactive (grey) and active (blue) states checked; panel closed without saving. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (list panel header standardised)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- List panel header title row set to 45px high. Subtitle (progress) line unchanged below it
+- Small grey three dots replaced with the standard 45 x 45 three-dot button (blue circle, white dots); bare grey tick replaced with the standard 45 x 45 tick button (blue circle, white tick). 10px gap between the two
+- Inactive state (no items yet): both buttons show a #D9D9D9 circle with a white icon and are not tappable, as before
+- Button actions unchanged: three dots opens list settings (or the template menu), tick saves and closes
+- Shared header component (src/imports/Header.tsx), so the template editor and the tutorial list mock-ups also use the new buttons
+
+Test results: Vitest 53 passed. Production build successful. Simulator: new list panel header 45px, both buttons 45 x 45 with a 10px gap, inactive grey state confirmed; panel closed empty and no list was saved. Active (blue) state not checked on device, to avoid saving a test list. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (list add-item button alignment)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- List panel add-item (+) button inset 4px (mr-[4px], plus the row's existing 1px) so the 35px + is centred under the 45px header tick button. Shared AddListItemInput component, so the tutorial list mock-ups match
+
+Test results: Production build successful. Simulator: + and header tick centres measured on the same vertical line; panel closed empty, no list saved. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (list title to subtitle gap)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- List panel header: gap between the title row and the subtitle reduced from 7px to 2px. The 45px title row added 5px under the vertically centred title, which had pushed the subtitle down; it is now back in its original position
+
+Test results: Production build successful. Simulator: subtitle moved up 5px, matching its position before the 45px header change; panel closed empty, no list saved. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (list header subtitle gap matched to Lists list)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- Replaces the 2px gap fix above. List panel header subtitle now sits 4.25px up into the 45px title row (no flex gap) so the title-baseline to subtitle-cap distance matches the Lists list rows: 14.28px against 14.27px
+- Subtitle set to ignore taps so the bottom edge of the three-dot and tick buttons stays tappable. No glyph overlap with the buttons
+- Title vs subtitle left edge checked: both start at exactly 24px. The ~1px visual inset is the Lato bold capital's built-in left spacing at 20px (about 1.5px for 'N' against 0.4px for '0'); the Lists list rows show the same effect. No change made
+
+Test results: Production build successful. Browser preview (402px): spacing measured against a real Lists list row; buttons tappable to the bottom edge. Simulator visual check. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (New reminder inactive tick standardised)
+
+Branch: feature/settings-panels-header-keyline
+
+Completed:
+- New reminder panel inactive tick button now matches the list panel: #D9D9D9 circle with a white tick (was #F5F5F5 circle, #D5D5D5 tick). 45 x 45 size, centred icon, active blue state and behaviour unchanged. Applies to New reminder, Edit reminder, Add smart reminder and Edit smart reminder (shared header)
+- List header subtitle offset (4.25px) and tap pass-through accepted. Title/subtitle horizontal alignment left unchanged at 24px; optional 1px nudge not applied
+
+Test results: Vitest 53/53 passed. Production build successful. Self Check 334 passed, 0 failed. Simulator (iPhone 17 Pro): New reminder inactive (#D9D9D9) and active (blue) tick, Edit reminder header; nothing saved. Browser preview (402px): list panel active and inactive buttons, three-dot opens list settings from its bottom edge, template editor header, Reminders settings keyline (24px either side), tutorial list mock-up. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator.
+
+### 2026-10-09 (panel spacing and layout standardisation)
+
+Branch: feature/ui-tweaks (created from main)
+
+Completed:
+- Panel top padding standardised to 26px on all panels (main Reminders and Lists, settings, Templates, Lists editor, New and edit reminder, Repeats, Dev tools)
+- Header to content space standardised to 26px (except Lists editor, which stays 30px below its subtitle). Margins used where a shared container gap also spaces other content
+- Top corner radius standardised to 15px on all panels. Main panel no longer switches to 20px when Lists is off; Dev tools 20px to 15px
+- Bottom space standardised to 24px on all panels; bottom buttons now 24px from the content above and 24px from the bottom of the screen. Reminders and Lists done/deleted pages left at 0px
+- Dev tools headers (home and sub-pages) set to 45px high with the standard 45 x 45 close button
+- Settings panels: separator below the header removed; rows reordered with toggles first, then click-through rows
+- Row 3-dot button aligned with the 45px top right button when settings are on, now on Lists rows, both done/deleted pages and Templates (Reminders rows already aligned)
+- docs/05-design-and-layout/sizing-spacing.md updated with the panel standards
+
+Test results: Vitest 53/53 passed. Production build successful. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator after each change; visual checks by user on device.
+
+### 2026-10-09 (Lists editor header spacing)
+
+Branch: feature/ui-tweaks
+
+Completed:
+- Lists editor header to content space reduced from 30px to 26px, measured from the bottom of the subtitle (title row and subtitle treated as one header block). Add-item input moves up 4px, now about 40px below the 45px title row. Resolves the last panel spacing exception
+- Tutorial copy of the Lists editor updated to match (gap 30px to 26px). Its existing 30px top padding left unchanged
+- 35px gap between the add-item input and list items unchanged
+- docs/05-design-and-layout/sizing-spacing.md updated: exception removed, subtitle header rule added
+
+Test results: Vitest 53/53 passed. Production build successful. Capacitor copy and Xcode builds successful. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator. Visual sign-off by product owner.
+
+### 2026-10-09 (feature/ui-tweaks merged into main)
+
+Branch: main
+
+Completed:
+- feature/ui-tweaks merged into main (merge commit 08a9917, branch head b4152f0). Panel spacing and consistency standards: 26px top padding and header to content space, 24px bottom space and content to bottom button, 15px top corners, standard 45px headers and close buttons, settings panel row order, row 3-dot alignment when settings are on, Lists editor header spacing
+- Feature branch retained
+
+Test results: Vitest 53/53 passed. Production build successful after merge.
+
+### 2026-10-10 (feature/panel-spacing-24)
+
+Branch: feature/panel-spacing-24 (created from main at ee5444a)
+
+Completed:
+- Panel top padding and header to content space standardised from 26px to 24px on the main Reminders and Lists panels, Reminders and Lists settings, Templates, New and edit reminder, Repeats and Dev tools
+- Bottom space and content to bottom button already 24px, unchanged. Done/deleted pages keep 0px bottom space
+- Lists editor: top padding 24px, header to content (below the subtitle) kept at 26px
+- Tutorial copy of the Lists editor aligned with the app: top padding 30px to 24px
+- docs/05-design-and-layout/sizing-spacing.md updated
+- Reminders settings: tutorial link icon and subtitle removed, "Use 1 minute time increments" renamed "1 minute time increments", "Show reminder sub-titles" toggle removed
+- Lists settings: "Use list templates" toggle removed
+- Info icons in the user-facing Reminders and Lists settings panels hidden by default. New Dev tools > System > Features toggle "Show info icons" (default off, stored as reminderly-ff-info-icons) turns them back on. Dev tools info icons always shown. Code and info copy kept
+- Centred overlay standard applied to every overlay (user-facing and Dev tools): 340px wide, 40px top and bottom padding, 30px side padding, 20px minimum from the screen edge, 40px from title to content and between content sections, 30px between content elements and between buttons. List titles in overlays now wrap. Template editor menu copy "Use a list" corrected to "Use as list". centred-overlay-ui.md rewritten to the new standard
+
+### 2026-10-10 (feature/settings-overlays)
+
+Branch: feature/settings-overlays (created from feature/panel-spacing-24 at c76f5f3)
+
+Completed:
+- Reminders and Lists settings changed from slide-up panels to centred overlays following the overlay standard: 340px wide, 40px top and bottom and 30px side padding, centred title, no close button (tap outside to close), no open or close animation
+- Sub-pages (Natural Language Capture, Haptic feedback, Sounds) open inside the overlay with a back arrow left of the centred title
+- Rows keep label left, toggle or arrow right, 30px apart. 30px above and below the separator (overlay standard: separators always have 30px either side), followed by the System settings subtitle and Siri row
+- Tutorial link closes the settings overlay immediately before the tutorial opens (previously closed after 250ms)
+- Docs: centred-overlay-ui.md, sizing-spacing.md
+- Settings overlays: separator and System settings subtitle removed; Use Siri shortcuts moved to below the last toggle (Reminders: after 1 minute time increments; Lists: after Use Smart Reminders)
+- Settings overlays: "Reminderly tutorial" row added to Lists settings (opens the lists tutorial) and moved to the bottom of both overlays. Tutorial icon centred on the row chevrons and recoloured to the chevron grey #939393
+- Tutorial row icon replaced with the click-through row chevron (same size and colour) rotated to point up
+- Use Siri shortcuts toggles in Reminders and Lists settings are now independent (previously one shared value)
+- Tutorial rows renamed: "Reminders tutorial" in Reminders settings, "Lists tutorial" in Lists settings
+- Reminders settings: 1 minute time increments moved to the bottom of the toggle rows (after Use Siri shortcuts)
+- Lists settings: Haptic feedback click-through row added above Sounds (opens an empty sub-page, like Reminders)
+
+### 2026-10-10 (feature/settings-overlays merged into main)
+
+Branch: main
+
+Completed:
+- feature/settings-overlays merged into main (merge commit 78e19cb, branch head edf2bbb), including the underlying feature/panel-spacing-24 work (c76f5f3). Panel spacing 24px, settings row changes, info icons hidden by default behind the Dev tools "Show info icons" toggle, centred overlay standard on every overlay, Reminders and Lists settings as centred overlays with tutorial rows, independent Siri toggles and Lists Haptic feedback row
+- Both feature branches retained
+
+Test results: Vitest 53/53 passed. Type check clean. Production build successful after merge. Product owner visual sign-off confirmed.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 0)
+
+Branch: feature/settings-flags-model (created from main at 15c44d4, matching origin/main)
+
+Completed:
+- Settings and feature flags model agreed and approved by senior developer review: dev tools flags control availability, user settings control state, one flag per feature, flags never reset preferences, development defaults off with options inside a feature on, existing installs keep established behaviour
+- docs/settings-audit.md: item-by-item audit of dev tools and user settings, decisions, defaults and migration matrix, review outcome, Phase 0 corrections
+- docs/settings-flags-spec.md: Phase 0 specification covering baseline results, code-validated findings, resolver, parent flags, repeat reminders flag, notifications, storage migration mapping, NLC, Siri, UI approach, acceptance criteria per phase and decisions for approval
+- No application code changed
+
+Test results (baseline on unchanged code): Vitest 53/53 passed. Self Check 334/334 passed (desktop browser). Repo guard passed. Web build succeeded. iOS simulator build succeeded. Type check not run (no tsconfig or TypeScript compiler in the project). Not deployed to device.
+
+Decisions: D1 to D9 provisionally approved by senior developer review (D3 visual sign-off in Phase 3, D4 with migration regression tests, D6 with rollback verified, D8 spoken Siri reply recorded as a future improvement, D9 as a separate tracked fix). D10 ask state key and values awaiting confirmation. Spec updated with repeat flag enforcement points, ask state values, rollback behaviour and expanded acceptance criteria.
+
+Outstanding: D10 confirmation. Phase 1 awaits approval.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 1)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Phase 0 final review corrections recorded in docs/settings-flags-spec.md (independent alerts and badge, D10 refinements, Phase 1 boundary, existing-install detection check)
+- New src/app/settings/: keys.ts (storage keys and development defaults), resolver.ts (read-only isFeatureActive with parent flags, preferences and iOS permission), migration.ts (one-time copy of current keys to new keys, never overwrites, never deletes, schema marker reminderly-settings-schema = 1)
+- Migration runs in src/main.tsx before the app renders
+- Dev tools Enable reminders, Enable notifications and Repeat reminders toggles now saved (reminderly-ff-reminders, reminderly-ff-notifications, reminderly-ff-repeat-reminders). Nothing outside dev tools reads them yet
+- New Self Check suite "Settings foundation" (17 checks, in-memory storage), also run by Vitest (src/app/__tests__/settings.test.ts)
+- The app still reads its current keys. No user-facing behaviour change
+
+Test results: Vitest 70/70 passed. Self Check 351/351 passed (desktop browser). Repo guard passed. Web build succeeded. iOS simulator and iPhone builds succeeded with refreshed web assets. Existing-install detection verified (first launch with no data saves the detection keys). Simulator upgrade and rollback test passed (main -> Phase 1 -> main -> Phase 1: data and current keys unchanged, no second migration). iPhone 15 Pro upgrade verified with real data (25 reminders, 4 repeating, 17 lists): data and current keys unchanged, new keys correct.
+
+Outstanding: Phase 2 awaits approval. Phase 3 dependency on settings changed in dev tools after migration recorded in the spec.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 1.1)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- One authoritative storage key per setting. App.tsx reads 16 settings through useStoredSetting (src/app/settings/useStoredSetting.ts): read once, written only on change. The 16 write-on-startup effects were removed
+- Migrated settings now read and written only under their new keys (reminderly-ff-lists, reminderly-pref-one-minute-increments, reminderly-pref-notif-alerts, reminderly-pref-notif-badge, reminderly-pref-notif-include-today, reminderly-config-tutorial-first-launch, reminderly-test-tutorial-every-start, reminderly-config-templates-in-clean-state, reminderly-ff-siri-reminders). Haptics uses reminderly-pref-haptics. utils/featureFlags.ts (dummy lists) reads reminderly-ff-lists with the same fallback as the app
+- Transitional fallbacks equal to the current app defaults (TRANSITIONAL_FALLBACKS in keys.ts). Development defaults take effect at each integration phase without overwriting saved values
+- F8 fixed: turning Lists off no longer saves smart reminders as off
+- Dev tools tutorial checks now use the new tutorial keys
+- 8 new Self Check checks and a Vitest source scan that fails if any legacy settings key is used outside the migration
+
+Test results: Vitest 79/79 passed. Self Check 359/359 passed (desktop browser). Repo guard passed. Web build, simulator and iPhone builds succeeded. Browser: new install writes no settings keys, second launch writes nothing, a Dev tools change writes only the authoritative key and persists after reload, smart reminders unchanged through Lists off and on (on and off cases). Simulator: Phase 1 to 1.1, relaunch, rollback to main and re-upgrade, no keys changed. iPhone 15 Pro: Phase 1 to 1.1 and restart with real data (25 reminders, 4 repeating, 17 lists), no keys changed.
+
+Outstanding: Phase 2 awaits review.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 2)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Dev tools home grouped into Feature flags, Config, Testing tools, and Access and diagnostics, using the existing rows and section heading style
+- Feature pages now hold availability flags only. New pages: Siri (Siri for reminders, Siri for lists locked off), Config, Testing tools, User preferences (temporary home for preference controls until Phase 3)
+- New 1 minute time increments availability flag (reminderly-ff-one-minute-increments), not yet read by the app
+- Reminders and Lists cannot both be off: canChangeModuleFlag in the resolver, used by every Dev tools change to either flag
+- Settings writes report failures through the existing "Storage unavailable" banner
+- Self checks page title renamed from Testing to Self checks
+- Tests: 2 new Self Check checks (last module guard, write failure) and a Vitest check that each of the 44 Dev tools controls appears exactly once
+
+Test results: Vitest 125/125 passed. Self Check 361/361 passed (desktop browser). Repo guard passed. Web build, simulator and iPhone builds succeeded. Browser (375px): structure checked, last module guard both directions, preferences and data unchanged, Lists off persisted through reload. Simulator and iPhone 15 Pro: installed in place, no stored keys changed. Manual iPhone Dev tools checks outstanding.
+
+Outstanding: manual iPhone checks; Phase 3 awaits review.
+
+### 2026-10-11 (feature/settings-flags-model - Phase 2 corrections)
+
+Branch: feature/settings-flags-model
+
+Completed (after iPhone acceptance testing and audit):
+- C1: Show tutorial on first launch moved to Feature flags > Onboarding (same key and behaviour)
+- C2: Unimplemented Siri for lists, Phone number recognition and Contact recognition rows removed from Dev tools (keys unchanged)
+- C3: Settings writes only raise the storage error, never clear it, so they cannot hide a reminder or list save failure
+- C4: Preference controls renamed "Temporary user preferences", with info text stating they are temporary and do not control availability. They are removed in Phase 3
+
+Test results: Vitest 122/122 passed. Self Check 361/361 passed (desktop browser). Web build, simulator and iPhone builds succeeded. Deployed to iPhone 15 Pro and iPhone 17 Pro simulator, no stored keys changed. iPhone retest outstanding.
+- Temporary user preferences page removed from Dev tools. Decision made 2026-10-11 12:23 BST by John (product owner): Dev tools controls availability only, users control their own preferences. Until their user settings are wired (Phase 3, notifications Phase 4), 1 minute increments, NLC options, notification alerts, badge, include today and haptics stay at their saved values (NLC options at their defaults). Vitest 111/111 passed
+
+### 2026-10-11 (feature/settings-flags-model - Phase 3 progress)
+
+Branch: feature/settings-flags-model
+
+- Steps 1 to 5 implemented (foundation, Reminders master with Lists-only layout and notification safeguard, Repeat reminders flag, 1 minute increments, Siri). C1 fix: Reminders off cancels pending then removes delivered Reminderly notifications, at toggle, launch and resume
+- iPhone acceptance (product owner): steps 1-2 visual tests, C1-C4, C6, D1-D4, E1-E3, F1-F4 passed. C5 confirmed as expected behaviour: notifications missed while Reminders was off are not re-created; future reminders resume and the badge is recalculated
+- Siri (G1-G4): deferred, not failed. Siri is unusable and off by default; to be addressed and tested separately
+- Steps 6 and 7 built (NLC and Haptic feedback user pages, Haptics availability flag), awaiting visual approval
+
+### 2026-10-11 (feature/settings-flags-model - Phase 3 complete)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Step 8: Show calendar and Sounds rows hidden behind their flags (reminderly-ff-calendar, reminderly-ff-sounds, default off, no Dev tools control until built). "Use Smart Reminders" removed from Lists settings (smart reminders is admin-only). No saved preferences or data changed
+- NLC preferences stored as booleans (reminderly-pref-nlc, -date, -time, -repeats, -auto-parsing); the original mode and recognition keys were never written by any build, so there is nothing to migrate
+- Phase 3 summary: availability flags wired for Reminders (Lists-only layout and notification safeguard), Repeat reminders, 1 minute increments, Siri, NLC, Haptics, Calendar and Sounds. Every working preference is set in Reminders or Lists settings. Dev tools holds availability, config and testing only
+
+Deferred: Siri testing (G1-G4). Phase 4 (notifications) not started.
+
+### 2026-10-11 (feature/settings-flags-model - settings overlay fixes from testing)
+
+Branch: feature/settings-flags-model
+
+- Centred overlays: at least 100px from the top and bottom of the screen (and clear of the notch and home indicator); content that does not fit scrolls inside the card. Settings overlays keep the title fixed. viewport-fit=cover added so safe-area insets are available
+- Haptic feedback page (product owner decision): the top "Haptic feedback" toggle turns every action off in one go and the actions stay listed. Turning it back on restores each action's previous choice (or turns all on if none were on). Turning an action on while the top toggle is off turns on only that action and the top toggle; turning the last action off turns the top toggle off. The Dev tools Haptics flag also preserves saved choices
+
+### 2026-10-11 (feature/settings-flags-model - Phase 3 closed)
+
+Branch: feature/settings-flags-model
+
+Completed:
+- Haptics redesign approved (product owner and senior developer): per-panel Haptic feedback on/off plus three literal switches per panel (Reminders: Creating, Completing, Deleting a reminder; Lists: Ticking off a list item, Completing a list, Deleting a list item). Related actions follow their parent switch. Existing choices preserved; no migration
+- Clean-up: unused per-action list removed; resolver treats haptics as on while either panel is on; 3 new Self Check checks (every action in exactly one switch, preserved choices, resolver)
+- Baselines updated: src/app/dev/BASELINE.md (clean run regenerated from the actual checks), docs/06-quality-and-dev/tests-and-baselines.md
+- Phase 3 approved for closure by the senior developer after physical iPhone testing (haptic feedback, smart reminders, list item editing all passed)
+
+Test results: Vitest 120/120 passed. Self Check 366/366 passed. Repo guard passed. Web, simulator and iPhone builds succeeded.
+
+Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised. Not merged to main.
+
+### 2026-10-11 (feature/settings-flags-model merged into main)
+
+Branch: main
+
+Completed:
+- feature/settings-flags-model merged into main (merge commit 4dafe0e, branch head abafb8b), approved by the senior developer after Phase 3 closure. Merge introduced no changes beyond the branch (identical tree). Settings and feature flags Phases 0 to 3: settings foundation (keys, resolver, migration, single source of truth), Dev tools reorganised into availability, config, testing and access, availability flags wired, user preferences in Reminders and Lists settings, Reminders-off notification safeguard, centred overlay height limits, haptics redesign
+- Branch retained
+
+Test results (post-merge on main): Vitest 120/120 passed. Self Check passed with no failures. Repo guard passed. Web, simulator and iPhone builds succeeded.
+
+Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised.
+
+### 2026-10-11 (feature/click-sounds - click sounds built)
+
+Branch: feature/click-sounds (created from main at a54e3b3, approved by the senior developer). Step 1 committed as 50277dc; the rest committed after senior developer approval. Physical iPhone testing passed. Not merged.
+
+Completed:
+- Click sounds on the same actions as haptics, generated in code with Web Audio (utils/sounds.ts). No audio files, native code or new dependencies. Audio session set to ambient where supported
+- Sounds pages in Reminders and Lists settings, same layout and behaviour as Haptic feedback, with choices saved separately (reminderly-pref-sounds, JSON). Both panels off by default
+- Dev tools > System > Sounds availability flag (reminderly-ff-sounds), off by default (senior developer decision); on during branch testing
+- hapticTap calls playClick first, so sounds and haptics each follow only their own settings
+- Product owner request: the New reminder and New list buttons give a haptic and click. New reminder follows Creating a reminder; Lists gains a Creating a list switch (createList) on both the Haptic feedback and Sounds pages
+- Decisions (senior developer): no TypeScript tooling added (check not applicable); SOUND_GROUPS defined in sounds.ts to avoid a circular import, kept in step with HAPTIC_GROUPS by Self Check
+
+Test results: Vitest 132/132 passed. Self Check 369/369 passed (Node run). Repo guard passed. Web, simulator and iPhone builds succeeded.
+
+### 2026-10-11 (feature/click-sounds merged into main)
+
+Branch: main
+
+Completed:
+- feature/click-sounds merged into main (merge commit 1b7cd66, branch head 30769b8), approved by the senior developer after physical iPhone testing passed. Merge introduced no changes beyond the branch (identical tree). Click sounds: Web Audio click on the same actions as haptics, Sounds pages in Reminders and Lists settings with choices saved separately from haptics (both panels off by default), Dev tools > System > Sounds availability flag (reminderly-ff-sounds, off by default), feedback on the New reminder and New list buttons, Creating a list switch added to Lists haptics and sounds
+- Branch retained
+
+Test results (post-merge on main): Vitest 132/132 passed. Repo guard passed. Production build succeeded. Self Check 369/369 passed on the branch (identical tree).
+
+Deferred: Siri testing, tutorial on first launch (D9), parser observations, template haptics. Phase 4 not authorised.
+
+### 2026-10-11 (feature/ui-tweaks-2 - UI tweaks)
+
+Branch: feature/ui-tweaks-2 (created from main at 1cabc35, approved by the product owner). Back arrow and overlay height changes accepted by the product owner after iPhone testing and committed. Not merged.
+
+Completed:
+- Settings overlay back arrow: the handler was wired, but only the 9x17 arrow glyph was tappable, so it appeared broken on iPhone. PanelHeader back button now has a 45x45 tap area with the arrow in the same position. Applies to every click-through page in Reminders and Lists settings. Dev tools back buttons have the same small tap area and are unchanged
+- Settings overlay height (product owner decision): Reminders and Lists settings cards are a fixed 450px tall, so moving between pages no longer resizes the card or moves the title. The existing centred overlay wrapper keeps at least 100px clear top and bottom; on shorter screens the card shrinks to fit and the rows scroll. Other centred overlays unchanged
+
+### 2026-10-11 (feature/dev-tools-restyle - Dev tools look and feel)
+
+Branch: feature/dev-tools-restyle (created from main at 1cabc35, approved by the product owner). Accepted by the product owner after iPhone testing, committed and pushed. Not merged.
+
+Completed:
+- Dev tools restyled to the product owner's mockups: #F7F7F7 page, 20px side and 24px top margins, 45px header (robot icon on home, blue back button on sub-pages, title centred, blue close button), white cards with 6px corners 24px apart, 60px rows with a full-width 1px #F7F7F7 separator
+- New Dev tools components in DevToolsOverlay.tsx (DevPage, DevHeader, DevCard, DevCardBody, DevToggleRow, DevNavToggleRow, DevMenuRow). Toggles sit to the left of the label. The shared ToggleRow, MenuRow and KeyLine used by the settings overlays and onboarding are unchanged
+- Home page: toggle rows grouped first, click-through rows after. Siri is now "Siri shortcuts" with a toggle (Siri for reminders flag, no confirmation) after Onboarding. Config row renamed "Config tools" (page title too), Testing card titled "Testing", Siri page titled "Siri shortcuts"
+- Login: robot logo, 70px password field with lock icon, 65px Login button, 6px corners. "Log-in to Reminderly" title and placeholder removed; eye icon, error and reveal behaviour kept
+- Other pages (Self checks, Dummy reminders, Dummy lists, Dev tools password) moved into white cards with their existing controls, for product owner review
+- settings.test.ts Dev tools label list updated for the renamed rows
+- Dev tools panel now opens level with the top of the logo (other sliding panels unchanged, still 28px below it), with 15px top corners visible. Pages inside the panel have no background of their own, because iOS painted the corners black when clipping scrolling content
+
+Test results: Vitest 132/132 passed. Self Check 369/369 passed (in-app). Repo guard passed.
+
+### 2026-10-11 (feature/ui-tweaks-2 and feature/dev-tools-restyle merged into main)
+
+Branch: main
+
+Completed:
+- Merge approved by the senior developer in the proposed order, after product owner iPhone testing of both branches
+- feature/ui-tweaks-2 merged into main first (merge commit 9573271, branch head 053de45), no conflicts: settings overlay back arrow tap area and fixed 450px overlay height
+- feature/dev-tools-restyle merged second (merge commit 003aabf, branch head 732f766): Dev tools restyle, panel at logo top with 15px corners. Only conflict was this file (both branches added an entry); resolved by keeping both entries
+- Both branches retained
+
+Test results (post-merge on main): Vitest 132/132 passed. Self Check 369/369 passed (Node run). Repo guard passed. Production build succeeded.
+
+### 2026-10-12 (feature/lock-screen-widget merged into main)
+
+Branch: main
+
+Completed:
+- Merge approved by the senior developer after simulator test sheet (67 passed, 0 failed) and product owner iPhone 15 Pro checks (visual, count accuracy, flag off/on)
+- feature/lock-screen-widget merged into main (merge commit cf2c300, branch head ad60f1e), no conflicts: circular lock screen widget, WidgetBridge plugin, App Group, Dev tools > System > Lock screen widget flag (default on)
+- Branch pushed to origin and retained
+
+Test results (post-merge on main): Vitest 138/138 passed. Self Check 379/379 passed (Node run). TypeScript clean. Repo guard passed. Production build succeeded.
+
+### 2026-10-12 (feature/calendar-view - Calendar view)
+
+Branch: feature/calendar-view (created from main at 1b4b92d, approved by the CTO and John). Pushed. Not merged.
+
+Completed:
+- Month calendar between the filter row and the reminder list, behind the Dev tools > Reminders > Calendar flag and Reminders settings > Show calendar, both default off
+- Up to 4 dots per day by category; overdue stays on its original date; repeats show the current occurrence only; done, deleted and Sometime reminders have no dot
+- Tap a day to list its reminders (today includes overdue); filters highlight their date range and grey the rest; selecting a day clears the filter and the other way round
+- Month arrows and swipe; changing month clears the selected day and the list stays on today; active filters persist
+- New reminder from a selected future day starts with that date at 12pm
+- Empty day message "No reminders... take it easy!"; turning the calendar back on resets to today with no filter
+- Needs a screen at least 852pt tall (iPhone 15 Pro, product owner decision; 6-row months leave about one reminder row, below the CTO's 103pt guideline); shorter screens keep the existing view and hide Show calendar (setting kept). A tighter spacing that allowed 840pt (0fe87e4) was rejected after device testing and reverted (c946791); SVG spacing kept
+- Pure calendar helpers in reminder-utils.ts; RemindersCalendar component; no changes to scheduling, notifications, recurrence or badges
+
+Commits: fec8864 (flag and setting), c3c327e (calendar logic), 7bed069 (component), 9dc0772 (day selection), 350cf65 (navigation and New reminder date), 94707c5 (reset, empty day, minimum height, tests), 0fe87e4 (spacing, reverted by c946791), 8b6dac5 (880pt minimum, then set to 852pt) and docs.
+
+Test results: Vitest 165/165 passed. Self Check 384/384 passed (Node run). Repo guard passed. Production build succeeded. Browser preview checks at 402x874, 393x852 and 393x851. Built, installed and launched on the iPhone 17 Pro simulator and iPhone 15 Pro. Product owner on-device checks outstanding.
+
+### 2026-10-12 (feature/calendar-view merged into main)
+
+Branch: main
+
+Completed:
+- Merge approved by the CTO after product owner on-device testing passed on the iPhone 15 Pro
+- feature/calendar-view merged into main (merge commit 93c9917, branch head b70b24e), no conflicts: calendar view on the Reminders tab behind Dev tools > Reminders > Calendar and Reminders settings > Show calendar (both default off), 852pt minimum screen height, show/hide animation
+- Branch retained
+
+Test results (post-merge on main): Vitest 165/165 passed. Self Check 384/384 passed (Node run). Repo guard passed. Production build succeeded.
+
+### 2026-10-12 (fix/self-check-audit - Self Check coverage audit fixes)
+
+Branch: fix/self-check-audit (created from main at b584736, approved by John). Committed as c96f491 and pushed.
+
+Completed:
+- Self Check coverage audit agreed with the CTO and John; small, focused update only
+- Dev tools and feature flags suite: 33 checks that only exercised localStorage, local variables or copies of default rules replaced by 1 check of the real defaults path (readStoredBool and the resolver). Paywall now checked as default off, matching SETTINGS_DEFAULTS (the old check assumed on)
+- Calendar: month navigation and New reminder prefill checks added; calendar filter ranges check extended with combined Later and Sunday (no rest of week)
+- Vitest Dev tools controls guard extended to Sounds and Lock screen widget
+- BASELINE.md, self-check-system.md, tests-and-baselines.md and dev-tools.md updated to the verified counts
+
+Test results: Self Check 354/354 passed (Node run, 10 suites: 384 - 33 + 1 + 2). Vitest 167/167 passed. Production build succeeded.
+
+### 2026-10-12 (fix/self-check-audit merged into main)
+
+Branch: main
+
+Completed:
+- Merge approved by the CTO after the product owner confirmed the in-app Self Check passed on the iPhone 15 Pro (354/354)
+- fix/self-check-audit fast-forwarded into main, b584736 to c96f491 (no merge commit), 8 files: Self Check audit fixes and baseline 354
+- Branch deleted locally and on the remote
+
+Test results: Self Check 354/354 passed (in-app on iPhone 15 Pro and Node run). Vitest 167/167 passed. Production build succeeded.

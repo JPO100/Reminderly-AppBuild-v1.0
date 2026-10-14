@@ -20,7 +20,7 @@ The login overlay must use the same overlay container and behaviour used by the 
 
 Implementation must follow the rules defined in:
 
-docs/content-overlay-responsive.md
+docs/design.md
 
 Requirements:
 

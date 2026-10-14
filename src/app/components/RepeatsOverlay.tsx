@@ -91,7 +91,7 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
   return (
     <div className="bg-white content-stretch flex flex-col items-center relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="repeats-overlay">
       <div className="flex flex-col h-full relative w-full max-w-[768px]" data-name="repeats-content">
-        <div className="flex flex-col items-start pt-[30px] px-[24px] pb-[24px] relative w-full flex-1 min-h-0">
+        <div className="flex flex-col items-start pt-[24px] px-[24px] pb-[24px] relative w-full flex-1 min-h-0">
           <div className="bg-white w-full flex-1 min-h-0 flex flex-col">
             <div className="flex items-center justify-between w-full shrink-0">
               <button
@@ -112,13 +112,13 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
               >
                 <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 50 50">
                   <g>
-                    <rect fill={getCurrentConfig() !== null ? "#4784F8" : "#D9D9D9"} height="50" rx="25" width="50" />
-                    <path d={tickSvgPaths.p1635b2f0} fill={getCurrentConfig() !== null ? "#F0FAFE" : "white"} id="tick-icon" />
+                    <rect fill={getCurrentConfig() !== null ? "#4784F8" : "#F5F5F5"} height="50" rx="25" width="50" />
+                    <path d={tickSvgPaths.p1635b2f0} fill={getCurrentConfig() !== null ? "#F0FAFE" : "#D5D5D5"} id="tick-icon" />
                   </g>
                 </svg>
               </button>
             </div>
-            <div className="mt-[34px] w-full flex flex-col gap-[30px] overflow-y-auto flex-1 min-h-0 pb-[10px]">
+            <div className="mt-[24px] w-full flex flex-col gap-[30px] overflow-y-auto flex-1 min-h-0">
               {/* Custom Days */}
               <div>
                 <button

@@ -50,7 +50,7 @@ function Frame3({ smartReminders, onSmartRemindersChange, displaySmartReminderDa
   };
 
   return (
-    <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full">
+    <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
       <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full cursor-pointer" onClick={handleSmartRemindersRowClick}>
         <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]" data-name="Union">
           <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">
@@ -189,7 +189,7 @@ function DeleteBtn({ onClick }: { onClick: () => void }) {
 function Buttons({ onMarkAsDone, onEdit, onTogglePinned, isPinned, onCreateTemplate, createTemplateStage, onDelete, showActionButtons, showPinnedLists }: { onMarkAsDone: () => void; onEdit: () => void; onTogglePinned: () => void; isPinned: boolean; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; showActionButtons: boolean; showPinnedLists: boolean }) {
   if (!showActionButtons) return null;
   return (
-    <div className="content-stretch flex flex-col gap-[30px] items-start mt-[12px] relative shrink-0 w-full" data-name="buttons">
+    <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full" data-name="buttons">
       <>
         <MarkAsDoneBtn onClick={onMarkAsDone} />
         <EditListBtn onClick={onEdit} />
@@ -280,12 +280,12 @@ export default function ListInfoOverlay({ listTitle, smartReminders, onSmartRemi
   };
 
   return (
-    <div className="bg-white content-stretch flex flex-col gap-[17px] items-center justify-start px-[32px] py-[35px] relative rounded-[32px] mx-auto" style={{ width: 340 }} data-name="list-info-overlay">
-      <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic overflow-hidden relative shrink-0 text-[#1C2C42] text-[20px] text-ellipsis text-center w-full whitespace-nowrap">
-        <p className="leading-[normal] overflow-hidden" style={{ fontWeight: 700 }}>{listTitle}</p>
+    <div className="bg-white content-stretch flex flex-col gap-[40px] items-center justify-start px-[30px] py-[40px] relative rounded-[32px] mx-auto" style={{ width: 340 }} data-name="list-info-overlay">
+      <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center w-full">
+        <p className="leading-[normal] whitespace-pre-wrap break-words" style={{ fontWeight: 700 }}>{listTitle}</p>
       </div>
       {showSmartReminders && (
-        <div className="w-full mt-[10px]">
+        <div className="w-full">
           <Frame3 smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />
         </div>
       )}

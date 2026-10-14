@@ -16,11 +16,19 @@ import {
   formatRepeatLabel,
   isOverdue,
   STORAGE_KEY,
+  getDisplayCategory,
+  getFilterForSettingsMenu,
+  getCalendarWeeks,
+  getCalendarDots,
+  getCalendarDayReminders,
+  isDateInFilterRange,
+  stepCalendarMonth,
+  toDateKey,
 } from '../reminder-utils';
 import type { Reminder } from '../reminder-utils';
 import { normaliseReminderText } from '../utils/normalise-text';
 import { renderReminderText, getDisplayTitle } from '../utils/render-text';
-import { formatSelectedDate } from '../../imports/NewReminderOverlay';
+import { formatSelectedDate, getCalendarPrefill } from '../../imports/NewReminderOverlay';
 
 /**
  * Simple assertion helper (mirrors schedule-checks convention)
@@ -361,6 +369,96 @@ export function getReminderChecks(): Check[] {
         const now = new Date(2026, 1, 25, 12, 0);
         const r = makeReminder({ id: 'c4', schedule: { kind: 'sometime' } });
         assert(categoriseReminder(r, now) === 'sometime', 'Expected "sometime"');
+      },
+    },
+
+    // Settings menu (Phase 1): combined Later/Sometime presentation
+    {
+      id: 'settings-menu-display-category-on',
+      name: 'Settings menu on: Sometime displays as Later, other categories unchanged',
+      run: () => {
+        assert(getDisplayCategory('sometime', true) === 'later', 'Expected sometime to display as later');
+        assert(getDisplayCategory('later', true) === 'later', 'Expected later unchanged');
+        assert(getDisplayCategory('today', true) === 'today', 'Expected today unchanged');
+        assert(getDisplayCategory('this-week', true) === 'this-week', 'Expected this-week unchanged');
+      },
+    },
+
+    {
+      id: 'settings-menu-display-category-off',
+      name: 'Settings menu off: Sometime keeps its own display category',
+      run: () => {
+        assert(getDisplayCategory('sometime', false) === 'sometime', 'Expected sometime unchanged');
+        assert(getDisplayCategory('later', false) === 'later', 'Expected later unchanged');
+      },
+    },
+
+    {
+      id: 'settings-menu-filter-on',
+      name: 'Settings menu on: Later and Sometime filters switch to combined Later',
+      run: () => {
+        assert(getFilterForSettingsMenu('sometime', true) === 'other', 'Expected sometime -> other');
+        assert(getFilterForSettingsMenu('later', true) === 'other', 'Expected later -> other');
+        assert(getFilterForSettingsMenu('today', true) === 'today', 'Expected today unchanged');
+        assert(getFilterForSettingsMenu('all', true) === 'all', 'Expected all unchanged');
+      },
+    },
+
+    {
+      id: 'settings-menu-filter-off',
+      name: 'Settings menu off: combined Later filter restores standard Later',
+      run: () => {
+        assert(getFilterForSettingsMenu('other', false) === 'later', 'Expected other -> later');
+        assert(getFilterForSettingsMenu('sometime', false) === 'sometime', 'Expected sometime unchanged');
+        assert(getFilterForSettingsMenu('this-week', false) === 'this-week', 'Expected this-week unchanged');
+      },
+    },
+
+    {
+      id: 'settings-menu-filter-round-trip',
+      name: 'Settings menu on -> off -> on: filter is always a visible filter',
+      run: () => {
+        let filter = getFilterForSettingsMenu('sometime', true);
+        assert(filter === 'other', 'Expected other after on');
+        filter = getFilterForSettingsMenu(filter, false);
+        assert(filter === 'later', 'Expected later after off');
+        filter = getFilterForSettingsMenu(filter, true);
+        assert(filter === 'other', 'Expected other after on again');
+      },
+    },
+
+    {
+      id: 'settings-menu-combined-order',
+      name: 'Settings menu: combined Later lists dated Later before undated Sometime',
+      run: () => {
+        const now = new Date(2026, 1, 25, 12, 0);
+        const sometime = makeReminder({ id: 'sm-s', schedule: { kind: 'sometime' }, createdAt: 1000 });
+        const later = makeReminder({ id: 'sm-l', schedule: { kind: 'scheduled', date: '2026-04-10' }, createdAt: 2000 });
+        const sorted = sortReminders([sometime, later], now);
+        assert(sorted[0].id === 'sm-l' && sorted[1].id === 'sm-s', 'Expected dated Later first, then Sometime');
+      },
+    },
+
+    {
+      id: 'settings-menu-data-unchanged',
+      name: 'Settings menu: presentation helpers do not change stored reminders',
+      run: () => {
+        withIsolatedStorage(() => {
+          const now = new Date(2026, 1, 25, 12, 0);
+          const stored = [
+            makeReminder({ id: 'sm-d1', schedule: { kind: 'sometime' }, createdAt: 1000 }),
+            makeReminder({ id: 'sm-d2', schedule: { kind: 'scheduled', date: '2026-04-10' }, createdAt: 2000 }),
+          ];
+          const raw = JSON.stringify(stored);
+          localStorage.setItem(STORAGE_KEY, raw);
+          const loaded = loadReminders();
+          for (const enabled of [true, false, true]) {
+            loaded.forEach((r) => getDisplayCategory(categoriseReminder(r, now), enabled));
+          }
+          assert(localStorage.getItem(STORAGE_KEY) === raw, 'Expected stored reminders unchanged');
+          assert(loaded[0].schedule.kind === 'sometime', 'Expected Sometime reminder to stay undated');
+          assert(categoriseReminder(loaded[0], now) === 'sometime', 'Expected derived category unchanged');
+        });
       },
     },
 
@@ -1304,6 +1402,85 @@ export function getReminderChecks(): Check[] {
         r.displayText = 'Call mum about the 9pm booking';
         const result = getDisplayTitle(r);
         assert(result === 'Call mum about the 9pm booking', `Expected "Call mum about the 9pm booking", got "${result}"`);
+      },
+    },
+    {
+      id: 'calendar-grid-rows',
+      name: 'Calendar: Monday-first grid uses only the rows the month needs (4, 5, 6) and handles leap years',
+      run: () => {
+        assert(getCalendarWeeks(2027, 1).length === 4, 'February 2027 should have 4 rows');
+        assert(getCalendarWeeks(2026, 0).length === 5, 'January 2026 should have 5 rows');
+        assert(getCalendarWeeks(2026, 2).length === 6, 'March 2026 should have 6 rows');
+        assert(getCalendarWeeks(2026, 0)[0][3] === '2026-01-01', '1 January 2026 should be a Thursday');
+        assert(getCalendarWeeks(2028, 1).flat().filter(Boolean).length === 29, 'February 2028 should have 29 days');
+      },
+    },
+    {
+      id: 'calendar-dots',
+      name: 'Calendar: max 4 dots per day; overdue on its original date; done, deleted and sometime excluded',
+      run: () => {
+        const now = new Date(2026, 0, 6, 13, 0);
+        const day = (id: string, date: string, extra: Partial<Reminder> = {}) => makeReminder({ id, schedule: { kind: 'scheduled', date }, ...extra });
+        const dots = getCalendarDots([
+          day('a', '2026-01-10'), day('b', '2026-01-10'), day('c', '2026-01-10'), day('d', '2026-01-10'), day('e', '2026-01-10'),
+          day('f', '2026-01-05'), day('g', '2026-01-08', { completedAt: 1 }), day('h', '2026-01-08', { deletedAt: 1 }),
+          makeReminder({ id: 'i', schedule: { kind: 'sometime' } }),
+        ], now);
+        assert(dots.get('2026-01-10')?.length === 4, 'Expected 4 dots on the 10th');
+        assert(JSON.stringify(dots.get('2026-01-05')) === '["overdue"]', 'Expected an overdue dot on the original date');
+        assert(!dots.has('2026-01-06'), 'Today should not get a dot for an earlier overdue reminder');
+        assert(!dots.has('2026-01-08') && dots.size === 2, 'Done, deleted and sometime should have no dots');
+      },
+    },
+    {
+      id: 'calendar-filter-ranges',
+      name: 'Calendar: filter ranges match Today, This week and Later, past days never in range',
+      run: () => {
+        const now = new Date(2025, 11, 31, 10, 0); // Wednesday 31 December 2025
+        assert(isDateInFilterRange('2025-12-31', 'today', now), 'Today in Today');
+        assert(!isDateInFilterRange('2025-12-31', 'this-week', now), 'Today not in This week');
+        assert(isDateInFilterRange('2026-01-04', 'this-week', now), 'Sunday 4 January in This week across the year boundary');
+        assert(isDateInFilterRange('2026-01-05', 'later', now), 'Monday 5 January in Later');
+        assert(!isDateInFilterRange('2025-12-30', 'all', now), 'Past days never in range');
+        assert(isDateInFilterRange('2026-01-05', 'other', now) && !isDateInFilterRange('2026-01-04', 'other', now), 'Combined Later matches Later only');
+        const sunday = new Date(2026, 0, 11, 9, 0);
+        assert(!isDateInFilterRange('2026-01-11', 'this-week', sunday) && isDateInFilterRange('2026-01-12', 'later', sunday), 'Sunday has no rest of week');
+      },
+    },
+    {
+      id: 'calendar-day-reminders',
+      name: 'Calendar: today lists due today plus overdue; another day lists only that date',
+      run: () => {
+        const now = new Date(2026, 0, 6, 13, 0);
+        const overdue = makeReminder({ id: 'o', schedule: { kind: 'scheduled', date: '2026-01-04' } });
+        const today = makeReminder({ id: 't', schedule: { kind: 'scheduled', date: '2026-01-06', time: '17:00' } });
+        const future = makeReminder({ id: 'f', schedule: { kind: 'scheduled', date: '2026-01-15' } });
+        const all = [future, today, overdue];
+        assert(getCalendarDayReminders(all, '2026-01-06', now).map((r) => r.id).join() === 'o,t', 'Today should list overdue then today');
+        assert(getCalendarDayReminders(all, '2026-01-15', now).map((r) => r.id).join() === 'f', 'The 15th should list only its reminder');
+      },
+    },
+    {
+      id: 'calendar-month-navigation',
+      name: 'Calendar: month navigation crosses year boundaries, returning to the current month follows today',
+      run: () => {
+        const now = new Date(2026, 0, 6, 13, 0);
+        const forward = stepCalendarMonth({ year: 2026, month: 11 }, 1, now);
+        assert(forward?.year === 2027 && forward.month === 0, 'December 2026 forward should be January 2027');
+        const back = stepCalendarMonth({ year: 2026, month: 0 }, -1, now);
+        assert(back?.year === 2025 && back.month === 11, 'January 2026 back should be December 2025');
+        assert(stepCalendarMonth({ year: 2026, month: 1 }, -1, now) === null, 'Back to the current month should return null');
+        assert(stepCalendarMonth({ year: 2025, month: 11 }, 1, now) === null, 'Forward to the current month should return null');
+      },
+    },
+    {
+      id: 'calendar-new-reminder-prefill',
+      name: 'Calendar: New reminder from a selected day prefills that local date at 12pm, nothing without a day',
+      run: () => {
+        const prefill = getCalendarPrefill('2026-01-22');
+        assert(prefill !== null && toDateKey(prefill.date) === '2026-01-22', 'Prefill should keep the selected local date');
+        assert(prefill?.time.hour === 12 && prefill.time.minute === 0, 'Prefill time should be 12:00');
+        assert(getCalendarPrefill(null) === null, 'No selected day should prefill nothing');
       },
     },
   ];

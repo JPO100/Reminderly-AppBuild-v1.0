@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import svgPaths from '@/imports/svg-go2phgsyt4';
 import ListsHeader from '@/imports/Header';
@@ -28,26 +28,22 @@ import TutorialStaticReminderList, { TUTORIAL_PAGE_2_DONE_LIST_IDS, TUTORIAL_REM
 import AddListItemInput from '@/app/components/lists/AddListItemInput';
 import EditableListItem from '@/app/components/lists/EditableListItem';
 import TutorialReminderFilters, {
-  GROUPED_TUTORIAL_LIST_FILTER_ITEMS,
   SAVED_LISTS_TUTORIAL_FILTER_ITEMS,
   type TutorialFilterKey,
-  UNGROUPED_TUTORIAL_FILTER_ITEMS,
+  TutorialRemindersFilterRow,
   UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS,
 } from '@/app/components/TutorialReminderFilters';
-import type { FiltersMenuVariant } from '../reminder-utils';
+import { getTutorialPageIds } from '@/app/utils/tutorial-pages';
 
 interface TutorialOnboardingContentProps {
   onComplete: () => void;
-  filtersMenuVariant: FiltersMenuVariant;
   variant: 'reminders' | 'lists';
   isListsEnabled: boolean;
   settingsMenuEnabled: boolean;
+  smartRemindersEnabled: boolean;
   savedListsEnabled: boolean;
 }
 
-const LIST_TUTORIAL_TOTAL_PAGES = 8;
-const REMINDER_TUTORIAL_BASE_TOTAL_PAGES = 5;
-const REMINDER_TUTORIAL_SETTINGS_TOTAL_PAGES = 6;
 const LIST_BLUE = "#4784F8";
 const REMINDERLY_LIGHT_BLUE = "#4784F8";
 const TUTORIAL_PHONE_GAP_TOP_CLASSNAME = "mt-[35px]";
@@ -194,7 +190,7 @@ function Page5DoneDeletedFilters() {
       <div className="flex items-center justify-between gap-[10px]">
         <div className="flex items-center gap-[8px]">
           <div
-            className="bg-white content-stretch flex items-center justify-center px-[11.144px] h-[31px] relative rounded-[69.652px] shrink-0"
+            className="bg-white content-stretch flex items-center justify-center px-[11.144px] h-[31.5px] relative rounded-[69.652px] shrink-0"
             style={{ boxShadow: "inset 0 0 0 1.392px #4784F8", color: "#4784F8" }}
           >
             <div className="font-['Lato',sans-serif] font-bold text-[9.751px] whitespace-nowrap">
@@ -202,7 +198,7 @@ function Page5DoneDeletedFilters() {
             </div>
           </div>
           <div
-            className="content-stretch flex items-center justify-center px-[11.144px] h-[31px] relative rounded-[69.652px] shrink-0"
+            className="content-stretch flex items-center justify-center px-[11.144px] h-[31.5px] relative rounded-[69.652px] shrink-0"
             style={{ boxShadow: "inset 0 0 0 0.696px #898989", color: "#898989" }}
           >
             <div className="font-['Lato',sans-serif] font-bold text-[9.751px] whitespace-nowrap">
@@ -210,7 +206,7 @@ function Page5DoneDeletedFilters() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex items-center justify-center h-[31px] w-[66px] relative rounded-[69.652px] shrink-0 border border-solid border-[#4784F8] text-[#4784F8]">
+        <div className="content-stretch flex items-center justify-center h-[31.5px] w-[66px] relative rounded-[69.652px] shrink-0 border border-solid border-[#4784F8] text-[#4784F8]">
           <div className="font-['Lato',sans-serif] font-bold text-[9.751px] whitespace-nowrap">
             Clear all
           </div>
@@ -682,7 +678,6 @@ function SmartReminderSheetOverlay({ visible, showTickThrob, onExitComplete }: {
 }
 
 function ListsTutorialPlaceholderPage({
-  filtersMenuVariant,
   currentPage,
   settingsMenuEnabled,
   savedListsEnabled,
@@ -694,7 +689,6 @@ function ListsTutorialPlaceholderPage({
   page2ShowDoneLists,
   onPage2DoneSequenceComplete,
 }: {
-  filtersMenuVariant: FiltersMenuVariant;
   currentPage: number;
   settingsMenuEnabled: boolean;
   savedListsEnabled: boolean;
@@ -716,17 +710,8 @@ function ListsTutorialPlaceholderPage({
   const listFilterItems =
     savedListsEnabled
       ? SAVED_LISTS_TUTORIAL_FILTER_ITEMS
-      : filtersMenuVariant === 'grouped'
-      ? GROUPED_TUTORIAL_LIST_FILTER_ITEMS
       : UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS;
-  const displayActiveFilter: TutorialFilterKey | undefined =
-    currentPage === 0 && !savedListsEnabled && filtersMenuVariant === 'grouped'
-      ? activeFilter === 'todo'
-        ? 'grouped-todo'
-        : activeFilter === 'started'
-        ? 'almost'
-        : activeFilter
-      : activeFilter;
+  const displayActiveFilter: TutorialFilterKey | undefined = activeFilter;
 
   const [page5Phase, setPage5Phase] = useState<Page5Phase>("none");
   const [page5TemplatesButtonElement, setPage5TemplatesButtonElement] = useState<HTMLDivElement | null>(null);
@@ -1065,7 +1050,7 @@ function ListsTutorialPlaceholderPage({
         <div className="content-stretch flex flex-col items-center relative shrink-0">
           <div className={TUTORIAL_TITLE_CLASSNAME}>
             <p className="css-ew64yg leading-[normal]">
-              {currentPage === 0 ? "A tour of lists" : currentPage === 1 ? "Manage completed lists" : currentPage === 2 ? "View and edit lists" : currentPage === 3 ? "Create smart reminders" : currentPage === 4 ? "Use list templates" : "Setting title"}
+              {currentPage === 0 ? "A tour of lists" : currentPage === 1 ? "Manage completed lists" : currentPage === 2 ? "View and edit lists" : currentPage === 3 ? "Create smart reminders" : "Use list templates"}
             </p>
           </div>
         </div>
@@ -1078,17 +1063,15 @@ function ListsTutorialPlaceholderPage({
             <p className="css-4hzbpn leading-[30px]">Quickly add, update, and organise<br />your lists in one place.</p>
           ) : currentPage === 3 ? (
             <p className="css-4hzbpn leading-[30px]">Link lists to reminders so you<br />never miss important tasks.</p>
-          ) : currentPage === 4 ? (
-            <p className="css-4hzbpn leading-[30px]">Create lists from ready-made<br />templates to get started fast.</p>
           ) : (
-            <p className="css-4hzbpn leading-[30px]">Setting subtitle</p>
+            <p className="css-4hzbpn leading-[30px]">Create lists from ready-made<br />templates to get started fast.</p>
           )}
         </div>
       </div>
       <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
         <TutorialPhoneShell
           activeMainTab={currentPage === 3 ? page4ActiveTab : "lists"}
-          showHeaderMenu={settingsMenuEnabled}
+          showHeaderMenu={false}
           headerProps={{
             logoTickHighlight: currentPage === 1 && page2ShowLogoHighlight,
             logoTickDone: currentPage === 1 && page2ShowDoneLists,
@@ -1097,18 +1080,14 @@ function ListsTutorialPlaceholderPage({
           filterRow={currentPage === 1 && page2ShowDoneLists ? (
             <Page5DoneDeletedFilters />
           ) : currentPage === 3 && page4ActiveTab === "reminders" ? (
-            <TutorialReminderFilters
-              items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-              showHiddenItems
-            />
+            <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
           ) : page5ShowTemplatesPanel || page5ShowEditor ? null : (
             <TutorialReminderFilters
               items={listFilterItems}
-              showSettings={!savedListsEnabled && filtersMenuVariant === 'grouped'}
               trailing={savedListsEnabled ? <TemplatesTutorialButton /> : undefined}
               onTrailingElementChange={currentPage === 4 ? setPage5TemplatesButtonElement : undefined}
-              layout={savedListsEnabled || filtersMenuVariant === 'grouped' ? 'inline' : 'between'}
-              rowGapClassName={savedListsEnabled || filtersMenuVariant === 'grouped' ? 'gap-[12.923px]' : 'gap-[10px]'}
+              layout={savedListsEnabled ? 'inline' : 'between'}
+              rowGapClassName={savedListsEnabled ? 'gap-[12.923px]' : 'gap-[10px]'}
               groupGapClassName="gap-[8.615px]"
               activeKey={currentPage === 0 ? displayActiveFilter : undefined}
             />
@@ -1152,7 +1131,7 @@ function ListsTutorialPlaceholderPage({
                     }}
                   >
                     <div ref={setPage5EditorHostElement} className="relative w-full h-full flex flex-col mx-auto">
-                      <div className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
+                      <div className="content-stretch flex flex-col gap-[26px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
                         <ListsHeader
                           value="Weekly food shop"
                           onChange={() => {}}
@@ -1305,6 +1284,7 @@ function ListsTutorialPlaceholderPage({
               onListFilterChange={currentPage === 0 ? onActiveFilterChange : undefined}
               onPage3DoneSequenceComplete={currentPage === 1 ? onPage2DoneSequenceComplete : undefined}
               rowTargetListId={currentPage === 2 ? LISTS_PAGE_3_TARGET_LIST_ID : undefined}
+              combineLaterSometime={settingsMenuEnabled}
               onRowTargetElementChange={currentPage === 2 ? setPage3TargetElement : undefined}
               prependSmartReminder={currentPage === 3 && smartFlowPhase === "reminder-visible"}
             />
@@ -1471,10 +1451,17 @@ function ListsTutorialPlaceholderPage({
   );
 }
 
-export default function TutorialOnboardingContent({ onComplete, filtersMenuVariant, variant, isListsEnabled: _isListsEnabled, settingsMenuEnabled, savedListsEnabled }: TutorialOnboardingContentProps) {
-  const [currentPage, setCurrentPage] = useState(0);
+export default function TutorialOnboardingContent({ onComplete, variant, isListsEnabled, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled }: TutorialOnboardingContentProps) {
+  // currentStep is the position in the visible sequence; currentPage is the page id being shown
+  const [currentStep, setCurrentStep] = useState(0);
+  const pageIds = useMemo(
+    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled }),
+    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled],
+  );
+  const totalPages = pageIds.length;
+  const currentPage = pageIds[Math.min(currentStep, totalPages - 1)];
   const isListsTutorial = variant === 'lists';
-  const page2ActiveFilter = useOnboardingPage2ActiveFilter(!isListsTutorial && currentPage === 1);
+  const page2ActiveFilter = useOnboardingPage2ActiveFilter(!isListsTutorial && currentPage === 1, settingsMenuEnabled);
   const [listsTutorialActiveFilter, setListsTutorialActiveFilter] = useState<TutorialFilterKey | undefined>(undefined);
   const [listsPage2CycleKey, setListsPage2CycleKey] = useState(0);
   const [listsPage2Phase, setListsPage2Phase] = useState<"marking" | "done-list">("marking");
@@ -1483,11 +1470,6 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
   const [page3ShowOverlay, setPage3ShowOverlay] = useState(false);
   const [page5ShowLogoHighlight, setPage5ShowLogoHighlight] = useState(false);
   const [page5ShowDoneReminders, setPage5ShowDoneReminders] = useState(false);
-  const totalPages = isListsTutorial
-    ? LIST_TUTORIAL_TOTAL_PAGES
-    : settingsMenuEnabled
-    ? REMINDER_TUTORIAL_SETTINGS_TOTAL_PAGES
-    : REMINDER_TUTORIAL_BASE_TOTAL_PAGES;
 
   useEffect(() => {
     if (isListsTutorial || currentPage !== 2) {
@@ -1584,35 +1566,35 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
   }, [currentPage, isListsTutorial, listsPage2Phase]);
 
   useEffect(() => {
-    if (currentPage >= totalPages) {
-      setCurrentPage(totalPages - 1);
+    if (currentStep >= totalPages) {
+      setCurrentStep(totalPages - 1);
     }
-  }, [currentPage, totalPages]);
+  }, [currentStep, totalPages]);
 
   const handleNext = () => {
-    if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
+    if (currentStep < totalPages - 1) {
+      setCurrentStep(currentStep + 1);
     } else {
       onComplete();
     }
   };
 
   const handleBack = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
   const handleRestart = () => {
-    setCurrentPage(0);
+    setCurrentStep(0);
   };
 
   const handleListsPage2DoneSequenceComplete = useCallback(() => {
     setListsPage2Phase("done-list");
   }, []);
 
-  const isFirstPage = currentPage === 0;
-  const isLastPage = currentPage === totalPages - 1;
+  const isFirstPage = currentStep === 0;
+  const isLastPage = currentStep === totalPages - 1;
   const activePaginationColor = isListsTutorial ? LIST_BLUE : REMINDERLY_LIGHT_BLUE;
   const nextButtonColor = isListsTutorial ? LIST_BLUE : "#4784f8";
   const paginationWidth = 115.542;
@@ -1641,15 +1623,13 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
               <TutorialPhoneShell
                 activeMainTab="reminders"
-                showHeaderMenu={settingsMenuEnabled}
+                showMainTabBar={isListsEnabled}
+                showHeaderMenu={false}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }
               >
-                <OnboardingPage1Content />
+                <OnboardingPage1Content combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1661,16 +1641,13 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
               <TutorialPhoneShell
                 activeMainTab="reminders"
-                showHeaderMenu={settingsMenuEnabled}
+                showMainTabBar={isListsEnabled}
+                showHeaderMenu={false}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    activeKey={page2ActiveFilter}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} activeKey={page2ActiveFilter} />
                 }
               >
-                <OnboardingPage2Content activeFilter={page2ActiveFilter} />
+                <OnboardingPage2Content activeFilter={page2ActiveFilter} combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1682,16 +1659,14 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
               <TutorialPhoneShell
                 activeMainTab="reminders"
-                showHeaderMenu={settingsMenuEnabled}
+                showMainTabBar={isListsEnabled}
+                showHeaderMenu={false}
                 overlay={page3ShowOverlay ? <TutorialReminderInfoOverlay reminder={CALL_DENTIST_TUTORIAL_REMINDER} /> : undefined}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }
               >
-                <OnboardingPage3Content onOverlayOpenChange={setPage3ShowOverlay} />
+                <OnboardingPage3Content onOverlayOpenChange={setPage3ShowOverlay} combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1703,15 +1678,13 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
               <TutorialPhoneShell
                 activeMainTab="reminders"
-                showHeaderMenu={settingsMenuEnabled}
+                showMainTabBar={isListsEnabled}
+                showHeaderMenu={false}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }
               >
-                <OnboardingPage4Content />
+                <OnboardingPage4Content combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1723,7 +1696,8 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
               <TutorialPhoneShell
                 activeMainTab="reminders"
-                showHeaderMenu={settingsMenuEnabled}
+                showMainTabBar={isListsEnabled}
+                showHeaderMenu={false}
                 headerProps={{
                   logoTickHighlight: page5ShowLogoHighlight,
                   logoTickDone: page5ShowDoneReminders,
@@ -1732,16 +1706,14 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
                 filterRow={page5ShowDoneReminders ? (
                   <Page5DoneDeletedFilters />
                 ) : (
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 )}
               >
                 <OnboardingPage5Content
                   onLogoHighlightChange={setPage5ShowLogoHighlight}
                   onDoneRemindersChange={setPage5ShowDoneReminders}
                   showDoneReminders={page5ShowDoneReminders}
+                  combineLaterSometime={settingsMenuEnabled}
                 />
               </TutorialPhoneShell>
             </div>
@@ -1754,15 +1726,13 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
               <TutorialPhoneShell
                 activeMainTab="reminders"
-                showHeaderMenu={settingsMenuEnabled}
+                showMainTabBar={isListsEnabled}
+                showHeaderMenu={false}
                 filterRow={
-                  <TutorialReminderFilters
-                    items={UNGROUPED_TUTORIAL_FILTER_ITEMS}
-                    showHiddenItems
-                  />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }
               >
-                <OnboardingPage6Content />
+                <OnboardingPage6Content combineLaterSometime={settingsMenuEnabled} />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1770,7 +1740,6 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
         
         {isListsTutorial && (
           <ListsTutorialPlaceholderPage
-            filtersMenuVariant={filtersMenuVariant}
             currentPage={currentPage}
             settingsMenuEnabled={settingsMenuEnabled}
             savedListsEnabled={savedListsEnabled}
@@ -1794,7 +1763,7 @@ export default function TutorialOnboardingContent({ onComplete, filtersMenuVaria
                   key={index}
                   cx={paginationStartX + index * paginationDotSpacing}
                   cy="3.96729"
-                  fill={currentPage === index ? activePaginationColor : "#D9D9D9"}
+                  fill={currentStep === index ? activePaginationColor : "#D9D9D9"}
                   r={paginationDotRadius}
                 />
               ))}

@@ -1,5 +1,6 @@
 import svgPaths from "./svg-k8owpv3rm6";
 import { parseTokens, type ParsedToken, type TokenCategory, type NlcRecognitionConfig } from "../app/utils/nlc-parser";
+import { keepRepeatRuleWhenOff } from "../app/settings/resolver";
 import {
   parseDateTokenValue,
   parseTimeTokenValue,
@@ -19,10 +20,15 @@ import type { Reminder, ReminderAttachment } from "../app/reminder-utils";
 import type { ReminderSchedule } from "../app/reminder-utils";
 import { validateAttachment, resolveMimeType, saveAttachment, deleteAttachment } from "../app/utils/attachment-storage";
 import { Filesystem, Directory } from "@capacitor/filesystem";
-import * as pdfjsLib from 'pdfjs-dist';
 // @ts-ignore — Vite ?url import returns a string asset URL
 import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
+
+// pdf.js is loaded on first PDF preview, as it needs browser APIs at import time
+async function loadPdfjs() {
+  const pdfjsLib = await import('pdfjs-dist');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
+  return pdfjsLib;
+}
 import { FilePicker } from "@capawesome/capacitor-file-picker";
 import { Camera, CameraSource, CameraResultType } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
@@ -77,6 +83,21 @@ function isSameDate(a: Date | null, b: Date | null): boolean {
   return a.getFullYear() === b.getFullYear() &&
          a.getMonth() === b.getMonth() &&
          a.getDate() === b.getDate();
+}
+
+// Text is mandatory. Date OFF saves as Sometime; Date ON requires both a date and a time.
+export function canSubmitReminder({ text, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime }: { text: string; requiresScheduledReminder: boolean; isDateOn: boolean; selectedDate: Date | null; isTimeOn: boolean; selectedTime: { hour: number; minute: number } | null }): boolean {
+  if (text.trim().length === 0) return false;
+  if (!requiresScheduledReminder || !isDateOn) return true;
+  return selectedDate !== null && isTimeOn && selectedTime !== null;
+}
+
+// Calendar view: a new reminder from a selected day starts with that date and the usual 12pm time
+// (a new reminder with a date needs a time). Null when there is no selected day.
+export function getCalendarPrefill(initialDate: string | null): { date: Date; time: { hour: number; minute: number } } | null {
+  if (!initialDate) return null;
+  const [y, m, d] = initialDate.split('-').map(Number);
+  return { date: new Date(y, m - 1, d), time: { hour: 12, minute: 0 } };
 }
 
 export function formatSelectedDate(date: Date | null, now?: Date): string | null {
@@ -289,9 +310,10 @@ function AddTickBtn({ active, onSubmit }: { active: boolean; onSubmit?: () => vo
       disabled={!active}
       onClick={active ? onSubmit : undefined}
     >
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 50 50">
+      {/* 45 x 45 button; viewBox crops the original 50px artwork so the tick icon keeps its size and stays centred */}
+      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="2.5 2.5 45 45">
         <g id="add-tick-btn">
-          <rect fill={active ? "#4784F8" : "#D9D9D9"} height="50" rx="25" width="50" />
+          <rect fill={active ? "#4784F8" : "#D9D9D9"} x="2.5" y="2.5" height="45" rx="22.5" width="45" />
           <path d={svgPaths.p1635b2f0} fill={active ? "#F0FAFE" : "white"} id="tick-icon" />
         </g>
       </svg>
@@ -301,7 +323,7 @@ function AddTickBtn({ active, onSubmit }: { active: boolean; onSubmit?: () => vo
 
 function Header({ isSubmitActive, onSubmit, title }: { isSubmitActive: boolean; onSubmit?: () => void; title: string }) {
   return (
-    <div className="flex items-center justify-between w-full" data-name="header">
+    <div className="flex items-center justify-between relative shrink-0 w-full h-[45px] mb-[2px]" data-name="header">
       <span className="font-['Lato:Bold',sans-serif] not-italic text-[#1C2C42] text-[20px] whitespace-nowrap">{title}</span>
       <AddTickBtn active={isSubmitActive} onSubmit={onSubmit} />
     </div>
@@ -531,6 +553,7 @@ function ReminderOptions({
   useOneMinuteIncrements = false,
   disableRepeats = false,
   repeatInactiveColor,
+  showRepeats = true,
 }: { 
   isDateOn: boolean; 
   onDateToggle: () => void; 
@@ -550,6 +573,7 @@ function ReminderOptions({
   useOneMinuteIncrements?: boolean;
   disableRepeats?: boolean;
   repeatInactiveColor?: string;
+  showRepeats?: boolean;
 }) {
   return (
     <div className="content-stretch flex flex-col gap-[24px] items-start relative shrink-0 w-full flex-1 min-h-0 overflow-y-auto" data-name="reminder-options">
@@ -562,24 +586,27 @@ function ReminderOptions({
         onLabelClick={onDateLabelClick}
       />
       <SetTime isTimeOn={isTimeOn} onTimeToggle={onTimeToggle} selectedTime={selectedTime} onTimeSelect={onTimeSelect} isDrawerOpen={openDrawer === 'time'} onLabelClick={onTimeLabelClick} useOneMinuteIncrements={useOneMinuteIncrements} />
-      <SetRepeats isRepeatsOn={isRepeatsOn} onRepeatsToggle={onRepeatsToggle} repeatConfig={repeatConfig} onLabelClick={onRepeatsLabelClick} disabled={disableRepeats || (!isDateOn && !isTimeOn)} keepFullOpacityWhenDisabled={disableRepeats} inactiveColor={repeatInactiveColor} />
+      {showRepeats && <SetRepeats isRepeatsOn={isRepeatsOn} onRepeatsToggle={onRepeatsToggle} repeatConfig={repeatConfig} onLabelClick={onRepeatsLabelClick} disabled={disableRepeats || (!isDateOn && !isTimeOn)} keepFullOpacityWhenDisabled={disableRepeats} inactiveColor={repeatInactiveColor} />}
     </div>
   );
 }
 
-function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, isReminderAttachmentsEnabled = false }: { onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; isReminderAttachmentsEnabled?: boolean }) {
+function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null, isReminderAttachmentsEnabled = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null; isReminderAttachmentsEnabled?: boolean }) {
   const isEditMode = !!editReminder;
   const isSmartReminderCreate = !!smartReminderCreateList;
   const isSmartReminderEdit = editReminder?.isSmartReminder === true;
   const isSmartReminderMode = isSmartReminderEdit || isSmartReminderCreate;
+  const calendarPrefill = editReminder ? null : getCalendarPrefill(initialDate);
 
   const [isDateOn, setIsDateOn] = useState(() => {
     if (smartReminderCreateList) return true;
     if (editReminder?.schedule.kind === 'scheduled') return true;
+    if (calendarPrefill) return true;
     return false;
   });
   const [isTimeOn, setIsTimeOn] = useState(() => {
     if (smartReminderCreateList) return true;
+    if (calendarPrefill) return true;
     if (editReminder?.schedule.kind === 'scheduled' && editReminder.schedule.time) return true;
     return false;
   });
@@ -603,12 +630,14 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
       date.setHours(0, 0, 0, 0);
       return date;
     }
+    if (calendarPrefill) return calendarPrefill.date;
     return null;
   });
   const [selectedTime, setSelectedTime] = useState<{ hour: number; minute: number } | null>(() => {
     if (smartReminderCreateList) {
       return { hour: 12, minute: 0 };
     }
+    if (calendarPrefill) return calendarPrefill.time;
     if (editReminder?.schedule.kind === 'scheduled' && editReminder.schedule.time) {
       const [hh, mm] = editReminder.schedule.time.split(':').map(Number);
       return { hour: hh, minute: mm };
@@ -651,6 +680,7 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
             for (let i = 0; i < binaryString.length; i++) {
               bytes[i] = binaryString.charCodeAt(i);
             }
+            const pdfjsLib = await loadPdfjs();
             const pdf = await pdfjsLib.getDocument({ data: bytes.buffer }).promise;
             const page = await pdf.getPage(1);
             const vp = page.getViewport({ scale: 1 });
@@ -1218,6 +1248,7 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
       if (resolvedMime === 'application/pdf') {
         try {
           const arrayBuffer = await blob.arrayBuffer();
+          const pdfjsLib = await loadPdfjs();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           const page = await pdf.getPage(1);
           const vp = page.getViewport({ scale: 1 });
@@ -1421,10 +1452,8 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
 
   const handleSubmit = async () => {
     const text = reminderText.trim();
-    if (!text) return;
     const requiresScheduledReminder = !isEditMode && !isSmartReminderMode;
-    if (requiresScheduledReminder && (!isDateOn || !selectedDate)) return;
-    if (requiresScheduledReminder && (!isTimeOn || !selectedTime)) return;
+    if (!canSubmitReminder({ text, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime })) return;
 
     // Build schedule
     let schedule: Reminder['schedule'];
@@ -1438,7 +1467,7 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
       schedule = { kind: 'sometime' };
     }
 
-    const repeatRule = isRepeatsOn ? repeatConfigToRule(repeatConfig) : null;
+    const repeatRule = keepRepeatRuleWhenOff(repeatsEnabled, editReminder?.repeatRule, isRepeatsOn ? repeatConfigToRule(repeatConfig) : null);
 
     const now = new Date();
 
@@ -1536,12 +1565,12 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
   };
 
   const requiresScheduledReminder = !isEditMode && !isSmartReminderMode;
-  const isSubmitActive = reminderText.trim().length > 0 && (!requiresScheduledReminder || (isDateOn && selectedDate !== null && isTimeOn && selectedTime !== null));
+  const isSubmitActive = canSubmitReminder({ text: reminderText, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime });
 
   return (
     <>
     <div className="relative shrink-0 w-full max-w-[768px] h-full flex flex-col" data-name="new-reminder-elements">
-      <div className="content-stretch flex flex-col gap-[22px] items-start pt-[30px] px-[24px] relative w-full shrink-0">
+      <div className="content-stretch flex flex-col gap-[22px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
         <Header isSubmitActive={isSubmitActive} onSubmit={handleSubmit} title={isSmartReminderCreate ? 'Add smart reminder' : isEditMode ? (isSmartReminderEdit ? 'Edit smart reminder' : 'Edit reminder') : 'New reminder'} />
         {/* NLC: Container wraps mirror layer + textarea for alignment */}
         {/* Mirror and hit layer must stay identical in text metrics (font, size, line-height, padding, whitespace). Any styling change must be applied to both. */}
@@ -1769,6 +1798,7 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
           onTimeSelect={handleTimeSelect}
           isRepeatsOn={isRepeatsOn}
           onRepeatsToggle={handleRepeatsToggle}
+          showRepeats={repeatsEnabled}
         repeatConfig={repeatConfig}
         openDrawer={openDrawer}
         onDateLabelClick={handleDateLabelClick}
@@ -1912,10 +1942,10 @@ function NewReminderElements({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfi
   );
 }
 
-export default function NewReminderOverlay({ onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, isReminderAttachmentsEnabled = false }: { onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; isReminderAttachmentsEnabled?: boolean }) {
+export default function NewReminderOverlay({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null, isReminderAttachmentsEnabled = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null; isReminderAttachmentsEnabled?: boolean }) {
   return (
     <div className="bg-white content-stretch flex flex-col items-center relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="new-reminder-overlay">
-      <NewReminderElements onRepeatsOverlayOpen={onRepeatsOverlayOpen} repeatConfig={repeatConfig} onRepeatConfigChange={onRepeatConfigChange} isRepeatsOverlayOpen={isRepeatsOverlayOpen} addReminder={addReminder} onClose={onClose} nlcMode={nlcMode} nlcEnabled={nlcEnabled} nlcRecognition={nlcRecognition} editReminder={editReminder} updateReminder={updateReminder} smartReminderCreateList={smartReminderCreateList} onCreateSmartReminder={onCreateSmartReminder} useOneMinuteIncrements={useOneMinuteIncrements} autoFocusReady={autoFocusReady} isReminderAttachmentsEnabled={isReminderAttachmentsEnabled} />
+      <NewReminderElements repeatsEnabled={repeatsEnabled} onRepeatsOverlayOpen={onRepeatsOverlayOpen} repeatConfig={repeatConfig} onRepeatConfigChange={onRepeatConfigChange} isRepeatsOverlayOpen={isRepeatsOverlayOpen} addReminder={addReminder} onClose={onClose} nlcMode={nlcMode} nlcEnabled={nlcEnabled} nlcRecognition={nlcRecognition} editReminder={editReminder} updateReminder={updateReminder} smartReminderCreateList={smartReminderCreateList} onCreateSmartReminder={onCreateSmartReminder} useOneMinuteIncrements={useOneMinuteIncrements} autoFocusReady={autoFocusReady} initialDate={initialDate} isReminderAttachmentsEnabled={isReminderAttachmentsEnabled} />
     </div>
   );
 }

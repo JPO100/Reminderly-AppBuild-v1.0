@@ -219,7 +219,19 @@ Summary:
 - Restored notifications.test.ts to its pre-f98d81f expectations, matching the hasActiveDateOnlyReminder guard restored on 2026-06-18
 - Updated src/app/dev/BASELINE.md with the verified baseline
 
-### reminder-attachments
+### fix/tutorial-first-launch
+
+Created: 2026-10-14
+Parent: main (60bb9a8)
+Purpose: Tutorial first-launch fix (D9 / F9), recovered from the uncommitted claude/great-shannon-fbec22 worktree (preserved unchanged on recovery/tutorial-first-launch-wip, 2411d04)
+Status: Active, awaiting review before merge
+
+Summary:
+- "Show tutorial on first launch" reads the saved shown keys: each variant auto-opens only until it has been closed once. "Show tutorial on every start" unchanged. Manual access unchanged
+- `shouldAutoOpenTutorial` (utils/tutorial-pages.ts) as recovered; App.tsx guard on start and on tab switch
+- Adapted to current main: Self Checks rewritten without the removed storage helper; unit test added for an existing user who has seen only one tutorial
+- Verification: Vitest 182/182, Self Check 372/372, production build successful
+
 
 Created: 2026-08-25
 Parent: main

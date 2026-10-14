@@ -15,7 +15,7 @@ The animated tutorial for Reminders and Lists, shown in a slide-up overlay with 
 - The variant follows the shown tab: Lists tab gives the Lists tutorial, otherwise Reminders.
 - Closing writes `reminderly-tutorial-reminders-shown` or `reminderly-tutorial-lists-shown`. These keys are not currently read by the app.
 
-### Confirmed requirement and current discrepancy
+### Confirmed requirement
 
 Confirmed product requirement (John, 2026-10-12):
 
@@ -23,7 +23,7 @@ Confirmed product requirement (John, 2026-10-12):
 - Record that it has been shown, so it does not appear automatically on later launches.
 - Keep it available manually through the existing settings rows.
 
-Current implementation (not yet aligned): because the "shown" keys are never read, "Show tutorial on first launch" opens the tutorial automatically on every app start (once per tab variant per session). Manual access works as required. The fix is to be made separately on a development branch with focused testing and regression checks.
+Implementation (fix/tutorial-first-launch, 2026-10-14): closing a tutorial saves its "shown" key (`reminderly-tutorial-reminders-shown`, `reminderly-tutorial-lists-shown`). With "Show tutorial on first launch", each variant auto-opens only while its key is not `'true'`, on app start and on first switching to that tab. "Show tutorial on every start" still always opens it. Existing users who have already closed a tutorial keep their saved key, so it does not reopen. Decision logic: `shouldAutoOpenTutorial` in `utils/tutorial-pages.ts`. Manual access is unchanged.
 
 ## Structure
 

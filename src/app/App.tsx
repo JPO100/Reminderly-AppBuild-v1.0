@@ -25,6 +25,7 @@ import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMo
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
+import { shouldAutoOpenTutorial } from "./utils/tutorial-pages";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
 import { keepRepeatRuleWhenOff } from "./settings/resolver";
@@ -1572,6 +1573,14 @@ export default function App() {
     }
   };
 
+  const hasSeenTutorial = (variant: TutorialVariant) => {
+    try {
+      return localStorage.getItem(getTutorialSeenStorageKey(variant)) === 'true';
+    } catch {
+      return false;
+    }
+  };
+
   const tutorialVariantsShownThisSessionRef = useRef<Set<TutorialVariant>>(new Set());
 
   const openTutorial = useCallback((variant: TutorialVariant) => {
@@ -1592,6 +1601,7 @@ export default function App() {
     if (!isOnboardingTutorialEnabled) return;
     if (!showTutorialOnFirstLaunch && !showTutorialOnEveryStart) return;
     const initialTutorialVariant: TutorialVariant = shownMainTab === 'lists' ? 'lists' : 'reminders';
+    if (!shouldAutoOpenTutorial({ showOnFirstLaunch: showTutorialOnFirstLaunch, showOnEveryStart: showTutorialOnEveryStart, hasSeenVariant: hasSeenTutorial(initialTutorialVariant) })) return;
     openTutorial(initialTutorialVariant);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1607,6 +1617,7 @@ export default function App() {
     if (!showTutorialOnFirstLaunch && !showTutorialOnEveryStart) return;
     if (isTutorialOpen) return;
     const nextTutorialVariant: TutorialVariant = shownMainTab === 'lists' ? 'lists' : 'reminders';
+    if (!shouldAutoOpenTutorial({ showOnFirstLaunch: showTutorialOnFirstLaunch, showOnEveryStart: showTutorialOnEveryStart, hasSeenVariant: hasSeenTutorial(nextTutorialVariant) })) return;
     if (!tutorialVariantsShownThisSessionRef.current.has(nextTutorialVariant)) {
       openTutorial(nextTutorialVariant);
     }

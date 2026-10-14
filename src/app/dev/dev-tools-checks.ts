@@ -11,6 +11,7 @@
 import type { Check } from './check-system';
 import { readStoredBool, writeStoredBool } from '../settings/useStoredSetting';
 import { isFeatureActive } from '../settings/resolver';
+import { shouldAutoOpenTutorial } from '../utils/tutorial-pages';
 
 /**
  * Simple assertion helper
@@ -44,6 +45,30 @@ export function getDevToolsChecks(): Check[] {
           assert(actual === value, `${key} should default ${value}, got ${actual}`);
         }
         assert(!isFeatureActive('paywall', { storage }), 'Paywall should be inactive when never saved');
+      },
+    },
+
+    // ========================================================================
+    // Tutorial first launch (D9 / F9): the shown keys decide whether first launch auto-opens
+    // ========================================================================
+
+    {
+      id: 'tutorial-first-launch-skips-seen-variant',
+      name: 'Tutorial first launch: does not auto-open a variant whose shown key is true',
+      run: () => {
+        const saved: Record<string, string> = { 'reminderly-tutorial-reminders-shown': 'true' };
+        const remindersSeen = saved['reminderly-tutorial-reminders-shown'] === 'true';
+        const listsSeen = saved['reminderly-tutorial-lists-shown'] === 'true';
+        assert(!shouldAutoOpenTutorial({ showOnFirstLaunch: true, showOnEveryStart: false, hasSeenVariant: remindersSeen }), 'Expected the seen reminders tutorial not to auto-open');
+        assert(shouldAutoOpenTutorial({ showOnFirstLaunch: true, showOnEveryStart: false, hasSeenVariant: listsSeen }), 'Expected the unseen lists tutorial to auto-open');
+      },
+    },
+
+    {
+      id: 'tutorial-every-start-ignores-seen-variant',
+      name: 'Tutorial every start: auto-opens even when the shown key is true',
+      run: () => {
+        assert(shouldAutoOpenTutorial({ showOnFirstLaunch: false, showOnEveryStart: true, hasSeenVariant: true }), 'Expected every start to auto-open a seen tutorial');
       },
     },
 

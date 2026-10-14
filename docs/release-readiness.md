@@ -21,7 +21,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 | iPhone only | 2026-10-12, John | Set `TARGETED_DEVICE_FAMILY` to iPhone for the app and widget. iPhone-only apps still run on iPad in compatibility mode, so check the app on an iPad |
 | Siri enabled for release | 2026-10-12, John | Siri for reminders on by default; the shortcut must work end to end |
 | Developer tools excluded from release builds | 2026-10-12, John | Release feature flags become fixed at their defaults, so the release defaults below must be decided |
-| Tutorial shows once on first launch, then only manually | 2026-10-12, John | Current implementation does not match ([features/onboarding.md](./features/onboarding.md)) |
+| Tutorial shows once on first launch, then only manually | 2026-10-12, John | Implemented on fix/tutorial-first-launch (2026-10-14), pending merge ([features/onboarding.md](./features/onboarding.md)) |
 | Monetisation: 5 for Free with Reminderly Premium, £9 a year (D1) | 2026-10-14, John and CTO | Annual auto-renewing subscription through StoreKit 2; no trial, offer or Family Sharing. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 | No default templates for new users | 2026-10-14, John and CTO | `config-templates-in-clean-state` stays off; all templates count towards the free limit |
 
@@ -98,7 +98,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Developer tools excluded from release builds | Outstanding (decided) | 2.3.1(a) | Triple-tap entry and hard-coded password today |
 | Release feature defaults set | Pending D2 | 2.1, 2.3 | Table above |
 | Unfinished features hidden or completed | Pending D3 | 2.1(a), 2.3.1(a) | |
-| Tutorial shows once on first launch | Outstanding (decided) | 4.0 | Shown keys are written but never read |
+| Tutorial shows once on first launch | Implemented, pending merge (fix/tutorial-first-launch) | 4.0 | Shown keys are now read on start and tab switch |
 | Correct "1 minute time increments" info text | Outstanding | 2.3 | Says 5-minute steps; the picker uses 15 |
 | No placeholder or test content visible | Verify before submission | 2.1(a) | |
 | Local data durability (`localStorage` in WKWebView) | Verify before submission | 2.1 | Rare iOS clearing would lose data; consider before release |

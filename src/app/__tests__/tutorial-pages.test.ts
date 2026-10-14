@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getTutorialPageIds, type TutorialPageConfig } from '../utils/tutorial-pages';
+import { getTutorialPageIds, shouldAutoOpenTutorial, type TutorialPageConfig } from '../utils/tutorial-pages';
 
 function config(overrides: Partial<TutorialPageConfig> = {}): TutorialPageConfig {
   return {
@@ -45,5 +45,28 @@ describe('getTutorialPageIds - lists tutorial', () => {
   it('never includes placeholder pages or the reminders settings page', () => {
     const pages = getTutorialPageIds(config({ variant: 'lists', settingsMenuEnabled: true, smartRemindersEnabled: true, savedListsEnabled: true }));
     expect(pages.every((page) => page <= 4)).toBe(true);
+  });
+});
+
+describe('shouldAutoOpenTutorial', () => {
+  it('first launch opens a variant that has not been seen', () => {
+    expect(shouldAutoOpenTutorial({ showOnFirstLaunch: true, showOnEveryStart: false, hasSeenVariant: false })).toBe(true);
+  });
+
+  it('first launch does not open a variant that has been seen', () => {
+    expect(shouldAutoOpenTutorial({ showOnFirstLaunch: true, showOnEveryStart: false, hasSeenVariant: true })).toBe(false);
+  });
+
+  it('every start opens even when the variant has been seen', () => {
+    expect(shouldAutoOpenTutorial({ showOnFirstLaunch: false, showOnEveryStart: true, hasSeenVariant: true })).toBe(true);
+  });
+
+  it('existing user who has seen the reminders tutorial only gets the lists tutorial', () => {
+    expect(shouldAutoOpenTutorial({ showOnFirstLaunch: true, showOnEveryStart: false, hasSeenVariant: true })).toBe(false);
+    expect(shouldAutoOpenTutorial({ showOnFirstLaunch: true, showOnEveryStart: false, hasSeenVariant: false })).toBe(true);
+  });
+
+  it('never opens when both triggers are off', () => {
+    expect(shouldAutoOpenTutorial({ showOnFirstLaunch: false, showOnEveryStart: false, hasSeenVariant: false })).toBe(false);
   });
 });

@@ -13,7 +13,14 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: d079bbb
+Tip: merge of reminder-attachments (2026-10-14)
+
+Merge - 2026-10-14: Reminder attachments
+- Merge commit of reminder-attachments (9007529) into main (3f04e30). No conflicts
+- Before merging, the uncommitted work on main was committed and pushed: 62e7a9f (monetisation decision, paywall specification, deployment order) and 3f04e30 (calendar empty text). Generated index.html restored and regenerated; local Package.resolved replaced by the branch version (adds ion-ios-camera 1.0.5 and ion-ios-filesystem 1.1.2)
+- Adds reminder attachments behind `reminderly-ff-reminder-attachments` (default off), the recovered list data loss and smart reminder fixes, the Move to tomorrow helper and tests, and the Repeats inactive tick colours
+- Verification on main: Vitest 177/177, Self Check 370/370, production build successful, Info.plist permissions and 9 native plugins confirmed. Attachments passed John's iPhone testing. Device checks outstanding for the recovered list and smart reminder fixes and the Repeats tick
+- reminder-attachments retained until the repository audit
 
 Merge - 2026-10-09: Panel header standardisation
 - Fast-forward merge of feature/settings-panels-header-keyline into main, 83f5a77 to d079bbb (no merge commit)
@@ -211,6 +218,41 @@ Final commit: see merge history
 Summary:
 - Restored notifications.test.ts to its pre-f98d81f expectations, matching the hasActiveDateOnlyReminder guard restored on 2026-06-18
 - Updated src/app/dev/BASELINE.md with the verified baseline
+
+### reminder-attachments
+
+Created: 2026-08-25
+Parent: main
+Purpose: Reminder attachments feature - attach files and photos to reminders
+
+Status: Merged into main 2026-10-14. Retained until the repository audit
+
+Integration - 2026-10-14: main (10c6216) merged into reminder-attachments
+- Approved by John (Option 1). Main is authoritative: every non-attachment conflict resolved to main
+- Flag migrated to the settings model: `reminderly-ff-reminder-attachments` via useStoredSetting, default off in SETTINGS_DEFAULTS, toggle in Dev tools > Reminders > Features (John, 2026-10-14). Active only when Reminders is on. Off hides attachment UI and keeps attachments and files
+- Excluded from the merge (kept as on main, not attachment scope): Claude.md to agents.md rename and Codex config, list data loss diagnostic and openListEditor change (c9baa91), smart reminder insert animation and smart reminder deletion fix (a3a56c3), Move to tomorrow restricted to overdue (84dacf3), header close button, tick colours and global user-select WIP (9cd01c6), 31px tutorial pills
+- pdf.js now loaded on first PDF preview (dynamic import), so modules importing NewReminderOverlay load without browser globals
+- Attachment Self Checks for the flag rewritten on the settings path (main removed the old helper)
+- Branch docs (animation and wheel picker audits, attachment viewing handover, list data loss investigation) moved to docs/archive
+- Verification: Vitest 167/167, Self Check 370/370 (14 attachment), production build successful, simulator and physical iPhone build, install and launch successful
+
+Recovered fixes - 2026-10-14 (approved by John)
+- List data loss fix (from c9baa91): openListEditor loads the list's values in the same render as opening the editor, instead of blanking them and filling them on a timer. Diagnostic log of populated lists becoming blank kept (`reminderly-debug-list-corruption-log`, last 20), detection in `getBlankedLists` (list-utils)
+- Smart reminder fixes (from a3a56c3): deleting a smart reminder clears the list's due date and time (`clearListSmartReminder`) and updates an open list editor so saving it cannot restore the reminder. A smart reminder created from the reminder panel inserts with the normal reminder delay, haptic and highlight
+- Move to tomorrow kept as on main: offered for reminders due today or overdue, not future or sometime. Condition moved to `canMoveToTomorrow` (reminder-utils). 84dacf3 (overdue only) not merged, by decision
+- Header and UI work-in-progress from 9cd01c6 kept excluded
+- Tests: recovered-fixes.test.ts (10 tests). Vitest 177/177, Self Check 370/370, production build successful, simulator and physical iPhone build, install and launch successful
+
+Repeats tick - 2026-10-14 (approved by John): Repeats panel inactive tick matches the List header and New reminder panel (#D9D9D9 circle, white tick). Active colours and 50px size unchanged. Other 9cd01c6 UI changes (app-wide text selection, auto-generated list title) remain excluded
+
+Summary:
+- Step 7A: Choose a File via @capawesome/capacitor-file-picker with metadata-first validation, 25 MB limit, pending attachment lifecycle, generic file tile, delete confirmation
+- Step 7B: Choose a Photo via Camera.getPhoto() with CameraSource.Photos opening standard iOS PHPickerViewController with album navigation, JPEG output, same pending attachment lifecycle
+- Step 7C: Take a Photo via Camera.getPhoto() with CameraSource.Camera opening native iOS camera, same JPEG/pending attachment flow as Choose a Photo
+- Added NSPhotoLibraryAddUsageDescription to Info.plist (required by Camera plugin getPhoto() method)
+- Architectural decision: uses deprecated Camera.getPhoto() API because the newer chooseFromGallery() delegates to IONCameraLib which presents a custom SwiftUI picker without album navigation
+- Physical-device camera UAT for Take a Photo remains outstanding
+- 12 Self Checks cover attachment validation and persistence logic; native picker/camera behaviour verified through manual UAT only
 
 ### badge-midnight-fix
 
@@ -434,6 +476,9 @@ Restored the hasActiveDateOnlyReminder guard in buildMidnightBadgeNotification. 
 
 ### Haptics unified to single light impact (2026-06-15)
 All haptic feedback actions use a single light impact tap rather than varied intensities. Per-action controls were added to dev tools for granular enable/disable.
+
+### Camera plugin deprecated getPhoto() API for photo selection (2026-08-27)
+Choose a Photo and Take a Photo use the deprecated Camera.getPhoto() API rather than the newer chooseFromGallery()/takePhoto() methods. The newer methods delegate to IONCameraLib which presents a custom SwiftUI photo grid without album navigation. The deprecated getPhoto() uses PHPickerViewController (for photos) and UIImagePickerController (for camera), providing the standard iOS experience. Trade-off: all images are returned as JPEG regardless of original format. Acceptable for reminder attachments. Plugin version: @capacitor/camera@8.2.3.
 
 ### Standard centred overlay pattern (2026-05-25 onwards)
 Dev tools pages use a consistent PageShell with flat layout and shared components (ToggleRow, MenuRow, BackHeader).

@@ -44,6 +44,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Repeat reminders | `ff-repeat-reminders` | on | on | Core |
 | 1 minute time increments | `ff-` / `pref-one-minute-increments` | on / off | on / off | User choice |
 | Calendar | `ff-` / `pref-calendar` | off / off | Decision | Needs an 852pt screen; recently built |
+| Reminder attachments | `ff-reminder-attachments` | off | Decision (D3) | Merged 2026-10-14; passed John's iPhone testing |
 | Smart reminders, templates, pinned lists | `ff-smart-reminders`, `ff-saved-lists`, `ff-pinned-lists` | on | on | Complete features |
 | Default templates for new users | `config-templates-in-clean-state` | off | off (decided 2026-10-14) | No seeded templates for new users |
 | Notifications | `ff-notifications`, `pref-notif-alerts` | on, off (fallback on) | on, on after the Phase 4 permission flow | Core to a reminders app |
@@ -70,6 +71,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Privacy manifest (`PrivacyInfo.xcprivacy`) for the app and widget | Outstanding | Required reason APIs; ITMS-91053 | UserDefaults used by app Swift code, widget, patched notifications plugin and the badge plugin (CA92.1, 1C8F.1) |
 | App Privacy answers ("nutrition label") | Outstanding | App Store Connect | Expected "Data Not Collected" unless monetisation tooling or fonts change this |
 | Bundle the Lato font instead of loading Google Fonts | Outstanding (recommended) | 5.1.1, privacy accuracy | Runtime request to `fonts.googleapis.com`; also affects offline appearance |
+| Camera and photo library permission strings (attachments) | Done | 5.1.1, 2.5.1 | `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`, `NSPhotoLibraryAddUsageDescription` in Info.plist. Recommendation, not approved: include the Filesystem, Camera and File Picker plugins when preparing the privacy manifest |
 | Terms of use (Apple standard EULA or custom) | Pending D4 | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions |
 | Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Outstanding | App Store Connect | No non-exempt encryption used |
 | Age rating (updated questionnaire) | Outstanding | Required since September 2026 | Expected lowest rating |

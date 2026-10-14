@@ -1,6 +1,6 @@
 # Reminder attachments - plan
 
-Status: planned, not implemented on main. Earlier work is preserved on the `reminder-attachments` branch (head 9cd01c6, 2026-10-09), which is not merged. No attachment code, plugins or permissions exist on main.
+Status: implemented on the `reminder-attachments` branch and integrated with main on 2026-10-14. Merge into main pending device checks. Flag `reminderly-ff-reminder-attachments`, default off, in Dev tools > Reminders > Features.
 
 This document merges the product feature overview and the implementation plan (both 2026-08-27). Since then Dev tools has been reorganised into feature flag pages and the settings model has changed (see [../features/settings.md](../features/settings.md)), so the feature gate location and key need confirming before work starts.
 

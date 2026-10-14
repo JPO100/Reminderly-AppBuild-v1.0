@@ -38,6 +38,9 @@ import DeletedInfoOverlay from "../imports/deleted-info-overlay";
 import AddListItemInput from "./components/lists/AddListItemInput";
 import EditableListItem from "./components/lists/EditableListItem";
 import { CompletedCircleIcon } from "./components/icons/ReminderStateIcons";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { FileOpener } from "@capacitor-community/file-opener";
+import { deleteAttachment } from "./utils/attachment-storage";
 import {
   dateToStorageString,
   storageStringToDate,
@@ -48,6 +51,8 @@ import {
   createSmartReminderForList,
   getCurrentListCategory,
   getDisplayListItems,
+  getBlankedLists,
+  clearListSmartReminder,
 } from "./utils/list-utils";
 import type { ListItem, CreatedList } from "./utils/list-utils";
 
@@ -429,6 +434,23 @@ const DEFAULT_LIST_NAMES = [
 let _onPersistenceError: (() => void) | null = null;
 let _onPersistenceSuccess: (() => void) | null = null;
 
+// Diagnostic: detect and log when a populated list unexpectedly becomes blank.
+// Stored in localStorage as a small rolling array (max 20 entries).
+const LIST_CORRUPTION_LOG_KEY = 'reminderly-debug-list-corruption-log';
+function logListCorruptionEvent(entry: {
+  ts: number; listId: string; prevTitle: string; prevItemCount: number;
+  nextTitle: string; nextItemCount: number; editingListId: string | null;
+  overlayOpen: boolean; overlayMode: string;
+}) {
+  try {
+    const raw = localStorage.getItem(LIST_CORRUPTION_LOG_KEY);
+    const log: unknown[] = raw ? JSON.parse(raw) : [];
+    log.push(entry);
+    if (log.length > 20) log.splice(0, log.length - 20);
+    localStorage.setItem(LIST_CORRUPTION_LOG_KEY, JSON.stringify(log));
+  } catch { /* best-effort */ }
+}
+
 function persistStringIfChanged(key: string, value: string) {
   try {
     if (localStorage.getItem(key) === value) return;
@@ -619,6 +641,7 @@ export default function App() {
       return [];
     }
   });
+  const prevCreatedListsRef = useRef(createdLists);
   const [savedLists, setSavedLists] = useState<SavedListTemplate[]>(() => {
     try {
       const stored = localStorage.getItem('reminderly-saved-lists');
@@ -1032,6 +1055,10 @@ export default function App() {
   const [repeatRemindersFlag, setRepeatRemindersFlag] = useStoredSetting('reminderly-ff-repeat-reminders');
   const [oneMinuteIncrementsFlag, setOneMinuteIncrementsFlag] = useStoredSetting('reminderly-ff-one-minute-increments');
 
+  // Reminder attachments flag: controls visibility of attachment UI. Turning it off hides attachments but keeps them
+  const [attachmentsFlag, setAttachmentsFlag] = useStoredSetting('reminderly-ff-reminder-attachments');
+  const isReminderAttachmentsEnabled = isRemindersEnabled && attachmentsFlag;
+
   // Lists mode: active main tab (reminders or lists)
   const [activeMainTab, setActiveMainTab] = useState<'reminders' | 'lists'>(() => {
     try {
@@ -1113,6 +1140,7 @@ export default function App() {
     previousTime: string | null;
   } | null>(null);
   const smartReminderCreateDidSaveRef = useRef(false);
+  const pendingSmartReminderAnimateListIdRef = useRef<string | null>(null);
   const smartReminderSetupTimerRef = useRef<number | null>(null);
 
   // UI-only: id of reminder that just reinserted via repeat reschedule (drives fade-in)
@@ -1396,6 +1424,16 @@ export default function App() {
   // Persist created lists to localStorage
   useEffect(() => {
     try {
+      // Diagnostic: detect populated list → blank transitions
+      for (const { before, after } of getBlankedLists(prevCreatedListsRef.current, createdLists)) {
+        logListCorruptionEvent({
+          ts: Date.now(), listId: after.id,
+          prevTitle: before.title, prevItemCount: before.items.length,
+          nextTitle: after.title, nextItemCount: after.items.length,
+          editingListId, overlayOpen: isListsOverlayOpen, overlayMode: listOverlayMode,
+        });
+      }
+      prevCreatedListsRef.current = createdLists;
       persistStringIfChanged('reminderly-created-lists', JSON.stringify(createdLists));
     } catch {
       // Fail silently
@@ -1494,6 +1532,19 @@ export default function App() {
         if (!smartReminder) continue;
         next.push(smartReminder);
         changed = true;
+        // Trigger fade-in and insert highlight when created from the reminder panel
+        if (pendingSmartReminderAnimateListIdRef.current === list.id) {
+          pendingSmartReminderAnimateListIdRef.current = null;
+          setReinsertedId(smartReminder.id);
+          setInsertHighlightId(smartReminder.id);
+          if (insertHighlightTimerRef.current !== null) {
+            clearTimeout(insertHighlightTimerRef.current);
+          }
+          insertHighlightTimerRef.current = window.setTimeout(() => {
+            insertHighlightTimerRef.current = null;
+            setInsertHighlightId(null);
+          }, INSERT_HIGHLIGHT_MS);
+        }
       }
 
       return changed ? next : prev;
@@ -1794,23 +1845,32 @@ export default function App() {
 
   const createSmartReminderFromPanel = useCallback(({ listId, date, time }: { listId: string; date: string; time: string | null }) => {
     smartReminderCreateDidSaveRef.current = true;
-    setCreatedLists((prev) =>
-      prev.map((list) =>
-        list.id === listId
-          ? {
-              ...list,
-              smartReminders: true,
-              smartReminderDueDate: date,
-              smartReminderTime: time ?? getSmartReminderTime(list.smartReminderTime),
-            }
-          : list
-      )
-    );
-    if (editingListId === listId) {
-      setListSmartReminders(true);
-      setListSmartReminderDueDate(date);
-      setListSmartReminderTime(time ?? getSmartReminderTime(listSmartReminderTime));
+    hapticTap('createReminder');
+    pendingSmartReminderAnimateListIdRef.current = listId;
+    // Delay list state update to match normal reminder insert timing
+    if (newReminderInsertTimerRef.current !== null) {
+      clearTimeout(newReminderInsertTimerRef.current);
     }
+    newReminderInsertTimerRef.current = window.setTimeout(() => {
+      newReminderInsertTimerRef.current = null;
+      setCreatedLists((prev) =>
+        prev.map((list) =>
+          list.id === listId
+            ? {
+                ...list,
+                smartReminders: true,
+                smartReminderDueDate: date,
+                smartReminderTime: time ?? getSmartReminderTime(list.smartReminderTime),
+              }
+            : list
+        )
+      );
+      if (editingListId === listId) {
+        setListSmartReminders(true);
+        setListSmartReminderDueDate(date);
+        setListSmartReminderTime(time ?? getSmartReminderTime(listSmartReminderTime));
+      }
+    }, NEW_REMINDER_INSERT_DELAY);
     setPendingListInfoSmartReminderListId(null);
     pendingSmartReminderCreateRef.current = null;
     setSmartReminderCreateListId(null);
@@ -1960,29 +2020,22 @@ export default function App() {
       openListEditorTimerRef.current = null;
     }
     setListInfoOverlayListId(null);
-    setListTitle("");
-    setListItems([]);
-    setListSortMode('insertion');
-    setListSmartReminders(false);
-    setListSmartReminderDueDate(null);
-    setListSmartReminderTime(null);
+    // Load the list's values in the same render as opening the editor. Blanking them first and
+    // filling them on a timer let the editor save a blank list over a populated one (data loss).
+    setRevealedDeleteListItemId(null);
+    setListItemReinsertedId(null);
+    setListItemHighlightId(null);
+    setAlphabeticalPinnedListItemId(null);
+    setAlphabeticalPinnedListItemIndex(0);
+    setListTitle(list.title);
+    setListItems(list.items.map((item) => ({ id: (item as any).id || crypto.randomUUID(), ...item })));
+    setListSortMode(list.sortMode || 'insertion');
+    setListSmartReminders(list.smartReminders ?? false);
+    setListSmartReminderDueDate(list.smartReminderDueDate ?? null);
+    setListSmartReminderTime(list.smartReminderTime ?? null);
     setListOverlayMode('edit');
     setEditingListId(list.id);
     setIsListsOverlayOpen(true);
-    openListEditorTimerRef.current = window.setTimeout(() => {
-      openListEditorTimerRef.current = null;
-      setRevealedDeleteListItemId(null);
-      setListItemReinsertedId(null);
-      setListItemHighlightId(null);
-      setAlphabeticalPinnedListItemId(null);
-      setAlphabeticalPinnedListItemIndex(0);
-      setListTitle(list.title);
-      setListItems(list.items.map((item) => ({ id: (item as any).id || crypto.randomUUID(), ...item })));
-      setListSortMode(list.sortMode || 'insertion');
-      setListSmartReminders(list.smartReminders ?? false);
-      setListSmartReminderDueDate(list.smartReminderDueDate ?? null);
-      setListSmartReminderTime(list.smartReminderTime ?? null);
-    }, 0);
   };
 
   const useSavedList = (list: SavedListTemplate) => {
@@ -2900,15 +2953,21 @@ export default function App() {
         setCreatedLists((prev) =>
           prev.map((list) =>
             list.id === linkedSmartListId
-              ? { ...list, smartReminders: false }
+              ? clearListSmartReminder(list)
               : list
           )
         );
+        // Keep an open list editor in step, so saving it does not restore the deleted smart reminder
+        if (editingListId === linkedSmartListId) {
+          setListSmartReminders(false);
+          setListSmartReminderDueDate(null);
+          setListSmartReminderTime(null);
+        }
       }
     }, COMPLETION_DELAY);
 
     pendingDeleteTimersRef.current.set(reminderId, timer);
-  }, [reminders]);
+  }, [reminders, editingListId]);
 
   const handleMoveReminderToTomorrow = useCallback((reminderId: string) => {
     const targetReminder = reminders.find((reminder) => reminder.id === reminderId);
@@ -3162,6 +3221,13 @@ export default function App() {
         for (const id of idsToRemove) { if (next.delete(id)) changed = true; }
         return changed ? next : s;
       });
+
+      // Best-effort attachment file cleanup for reminders being permanently removed
+      for (const r of prev) {
+        if (idsToRemove.has(r.id) && r.attachment?.storagePath) {
+          deleteAttachment(r.attachment.storagePath);
+        }
+      }
 
       return prev.filter((r) => !idsToRemove.has(r.id));
     });
@@ -4223,7 +4289,20 @@ export default function App() {
                                 }}
                               >
                                 <div className={`overflow-hidden whitespace-nowrap${isPendingAway ? ' line-through' : ''}`} style={{ color: isPendingAway ? pendingColour : textColour, textDecorationColor: isPendingAway ? pendingColour : textColour, height: '17px', maxWidth: '100%', minWidth: 0 }}>
-                                  <p style={{ display: 'block', width: '100%', minWidth: 0, fontSize: '17px', fontWeight: 700, lineHeight: '17px', transform: 'translateY(-1px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingBottom: '2px', boxSizing: 'content-box' }}>{getDisplayTitle(reminder)}</p>
+                                  {isReminderAttachmentsEnabled && reminder.attachment ? (
+                                    <div className="flex h-full items-center min-w-0" style={{ gap: '8px' }}>
+                                      <div className="flex shrink-0 items-center justify-center" style={{ width: '13px', height: '15px' }}>
+                                        <svg className="block" width="13" height="15" viewBox="0 0 13 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                          <path d="M1.96387 2.73321C3.48445 0.0995331 6.86537 -0.776742 9.50782 0.748831C12.1502 2.27444 13.0819 5.64054 11.5615 8.27422L9.02344 12.6717C8.14001 14.2013 6.17964 14.7042 4.65332 13.823C3.1273 12.9417 2.58393 10.9935 3.4668 9.46367L6.00489 5.06621C6.24645 4.64794 6.78188 4.50438 7.2002 4.7459C7.61846 4.98743 7.76193 5.5229 7.52051 5.94121L4.98145 10.3377C4.59045 11.0152 4.82282 11.9011 5.52832 12.3084C6.23373 12.7156 7.11654 12.4739 7.50782 11.7967L10.0469 7.4002C11.0753 5.61894 10.4544 3.31617 8.63282 2.26446C6.81123 1.21278 4.50693 1.82694 3.47852 3.60821L1.63282 6.80547C1.39123 7.22365 0.855779 7.36723 0.437503 7.12578C0.0192525 6.88428 -0.12417 6.34878 0.11719 5.93047L1.96387 2.73321Z" fill="currentColor"/>
+                                        </svg>
+                                      </div>
+                                      <div className="min-w-0 overflow-hidden">
+                                        <p style={{ display: 'block', width: '100%', minWidth: 0, fontSize: '17px', fontWeight: 700, lineHeight: '17px', transform: 'translateY(-1px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingBottom: '2px', boxSizing: 'content-box' }}>{getDisplayTitle(reminder)}</p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <p style={{ display: 'block', width: '100%', minWidth: 0, fontSize: '17px', fontWeight: 700, lineHeight: '17px', transform: 'translateY(-1px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingBottom: '2px', boxSizing: 'content-box' }}>{getDisplayTitle(reminder)}</p>
+                                  )}
                                 </div>
                                   <div className={`flex items-center overflow-visible${isPendingAway ? ' line-through' : ''}`} style={{ textDecorationColor: isPendingAway ? pendingColour : '#BABABA' }}>
                                     <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingAway ? pendingColour : '#BABABA' }}>{(() => {
@@ -4357,6 +4436,41 @@ export default function App() {
                       setIsOverlayOpen(true);
                     }, 200);
                   }}
+                  onViewAttachment={isReminderAttachmentsEnabled && infoReminder.attachment ? () => {
+                    const attachment = infoReminder.attachment!;
+                    setInfoReminder(null);
+                    if (overlayEditTimerRef.current !== null) {
+                      clearTimeout(overlayEditTimerRef.current);
+                    }
+                    (async () => {
+                      try {
+                        const readResult = await Filesystem.readFile({
+                          path: attachment.storagePath,
+                          directory: Directory.Data,
+                        });
+                        const ext = attachment.fileName.includes('.')
+                          ? attachment.fileName.split('.').pop()
+                          : 'dat';
+                        const tempPath = `reminderly-temp-preview.${ext}`;
+                        await Filesystem.writeFile({
+                          path: tempPath,
+                          data: readResult.data,
+                          directory: Directory.Cache,
+                        });
+                        const uriResult = await Filesystem.getUri({
+                          path: tempPath,
+                          directory: Directory.Cache,
+                        });
+                        await FileOpener.open({
+                          filePath: uriResult.uri,
+                          contentType: attachment.mimeType,
+                          openWithDefault: true,
+                        });
+                      } catch {
+                        // Silently fail if attachment cannot be opened
+                      }
+                    })();
+                  } : undefined}
                   onGoToList={() => {
                     const linkedListId = infoReminder.linkedListId;
                     if (!linkedListId) return;
@@ -4467,6 +4581,7 @@ export default function App() {
                   onCreateSmartReminder={createSmartReminderFromPanel}
                   useOneMinuteIncrements={isOneMinuteActive}
                   autoFocusReady={isReminderOverlayFocusReady}
+                  isReminderAttachmentsEnabled={isReminderAttachmentsEnabled}
                   initialDate={!editingReminder && !smartReminderCreateList && calendarDayKey && calendarDayKey !== calendarTodayKey ? calendarDayKey : null}
                 />
               </motion.div>
@@ -5218,7 +5333,7 @@ export default function App() {
               className="fixed left-0 right-0 z-50 mx-auto w-full"
               style={{ bottom: 0 }}
             >
-              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} soundsFlag={soundsFlag} onSoundsFlagChange={setSoundsFlag} lockScreenWidgetFlag={lockScreenWidgetFlag} onLockScreenWidgetFlagChange={setLockScreenWidgetFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} calendarFlag={calendarFlag} onCalendarFlagChange={setCalendarFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
+              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} soundsFlag={soundsFlag} onSoundsFlagChange={setSoundsFlag} lockScreenWidgetFlag={lockScreenWidgetFlag} onLockScreenWidgetFlagChange={setLockScreenWidgetFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} calendarFlag={calendarFlag} onCalendarFlagChange={setCalendarFlag} attachmentsFlag={attachmentsFlag} onAttachmentsFlagChange={setAttachmentsFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
                 setCreatedLists([]);
                 setSavedLists(
                   useDefaultTemplatesInCleanState

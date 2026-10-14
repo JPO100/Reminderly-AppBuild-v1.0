@@ -23,6 +23,22 @@ export type CreatedList = {
 
 export type ListCategory = 'complete' | 'almost' | 'started' | 'todo';
 
+/** Lists that were populated in prev and are blank (no title, no items) in next. Used by the list data loss diagnostic. */
+export function getBlankedLists(prev: CreatedList[], next: CreatedList[]): { before: CreatedList; after: CreatedList }[] {
+  const blanked: { before: CreatedList; after: CreatedList }[] = [];
+  for (const after of next) {
+    if (after.title !== '' || after.items.length > 0) continue;
+    const before = prev.find((l) => l.id === after.id);
+    if (before && (before.title !== '' || before.items.length > 0)) blanked.push({ before, after });
+  }
+  return blanked;
+}
+
+/** A list with its smart reminder turned off and its due date and time cleared, as after the smart reminder is deleted. */
+export function clearListSmartReminder(list: CreatedList): CreatedList {
+  return { ...list, smartReminders: false, smartReminderDueDate: null, smartReminderTime: null };
+}
+
 export function dateToStorageString(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');

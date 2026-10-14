@@ -9,7 +9,7 @@
  */
 
 import type { Check } from './check-system';
-import { readStoredBool } from '../settings/useStoredSetting';
+import { readStoredBool, writeStoredBool } from '../settings/useStoredSetting';
 import { isFeatureActive } from '../settings/resolver';
 
 /**
@@ -44,6 +44,35 @@ export function getDevToolsChecks(): Check[] {
           assert(actual === value, `${key} should default ${value}, got ${actual}`);
         }
         assert(!isFeatureActive('paywall', { storage }), 'Paywall should be inactive when never saved');
+      },
+    },
+
+    // ========================================================================
+    // 10. Reminder attachments feature toggle
+    // ========================================================================
+
+    {
+      id: 'reminder-attachments-default',
+      name: 'Reminder attachments: default is off when no value is saved',
+      run: () => {
+        const storage = { getItem: () => null, setItem: () => {} };
+        const actual = readStoredBool('reminderly-ff-reminder-attachments', undefined, storage);
+        assert(actual === false, `Expected default false, got ${actual}`);
+      },
+    },
+
+    {
+      id: 'reminder-attachments-saved-values',
+      name: 'Reminder attachments: saved true and false are read back through the settings path',
+      run: () => {
+        for (const value of [true, false]) {
+          const saved: Record<string, string> = {};
+          const storage = { getItem: (k: string) => saved[k] ?? null, setItem: (k: string, v: string) => { saved[k] = v; } };
+          writeStoredBool('reminderly-ff-reminder-attachments', value, storage);
+          assert(saved['reminderly-ff-reminder-attachments'] === String(value), `Expected '${value}' saved, got '${saved['reminderly-ff-reminder-attachments']}'`);
+          const actual = readStoredBool('reminderly-ff-reminder-attachments', undefined, storage);
+          assert(actual === value, `Expected ${value}, got ${actual}`);
+        }
       },
     },
   ];

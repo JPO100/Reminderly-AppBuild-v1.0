@@ -24,6 +24,12 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Reminderly needs camera access so you can take a photo to attach to your reminder.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Reminderly needs photo library access to support attaching photos to your reminders.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Reminderly needs photo access so you can choose an image to attach to your reminder.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

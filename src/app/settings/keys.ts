@@ -24,6 +24,7 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-pref-one-minute-increments': 'false',
   'reminderly-ff-calendar': 'false',
   'reminderly-pref-calendar': 'false',
+  'reminderly-ff-reminder-attachments': 'false',
 
   // Lists
   'reminderly-ff-lists': 'true',

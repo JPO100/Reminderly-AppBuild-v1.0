@@ -69,7 +69,7 @@ These findings come from the code paths and add to or correct the earlier audit.
 | F12 | Repeat rules can be created in three ways: the repeats overlay, NLC repeat recognition, and Siri phrases. Editing a reminder loads its existing rule (`repeatRuleToConfig`) and saves it back | `NewReminderOverlay.tsx`, `App.tsx` edit flow, `handleSiriAdd` | All three must respect the repeat flag (section 6) |
 | F13 | Lists off today: Lists tab hidden, main view stays on reminders, colours switch to the reminders-only palette, tutorial uses the reminders variant. Lists data is kept | `App.tsx` `isListsEnabled` usages | Matches the model. Reused for Reminders off |
 | F14 | Paywall has no state or reader in the app. Only Self Check references the key. A "paywall" comment sits above the Lists flag code | `dev-tools-checks.ts`; `App.tsx` comment | Kept as a reserved flag. The comment is fixed when that code is next touched |
-| F15 | Reminder attachments exists on the `reminder-attachments` branch only, not on `main` | `git log --all` | Flag added on that branch or after merge |
+| F15 | Reminder attachments merged from the `reminder-attachments` branch (2026-10-14) | `NewReminderOverlay.tsx`, `utils/attachment-storage.ts` | Flag `reminderly-ff-reminder-attachments`, default off |
 
 ## 4. Resolver
 
@@ -265,7 +265,7 @@ Phase 3 change: the NLC mode and recognition preferences are stored as boolean k
 | - | `reminderly-pref-sounds` | JSON: both panels off, actions on | - (never saved by an earlier build) |
 | - | `reminderly-ff-nlc-phone`, `reminderly-ff-nlc-contacts` (temporary) | Off | - |
 | `reminderly-ff-paywall` | Unchanged | Off | Kept |
-| - | `reminderly-ff-attachments` (on `reminder-attachments`) | Off | - |
+| - | `reminderly-ff-reminder-attachments` | Off (Dev tools > Reminders > Reminder attachments). Off hides attachment UI and keeps attachments | - |
 | Hide overdue (not saved) | Stays unsaved | Off | - |
 | `reminderly-dev-tools-password-required` | Unchanged (access, not a setting) | As today | Kept |
 

@@ -16,8 +16,24 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import TimePicker from "./TimePicker";
 import type { RepeatConfig } from "../app/reminder-utils";
-import type { Reminder } from "../app/reminder-utils";
+import type { Reminder, ReminderAttachment } from "../app/reminder-utils";
 import type { ReminderSchedule } from "../app/reminder-utils";
+import { validateAttachment, resolveMimeType, saveAttachment, deleteAttachment } from "../app/utils/attachment-storage";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+// @ts-ignore — Vite ?url import returns a string asset URL
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+// pdf.js is loaded on first PDF preview, as it needs browser APIs at import time
+async function loadPdfjs() {
+  const pdfjsLib = await import('pdfjs-dist');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
+  return pdfjsLib;
+}
+import { FilePicker } from "@capawesome/capacitor-file-picker";
+import { Camera, CameraSource, CameraResultType } from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
+import { Share } from "@capacitor/share";
+import { FileOpener } from "@capacitor-community/file-opener";
 import type { RepeatRule } from "../app/types/reminder";
 import { repeatConfigToRule } from "../app/utils/repeat-conversion";
 import { formatShortMonthDay } from "../app/utils/date-display";
@@ -575,7 +591,7 @@ function ReminderOptions({
   );
 }
 
-function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null }) {
+function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null, isReminderAttachmentsEnabled = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null; isReminderAttachmentsEnabled?: boolean }) {
   const isEditMode = !!editReminder;
   const isSmartReminderCreate = !!smartReminderCreateList;
   const isSmartReminderEdit = editReminder?.isSmartReminder === true;
@@ -633,6 +649,66 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     if (editReminder) return editReminder.originalText;
     return '';
   });
+  const [showAttachmentOverlay, setShowAttachmentOverlay] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<{ fileName: string; mimeType: string; dataBase64: string; previewDataUrl?: string } | null>(null);
+  const [attachmentError, setAttachmentError] = useState<{ title: string; message: string } | null>(null);
+  const [showDeleteAttachmentConfirm, setShowDeleteAttachmentConfirm] = useState(false);
+  const [imagePreviewFailed, setImagePreviewFailed] = useState(false);
+  useEffect(() => { setImagePreviewFailed(false); }, [pendingAttachment]);
+  const attachmentDeletedRef = useRef(false);
+
+  // Load existing attachment when editing a reminder that has one
+  useEffect(() => {
+    if (!editReminder?.attachment) return;
+    const { fileName, mimeType, storagePath } = editReminder.attachment;
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await Filesystem.readFile({
+          path: storagePath,
+          directory: Directory.Data,
+        });
+        if (cancelled) return;
+        const dataBase64 = typeof result.data === 'string' ? result.data : '';
+
+        // Generate PDF preview if applicable
+        let previewDataUrl: string | undefined;
+        if (mimeType === 'application/pdf') {
+          try {
+            const binaryString = atob(dataBase64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            const pdfjsLib = await loadPdfjs();
+            const pdf = await pdfjsLib.getDocument({ data: bytes.buffer }).promise;
+            const page = await pdf.getPage(1);
+            const vp = page.getViewport({ scale: 1 });
+            const scale = 90 / vp.width;
+            const scaled = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            canvas.width = scaled.width;
+            canvas.height = scaled.height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              await page.render({ canvasContext: ctx, viewport: scaled }).promise;
+              previewDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            }
+            pdf.destroy();
+          } catch {
+            // PDF preview generation failed — Generic File fallback
+          }
+        }
+
+        if (cancelled) return;
+        setPendingAttachment({ fileName, mimeType, dataBase64, previewDataUrl });
+      } catch {
+        // File read failed — attachment may have been deleted externally
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editReminder]);
+
   const prevRepeatsOverlayOpenRef = useRef(isRepeatsOverlayOpen);
   const repeatsDrawerTimerRef = useRef<number | null>(null);
   const repeatsOverlayTimerRef = useRef<number | null>(null);
@@ -1124,7 +1200,257 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     }
   };
 
-  const handleSubmit = () => {
+  const handleChooseFile = async () => {
+    setShowAttachmentOverlay(false);
+
+    try {
+      // Pick file with metadata only — do not read data yet
+      const result = await FilePicker.pickFiles({
+        limit: 1,
+        readData: false,
+      });
+
+      const picked = result.files[0];
+      if (!picked) return;
+
+      // Validate type and size before reading any file data
+      const validation = validateAttachment(picked.name, picked.mimeType, picked.size);
+      if (!validation.valid) {
+        if (validation.reason === 'too-large') {
+          setAttachmentError({ title: 'This file is too big', message: 'Choose a file under 25 MB.' });
+        } else {
+          setAttachmentError({ title: 'This file isn\'t supported', message: 'Try a different file.' });
+        }
+        return;
+      }
+
+      // Read file data only after validation passes
+      if (!picked.path) {
+        setAttachmentError({ title: 'Oh no!', message: 'We couldn\'t attach this file. Try again or choose a different one.' });
+        return;
+      }
+
+      const resolvedMime = resolveMimeType(picked.name, picked.mimeType);
+      const response = await fetch(Capacitor.convertFileSrc(picked.path));
+      const blob = await response.blob();
+      const dataBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          resolve(dataUrl.split(',')[1]);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+
+      // Generate PDF first-page thumbnail for preview
+      let previewDataUrl: string | undefined;
+      if (resolvedMime === 'application/pdf') {
+        try {
+          const arrayBuffer = await blob.arrayBuffer();
+          const pdfjsLib = await loadPdfjs();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const page = await pdf.getPage(1);
+          const vp = page.getViewport({ scale: 1 });
+          const scale = 90 / vp.width;
+          const scaled = page.getViewport({ scale });
+          const canvas = document.createElement('canvas');
+          canvas.width = scaled.width;
+          canvas.height = scaled.height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            await page.render({ canvasContext: ctx, viewport: scaled }).promise;
+            previewDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          }
+          pdf.destroy();
+        } catch {
+          // PDF thumbnail generation failed — fall back to Generic File
+        }
+      }
+
+      setPendingAttachment({
+        fileName: picked.name,
+        mimeType: resolvedMime,
+        dataBase64,
+        previewDataUrl,
+      });
+    } catch (err: unknown) {
+      // Picker cancellation rejects with "pickFiles canceled."
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('canceled')) return;
+      setAttachmentError({ title: 'Oh no!', message: 'We couldn\'t attach this file. Try again or choose a different one.' });
+    }
+  };
+
+  const handleChoosePhoto = async () => {
+    setShowAttachmentOverlay(false);
+
+    try {
+      // Open standard iOS Photos picker with album navigation
+      const photo = await Camera.getPhoto({
+        source: CameraSource.Photos,
+        resultType: CameraResultType.Uri,
+        quality: 100,
+        presentationStyle: 'fullscreen',
+      });
+
+      // Plugin returns a temp JPEG file — read it and validate size
+      const path = photo.path;
+      if (!path) {
+        setAttachmentError({ title: 'Oh no!', message: 'We couldn\'t attach this file. Try again or choose a different one.' });
+        return;
+      }
+
+      const response = await fetch(Capacitor.convertFileSrc(path));
+      const blob = await response.blob();
+
+      // Validate the JPEG size against 25 MB limit
+      const fileName = 'photo.jpeg';
+      const mimeType = 'image/jpeg';
+      const validation = validateAttachment(fileName, mimeType, blob.size);
+      if (!validation.valid) {
+        if (validation.reason === 'too-large') {
+          setAttachmentError({ title: 'This file is too big', message: 'Choose a file under 25 MB.' });
+        } else {
+          setAttachmentError({ title: 'This file isn\'t supported', message: 'Try a different file.' });
+        }
+        return;
+      }
+
+      const dataBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          resolve(dataUrl.split(',')[1]);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+
+      setPendingAttachment({
+        fileName,
+        mimeType,
+        dataBase64,
+      });
+    } catch (err: unknown) {
+      // Cancellation — silently ignore
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('cancel')) return;
+      setAttachmentError({ title: 'Oh no!', message: 'We couldn\'t attach this file. Try again or choose a different one.' });
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    setShowAttachmentOverlay(false);
+
+    try {
+      // Open native iOS camera directly
+      const photo = await Camera.getPhoto({
+        source: CameraSource.Camera,
+        resultType: CameraResultType.Uri,
+        quality: 100,
+      });
+
+      const path = photo.path;
+      if (!path) {
+        setAttachmentError({ title: 'Oh no!', message: 'We couldn\'t attach this file. Try again or choose a different one.' });
+        return;
+      }
+
+      const response = await fetch(Capacitor.convertFileSrc(path));
+      const blob = await response.blob();
+
+      const fileName = 'photo.jpeg';
+      const mimeType = 'image/jpeg';
+      const validation = validateAttachment(fileName, mimeType, blob.size);
+      if (!validation.valid) {
+        if (validation.reason === 'too-large') {
+          setAttachmentError({ title: 'This file is too big', message: 'Choose a file under 25 MB.' });
+        } else {
+          setAttachmentError({ title: 'This file isn\'t supported', message: 'Try a different file.' });
+        }
+        return;
+      }
+
+      const dataBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          resolve(dataUrl.split(',')[1]);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+
+      setPendingAttachment({
+        fileName,
+        mimeType,
+        dataBase64,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('cancel')) return;
+      setAttachmentError({ title: 'Oh no!', message: 'We couldn\'t attach this file. Try again or choose a different one.' });
+    }
+  };
+
+  const handleAttachmentTap = async () => {
+    if (!pendingAttachment) return;
+    handleOpenAttachment();
+  };
+
+  const handleOpenAttachment = async () => {
+    if (!pendingAttachment) return;
+    try {
+      const ext = pendingAttachment.fileName.includes('.')
+        ? pendingAttachment.fileName.split('.').pop()
+        : 'dat';
+      const tempPath = `reminderly-temp-preview.${ext}`;
+      await Filesystem.writeFile({
+        path: tempPath,
+        data: pendingAttachment.dataBase64,
+        directory: Directory.Cache,
+      });
+      const uriResult = await Filesystem.getUri({
+        path: tempPath,
+        directory: Directory.Cache,
+      });
+      await FileOpener.open({
+        filePath: uriResult.uri,
+        contentType: pendingAttachment.mimeType,
+        openWithDefault: true,
+      });
+    } catch {
+      // Native preview failed — fall back to share sheet
+      handleShareAttachment();
+    }
+  };
+
+  const handleShareAttachment = async () => {
+    if (!pendingAttachment) return;
+    try {
+      const ext = pendingAttachment.fileName.includes('.')
+        ? pendingAttachment.fileName.split('.').pop()
+        : 'dat';
+      const tempPath = `reminderly-temp-share.${ext}`;
+      await Filesystem.writeFile({
+        path: tempPath,
+        data: pendingAttachment.dataBase64,
+        directory: Directory.Cache,
+      });
+      const uriResult = await Filesystem.getUri({
+        path: tempPath,
+        directory: Directory.Cache,
+      });
+      await Share.share({
+        files: [uriResult.uri],
+      });
+    } catch {
+      // Share cancelled or failed — no action needed
+    }
+  };
+
+  const handleSubmit = async () => {
     const text = reminderText.trim();
     const requiresScheduledReminder = !isEditMode && !isSmartReminderMode;
     if (!canSubmitReminder({ text, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime })) return;
@@ -1162,23 +1488,56 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
       });
     } else if (isEditMode && editReminder && updateReminder) {
       // Edit mode: update existing reminder in place (id unchanged)
+      let attachment: ReminderAttachment | undefined | null;
+      if (pendingAttachment) {
+        try {
+          attachment = await saveAttachment(
+            editReminder.id,
+            pendingAttachment.fileName,
+            pendingAttachment.mimeType,
+            pendingAttachment.dataBase64,
+          );
+        } catch {
+          // Attachment save failed - keep existing attachment
+        }
+      } else if (attachmentDeletedRef.current && editReminder.attachment) {
+        // User deleted the existing attachment
+        attachment = null;
+        await deleteAttachment(editReminder.attachment.storagePath);
+      }
       const updated: Reminder = {
         ...editReminder,
         originalText: text,
         displayText,
         schedule,
         repeatRule,
+        ...(attachment !== undefined ? { attachment } : {}),
       };
       updateReminder(updated);
     } else {
       // Create mode: add new reminder
+      const reminderId = generateId();
+      let attachment: ReminderAttachment | undefined;
+      if (pendingAttachment) {
+        try {
+          attachment = await saveAttachment(
+            reminderId,
+            pendingAttachment.fileName,
+            pendingAttachment.mimeType,
+            pendingAttachment.dataBase64,
+          );
+        } catch {
+          // Attachment save failed - proceed without attachment
+        }
+      }
       const reminder: Reminder = {
-        id: generateId(),
+        id: reminderId,
         originalText: text,
         displayText,
         createdAt: Date.now(),
         schedule,
         repeatRule,
+        ...(attachment ? { attachment } : {}),
       };
       addReminder(reminder);
     }
@@ -1192,6 +1551,9 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     setSelectedDate(null);
     setSelectedTime(null);
     setAppliedTokens({ date: null, time: null, repeats: null });
+    setPendingAttachment(null);
+    setAttachmentError(null);
+    setShowDeleteAttachmentConfirm(false);
 
     onClose();
   };
@@ -1206,6 +1568,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   const isSubmitActive = canSubmitReminder({ text: reminderText, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime });
 
   return (
+    <>
     <div className="relative shrink-0 w-full max-w-[768px] h-full flex flex-col" data-name="new-reminder-elements">
       <div className="content-stretch flex flex-col gap-[22px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
         <Header isSubmitActive={isSubmitActive} onSubmit={handleSubmit} title={isSmartReminderCreate ? 'Add smart reminder' : isEditMode ? (isSmartReminderEdit ? 'Edit smart reminder' : 'Edit reminder') : 'New reminder'} />
@@ -1232,6 +1595,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
                   whiteSpace: 'pre-wrap',
                   overflowWrap: 'break-word',
                   wordBreak: 'break-word',
+                  ...(pendingAttachment ? { paddingRight: 73 } : {}),
                 }}
                 aria-hidden="true"
               >
@@ -1249,6 +1613,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
                   whiteSpace: 'pre-wrap',
                   overflowWrap: 'break-word',
                   wordBreak: 'break-word',
+                  ...(pendingAttachment ? { paddingRight: 73 } : {}),
                 }}
                 aria-hidden="true"
               >
@@ -1260,7 +1625,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
           <textarea
             ref={textareaRef}
             className="w-full h-full p-[12px] font-['Lato',sans-serif] text-[17px] resize-none border-none outline-none bg-transparent relative z-10 placeholder:font-medium placeholder:text-[#bababa]"
-            style={{ color: isSmartReminderMode ? '#BABABA' : (nlcEnabled ? 'transparent' : '#1C2C42'), caretColor: isSmartReminderMode ? '#BABABA' : '#1C2C42', lineHeight: 'normal' }}
+            style={{ color: isSmartReminderMode ? '#BABABA' : (nlcEnabled ? 'transparent' : '#1C2C42'), caretColor: isSmartReminderMode ? '#BABABA' : '#1C2C42', lineHeight: 'normal', ...(pendingAttachment ? { paddingRight: 73 } : {}) }}
             placeholder="Don't forget..."
             autoCapitalize="sentences"
             autoComplete="off"
@@ -1274,6 +1639,151 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
             onClick={handleTextareaClick}
             readOnly={isSmartReminderMode}
           />
+          {isReminderAttachmentsEnabled && !pendingAttachment && (isSmartReminderMode ? (
+            <div
+              className="absolute z-20 select-none"
+              style={{ width: 44, height: 44, right: 0, bottom: 0 }}
+              aria-hidden="true"
+            >
+              <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute" style={{ right: 8, bottom: 8 }}>
+                <rect width="25" height="25" rx="12.5" fill="#E4E4E4" fillOpacity="0.5"/>
+                <path d="M7.73806 12.1933L9.43037 9.26215C10.5987 7.23861 13.2044 6.55581 15.2504 7.73709C17.2964 8.91836 18.008 11.5164 16.8397 13.5399L14.5128 17.5703C13.9286 18.5821 12.6258 18.9234 11.6027 18.3328C10.5797 17.7422 10.224 16.4432 10.8081 15.4314L13.135 11.401" stroke="#D9D9D9" strokeWidth="1.45833" strokeLinecap="round"/>
+              </svg>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="absolute z-20 bg-transparent border-none p-0 cursor-pointer select-none"
+              style={{ width: 44, height: 44, right: 0, bottom: 0 }}
+              onClick={() => setShowAttachmentOverlay(true)}
+              aria-label="Add an attachment"
+            >
+              <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute" style={{ right: 8, bottom: 8 }}>
+                <rect width="25" height="25" rx="12.5" fill="#E4E4E4"/>
+                <path d="M7.73806 12.1933L9.43037 9.26215C10.5987 7.23861 13.2044 6.55581 15.2504 7.73709C17.2964 8.91836 18.008 11.5164 16.8397 13.5399L14.5128 17.5703C13.9286 18.5821 12.6258 18.9234 11.6027 18.3328C10.5797 17.7422 10.224 16.4432 10.8081 15.4314L13.135 11.401" stroke="#939393" strokeWidth="1.45833" strokeLinecap="round"/>
+              </svg>
+            </button>
+          ))}
+          {isReminderAttachmentsEnabled && !isSmartReminderMode && pendingAttachment && (
+            <div
+              className="absolute z-20 cursor-pointer"
+              onClick={handleAttachmentTap}
+              style={{
+                /* Position the 45×58 tile: vertically centred in 80px container, right edge 12px from textarea right.
+                   SVG canvas is 51×63. Tile sits at x=0..45, y=5..63 within the canvas.
+                   So SVG right offset = 12 - (51-45) = 6px from container right.
+                   SVG top offset = (80-58)/2 - 5 = 6px from container top. */
+                right: 6,
+                top: 6,
+                width: 51,
+                height: 63,
+              }}
+            >
+              {pendingAttachment.mimeType.startsWith('image/') && !imagePreviewFailed ? (
+                /* Actual image preview */
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 5,
+                    width: 45,
+                    height: 58,
+                    borderRadius: 7,
+                    border: '3px solid #ECECEC',
+                    overflow: 'hidden',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: '3px solid white',
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <img
+                      src={`data:${pendingAttachment.mimeType};base64,${pendingAttachment.dataBase64}`}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      onError={() => setImagePreviewFailed(true)}
+                    />
+                  </div>
+                </div>
+              ) : pendingAttachment.mimeType.startsWith('image/') ? (
+                /* Generic Image fallback — camera pictogram */
+                <svg width="51" height="63" viewBox="0 0 51 63" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="8" width="39" height="52" rx="4" fill="white" stroke="white" strokeWidth="6"/>
+                  <rect x="1.5" y="6.5" width="42" height="55" rx="5.5" stroke="#ECECEC" strokeWidth="3"/>
+                  <rect x="30" width="20.3008" height="20.3008" rx="10.1504" fill="#BABABA"/>
+                  <path d="M42.5238 6.94045C42.7551 6.70935 43.1299 6.70926 43.3611 6.94045C43.5923 7.17164 43.5922 7.5465 43.3611 7.77776L40.988 10.1501L43.3611 12.5233C43.5923 12.7545 43.5922 13.1293 43.3611 13.3606C43.1299 13.5918 42.7551 13.5918 42.5238 13.3606L40.1507 10.9874L37.7783 13.3606C37.5471 13.5918 37.1722 13.5918 36.941 13.3606C36.7098 13.1294 36.7098 12.7545 36.941 12.5233L39.3134 10.1501L36.941 7.77776C36.7099 7.5465 36.7098 7.17163 36.941 6.94045C37.1722 6.70941 37.5471 6.70943 37.7783 6.94045L40.1507 9.31282L42.5238 6.94045Z" fill="#F7F7F7"/>
+                  <path d="M18 28.0005C16.7794 28.0041 16.1038 28.0333 15.5487 28.2663C14.7712 28.5927 14.138 29.1955 13.7681 29.9616C13.4662 30.5869 13.4168 31.388 13.318 32.9902L13.1631 35.5009C12.9174 39.4853 12.7945 41.4775 13.9637 42.7388C15.1328 44 17.1025 44 21.0419 44H24.9581C28.8975 44 30.8672 44 32.0363 42.7388C33.2055 41.4775 33.0826 39.4853 32.8369 35.5009L32.682 32.9902C32.5832 31.388 32.5338 30.5869 32.2319 29.9616C31.862 29.1955 31.2288 28.5927 30.4513 28.2663C29.8962 28.0333 29.2206 28.0041 28 28.0005" stroke="#BABABA" strokeWidth="1.5" strokeLinecap="round"/>
+                  <path d="M28 29L27.1142 26.7854C26.732 25.83 26.3994 24.7461 25.4166 24.2596C24.8924 24 24.2616 24 23 24C21.7384 24 21.1076 24 20.5834 24.2596C19.6006 24.7461 19.268 25.83 18.8858 26.7854L18 29" stroke="#BABABA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M26.5 36C26.5 37.933 24.933 39.5 23 39.5C21.067 39.5 19.5 37.933 19.5 36C19.5 34.067 21.067 32.5 23 32.5C24.933 32.5 26.5 34.067 26.5 36Z" stroke="#BABABA" strokeWidth="1.5"/>
+                  <path d="M22.9998 28H23.0088" stroke="#BABABA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : pendingAttachment.previewDataUrl ? (
+                /* PDF first-page thumbnail */
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 5,
+                    width: 45,
+                    height: 58,
+                    borderRadius: 7,
+                    border: '3px solid #ECECEC',
+                    overflow: 'hidden',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: '3px solid white',
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    <img
+                      src={pendingAttachment.previewDataUrl}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* Generic File — document pictogram (unchanged) */
+                <svg width="51" height="63" viewBox="0 0 51 63" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="8" width="39" height="52" rx="4" fill="white" stroke="white" strokeWidth="6"/>
+                  <rect x="1.5" y="6.5" width="42" height="55" rx="5.5" stroke="#ECECEC" strokeWidth="3"/>
+                  <rect x="30" width="20.3008" height="20.3008" rx="10.1504" fill="#BABABA"/>
+                  <path d="M42.5238 6.94045C42.7551 6.70935 43.1299 6.70926 43.3611 6.94045C43.5923 7.17164 43.5922 7.5465 43.3611 7.77776L40.988 10.1501L43.3611 12.5233C43.5923 12.7545 43.5922 13.1293 43.3611 13.3606C43.1299 13.5918 42.7551 13.5918 42.5238 13.3606L40.1507 10.9874L37.7783 13.3606C37.5471 13.5918 37.1722 13.5918 36.941 13.3606C36.7098 13.1294 36.7098 12.7545 36.941 12.5233L39.3134 10.1501L36.941 7.77776C36.7099 7.5465 36.7098 7.17163 36.941 6.94045C37.1722 6.70941 37.5471 6.70943 37.7783 6.94045L40.1507 9.31282L42.5238 6.94045Z" fill="#F7F7F7"/>
+                  <path d="M14 32C14 28.2288 14 26.3431 15.2448 25.1716C16.4896 24 18.4931 24 22.5 24H23.2727C26.5339 24 28.1645 24 29.2969 24.7978C29.6214 25.0264 29.9094 25.2975 30.1523 25.6029C31 26.6687 31 28.2034 31 31.2727V33.8182C31 36.7814 31 38.2629 30.5311 39.4462C29.7772 41.3486 28.1829 42.8491 26.1616 43.5586C24.9044 44 23.3302 44 20.1818 44C18.3827 44 17.4832 44 16.7648 43.7478C15.6098 43.3424 14.6988 42.4849 14.268 41.3979C14 40.7217 14 39.8751 14 38.1818V32Z" stroke="#BABABA" strokeWidth="1.5" strokeLinejoin="round"/>
+                  <path d="M31 34C31 35.8409 29.5076 37.3333 27.6667 37.3333C27.0009 37.3333 26.216 37.2167 25.5686 37.3901C24.9935 37.5442 24.5442 37.9935 24.3901 38.5686C24.2167 39.216 24.3333 40.0009 24.3333 40.6667C24.3333 42.5076 22.8409 44 21 44" stroke="#BABABA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18.5 29H25.5" stroke="#BABABA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M18.5 33H21.5" stroke="#BABABA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+              {/* X remove button — 44×44 invisible tap target centred on the 20px visible circle */}
+              <button
+                type="button"
+                className="absolute bg-transparent border-none p-0 cursor-pointer select-none"
+                style={{ width: 44, height: 44, top: -12, right: -9, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                onClick={(e) => { e.stopPropagation(); setShowDeleteAttachmentConfirm(true); }}
+                aria-label="Remove attachment"
+              >
+                <svg width="21" height="21" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="20.3008" height="20.3008" rx="10.1504" fill="#BABABA"/>
+                  <path d="M12.5238 6.94045C12.7551 6.70935 13.1299 6.70926 13.3611 6.94045C13.5923 7.17164 13.5922 7.5465 13.3611 7.77776L10.988 10.1501L13.3611 12.5233C13.5923 12.7545 13.5922 13.1293 13.3611 13.3606C13.1299 13.5918 12.7551 13.5918 12.5238 13.3606L10.1507 10.9874L7.7783 13.3606C7.54706 13.5918 7.17223 13.5918 6.94099 13.3606C6.70976 13.1294 6.70978 12.7545 6.94099 12.5233L9.31337 10.1501L6.94099 7.77776C6.70993 7.5465 6.70981 7.17163 6.94099 6.94045C7.17219 6.70941 7.5471 6.70943 7.7783 6.94045L10.1507 9.31282L12.5238 6.94045Z" fill="#F7F7F7"/>
+                </svg>
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
       <div className="flex-1 min-h-0 flex flex-col px-[24px] pt-[24px] pb-[24px]">
@@ -1300,13 +1810,142 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
       />
       </div>
     </div>
+
+    {showAttachmentOverlay && (
+      <>
+        <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setShowAttachmentOverlay(false)} />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+          <div
+            className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+            style={{ width: 340 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
+              <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Add an attachment</p>
+            </div>
+
+            <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
+              <button
+                className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
+                onClick={handleChoosePhoto}
+              >
+                <div className="flex flex-row items-center justify-center size-full">
+                  <div className="content-stretch flex items-center justify-center px-[18px] py-[15px] relative size-full">
+                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
+                      <p className="leading-[normal]">Choose a photo</p>
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
+                onClick={handleTakePhoto}
+              >
+                <div className="flex flex-row items-center justify-center size-full">
+                  <div className="content-stretch flex items-center justify-center px-[18px] py-[15px] relative size-full">
+                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
+                      <p className="leading-[normal]">Take a photo</p>
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
+                onClick={handleChooseFile}
+              >
+                <div className="flex flex-row items-center justify-center size-full">
+                  <div className="content-stretch flex items-center justify-center px-[18px] py-[15px] relative size-full">
+                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
+                      <p className="leading-[normal]">Choose a file</p>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )}
+
+    {attachmentError && (
+      <>
+        <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setAttachmentError(null)} />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+          <div
+            className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+            style={{ width: 340 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
+              <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>{attachmentError.title}</p>
+            </div>
+            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center not-italic relative shrink-0 text-[#BABABA] text-[17px] text-center">
+              <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{attachmentError.message}</p>
+            </div>
+            <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
+              <button
+                className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
+                onClick={() => setAttachmentError(null)}
+              >
+                <div className="flex flex-row items-center justify-center size-full">
+                  <div className="content-stretch flex items-center justify-center px-[18px] py-[15px] relative size-full">
+                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
+                      <p className="leading-[normal]">OK</p>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )}
+
+    {showDeleteAttachmentConfirm && (
+      <>
+        <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setShowDeleteAttachmentConfirm(false)} />
+        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+          <div
+            className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+            style={{ width: 340 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
+              <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Delete attachment</p>
+            </div>
+            <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
+              <button
+                className="bg-[#EC0F0F] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
+                onClick={() => {
+                  setPendingAttachment(null);
+                  attachmentDeletedRef.current = true;
+                  setShowDeleteAttachmentConfirm(false);
+                }}
+              >
+                <div className="flex flex-row items-center justify-center size-full">
+                  <div className="content-stretch flex items-center justify-center px-[18px] py-[15px] relative size-full">
+                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
+                      <p className="leading-[normal]">Delete</p>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </>
+    )}
+
+    </>
   );
 }
 
-export default function NewReminderOverlay({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null }) {
+export default function NewReminderOverlay({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null, isReminderAttachmentsEnabled = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null; isReminderAttachmentsEnabled?: boolean }) {
   return (
     <div className="bg-white content-stretch flex flex-col items-center relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="new-reminder-overlay">
-      <NewReminderElements repeatsEnabled={repeatsEnabled} onRepeatsOverlayOpen={onRepeatsOverlayOpen} repeatConfig={repeatConfig} onRepeatConfigChange={onRepeatConfigChange} isRepeatsOverlayOpen={isRepeatsOverlayOpen} addReminder={addReminder} onClose={onClose} nlcMode={nlcMode} nlcEnabled={nlcEnabled} nlcRecognition={nlcRecognition} editReminder={editReminder} updateReminder={updateReminder} smartReminderCreateList={smartReminderCreateList} onCreateSmartReminder={onCreateSmartReminder} useOneMinuteIncrements={useOneMinuteIncrements} autoFocusReady={autoFocusReady} initialDate={initialDate} />
+      <NewReminderElements repeatsEnabled={repeatsEnabled} onRepeatsOverlayOpen={onRepeatsOverlayOpen} repeatConfig={repeatConfig} onRepeatConfigChange={onRepeatConfigChange} isRepeatsOverlayOpen={isRepeatsOverlayOpen} addReminder={addReminder} onClose={onClose} nlcMode={nlcMode} nlcEnabled={nlcEnabled} nlcRecognition={nlcRecognition} editReminder={editReminder} updateReminder={updateReminder} smartReminderCreateList={smartReminderCreateList} onCreateSmartReminder={onCreateSmartReminder} useOneMinuteIncrements={useOneMinuteIncrements} autoFocusReady={autoFocusReady} initialDate={initialDate} isReminderAttachmentsEnabled={isReminderAttachmentsEnabled} />
     </div>
   );
 }

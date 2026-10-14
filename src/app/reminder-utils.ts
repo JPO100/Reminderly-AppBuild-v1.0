@@ -8,6 +8,12 @@ export type ReminderSchedule =
   | { kind: "scheduled"; date: string; time?: string }
   | { kind: "sometime" };
 
+export type ReminderAttachment = {
+  fileName: string;
+  mimeType: string;
+  storagePath: string;
+};
+
 export type Reminder = {
   id: string;
   originalText: string;
@@ -19,6 +25,7 @@ export type Reminder = {
   deletedAt?: number | null;
   linkedListId?: string | null;
   isSmartReminder?: boolean;
+  attachment?: ReminderAttachment | null;
 };
 
 export type RepeatConfig = {
@@ -109,6 +116,19 @@ export function loadReminders(): Reminder[] {
       }
       if (r.isSmartReminder === true) {
         sanitised.isSmartReminder = true;
+      }
+      if (r.attachment != null && typeof r.attachment === 'object') {
+        if (
+          typeof r.attachment.fileName === 'string' && r.attachment.fileName.trim() !== '' &&
+          typeof r.attachment.mimeType === 'string' && r.attachment.mimeType.trim() !== '' &&
+          typeof r.attachment.storagePath === 'string' && r.attachment.storagePath.trim() !== ''
+        ) {
+          sanitised.attachment = {
+            fileName: r.attachment.fileName,
+            mimeType: r.attachment.mimeType,
+            storagePath: r.attachment.storagePath,
+          };
+        }
       }
       acc.push(sanitised);
       return acc;
@@ -252,6 +272,11 @@ export function categoriseReminder(reminder: Reminder, now: Date): ReminderCateg
   if (reminderDate >= monday && reminderDate <= sunday) return "this-week";
 
   return "later";
+}
+
+// Move to tomorrow is offered for reminders due today or overdue, never for future or sometime reminders.
+export function canMoveToTomorrow(reminder: Reminder, now: Date): boolean {
+  return isOverdue(reminder, now) || categoriseReminder(reminder, now) === "today";
 }
 
 // Settings menu (Phase 1): when combined, Sometime reminders are presented as Later.

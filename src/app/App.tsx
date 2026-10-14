@@ -51,6 +51,8 @@ import {
   createSmartReminderForList,
   getCurrentListCategory,
   getDisplayListItems,
+  getBlankedLists,
+  clearListSmartReminder,
 } from "./utils/list-utils";
 import type { ListItem, CreatedList } from "./utils/list-utils";
 
@@ -432,6 +434,23 @@ const DEFAULT_LIST_NAMES = [
 let _onPersistenceError: (() => void) | null = null;
 let _onPersistenceSuccess: (() => void) | null = null;
 
+// Diagnostic: detect and log when a populated list unexpectedly becomes blank.
+// Stored in localStorage as a small rolling array (max 20 entries).
+const LIST_CORRUPTION_LOG_KEY = 'reminderly-debug-list-corruption-log';
+function logListCorruptionEvent(entry: {
+  ts: number; listId: string; prevTitle: string; prevItemCount: number;
+  nextTitle: string; nextItemCount: number; editingListId: string | null;
+  overlayOpen: boolean; overlayMode: string;
+}) {
+  try {
+    const raw = localStorage.getItem(LIST_CORRUPTION_LOG_KEY);
+    const log: unknown[] = raw ? JSON.parse(raw) : [];
+    log.push(entry);
+    if (log.length > 20) log.splice(0, log.length - 20);
+    localStorage.setItem(LIST_CORRUPTION_LOG_KEY, JSON.stringify(log));
+  } catch { /* best-effort */ }
+}
+
 function persistStringIfChanged(key: string, value: string) {
   try {
     if (localStorage.getItem(key) === value) return;
@@ -622,6 +641,7 @@ export default function App() {
       return [];
     }
   });
+  const prevCreatedListsRef = useRef(createdLists);
   const [savedLists, setSavedLists] = useState<SavedListTemplate[]>(() => {
     try {
       const stored = localStorage.getItem('reminderly-saved-lists');
@@ -1120,6 +1140,7 @@ export default function App() {
     previousTime: string | null;
   } | null>(null);
   const smartReminderCreateDidSaveRef = useRef(false);
+  const pendingSmartReminderAnimateListIdRef = useRef<string | null>(null);
   const smartReminderSetupTimerRef = useRef<number | null>(null);
 
   // UI-only: id of reminder that just reinserted via repeat reschedule (drives fade-in)
@@ -1403,6 +1424,16 @@ export default function App() {
   // Persist created lists to localStorage
   useEffect(() => {
     try {
+      // Diagnostic: detect populated list → blank transitions
+      for (const { before, after } of getBlankedLists(prevCreatedListsRef.current, createdLists)) {
+        logListCorruptionEvent({
+          ts: Date.now(), listId: after.id,
+          prevTitle: before.title, prevItemCount: before.items.length,
+          nextTitle: after.title, nextItemCount: after.items.length,
+          editingListId, overlayOpen: isListsOverlayOpen, overlayMode: listOverlayMode,
+        });
+      }
+      prevCreatedListsRef.current = createdLists;
       persistStringIfChanged('reminderly-created-lists', JSON.stringify(createdLists));
     } catch {
       // Fail silently
@@ -1501,6 +1532,19 @@ export default function App() {
         if (!smartReminder) continue;
         next.push(smartReminder);
         changed = true;
+        // Trigger fade-in and insert highlight when created from the reminder panel
+        if (pendingSmartReminderAnimateListIdRef.current === list.id) {
+          pendingSmartReminderAnimateListIdRef.current = null;
+          setReinsertedId(smartReminder.id);
+          setInsertHighlightId(smartReminder.id);
+          if (insertHighlightTimerRef.current !== null) {
+            clearTimeout(insertHighlightTimerRef.current);
+          }
+          insertHighlightTimerRef.current = window.setTimeout(() => {
+            insertHighlightTimerRef.current = null;
+            setInsertHighlightId(null);
+          }, INSERT_HIGHLIGHT_MS);
+        }
       }
 
       return changed ? next : prev;
@@ -1801,23 +1845,32 @@ export default function App() {
 
   const createSmartReminderFromPanel = useCallback(({ listId, date, time }: { listId: string; date: string; time: string | null }) => {
     smartReminderCreateDidSaveRef.current = true;
-    setCreatedLists((prev) =>
-      prev.map((list) =>
-        list.id === listId
-          ? {
-              ...list,
-              smartReminders: true,
-              smartReminderDueDate: date,
-              smartReminderTime: time ?? getSmartReminderTime(list.smartReminderTime),
-            }
-          : list
-      )
-    );
-    if (editingListId === listId) {
-      setListSmartReminders(true);
-      setListSmartReminderDueDate(date);
-      setListSmartReminderTime(time ?? getSmartReminderTime(listSmartReminderTime));
+    hapticTap('createReminder');
+    pendingSmartReminderAnimateListIdRef.current = listId;
+    // Delay list state update to match normal reminder insert timing
+    if (newReminderInsertTimerRef.current !== null) {
+      clearTimeout(newReminderInsertTimerRef.current);
     }
+    newReminderInsertTimerRef.current = window.setTimeout(() => {
+      newReminderInsertTimerRef.current = null;
+      setCreatedLists((prev) =>
+        prev.map((list) =>
+          list.id === listId
+            ? {
+                ...list,
+                smartReminders: true,
+                smartReminderDueDate: date,
+                smartReminderTime: time ?? getSmartReminderTime(list.smartReminderTime),
+              }
+            : list
+        )
+      );
+      if (editingListId === listId) {
+        setListSmartReminders(true);
+        setListSmartReminderDueDate(date);
+        setListSmartReminderTime(time ?? getSmartReminderTime(listSmartReminderTime));
+      }
+    }, NEW_REMINDER_INSERT_DELAY);
     setPendingListInfoSmartReminderListId(null);
     pendingSmartReminderCreateRef.current = null;
     setSmartReminderCreateListId(null);
@@ -1967,29 +2020,22 @@ export default function App() {
       openListEditorTimerRef.current = null;
     }
     setListInfoOverlayListId(null);
-    setListTitle("");
-    setListItems([]);
-    setListSortMode('insertion');
-    setListSmartReminders(false);
-    setListSmartReminderDueDate(null);
-    setListSmartReminderTime(null);
+    // Load the list's values in the same render as opening the editor. Blanking them first and
+    // filling them on a timer let the editor save a blank list over a populated one (data loss).
+    setRevealedDeleteListItemId(null);
+    setListItemReinsertedId(null);
+    setListItemHighlightId(null);
+    setAlphabeticalPinnedListItemId(null);
+    setAlphabeticalPinnedListItemIndex(0);
+    setListTitle(list.title);
+    setListItems(list.items.map((item) => ({ id: (item as any).id || crypto.randomUUID(), ...item })));
+    setListSortMode(list.sortMode || 'insertion');
+    setListSmartReminders(list.smartReminders ?? false);
+    setListSmartReminderDueDate(list.smartReminderDueDate ?? null);
+    setListSmartReminderTime(list.smartReminderTime ?? null);
     setListOverlayMode('edit');
     setEditingListId(list.id);
     setIsListsOverlayOpen(true);
-    openListEditorTimerRef.current = window.setTimeout(() => {
-      openListEditorTimerRef.current = null;
-      setRevealedDeleteListItemId(null);
-      setListItemReinsertedId(null);
-      setListItemHighlightId(null);
-      setAlphabeticalPinnedListItemId(null);
-      setAlphabeticalPinnedListItemIndex(0);
-      setListTitle(list.title);
-      setListItems(list.items.map((item) => ({ id: (item as any).id || crypto.randomUUID(), ...item })));
-      setListSortMode(list.sortMode || 'insertion');
-      setListSmartReminders(list.smartReminders ?? false);
-      setListSmartReminderDueDate(list.smartReminderDueDate ?? null);
-      setListSmartReminderTime(list.smartReminderTime ?? null);
-    }, 0);
   };
 
   const useSavedList = (list: SavedListTemplate) => {
@@ -2907,15 +2953,21 @@ export default function App() {
         setCreatedLists((prev) =>
           prev.map((list) =>
             list.id === linkedSmartListId
-              ? { ...list, smartReminders: false }
+              ? clearListSmartReminder(list)
               : list
           )
         );
+        // Keep an open list editor in step, so saving it does not restore the deleted smart reminder
+        if (editingListId === linkedSmartListId) {
+          setListSmartReminders(false);
+          setListSmartReminderDueDate(null);
+          setListSmartReminderTime(null);
+        }
       }
     }, COMPLETION_DELAY);
 
     pendingDeleteTimersRef.current.set(reminderId, timer);
-  }, [reminders]);
+  }, [reminders, editingListId]);
 
   const handleMoveReminderToTomorrow = useCallback((reminderId: string) => {
     const targetReminder = reminders.find((reminder) => reminder.id === reminderId);

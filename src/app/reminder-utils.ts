@@ -274,6 +274,11 @@ export function categoriseReminder(reminder: Reminder, now: Date): ReminderCateg
   return "later";
 }
 
+// Move to tomorrow is offered for reminders due today or overdue, never for future or sometime reminders.
+export function canMoveToTomorrow(reminder: Reminder, now: Date): boolean {
+  return isOverdue(reminder, now) || categoriseReminder(reminder, now) === "today";
+}
+
 // Settings menu (Phase 1): when combined, Sometime reminders are presented as Later.
 // Presentation only - the stored schedule and derived category are unchanged.
 export function getDisplayCategory(category: ReminderCategory, combineLaterSometime: boolean): ReminderCategory {

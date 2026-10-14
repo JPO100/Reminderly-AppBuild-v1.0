@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import svgPaths from "../../imports/svg-oxn8g14l6y";
 import type { Reminder } from "../reminder-utils";
-import { categoriseReminder, formatRepeatRuleText, formatScheduledDateForRow, isOverdue } from "../reminder-utils";
+import { canMoveToTomorrow, formatRepeatRuleText, formatScheduledDateForRow, isOverdue } from "../reminder-utils";
 
 // ── Due line formatting ──────────────────────────────────────────────
 
@@ -203,7 +203,7 @@ export default function ReminderInfoOverlay({
               </div>
             </button>
 
-            {(overdue || categoriseReminder(reminder, new Date()) === "today") && onMoveToTomorrow && (
+            {canMoveToTomorrow(reminder, new Date()) && onMoveToTomorrow && (
               <button
                 className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full"
                 onClick={onMoveToTomorrow}

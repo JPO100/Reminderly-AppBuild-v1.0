@@ -229,6 +229,13 @@ Integration - 2026-10-14: main (10c6216) merged into reminder-attachments
 - Branch docs (animation and wheel picker audits, attachment viewing handover, list data loss investigation) moved to docs/archive
 - Verification: Vitest 167/167, Self Check 370/370 (14 attachment), production build successful, simulator and physical iPhone build, install and launch successful
 
+Recovered fixes - 2026-10-14 (approved by John)
+- List data loss fix (from c9baa91): openListEditor loads the list's values in the same render as opening the editor, instead of blanking them and filling them on a timer. Diagnostic log of populated lists becoming blank kept (`reminderly-debug-list-corruption-log`, last 20), detection in `getBlankedLists` (list-utils)
+- Smart reminder fixes (from a3a56c3): deleting a smart reminder clears the list's due date and time (`clearListSmartReminder`) and updates an open list editor so saving it cannot restore the reminder. A smart reminder created from the reminder panel inserts with the normal reminder delay, haptic and highlight
+- Move to tomorrow kept as on main: offered for reminders due today or overdue, not future or sometime. Condition moved to `canMoveToTomorrow` (reminder-utils). 84dacf3 (overdue only) not merged, by decision
+- Header and UI work-in-progress from 9cd01c6 kept excluded
+- Tests: recovered-fixes.test.ts (10 tests). Vitest 177/177, Self Check 370/370, production build successful, simulator and physical iPhone build, install and launch successful
+
 Summary:
 - Step 7A: Choose a File via @capawesome/capacitor-file-picker with metadata-first validation, 25 MB limit, pending attachment lifecycle, generic file tile, delete confirmation
 - Step 7B: Choose a Photo via Camera.getPhoto() with CameraSource.Photos opening standard iOS PHPickerViewController with album navigation, JPEG output, same pending attachment lifecycle

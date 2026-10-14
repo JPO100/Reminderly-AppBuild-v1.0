@@ -348,13 +348,7 @@ npx vite build
 npx cap copy ios
 ```
 
-Physical iPhone, replacing <device-id> with the discovered identifier:
-
-```bash
-xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination 'id=<device-id>' -derivedDataPath ios/App/build build
-xcrun devicectl device install app --device <device-id> ios/App/build/Build/Products/Debug-iphoneos/App.app
-xcrun devicectl device process launch --device <device-id> com.reminderly.app
-```
+Deploy to the simulator first, then the physical iPhone. Run the iPhone build as its own command, separate from the simulator steps. A user-level hook plays a chime when the iPhone build starts, so the user can unlock the device.
 
 Simulator, replacing <simulator-id> with the discovered identifier:
 
@@ -362,6 +356,14 @@ Simulator, replacing <simulator-id> with the discovered identifier:
 xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'id=<simulator-id>' -derivedDataPath ios/App/build build
 xcrun simctl install <simulator-id> ios/App/build/Build/Products/Debug-iphonesimulator/App.app
 xcrun simctl launch <simulator-id> com.reminderly.app
+```
+
+Physical iPhone, replacing <device-id> with the discovered identifier:
+
+```bash
+xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination 'id=<device-id>' -derivedDataPath ios/App/build build
+xcrun devicectl device install app --device <device-id> ios/App/build/Build/Products/Debug-iphoneos/App.app
+xcrun devicectl device process launch --device <device-id> com.reminderly.app
 ```
 
 Rules:

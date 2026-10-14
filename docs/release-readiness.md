@@ -22,12 +22,13 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 | Siri enabled for release | 2026-10-12, John | Siri for reminders on by default; the shortcut must work end to end |
 | Developer tools excluded from release builds | 2026-10-12, John | Release feature flags become fixed at their defaults, so the release defaults below must be decided |
 | Tutorial shows once on first launch, then only manually | 2026-10-12, John | Current implementation does not match ([features/onboarding.md](./features/onboarding.md)) |
+| Monetisation: 5 for Free with Reminderly Premium, £9 a year (D1) | 2026-10-14, John and CTO | Annual auto-renewing subscription through StoreKit 2; no trial, offer or Family Sharing. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
+| No default templates for new users | 2026-10-14, John and CTO | `config-templates-in-clean-state` stays off; all templates count towards the free limit |
 
 ## Pending product decisions
 
 | # | Decision | Notes |
 |---|----------|-------|
-| D1 | Monetisation model, paid features, pricing and paywall | Major dependency; see Monetisation |
 | D2 | Release feature defaults | Recommendations below for John's review |
 | D3 | Release scope for unfinished features (notification preferences, Siri for lists, NLC phone and contacts, attachments) | Unfinished features must be hidden or complete (2.1, 2.3.1) |
 | D4 | Privacy policy, terms of use and support site: content, owner and hosting | Needed whether or not the app is paid |
@@ -44,7 +45,7 @@ With developer tools excluded, these values are what users get. Development defa
 | 1 minute time increments | `ff-` / `pref-one-minute-increments` | on / off | on / off | User choice |
 | Calendar | `ff-` / `pref-calendar` | off / off | Decision | Needs an 852pt screen; recently built |
 | Smart reminders, templates, pinned lists | `ff-smart-reminders`, `ff-saved-lists`, `ff-pinned-lists` | on | on | Complete features |
-| Default templates for new users | `config-templates-in-clean-state` | off | Decision | Shows value on first use |
+| Default templates for new users | `config-templates-in-clean-state` | off | off (decided 2026-10-14) | No seeded templates for new users |
 | Notifications | `ff-notifications`, `pref-notif-alerts` | on, off (fallback on) | on, on after the Phase 4 permission flow | Core to a reminders app |
 | Badge, include today | `pref-notif-badge`, `pref-notif-include-today` | off (fallback on), on | Decision | |
 | Haptics | `ff-haptics`, `pref-haptics` | on, off | on, on | iOS convention |
@@ -57,7 +58,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Settings menu | `ff-settings-menu-v2` | on | on | Only settings entry point |
 | Info icons | `ff-info-icons` | off | Decision | Explanatory text in settings |
 | Lock screen widget | `ff-lock-screen-widget` | on | on | |
-| Paywall | `ff-paywall` | off | Depends on D1 | Not built |
+| Paywall | `ff-paywall` | off | Enforced by the Release build configuration, not by the flag | Specified, not built. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 
 ## Requirements tracker
 
@@ -69,7 +70,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Privacy manifest (`PrivacyInfo.xcprivacy`) for the app and widget | Outstanding | Required reason APIs; ITMS-91053 | UserDefaults used by app Swift code, widget, patched notifications plugin and the badge plugin (CA92.1, 1C8F.1) |
 | App Privacy answers ("nutrition label") | Outstanding | App Store Connect | Expected "Data Not Collected" unless monetisation tooling or fonts change this |
 | Bundle the Lato font instead of loading Google Fonts | Outstanding (recommended) | 5.1.1, privacy accuracy | Runtime request to `fonts.googleapis.com`; also affects offline appearance |
-| Terms of use (Apple standard EULA or custom) | Pending D1, D4 | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions |
+| Terms of use (Apple standard EULA or custom) | Pending D4 | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions |
 | Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Outstanding | App Store Connect | No non-exempt encryption used |
 | Age rating (updated questionnaire) | Outstanding | Required since September 2026 | Expected lowest rating |
 | EU Digital Services Act trader status | Pending D5 | App Store Connect | Required for EU distribution |
@@ -114,40 +115,40 @@ With developer tools excluded, these values are what users get. Development defa
 
 ### Monetisation (major outstanding dependency)
 
-Not designed or implemented. The `reminderly-ff-paywall` flag exists with no implementation. Requirements below are grouped by whether they always apply or depend on the model John chooses.
+Model decided (D1, 2026-10-14): 5 for Free with an annual auto-renewing subscription, specified in [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md). Not implemented. The `reminderly-ff-paywall` flag exists with no implementation.
 
 Mandatory if any digital feature or content is sold in the app:
 
 | Requirement | Status | Reference |
 |-------------|--------|-----------|
-| Unlock paid features only through Apple In-App Purchase; no licence keys, codes or other unlock mechanisms | Pending D1 | 3.1.1 |
-| Restore mechanism for restorable purchases (non-consumables and subscriptions), typically a Restore Purchases button | Pending D1 | 3.1.1 |
-| Paywall clearly describes what the user gets for the price before purchase | Pending D1 | 3.1.2(c), 2.3 |
-| No false or misleading pricing, inside or outside the App Store | Pending D1 | 2.3.1(a) |
-| Do not direct users to other purchase methods, except where Apple allows (for example the US storefront or entitlement programmes) | Pending D1 | 3.1.1(a), 3.1.3 |
-| Do not require ratings, reviews or other store actions to unlock features | Pending D1 | 3.2.2(x) |
+| Unlock paid features only through Apple In-App Purchase; no licence keys, codes or other unlock mechanisms | Outstanding | 3.1.1 |
+| Restore mechanism for restorable purchases (non-consumables and subscriptions), typically a Restore Purchases button | Outstanding | 3.1.1 |
+| Paywall clearly describes what the user gets for the price before purchase | Outstanding | 3.1.2(c), 2.3 |
+| No false or misleading pricing, inside or outside the App Store | Outstanding | 2.3.1(a) |
+| Do not direct users to other purchase methods, except where Apple allows (for example the US storefront or entitlement programmes) | Outstanding | 3.1.1(a), 3.1.3 |
+| Do not require ratings, reviews or other store actions to unlock features | Outstanding | 3.2.2(x) |
 | Paid Applications Agreement accepted; tax and banking completed in App Store Connect | Outstanding (when monetising) | App Store Connect |
 | Products configured in App Store Connect with localised names, descriptions and prices | Outstanding (when monetising) | App Store Connect |
 | First in-app purchase of each type submitted with a new app version, with review notes and a review screenshot | Outstanding (when monetising) | App Store Connect, Submit an In-App Purchase |
 | Purchases tested with StoreKit testing in Xcode, sandbox accounts and TestFlight | Outstanding (when monetising) | StoreKit testing |
 | Entitlement checks that work offline and survive reinstall (via restore) | Outstanding (when monetising) | 3.1.1, 2.1 |
-| Privacy answers updated if a purchase SDK or server collects data | Pending D1 | 5.1.1, App Privacy |
+| Privacy answers updated if a purchase SDK or server collects data | Outstanding | 5.1.1, App Privacy |
 
 Additional requirements if auto-renewable subscriptions are used:
 
 | Requirement | Status | Reference |
 |-------------|--------|-----------|
-| Ongoing value; period at least 7 days; available across the user's devices | Pending D1 | 3.1.2(a) |
-| Purchase screen shows subscription name, duration, what is included, and the full renewal price; the billed amount is the most prominent price | Pending D1 | 3.1.2(c), Apple subscriptions guidance |
-| Terms of use and privacy policy links in the app and in metadata | Pending D1, D4 | Apple subscriptions guidance |
-| Subscription group with levels; no accidental duplicate subscriptions; clean upgrade and downgrade | Pending D1 | 3.1.2(b) |
-| Free trials and introductory offers configured in App Store Connect, with terms shown before purchase | Pending D1 | 3.1.2(a) |
-| Easy access to manage or cancel the subscription (for example StoreKit's manage subscriptions sheet) | Pending D1 | Apple subscriptions guidance |
-| Allowed durations: 1 week, 1, 2, 3 or 6 months, 1 year; fixed once submitted | Pending D1 | App Store Connect |
+| Ongoing value; period at least 7 days; available across the user's devices | Outstanding | 3.1.2(a) |
+| Purchase screen shows subscription name, duration, what is included, and the full renewal price; the billed amount is the most prominent price | Outstanding | 3.1.2(c), Apple subscriptions guidance |
+| Terms of use and privacy policy links in the app and in metadata | Pending D4 | Apple subscriptions guidance |
+| Subscription group with levels; no accidental duplicate subscriptions; clean upgrade and downgrade | Outstanding | 3.1.2(b) |
+| Free trials and introductory offers configured in App Store Connect, with terms shown before purchase | Not applicable (none in V1) | 3.1.2(a) |
+| Easy access to manage or cancel the subscription (for example StoreKit's manage subscriptions sheet) | Outstanding | Apple subscriptions guidance |
+| Allowed durations: 1 week, 1, 2, 3 or 6 months, 1 year; fixed once submitted | Outstanding | App Store Connect |
 
 If a one-time purchase uses a free trial instead (non-consumable at price zero, named "XX-day Trial"): the app must show the trial length, what is lost when it ends and the charges needed to keep full functionality, before the trial starts (3.1.1).
 
-Product decisions within D1: one-time unlock or subscription; which features are paid; free trial or introductory offer; pricing and territories; Family Sharing; Small Business Program enrolment; purchase implementation (a Capacitor in-app purchase plugin or a small local StoreKit 2 plugin; third-party services affect privacy answers). History: a removed premium screen once advertised "Get premium features for £9 a year" (unlimited reminders, NLC, repeats); this is not a decision.
+Decided within D1 (2026-10-14): annual subscription at £9, all features free within 5 for Free limits, no trial or introductory offer, Family Sharing off, small local StoreKit 2 plugin with no third-party service. Still open: territories (D5) and Small Business Program enrolment. History: a removed premium screen once advertised "Get premium features for £9 a year" (unlimited reminders, NLC, repeats); this is not a decision.
 
 ### App Store Connect and submission
 

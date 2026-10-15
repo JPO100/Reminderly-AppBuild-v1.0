@@ -1377,3 +1377,12 @@ Correction before merge (CTO condition, Option 1 approved): the delayed list-syn
 Test results: Vitest 233/233 passed. Self Check 408/408 passed (Node run). Repo guard passed. Web build succeeded. Web preview: auto-clear at launch and from the open app both left the reminder completed at the list done date after 350ms (previously the open app reset it to now); manual completion dated list and reminder now; restore returned the same reminder active with no duplicate; reloads left reminder data identical. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded (cf1074a). Awaiting CTO merge approval; John to confirm overnight auto-clear on device.
 
 Merged and closed (2026-10-15): fix/smart-reminder-list-done merged into main with --no-ff (merge commit 4daa7f5) after CTO approval of the Option 1 correction and John's iPhone checks. Post-merge on main: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded. Branch deleted locally and remotely. Release readiness known issue 6 closed; the list-deletion race recorded as known issue 7 for future consideration. John to verify real overnight auto-clear on device on 2026-10-16. No TestFlight or App Store release authorised.
+
+### 2026-10-15 (fix/preset-pill-off-colour - preset pill off-state grey)
+
+Branch: fix/preset-pill-off-colour (created from main at e887585). Type A under Working Agreement v1.3, no CTO consultation required. John's direct request.
+
+Completed:
+- Date preset pills in the off state now use `#B7B7B7` for the border and text instead of `#BABABA`, matching the Date, Time and Repeats off state. Active pill unchanged (`#4784F8`)
+
+Test results: no automated tests (trivial styling). Web build succeeded. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded; simulator new reminder panel checked by eye, pills and Date label render the same grey. Awaiting CTO merge approval.

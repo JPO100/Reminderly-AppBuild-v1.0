@@ -118,6 +118,17 @@ export function buildSmartReminderText(list: CreatedList): string {
   return `Nearly done - '${list.title}'`;
 }
 
+/**
+ * Smart reminder sync for a list that is no longer active. A done list's still-active smart reminder
+ * moves to Done with the list (completed at the list's done time). Otherwise (deleted or missing list)
+ * it is removed, as before. Done and deleted reminders are left alone.
+ */
+export function syncSmartReminderForInactiveList(reminder: Reminder, list: CreatedList | undefined, nowMs: number): Reminder | null {
+  if (reminder.completedAt != null || reminder.deletedAt != null) return reminder;
+  if (list?.status === 'done') return { ...reminder, completedAt: list.statusChangedAt ?? nowMs };
+  return null;
+}
+
 export function createSmartReminderForList(
   list: CreatedList,
   options?: { idFactory?: () => string; createdAt?: number },

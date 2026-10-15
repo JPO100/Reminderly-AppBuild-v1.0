@@ -54,6 +54,7 @@ import {
   formatListProgress,
   buildSmartReminderText,
   createSmartReminderForList,
+  syncSmartReminderForInactiveList,
   getCurrentListCategory,
   orderListsByCategory,
   LIST_CATEGORY_COLOURS,
@@ -1522,6 +1523,9 @@ export default function App() {
         : [];
 
       const desiredByListId = new Map(desiredLists.map((list) => [list.id, list]));
+      // Done lists keep their smart reminder, moved to Done, instead of losing it before list-sync completes it.
+      const doneListsById = new Map(isSmartRemindersEnabled ? createdLists.filter((list) => list.status === 'done').map((list) => [list.id, list]) : []);
+      const nowMs = Date.now();
       const next: Reminder[] = [];
       let changed = false;
       const seenSmartListIds = new Set<string>();
@@ -1537,11 +1541,9 @@ export default function App() {
 
         const linkedList = desiredByListId.get(reminder.linkedListId);
         if (!linkedList) {
-          if (!isActiveSmartReminder) {
-            next.push(reminder);
-          } else {
-            changed = true;
-          }
+          const synced = syncSmartReminderForInactiveList(reminder, doneListsById.get(reminder.linkedListId), nowMs);
+          if (synced) next.push(synced);
+          if (synced !== reminder) changed = true;
           continue;
         }
 

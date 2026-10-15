@@ -1266,3 +1266,17 @@ Decisions: D1 to D5 approved by the CTO. Notification sound added to Phase 4 sco
 Completed:
 - Scope committed (2e9eaa5)
 - Step 1 device checks on the iPhone 15 Pro, all passed: current alerts are silent; sound name `default` plays the iOS Default Alerts tone; `app-settings:` opens Reminderly's iOS Settings page. Temporary test card removed, not committed
+
+### 2026-10-15 (fix/time-picker-scroll - time picker wheels)
+
+Branch: fix/time-picker-scroll (created from main at bd5b11a, verified equal to origin/main). Phase 4 (feature/notifications-settings) paused after stage 2 while this is fixed.
+
+Issue: on the iPhone 15 Pro the time picker wheels could not be scrolled. A drag jumped the value to the end of the wheel and scrolled the whole panel instead. Not reproducible on the taller iPhone 17 Pro simulator.
+
+Cause: the wheels (`src/imports/TimePicker.tsx`) follow pointer events but did not set `touch-action: none`. When the new reminder panel is scrollable, iOS claims a vertical drag as a scroll and cancels the pointer; the cancel handler ran the drag-end snap with an unreliable position. The date presets row (+69pt) makes the panel scrollable on 852pt screens, which exposed it.
+
+Completed:
+- Wheel container sets `touch-action: none`, so a drag that starts on a wheel always moves the wheel. The panel still scrolls outside the wheels
+- Pointer cancel ends the drag and keeps the current value
+
+Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run). Simulator: panel scroll and both wheels work. iPhone 15 Pro confirmation outstanding.

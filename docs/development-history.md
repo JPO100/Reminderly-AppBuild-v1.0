@@ -1315,3 +1315,5 @@ Completed:
 - Existing temporary placement of a newly added item before A to Z repositioning unchanged
 
 Test results: Vitest 215/215 passed. Self Check 391/391 passed (Node run). Repo guard passed. Web build succeeded. Simulator (iPhone 17 Pro): Lists settings shows the toggle, setting persists across relaunch. iPhone 15 Pro: built, signed, installed and launched. Awaiting John's device checks and CTO review before merge.
+
+Merged and closed (2026-10-15): feature/global-list-sort merged into main with --no-ff (merge commit 627ab9a) after CTO approval and John's iPhone functional checks. Post-merge on main: Vitest 215/215, Self Check 391/391 (Node run), repo guard passed, web build succeeded. Branch deleted locally and remotely as authorised by the CTO. No TestFlight or App Store release authorised.

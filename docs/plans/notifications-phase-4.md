@@ -1,6 +1,6 @@
 # Notifications Phase 4 - scope
 
-Status: implemented on `feature/notifications-settings` (2026-10-15). Stages 1 to 4 complete and verified; awaiting final CTO sign-off. Not merged.
+Status: complete (2026-10-15). Stages 1 to 4 verified, including John's final iPhone checks. CTO final technical approval for merge into `main`.
 
 Builds on `docs/settings-flags-spec.md` section 7 (approved in Phase 0) and adds notification sound, agreed with John on 2026-10-15.
 

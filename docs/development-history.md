@@ -1276,6 +1276,8 @@ Completed:
 - Fresh-permission journeys verified on an unused iPhone 17 simulator (John's iPhone and the existing simulator untouched): tutorial ask, Not now twice (not-now-1, not-now-2), settings ask with Not now and Allow, iOS prompt only after Allow, denied with Turn on in Settings, recovery, Allow from the automatic ask. All passed
 - Defect found during that verification and fixed: the badge plugin (@capawesome/capacitor-badge) requests iOS permission on every Badge.set and Badge.clear, so a new install saw the iOS prompt at launch. The in-app badge effect now runs only once permission is granted. Verified: no prompt on a fresh install; badge still updates on the existing simulator install
 - Phase 4 documentation (plan section 13): features/notifications.md, features/settings.md, settings-flags-spec.md (12.3 Phase 4 as delivered, 7.3 settings rule superseded), release-readiness.md, plan results
+- John's iPhone 15 Pro checks passed: Dev tools layout (Notifications first in Dev tools > Reminders > Features, gone from the home page), flag gating (off hides Reminders settings > Notifications and clears the badge, on restores it with preferences kept), and the Turn on in Settings link opens Reminderly's iOS Settings page and clears once allowed
+- CTO final technical approval for a --no-ff merge into main, conditional on the checks above (2026-10-15)
 
 ### 2026-10-15 (fix/time-picker-scroll - time picker wheels)
 

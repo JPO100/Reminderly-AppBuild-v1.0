@@ -4,8 +4,9 @@
 
 export type DatePreset = 'tomorrowMorning' | 'tonight' | 'nextWeek';
 
-export const DATE_PRESETS: { id: DatePreset; label: string }[] = [
-  { id: 'tomorrowMorning', label: 'Tomorrow' },
+// shortLabel is shown on screens narrower than the iPhone 15 Pro (393pt)
+export const DATE_PRESETS: { id: DatePreset; label: string; shortLabel?: string }[] = [
+  { id: 'tomorrowMorning', label: 'Tomorrow morning', shortLabel: 'Tomorrow' },
   { id: 'tonight', label: 'Tonight' },
   { id: 'nextWeek', label: 'Next week' },
 ];

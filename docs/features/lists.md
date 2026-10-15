@@ -38,24 +38,21 @@ type SavedListTemplate = { id: string; title: string; items: ListItem[];
 
 ## Categories and filters
 
-`getCurrentListCategory(items)` (`list-utils.ts`):
+`getCurrentListCategory(items)` (`list-utils.ts`) is the only categorisation, used by cards, filters, ordering and the editor accent. Buckets are count-based (CTO, 2026-10-15):
 
-| Category | Rule | Pill colour |
-|----------|------|-------------|
-| `complete` | All items checked (and at least one item) | `#8168D5` |
-| `almost` | At least 50% checked, not all | `#9468D5` |
-| `started` | Some checked, under 50% | `#60C1E7` |
-| `todo` | None checked | `#939393` |
+| Bucket | Rule | Colour (`LIST_CATEGORY_COLOURS`) |
+|--------|------|-------------|
+| Todo (`todo`) | Nothing checked, including empty lists | `#939393` |
+| Started (`started`) | At least one checked, not all | `#60C1E7` |
+| Done (`complete`) | All items checked, at least one item | `#8168D5` |
 
-Filter pills:
+Pinned lists use their bucket colour; the pin icon beside the title marks them as pinned.
 
-- Templates flag on: Todo, Started (includes Almost), Complete, plus a Templates button that opens the templates panel.
-- Templates flag off: Complete, Almost, Started, Todo.
-- Same toggle and style rules as reminder pills; a lists settings button opens the Lists settings panel when the settings menu is on.
+Filter pills: Todo, Started, Done. The Templates button shows when the templates flag is on; a lists settings button opens the Lists settings panel when the settings menu is on. Same toggle and style rules as reminder pills.
 
-Ordering: pinned lists first in the All view only, newest `pinnedAt` first; then category order (todo, started/almost, complete) and creation order.
+Ordering: pinned lists first in the All view only, newest `pinnedAt` first; then `orderListsByCategory` (Todo, Started, Done, creation order within each bucket). Pinned lists are not shown under a filter.
 
-Empty states: "No lists here yet.. get busy!", plus one message per filter ("No fully checked off lists yet", "Nothing close to completion yet", "Nothing started here yet", "Nothing 'todo' here!").
+Empty states: "No lists here yet.. get busy!", plus one message per filter ("No fully checked off lists yet", "Nothing started here yet", "Nothing 'todo' here!").
 
 ## List rows
 

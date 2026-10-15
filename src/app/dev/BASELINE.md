@@ -2,7 +2,12 @@
 
 Last updated: 2026-10-15
 
-## Verified Baseline (2026-10-15, feature/global-list-sort)
+## Verified Baseline (2026-10-15, fix/list-category-colour)
+
+- Vitest (`npm run test`): 220 passed, 0 failed (12 files). list-sort.test.ts now also runs the list bucket checks.
+- Self Check: 395 passed, 0 failed across 11 suites (Node run). Lists and smart reminders: the todo/started/almost/complete check replaced by 5 bucket checks (0/0, 0/5, 1/5, 9/20, 15/18, 18/18; colours; check and uncheck transitions; order; pinned bucket colour).
+
+## Previous baseline (2026-10-15, feature/global-list-sort)
 
 - Vitest (`npm run test`): 215 passed, 0 failed (12 files). New list-sort.test.ts runs the list ordering checks.
 - Self Check: 391 passed, 0 failed across 11 suites (Node run). 4 checks added to Lists and smart reminders (global default, legacy sortMode ignored, template editor A to Z, list data unchanged when switching). 2 per-list draft sort checks retired with the overlay rows; Uncheck all check kept without the sort step.

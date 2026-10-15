@@ -199,7 +199,7 @@ type SavedListTemplate = {   // App.tsx
 
 - `ReminderCategory`: `today`, `this-week`, `later`, `sometime` (`other` is used for styling only). Weeks run Monday to Sunday.
 - Overdue status, badge count, widget progress, calendar dots.
-- `ListCategory`: `complete`, `almost`, `started`, `todo`, from item completion.
+- `ListCategory`: `complete`, `started`, `todo`, from checked and total item counts (empty lists are `todo`).
 - `ViewMode`: `list` or `done-deleted` (lists also use `lists-done`).
 
 ## Persistence

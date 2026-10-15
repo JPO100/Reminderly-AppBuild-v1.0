@@ -1817,7 +1817,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
       </div>
       <div className="flex-1 min-h-0 flex flex-col px-[24px] pt-[24px] pb-[24px]">
         {isDatePresetsEnabled && !isSmartReminderMode && (
-          <div className="flex items-center gap-[10px] shrink-0 mb-[24px] overflow-x-auto" style={{ scrollbarWidth: 'none' }} data-name="date-presets">
+          <div className="flex items-center gap-[8px] shrink-0 mb-[24px] overflow-x-auto" style={{ scrollbarWidth: 'none' }} data-name="date-presets">
             {DATE_PRESETS.map(({ id, label }) => {
               const isActive = activePreset?.id === id;
               return (

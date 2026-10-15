@@ -65,7 +65,7 @@ Classification: Type B (feature work). Touches date and time handling, a protect
 - Pill style matches the filter pills on the main reminders list: Lato bold 14, 45px tall, fully rounded, 16px side padding.
 - Default: 1px #BABABA outline, #BABABA text.
 - Active: 2px #4784F8 outline, #4784F8 text.
-- Pills are their natural width with a 10px gap between them. If more pills are added later and they no longer fit, the row scrolls sideways.
+- Pills are their natural width with an 8px gap between them (changed from 10px after CTO review, 2026-10-15). If more pills are added later and they no longer fit, the row scrolls sideways.
 - Vertical spacing: 24px between the text field and the pills row, and 24px between the pills row and the Set date row.
 - Built from the existing filter pill styling. No new visual pattern.
 

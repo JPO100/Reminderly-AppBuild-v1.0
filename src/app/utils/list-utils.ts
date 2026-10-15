@@ -21,7 +21,16 @@ export type CreatedList = {
   statusChangedAt?: number | null;
 };
 
-export type ListCategory = 'complete' | 'almost' | 'started' | 'todo';
+// List buckets: Todo (nothing ticked, including empty lists), Started (some ticked), Done (all ticked).
+export type ListCategory = 'complete' | 'started' | 'todo';
+
+export const LIST_CATEGORY_COLOURS: Record<ListCategory, string> = {
+  todo: '#939393',
+  started: '#60C1E7',
+  complete: '#8168D5',
+};
+
+const LIST_CATEGORY_ORDER: Record<ListCategory, number> = { todo: 0, started: 1, complete: 2 };
 
 /** Lists that were populated in prev and are blank (no title, no items) in next. Used by the list data loss diagnostic. */
 export function getBlankedLists(prev: CreatedList[], next: CreatedList[]): { before: CreatedList; after: CreatedList }[] {
@@ -120,9 +129,16 @@ export function getCurrentListCategory(items: ListItem[]): ListCategory {
   const total = items.length;
   const checked = items.filter((item) => item.completed).length;
   if (total > 0 && checked === total) return "complete";
-  if (total > 0 && checked / total >= 0.5) return "almost";
   if (checked > 0) return "started";
   return "todo";
+}
+
+/** Todo, then Started, then Done. Lists keep their existing order (oldest first) within each bucket. */
+export function orderListsByCategory<T extends { items: ListItem[] }>(lists: T[]): T[] {
+  return lists
+    .map((list, index) => ({ list, index, order: LIST_CATEGORY_ORDER[getCurrentListCategory(list.items)] }))
+    .sort((a, b) => a.order - b.order || a.index - b.index)
+    .map(({ list }) => list);
 }
 
 // Lists settings > Sort items A to Z decides the order for every list. A list's own legacy

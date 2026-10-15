@@ -26,7 +26,7 @@ UI changes follow these conventions and any supplied visual specification (`Clau
 
 ### List categories
 
-Complete `#8168D5`, Almost `#9468D5`, Started `#60C1E7`, Todo `#939393`.
+Done `#8168D5`, Started `#60C1E7`, Todo `#939393` (pinned lists use their bucket colour). The tutorial mockups still use an older palette.
 
 ### States and greys
 

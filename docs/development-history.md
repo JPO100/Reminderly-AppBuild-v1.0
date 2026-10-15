@@ -1317,3 +1317,19 @@ Completed:
 Test results: Vitest 215/215 passed. Self Check 391/391 passed (Node run). Repo guard passed. Web build succeeded. Simulator (iPhone 17 Pro): Lists settings shows the toggle, setting persists across relaunch. iPhone 15 Pro: built, signed, installed and launched. Awaiting John's device checks and CTO review before merge.
 
 Merged and closed (2026-10-15): feature/global-list-sort merged into main with --no-ff (merge commit 627ab9a) after CTO approval and John's iPhone functional checks. Post-merge on main: Vitest 215/215, Self Check 391/391 (Node run), repo guard passed, web build succeeded. Branch deleted locally and remotely as authorised by the CTO. No TestFlight or App Store release authorised.
+
+### 2026-10-15 (fix/list-category-colour - three list buckets)
+
+Branch: fix/list-category-colour (created from main at 25aafab, verified equal to origin/main). Type B, list completion is a protected area. CTO approved the three-bucket proposal.
+
+Issue: lists with at least half their items checked were in a hidden "almost" bucket coloured `#9468D5`, almost identical to Done `#8168D5`, so a 15 of 18 list looked done while filed under Started. Empty lists categorised as Done because the inline App.tsx logic had no item count guard. Pinned lists always showed a navy circle.
+
+Completed:
+- One shared helper, `getCurrentListCategory`, for cards, filters, ordering and the editor accent. Todo: nothing checked, including empty lists. Started: at least one checked, not all. Done: all checked
+- Colours in `LIST_CATEGORY_COLOURS`: Todo `#939393`, Started `#60C1E7`, Done `#8168D5`
+- Pinned lists use their bucket colour; the pin icon and top position still mark them
+- `orderListsByCategory`: Todo, Started, Done, oldest first within each bucket; pinned priority unchanged
+- Removed the Almost bucket and colour, the legacy four-pill layout (templates flag off now shows the same three pills) and the unused grouped-todo filter
+- Not changed: tutorial mockups (own palette, Started purple and Done blue) and the Dev tools dummy list generator (its "almost" mode only generates data)
+
+Test results: Vitest 220/220 passed. Self Check 395/395 passed (Node run). Repo guard passed. Web build succeeded. Web preview with seeded lists: 0/0 and 0/5 grey under Todo; 1/5, 15/18 and pinned 9/20 and 15/22 blue (pinned at top with pin icon); 18/18 purple under Done; unticking one item moved 18/18 to Started with list data and legacy sortMode intact. Simulator and iPhone 15 Pro built, installed and launched. Awaiting John's device checks and CTO review before merge.

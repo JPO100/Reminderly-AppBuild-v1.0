@@ -55,12 +55,14 @@ import {
   buildSmartReminderText,
   createSmartReminderForList,
   getCurrentListCategory,
+  orderListsByCategory,
+  LIST_CATEGORY_COLOURS,
   getDisplayListItems,
   resolveListSortMode,
   getBlankedLists,
   clearListSmartReminder,
 } from "./utils/list-utils";
-import type { ListItem, CreatedList } from "./utils/list-utils";
+import type { ListItem, CreatedList, ListCategory } from "./utils/list-utils";
 
 type SavedListTemplate = {
   id: string;
@@ -168,19 +170,11 @@ function getArchiveFilterPillStyle(filter: "done" | "deleted", activeFilter: "al
   };
 }
 
-const LIST_CATEGORY_PILL_COLOURS: Record<string, string> = {
-  complete: "#8168D5",
-  almost: "#9468D5",
-  started: "#60C1E7",
-  todo: "#939393",
-  "grouped-todo": "#939393",
-};
-
 function getListFilterPillStyle(
-  filter: "complete" | "almost" | "started" | "todo" | "grouped-todo",
-  activeFilter: "all" | "complete" | "almost" | "started" | "todo" | "grouped-todo"
+  filter: ListCategory,
+  activeFilter: "all" | ListCategory
 ) {
-  const pillColor = LIST_CATEGORY_PILL_COLOURS[filter] || "#4784F8";
+  const pillColor = LIST_CATEGORY_COLOURS[filter];
   const isActive = activeFilter === filter;
   const isDefault = activeFilter === "all";
 
@@ -598,7 +592,7 @@ export default function App() {
   const [persistenceError, setPersistenceError] = useState(false);
   const [timeRefreshTick, setTimeRefreshTick] = useState(0);
   const [activeFilter, setActiveFilter] = useState<ReminderCategory | "all">("all");
-  const [activeListFilter, setActiveListFilter] = useState<"all" | "complete" | "almost" | "started" | "todo" | "grouped-todo">("all");
+  const [activeListFilter, setActiveListFilter] = useState<"all" | ListCategory>("all");
   const [savedListsPanelOpen, setSavedListsPanelOpen] = useState(false);
   const [restoreSavedListsPanelAfterOverlayClose, setRestoreSavedListsPanelAfterOverlayClose] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode | 'lists-done'>("list");
@@ -885,7 +879,7 @@ export default function App() {
   const [alphabeticalPinnedListItemIndex, setAlphabeticalPinnedListItemIndex] = useState<number>(0);
   const alphabeticalListItemTimerRef = useRef<number | null>(null);
   const currentListCategory = getCurrentListCategory(listItems);
-  const currentListAccentColor = LIST_CATEGORY_PILL_COLOURS[currentListCategory] || "#939393";
+  const currentListAccentColor = LIST_CATEGORY_COLOURS[currentListCategory];
   const listItemHighlightTimerRef = useRef<number | null>(null);
   const tabsBarRef = useRef<HTMLDivElement | null>(null);
   const logoRef = useRef<HTMLDivElement | null>(null);
@@ -3765,10 +3759,7 @@ export default function App() {
                   </svg>
                 </button>
               );
-              const filterPills = (savedListsFeatureEnabled
-                ? (["todo", "started", "complete"] as const)
-                : (["complete", "almost", "started", "todo"] as const)
-              ).map((filter) => {
+              const filterPills = (["todo", "started", "complete"] as const).map((filter) => {
                 const isActive = activeListFilter === filter;
                 return (
                 <button
@@ -3781,14 +3772,12 @@ export default function App() {
                       ? "bg-white"
                       : "text-[#4784F8]"
                   } content-stretch flex items-center justify-center ${savedListsFeatureEnabled ? "px-[13px] min-[390px]:px-[16px]" : !settingsMenuFeatureEnabled ? "px-[16px]" : "px-[11px] min-[375px]:px-[13px] min-[390px]:px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
-                    filter !== "started" ? "" : !savedListsFeatureEnabled ? (settingsMenuFeatureEnabled ? "max-[440px]:hidden" : "max-[389px]:hidden") : settingsMenuFeatureEnabled ? "max-[360px]:hidden" : ""
+                    filter === "started" && savedListsFeatureEnabled && settingsMenuFeatureEnabled ? "max-[360px]:hidden" : ""
                   }`}
                   style={getListFilterPillStyle(filter, activeListFilter)}
                 >
                   <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
-                    {savedListsFeatureEnabled
-                      ? (filter === "complete" ? "Done" : filter === "started" ? "Started" : "Todo")
-                      : (filter === "complete" ? "Complete" : filter === "almost" ? "Almost" : filter === "started" ? "Started" : "Todo")}
+                    {filter === "complete" ? "Done" : filter === "started" ? "Started" : "Todo"}
                   </div>
                 </button>
                 );
@@ -3818,15 +3807,6 @@ export default function App() {
                   {/* Dynamic list cards */}
                   <AnimatePresence key={`lists-${activeListFilter}`}>
                   {(() => {
-                    const listCategoryOrder: Record<string, number> = { todo: 0, started: 1, almost: 1, complete: 2 };
-                    const categoriseList = (list: typeof createdLists[number]) => {
-                      const total = list.items.length;
-                      const checked = list.items.filter(i => i.completed).length;
-                      if (checked === total) return "complete";
-                      if (checked / total >= 0.5) return "almost";
-                      if (checked > 0) return "started";
-                      return "todo";
-                    };
                     const activeLists = createdLists.filter((list) => (list.status !== 'done' && list.status !== 'deleted') || pendingDoneListIds.has(list.id) || pendingDeletedListIds.has(list.id));
                     const isListPinned = (list: typeof createdLists[number]) => pinnedListsFeatureEnabled && typeof list.pinnedAt === 'number';
                     const unpinnedActiveLists = activeLists.filter((list) => !isListPinned(list));
@@ -3835,23 +3815,8 @@ export default function App() {
                       .sort((a, b) => (b.pinnedAt ?? 0) - (a.pinnedAt ?? 0));
                     const filteredLists = activeListFilter === "all"
                       ? unpinnedActiveLists
-                      : savedListsFeatureEnabled && activeListFilter === "started"
-                        ? unpinnedActiveLists.filter(l => { const c = categoriseList(l); return c === "almost" || c === "started"; })
-                      : activeListFilter === "grouped-todo"
-                        ? unpinnedActiveLists.filter(l => { const c = categoriseList(l); return c === "started" || c === "todo"; })
-                        : unpinnedActiveLists.filter(l => categoriseList(l) === activeListFilter);
-                    const sortedLists = [...(activeListFilter === "all" ? pinnedLists : []), ...[...filteredLists].sort((a, b) => {
-                      const catA = listCategoryOrder[categoriseList(a)] ?? 3;
-                      const catB = listCategoryOrder[categoriseList(b)] ?? 3;
-                      if (catA !== catB) return catA - catB;
-                      return createdLists.indexOf(a) - createdLists.indexOf(b);
-                    })];
-                    const listCategoryColor: Record<string, string> = {
-                      complete: "#8168D5",
-                      almost: "#9468D5",
-                      started: "#60C1E7",
-                      todo: "#939393",
-                    };
+                      : unpinnedActiveLists.filter(l => getCurrentListCategory(l.items) === activeListFilter);
+                    const sortedLists = [...(activeListFilter === "all" ? pinnedLists : []), ...orderListsByCategory(filteredLists)];
                     return sortedLists.map((list) => {
                     const isReinserted = listReinsertedId === list.id;
                     const isHighlighted = listInsertHighlightId === list.id;
@@ -3861,7 +3826,7 @@ export default function App() {
                     const isPinnedList = pinnedListsFeatureEnabled && typeof list.pinnedAt === 'number';
                     const pendingListColour = isPendingDeletedList ? DELETED_LIST_COLOUR : DONE_LIST_COLOUR;
                     const visibleCompletedCount = isPendingDoneList ? list.items.length : list.items.filter(i => i.completed).length;
-                    const catColor = isPinnedList ? "#1C2C42" : (listCategoryColor[categoriseList(list)] || "#BABABA");
+                    const catColor = LIST_CATEGORY_COLOURS[getCurrentListCategory(list.items)];
                     return (
                       <motion.div
                         key={list.id}
@@ -3940,31 +3905,17 @@ export default function App() {
                   </AnimatePresence>
                 </div>
                 {(() => {
-                  const categoriseList = (list: typeof createdLists[number]) => {
-                    const total = list.items.length;
-                    const checked = list.items.filter(i => i.completed).length;
-                    if (checked === total) return "complete";
-                    if (checked / total >= 0.5) return "almost";
-                    if (checked > 0) return "started";
-                    return "todo";
-                  };
                   const visibleActiveLists = createdLists.filter((list) => (list.status !== 'done' && list.status !== 'deleted') || pendingDoneListIds.has(list.id) || pendingDeletedListIds.has(list.id));
                   const visibleUnpinnedActiveLists = visibleActiveLists.filter((list) => !(pinnedListsFeatureEnabled && typeof list.pinnedAt === 'number'));
                   const hasVisible = activeListFilter === "all"
                     ? visibleActiveLists.length > 0
-                    : savedListsFeatureEnabled && activeListFilter === "started"
-                      ? visibleUnpinnedActiveLists.some(l => { const c = categoriseList(l); return c === "almost" || c === "started"; })
-                    : activeListFilter === "grouped-todo"
-                      ? visibleUnpinnedActiveLists.some(l => { const c = categoriseList(l); return c === "started" || c === "todo"; })
-                      : visibleUnpinnedActiveLists.some(l => categoriseList(l) === activeListFilter);
+                    : visibleUnpinnedActiveLists.some(l => getCurrentListCategory(l.items) === activeListFilter);
                   if (!hasVisible) {
                     const emptyMessages: Record<string, string> = {
                       all: "No lists here yet.. get busy!",
                       complete: "No fully checked off lists yet",
-                      almost: "Nothing close to completion yet",
                       started: "Nothing started here yet",
                       todo: "Nothing 'todo' here!",
-                      "grouped-todo": "Nothing 'todo' here!",
                     };
                     return (
                       <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>

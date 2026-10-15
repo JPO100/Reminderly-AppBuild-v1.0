@@ -7,6 +7,8 @@ import {
   formatListDueDate,
   getCurrentListCategory,
   getDisplayListItems,
+  LIST_CATEGORY_COLOURS,
+  orderListsByCategory,
   resolveListSortMode,
   storageStringToDate,
 } from '../utils/list-utils';
@@ -32,6 +34,10 @@ function makeList(overrides: Partial<CreatedList> & Pick<CreatedList, 'id' | 'ti
 
 function makeItem(id: string, text: string, completed: boolean): ListItem {
   return { id, text, completed };
+}
+
+function makeItems(checked: number, total: number): ListItem[] {
+  return Array.from({ length: total }, (_, i) => makeItem(`i${i}`, `Item ${i}`, i < checked));
 }
 
 export function getListChecks(): Check[] {
@@ -162,14 +168,77 @@ export function getListChecks(): Check[] {
     },
 
     {
-      id: 'list-category-todo-started-almost-complete',
-      name: 'List categories: todo, started, almost, complete derive from completion ratio',
+      id: 'list-category-buckets-by-count',
+      name: 'List buckets: 0/0, 0/5 Todo; 1/5, 9/20, 15/18 Started; 18/18 Done',
       run: () => {
-        assert(getCurrentListCategory([]) === 'todo', `Expected todo for empty list`);
-        assert(getCurrentListCategory([makeItem('a', 'One', false)]) === 'todo', 'Expected todo');
-        assert(getCurrentListCategory([makeItem('a', 'One', true), makeItem('b', 'Two', false), makeItem('c', 'Three', false)]) === 'started', 'Expected started');
-        assert(getCurrentListCategory([makeItem('a', 'One', true), makeItem('b', 'Two', true), makeItem('c', 'Three', false), makeItem('d', 'Four', false)]) === 'almost', 'Expected almost');
-        assert(getCurrentListCategory([makeItem('a', 'One', true), makeItem('b', 'Two', true)]) === 'complete', 'Expected complete');
+        const cases: [number, number, string][] = [[0, 0, 'todo'], [0, 5, 'todo'], [1, 5, 'started'], [9, 20, 'started'], [15, 18, 'started'], [18, 18, 'complete']];
+        for (const [checked, total, expected] of cases) {
+          const actual = getCurrentListCategory(makeItems(checked, total));
+          assert(actual === expected, `${checked}/${total}: expected ${expected}, got ${actual}`);
+        }
+      },
+    },
+
+    {
+      id: 'list-category-colours',
+      name: 'List buckets: Todo grey, Started blue, Done purple, with no Almost bucket',
+      run: () => {
+        assert(LIST_CATEGORY_COLOURS.todo === '#939393', 'Todo should be grey');
+        assert(LIST_CATEGORY_COLOURS.started === '#60C1E7', 'Started should be blue');
+        assert(LIST_CATEGORY_COLOURS.complete === '#8168D5', 'Done should be purple');
+        assert(Object.keys(LIST_CATEGORY_COLOURS).sort().join(',') === 'complete,started,todo', 'Only three buckets expected');
+        assert(LIST_CATEGORY_COLOURS[getCurrentListCategory(makeItems(15, 18))] === '#60C1E7', '15/18 should be blue');
+      },
+    },
+
+    {
+      id: 'list-category-transitions',
+      name: 'List buckets: checking and unchecking moves Todo to Started to Done and back',
+      run: () => {
+        let items = makeItems(0, 3);
+        assert(getCurrentListCategory(items) === 'todo', 'Start in Todo');
+        items = items.map((item, i) => (i === 0 ? { ...item, completed: true } : item));
+        assert(getCurrentListCategory(items) === 'started', 'One checked: Started');
+        items = items.map((item) => ({ ...item, completed: true }));
+        assert(getCurrentListCategory(items) === 'complete', 'All checked: Done');
+        items = items.map((item, i) => (i === 2 ? { ...item, completed: false } : item));
+        assert(getCurrentListCategory(items) === 'started', 'Done to Started after unchecking one');
+        items = [...items.map((item) => ({ ...item, completed: true })), makeItem('new', 'New', false)];
+        assert(getCurrentListCategory(items) === 'started', 'Done to Started after adding an item');
+        items = items.map((item) => ({ ...item, completed: false }));
+        assert(getCurrentListCategory(items) === 'todo', 'Started to Todo after unchecking all');
+        items = [];
+        assert(getCurrentListCategory(items) === 'todo', 'Empty list is Todo');
+      },
+    },
+
+    {
+      id: 'list-category-order',
+      name: 'List order: Todo, Started, Done, oldest first within each bucket, data unchanged',
+      run: () => {
+        const lists = [
+          makeList({ id: 'done-1', title: 'D1', items: makeItems(2, 2) }),
+          makeList({ id: 'started-1', title: 'S1', items: makeItems(9, 20) }),
+          makeList({ id: 'todo-1', title: 'T1', items: makeItems(0, 5) }),
+          makeList({ id: 'started-2', title: 'S2', items: makeItems(15, 18) }),
+          makeList({ id: 'empty', title: 'E', items: [] }),
+          makeList({ id: 'done-2', title: 'D2', items: makeItems(18, 18) }),
+        ];
+        const before = JSON.stringify(lists);
+        const order = orderListsByCategory(lists).map((list) => list.id).join(',');
+        assert(order === 'todo-1,empty,started-1,started-2,done-1,done-2', `Unexpected order: ${order}`);
+        assert(JSON.stringify(lists) === before, 'Ordering should not change list data or source order');
+      },
+    },
+
+    {
+      id: 'list-category-pinned-uses-bucket',
+      name: 'Pinned lists: bucket colour comes from items, pinning does not change the bucket',
+      run: () => {
+        const pinned = makeList({ id: 'p', title: 'Pinned', items: makeItems(9, 20), pinnedAt: 1 });
+        const unpinned = { ...pinned, pinnedAt: null };
+        assert(getCurrentListCategory(pinned.items) === 'started', 'Pinned 9/20 should be Started');
+        assert(LIST_CATEGORY_COLOURS[getCurrentListCategory(pinned.items)] === LIST_CATEGORY_COLOURS[getCurrentListCategory(unpinned.items)], 'Pinned and unpinned should share the bucket colour');
       },
     },
 

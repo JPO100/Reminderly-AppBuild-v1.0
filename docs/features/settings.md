@@ -137,7 +137,7 @@ Reminders settings:
 - Show calendar (toggle)
 - Use Siri shortcuts (toggle)
 - 1 minute time increments (toggle)
-- Notifications (page): Notifications, Sound (while Notifications is on), App badge, Include today in badge (while App badge is on); "Turn on in Settings" at the top when iOS permission is denied
+- Notifications (page): Notifications, Sound (inactive while Notifications is off), App badge, Include today in badge (inactive while App badge is off); "Turn on in Settings" at the top when iOS permission is denied
 - Natural Language Capture (page): on/off, Recognise dates, times, repeats (repeats only while repeat reminders are active), Apply as you type
 - Haptic feedback (page), Sounds (page)
 - Reminders tutorial (re-runs the tutorial)

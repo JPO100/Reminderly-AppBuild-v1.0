@@ -142,17 +142,17 @@ function SoundSettings({ panel }: { panel: HapticPanel }) {
 // Last row in both settings overlays. Uses the MenuRow chevron (same size, colour and 15px right inset), rotated to point up.
 export type NotifPrefs = { alerts: boolean; sound: boolean; badge: boolean; includeToday: boolean };
 
-// Notifications sub-page (docs/plans/notifications-phase-4.md, section 2). Sound shows while alerts are on,
-// include today while the badge is on. Permission never changes a preference: when iOS has denied it,
+// Notifications sub-page (docs/plans/notifications-phase-4.md, section 2). Sound is inactive while alerts are off,
+// include today while the badge is off; their saved choices are kept. Permission never changes a preference: when iOS has denied it,
 // a row at the top opens Reminderly's page in iOS Settings. App re-checks permission on return to the foreground.
 function NotificationSettings({ prefs, isDenied, onChange }: { prefs: NotifPrefs; isDenied: boolean; onChange: (key: keyof NotifPrefs, value: boolean) => void }) {
   return (
     <>
       {isDenied && <MenuRow label="Turn on in Settings" onClick={() => { window.location.href = "app-settings:"; }} infoTitle="Notifications are turned off for Reminderly in iOS Settings. Open Settings to allow them. Your choices below are kept." />}
       <ToggleRow label="Notifications" isOn={prefs.alerts} onToggle={() => onChange("alerts", !prefs.alerts)} infoTitle="Alerts you when a reminder with a time is due." />
-      {prefs.alerts && <ToggleRow label="Sound" isOn={prefs.sound} onToggle={() => onChange("sound", !prefs.sound)} infoTitle="Plays your iPhone's alert sound with each reminder alert. You can change the sound in iOS Settings, Sounds & Haptics." />}
+      <ToggleRow label="Sound" isOn={prefs.sound} disabled={!prefs.alerts} onToggle={() => onChange("sound", !prefs.sound)} infoTitle="Plays your iPhone's alert sound with each reminder alert. You can change the sound in iOS Settings, Sounds & Haptics." />
       <ToggleRow label="App badge" isOn={prefs.badge} onToggle={() => onChange("badge", !prefs.badge)} infoTitle="Shows the number of overdue reminders on the Reminderly app icon." />
-      {prefs.badge && <ToggleRow label="Include today in badge" isOn={prefs.includeToday} onToggle={() => onChange("includeToday", !prefs.includeToday)} infoTitle="Also counts reminders due today in the app icon badge." />}
+      <ToggleRow label="Include today in badge" isOn={prefs.includeToday} disabled={!prefs.badge} onToggle={() => onChange("includeToday", !prefs.includeToday)} infoTitle="Also counts reminders due today in the app icon badge." />
     </>
   );
 }

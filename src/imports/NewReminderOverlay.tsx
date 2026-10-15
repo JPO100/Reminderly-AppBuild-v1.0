@@ -1826,7 +1826,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
                   type="button"
                   onClick={() => handleDatePresetTap(id)}
                   className="bg-white content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer"
-                  style={isActive ? { boxShadow: 'inset 0 0 0 2px #4784F8', color: '#4784F8' } : { boxShadow: 'inset 0 0 0 1px #BABABA', color: '#BABABA' }}
+                  style={isActive ? { boxShadow: 'inset 0 0 0 2px #4784F8', color: '#4784F8' } : { boxShadow: 'inset 0 0 0 1px #B7B7B7', color: '#B7B7B7' }}
                 >
                   <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">{label}</div>
                 </button>

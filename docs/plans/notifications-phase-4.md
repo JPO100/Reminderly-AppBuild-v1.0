@@ -218,6 +218,12 @@ Vitest, extending `settings.test.ts`:
 4. Permission flow: ask state, settings entry point (6.3), ask at tutorial end and first timed reminder, existing-install runtime `accepted`, foreground re-check and resync.
 5. Verification, documentation and deployment.
 
+Step 1 results (2026-10-15, John's iPhone 15 Pro, temporary uncommitted dev tools test card, since removed):
+- Current alerts (no sound set): silent. Sound off by default (D3) preserves existing behaviour.
+- Sound name `default`: plays the user's iOS Default Alerts tone. Passed.
+- `app-settings:` from the web view: opens Reminderly's page in iOS Settings. Passed.
+All three passed. No bundled sound file, native helper or new dependency is needed.
+
 Checkpoints: a progress update with validation evidence after step 1 (device checks) and after each of steps 2 to 5. Tests are written alongside each change, with commits at each stage on the branch. Final CTO technical sign-off before merging to `main`.
 
 ## 11. Verification

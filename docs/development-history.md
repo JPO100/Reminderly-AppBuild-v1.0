@@ -1256,3 +1256,13 @@ Completed:
 Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run, 6 new). Production build succeeded. Simulator checks passed on the iPhone 17 Pro simulator. iPhone confirmation of Tonight after 6pm outstanding.
 
 Follow-up (2026-10-15, after CTO and product review): "Tomorrow morning" label shortened to "Tomorrow". Pills keep the standard 10px gap, aligned left, and fit on 375pt screens and wider (295.5pt needed, 327pt available at 375pt); the row still scrolls sideways if it ever does not fit. Vitest 190/190 passed. Deployed to the iPhone 17 Pro simulator and iPhone 15 Pro.
+
+### 2026-10-15 (feature/notifications-settings - Notifications Phase 4)
+
+Branch: feature/notifications-settings (created from main at bd5b11a after verifying main clean and equal to origin/main; approved by the CTO and John). Plan: [plans/notifications-phase-4.md](plans/notifications-phase-4.md).
+
+Decisions: D1 to D5 approved by the CTO. Notification sound added to Phase 4 scope by John: one on/off toggle using the iOS default sound, off by default for all users (D3).
+
+Completed:
+- Scope committed (2e9eaa5)
+- Step 1 device checks on the iPhone 15 Pro, all passed: current alerts are silent; sound name `default` plays the iOS Default Alerts tone; `app-settings:` opens Reminderly's iOS Settings page. Temporary test card removed, not committed

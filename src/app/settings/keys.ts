@@ -78,14 +78,9 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-lock-screen-widget': 'true',
 };
 
-// Transitional fallbacks: the previous app defaults, still used for settings not yet integrated
-// (notifications until Phase 4) and for keys outside SETTINGS_DEFAULTS. Every other setting falls
-// back to its development default in SETTINGS_DEFAULTS. Nothing is written at startup, so a missing
-// key stays missing and a saved choice is never overwritten.
+// Transitional fallbacks: previous app defaults for keys outside SETTINGS_DEFAULTS. Every other setting
+// falls back to its development default in SETTINGS_DEFAULTS (notifications since Phase 4). Nothing is
+// written at startup, so a missing key stays missing and a saved choice is never overwritten.
 export const TRANSITIONAL_FALLBACKS: Record<string, boolean> = {
-  'reminderly-ff-notifications': true,
-  'reminderly-pref-notif-alerts': true,
-  'reminderly-pref-notif-badge': true,
-  'reminderly-pref-notif-include-today': true,
   'reminderly-dev-tools-password-required': true,
 };

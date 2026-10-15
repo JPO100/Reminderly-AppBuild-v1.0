@@ -1266,6 +1266,9 @@ Decisions: D1 to D5 approved by the CTO. Notification sound added to Phase 4 sco
 Completed:
 - Scope committed (2e9eaa5)
 - Step 1 device checks on the iPhone 15 Pro, all passed: current alerts are silent; sound name `default` plays the iOS Default Alerts tone; `app-settings:` opens Reminderly's iOS Settings page. Temporary test card removed, not committed
+- Stage 2 (7e2e79c): alerts preference controls alerts (F1); alerts and badge independent with silent badge-only notifications (same selection and 64 limit); sound on adds the iOS default sound to alerts only; sync checks permission and never prompts (F3); Notifications flag off cancels notifications and clears the badge. Vitest 201/201, Self Check 382/382
+- fix/time-picker-scroll merged into this branch so Phase 4 builds have working time wheels (fix awaits CTO approval for main)
+- Stage 3: notification transitional fallbacks removed (new installs: alerts and badge off, include today on, sound off); Settings > Reminders > Notifications page with Notifications, Sound (while alerts on), App badge and Include today in badge (while badge on); "Turn on in Settings" row when iOS permission is denied, re-checked on return to the foreground. Settings checks for saved off and on values, defaults and the sound key. Vitest 205/205, Self Check 386/386. Toggling on while permission is undecided saves the preference only; the in-app ask (6.3) is stage 4
 
 ### 2026-10-15 (fix/time-picker-scroll - time picker wheels)
 

@@ -951,7 +951,7 @@ export default function App() {
   const [notifReminderAlerts, setNotifReminderAlerts] = useStoredSetting('reminderly-pref-notif-alerts');
   const [notifAppBadge, setNotifAppBadge] = useStoredSetting('reminderly-pref-notif-badge');
   const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useStoredSetting('reminderly-pref-notif-include-today');
-  const [notifSound] = useStoredSetting('reminderly-pref-notif-sound');
+  const [notifSound, setNotifSound] = useStoredSetting('reminderly-pref-notif-sound');
   const [isRepeatsOverlayOpen, setIsRepeatsOverlayOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialVariant, setTutorialVariant] = useState<TutorialVariant>('reminders');
@@ -5449,6 +5449,9 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <RemindersSettingsContent
+                  notificationsAvailable={isRemindersEnabled && notificationsFlag}
+                  notifPrefs={{ alerts: notifReminderAlerts, sound: notifSound, badge: notifAppBadge, includeToday: notifIncludeTodayInBadge }}
+                  onNotifChange={(key, value) => ({ alerts: setNotifReminderAlerts, sound: setNotifSound, badge: setNotifAppBadge, includeToday: setNotifIncludeTodayInBadge })[key](value)}
                   calendarAvailable={isRemindersEnabled && calendarFlag && isCalendarScreenTallEnough}
                   calendarOn={calendarPref}
                   onCalendarChange={setCalendarPref}

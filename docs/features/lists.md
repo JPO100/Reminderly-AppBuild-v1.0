@@ -46,7 +46,7 @@ type SavedListTemplate = { id: string; title: string; items: ListItem[];
 | Started (`started`) | At least one checked, not all | `#60C1E7` |
 | Done (`complete`) | All items checked, at least one item | `#8168D5` |
 
-Pinned lists use their bucket colour; the pin icon beside the title marks them as pinned.
+Pinned lists show a navy `#1C2C42` circle (`getListCircleColour`, John and CTO, 2026-10-15) and the pin icon beside the title. Their bucket, filters and ordering are unchanged.
 
 Filter pills: Todo, Started, Done. The Templates button shows when the templates flag is on; a lists settings button opens the Lists settings panel when the settings menu is on. Same toggle and style rules as reminder pills.
 

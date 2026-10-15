@@ -32,6 +32,14 @@ export const LIST_CATEGORY_COLOURS: Record<ListCategory, string> = {
   complete: '#8168D5',
 };
 
+export const PINNED_LIST_COLOUR = '#1C2C42';
+
+/** Progress circle colour on a list card: navy for pinned lists, otherwise the bucket colour. */
+export function getListCircleColour(list: { items: ListItem[]; pinnedAt?: number | null }, pinnedListsEnabled: boolean): string {
+  if (pinnedListsEnabled && typeof list.pinnedAt === 'number') return PINNED_LIST_COLOUR;
+  return LIST_CATEGORY_COLOURS[getCurrentListCategory(list.items)];
+}
+
 const LIST_CATEGORY_ORDER: Record<ListCategory, number> = { todo: 0, started: 1, complete: 2 };
 
 /** Lists that were populated in prev and are blank (no title, no items) in next. Used by the list data loss diagnostic. */

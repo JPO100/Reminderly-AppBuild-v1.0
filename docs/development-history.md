@@ -1348,3 +1348,11 @@ Completed:
 Material issue found and reported to the CTO before further changes: the smart reminder sync effect removes a list's active smart reminder as soon as the list is no longer active, before list-sync completion commits (350ms), so marking a list done (manual or auto) deletes the linked smart reminder instead of completing it. Pre-existing. CTO decision: Option 1, keep it out of this branch and fix on fix/smart-reminder-list-done after this merge, before any TestFlight release containing auto-clear.
 
 Test results: Vitest 229/229 passed. Self Check 404/404 passed (Node run). Repo guard passed. Web build succeeded. Web preview: setting off changes nothing; turning it on cleared a list fully ticked two days earlier (dated two days ago) and kept today's, the pre-existing and the pinned lists; deleting the last unticked item stamped the time of deletion, kept the list and showed Clears tonight; manual completion unchanged (all items ticked now, done date now); restoring from Done unticks the items and clears fullyTickedAt. Simulator iPhone 17 Pro: build, install and launch succeeded, "1 of 1. Clears tonight" shown on a fully ticked list. iPhone 15 Pro: build, signing, install and launch succeeded. Awaiting John's device checks and CTO merge approval.
+### 2026-10-15 (fix/pinned-list-navy - navy circle for pinned lists)
+
+Branch: fix/pinned-list-navy (created from main at 75e2db5, verified equal to origin/main), independent of feature/list-auto-clear. Type A. John asked for navy pinned lists after device use; Claude flagged that it reverses an approved decision and sent a CTO change note; the CTO approved.
+
+Completed:
+- Pinned list circles are navy `#1C2C42` again (`getListCircleColour` in list-utils), only while the pinned lists flag is on. Buckets, filters, ordering and the pin icon unchanged
+
+Test results: Vitest 220/220 passed. Self Check 395/395 passed (Node run). Repo guard passed. Web build succeeded. Web preview: pinned 0/3, 9/20 and 4/4 navy with pin icon at the top of All; unpinned Todo grey, Started blue, Done purple; filters unchanged. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded. Awaiting CTO merge approval.

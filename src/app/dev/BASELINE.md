@@ -2,10 +2,21 @@
 
 Last updated: 2026-10-15
 
-## Verified Baseline (2026-10-15, feature/list-auto-clear)
+## Verified Baseline (2026-10-15, main after feature/list-auto-clear and fix/pinned-list-navy)
+
+- Vitest (`npm run test`): 229 passed, 0 failed (12 files).
+- Self Check: 404 passed, 0 failed across 11 suites (Node run). Both branches' checks present: 9 Clear done lists nightly checks and the pinned navy check.
+- Merge note: App.tsx import list conflict resolved by keeping both sides; synced iOS web asset regenerated; documentation entries combined.
+
+## Previous baseline (2026-10-15, feature/list-auto-clear)
 
 - Vitest (`npm run test`): 229 passed, 0 failed (12 files). list-sort.test.ts also runs the auto-clear checks.
 - Self Check: 404 passed, 0 failed across 11 suites (Node run). 9 Clear done lists nightly checks added to Lists and smart reminders (default off, fullyTickedAt stamp/clear/reset/restart, deletion of the last unticked item, done and deleted lists untouched, eligibility, midnight boundary and catch-up and clock changes, completes once, auto versus manual done data, Clears tonight hint).
+
+## Previous baseline (2026-10-15, fix/pinned-list-navy)
+
+- Vitest (`npm run test`): 220 passed, 0 failed (12 files).
+- Self Check: 395 passed, 0 failed across 11 suites (Node run). The pinned bucket colour check replaced by a navy check (pinned 0/5, 9/20 and 5/5 navy; bucket unchanged; unpinned and pinned-lists-off use the bucket colour).
 
 ## Previous baseline (2026-10-15, fix/list-category-colour)
 

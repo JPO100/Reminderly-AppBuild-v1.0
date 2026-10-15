@@ -1,8 +1,13 @@
 # Self-Check Baseline Report
 
-Last updated: 2026-10-12
+Last updated: 2026-10-15
 
-## Verified Baseline (2026-10-12, fix/self-check-audit)
+## Verified Baseline (2026-10-15, feature/date-presets)
+
+- Vitest (`npm run test`): 190 passed, 0 failed (11 files; date-presets.test.ts added).
+- Self Check: 378 passed, 0 failed across 11 suites (Node run). 5 date preset checks added to Schedule and reminder logic, 1 date presets gate check added to Settings foundation.
+
+## Previous baseline (2026-10-12, fix/self-check-audit)
 
 - Vitest (`npm run test`): 167 passed, 0 failed (9 files). Dev tools controls guard now includes Sounds and Lock screen widget.
 - Self Check: 354 passed, 0 failed across 10 suites (Node run of the same checks).

@@ -1241,3 +1241,18 @@ Completed:
 - Branch deleted locally and on the remote
 
 Test results: Self Check 354/354 passed (in-app on iPhone 15 Pro and Node run). Vitest 167/167 passed. Production build succeeded.
+
+### 2026-10-15 (feature/date-presets - Date presets)
+
+Branch: feature/date-presets (created from main at 4abbf9c, approved by the CTO and John). Plan: [plans/date-presets.md](plans/date-presets.md).
+
+Completed:
+- Date preset pills in the new and edit reminder panel: Tomorrow morning (next day 8am), Tonight (today 6pm), Next week (next Monday after today 8am)
+- Tapping a pill turns date and time on with the pickers closed; tapping the active pill turns them off through the manual toggle-off path; any later date or time change resets the pill. Repeats unchanged. Hidden in smart reminder mode
+- Dev tools > Reminders > Date presets flag (default off) and Reminders settings > Show date presets (default on); flag off overrides the setting
+- Preset dates use local calendar arithmetic (`utils/date-presets.ts`); checks cover every weekday, month and year end and UK daylight saving weeks
+- Tonight saved after 6pm schedules no notification (Vitest, using the existing `buildScheduledNotifications` past-time rule)
+
+Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run, 6 new). Production build succeeded. Simulator checks passed on the iPhone 17 Pro simulator. iPhone confirmation of Tonight after 6pm outstanding.
+
+Follow-up (2026-10-15, after CTO and product review): "Tomorrow morning" label shortened to "Tomorrow". Pills keep the standard 10px gap, aligned left, and fit on 375pt screens and wider (295.5pt needed, 327pt available at 375pt); the row still scrolls sideways if it ever does not fit. Vitest 190/190 passed. Deployed to the iPhone 17 Pro simulator and iPhone 15 Pro.

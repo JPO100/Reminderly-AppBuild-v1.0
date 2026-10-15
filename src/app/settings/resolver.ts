@@ -11,6 +11,7 @@ export type Feature =
   | 'repeatReminders'
   | 'oneMinuteIncrements'
   | 'calendar'
+  | 'datePresets'
   | 'smartReminders'
   | 'listTemplates'
   | 'pinnedLists'
@@ -43,6 +44,7 @@ const FEATURES: Record<Feature, FeatureDef> = {
   repeatReminders: { flag: 'reminderly-ff-repeat-reminders', parents: ['reminders'] },
   oneMinuteIncrements: { flag: 'reminderly-ff-one-minute-increments', parents: ['reminders'], prefs: ['reminderly-pref-one-minute-increments'] },
   calendar: { flag: 'reminderly-ff-calendar', parents: ['reminders'], prefs: ['reminderly-pref-calendar'] },
+  datePresets: { flag: 'reminderly-ff-date-presets', parents: ['reminders'], prefs: ['reminderly-pref-date-presets'] },
   smartReminders: { flag: 'reminderly-ff-smart-reminders', parents: ['reminders', 'lists'] },
   listTemplates: { flag: 'reminderly-ff-saved-lists', parents: ['lists'] },
   pinnedLists: { flag: 'reminderly-ff-pinned-lists', parents: ['lists'] },

@@ -25,6 +25,8 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-calendar': 'false',
   'reminderly-pref-calendar': 'false',
   'reminderly-ff-reminder-attachments': 'false',
+  'reminderly-ff-date-presets': 'false',
+  'reminderly-pref-date-presets': 'true',
 
   // Lists
   'reminderly-ff-lists': 'true',

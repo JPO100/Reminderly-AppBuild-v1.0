@@ -36,6 +36,8 @@ import { Share } from "@capacitor/share";
 import { FileOpener } from "@capacitor-community/file-opener";
 import type { RepeatRule } from "../app/types/reminder";
 import { repeatConfigToRule } from "../app/utils/repeat-conversion";
+import { DATE_PRESETS, getDatePresetValue } from "../app/utils/date-presets";
+import type { DatePreset } from "../app/utils/date-presets";
 import { formatShortMonthDay } from "../app/utils/date-display";
 import { buildSmartReminderText, getSmartReminderTime, storageStringToDate, type CreatedList } from "../app/utils/list-utils";
 import { normaliseReminderText } from "../app/utils/normalise-text";
@@ -591,7 +593,7 @@ function ReminderOptions({
   );
 }
 
-function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null, isReminderAttachmentsEnabled = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null; isReminderAttachmentsEnabled?: boolean }) {
+function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null, isReminderAttachmentsEnabled = false, isDatePresetsEnabled = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null; isReminderAttachmentsEnabled?: boolean; isDatePresetsEnabled?: boolean }) {
   const isEditMode = !!editReminder;
   const isSmartReminderCreate = !!smartReminderCreateList;
   const isSmartReminderEdit = editReminder?.isSmartReminder === true;
@@ -644,6 +646,17 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     }
     return null;
   });
+  // Date presets: the active pill and the date and time it applied. Never active when the panel opens
+  const [activePreset, setActivePreset] = useState<{ id: DatePreset; date: Date; time: { hour: number; minute: number } } | null>(null);
+  // Any change to the date or time after a pill was tapped (manual or natural language) resets the pill.
+  // The pill's own update matches the applied values, so it does not reset itself
+  useEffect(() => {
+    if (!activePreset) return;
+    const matches = isDateOn && isTimeOn && selectedDate != null && selectedTime != null
+      && selectedDate.getTime() === activePreset.date.getTime()
+      && selectedTime.hour === activePreset.time.hour && selectedTime.minute === activePreset.time.minute;
+    if (!matches) setActivePreset(null);
+  }, [activePreset, isDateOn, isTimeOn, selectedDate, selectedTime]);
   const [reminderText, setReminderText] = useState(() => {
     if (smartReminderCreateList) return buildSmartReminderText(smartReminderCreateList);
     if (editReminder) return editReminder.originalText;
@@ -1152,6 +1165,22 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
 
   const handleTimeSelect = (time: { hour: number; minute: number }) => {
     setSelectedTime(time);
+  };
+
+  const handleDatePresetTap = (preset: DatePreset) => {
+    if (activePreset?.id === preset) {
+      // Tapping the active pill turns date and time off through the manual toggle-off path (repeats untouched)
+      setActivePreset(null);
+      if (isDateOn) handleDateToggle();
+      return;
+    }
+    // Pickers stay closed; only the value labels update
+    const { date, time } = getDatePresetValue(preset);
+    setIsDateOn(true);
+    setIsTimeOn(true);
+    setSelectedDate(date);
+    setSelectedTime(time);
+    setActivePreset({ id: preset, date, time });
   };
 
   const handleRepeatsToggle = () => {
@@ -1787,6 +1816,24 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
         </motion.div>
       </div>
       <div className="flex-1 min-h-0 flex flex-col px-[24px] pt-[24px] pb-[24px]">
+        {isDatePresetsEnabled && !isSmartReminderMode && (
+          <div className="flex items-center gap-[10px] shrink-0 mb-[24px] overflow-x-auto" style={{ scrollbarWidth: 'none' }} data-name="date-presets">
+            {DATE_PRESETS.map(({ id, label }) => {
+              const isActive = activePreset?.id === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => handleDatePresetTap(id)}
+                  className="bg-white content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer"
+                  style={isActive ? { boxShadow: 'inset 0 0 0 2px #4784F8', color: '#4784F8' } : { boxShadow: 'inset 0 0 0 1px #BABABA', color: '#BABABA' }}
+                >
+                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">{label}</div>
+                </button>
+              );
+            })}
+          </div>
+        )}
         <ReminderOptions 
           isDateOn={isDateOn}
           onDateToggle={handleDateToggle}
@@ -1942,10 +1989,10 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   );
 }
 
-export default function NewReminderOverlay({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null, isReminderAttachmentsEnabled = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null; isReminderAttachmentsEnabled?: boolean }) {
+export default function NewReminderOverlay({ repeatsEnabled = true, onRepeatsOverlayOpen, repeatConfig, onRepeatConfigChange, isRepeatsOverlayOpen, addReminder, onClose, nlcMode, nlcEnabled, nlcRecognition, editReminder, updateReminder, smartReminderCreateList, onCreateSmartReminder, useOneMinuteIncrements = false, autoFocusReady = false, initialDate = null, isReminderAttachmentsEnabled = false, isDatePresetsEnabled = false }: { repeatsEnabled?: boolean; onRepeatsOverlayOpen?: () => void; repeatConfig: RepeatConfig; onRepeatConfigChange: (config: RepeatConfig) => void; isRepeatsOverlayOpen: boolean; addReminder: (reminder: Reminder) => void; onClose: () => void; nlcMode: NlcMode; nlcEnabled: boolean; nlcRecognition?: NlcRecognitionConfig; editReminder?: Reminder | null; updateReminder?: (reminder: Reminder) => void; smartReminderCreateList?: CreatedList | null; onCreateSmartReminder?: (payload: { listId: string; date: string; time: string }) => void; useOneMinuteIncrements?: boolean; autoFocusReady?: boolean; initialDate?: string | null; isReminderAttachmentsEnabled?: boolean; isDatePresetsEnabled?: boolean }) {
   return (
     <div className="bg-white content-stretch flex flex-col items-center relative rounded-tl-[15px] rounded-tr-[15px] size-full" data-name="new-reminder-overlay">
-      <NewReminderElements repeatsEnabled={repeatsEnabled} onRepeatsOverlayOpen={onRepeatsOverlayOpen} repeatConfig={repeatConfig} onRepeatConfigChange={onRepeatConfigChange} isRepeatsOverlayOpen={isRepeatsOverlayOpen} addReminder={addReminder} onClose={onClose} nlcMode={nlcMode} nlcEnabled={nlcEnabled} nlcRecognition={nlcRecognition} editReminder={editReminder} updateReminder={updateReminder} smartReminderCreateList={smartReminderCreateList} onCreateSmartReminder={onCreateSmartReminder} useOneMinuteIncrements={useOneMinuteIncrements} autoFocusReady={autoFocusReady} initialDate={initialDate} isReminderAttachmentsEnabled={isReminderAttachmentsEnabled} />
+      <NewReminderElements repeatsEnabled={repeatsEnabled} onRepeatsOverlayOpen={onRepeatsOverlayOpen} repeatConfig={repeatConfig} onRepeatConfigChange={onRepeatConfigChange} isRepeatsOverlayOpen={isRepeatsOverlayOpen} addReminder={addReminder} onClose={onClose} nlcMode={nlcMode} nlcEnabled={nlcEnabled} nlcRecognition={nlcRecognition} editReminder={editReminder} updateReminder={updateReminder} smartReminderCreateList={smartReminderCreateList} onCreateSmartReminder={onCreateSmartReminder} useOneMinuteIncrements={useOneMinuteIncrements} autoFocusReady={autoFocusReady} initialDate={initialDate} isReminderAttachmentsEnabled={isReminderAttachmentsEnabled} isDatePresetsEnabled={isDatePresetsEnabled} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 # Notifications Phase 4 - scope
 
-Status: approved by the CTO (2026-10-15). All decisions resolved, clarifications 1 to 4 accepted, Phase 4 implementation authorised subject to the step 1 device checks and branch safeguards. Final CTO technical sign-off required before merging to `main`. Branch `feature/notifications-settings`, created from a verified clean and current `main`.
+Status: implemented on `feature/notifications-settings` (2026-10-15). Stages 1 to 4 complete and verified; awaiting final CTO sign-off. Not merged.
 
 Builds on `docs/settings-flags-spec.md` section 7 (approved in Phase 0) and adds notification sound, agreed with John on 2026-10-15.
 
@@ -223,6 +223,11 @@ Step 1 results (2026-10-15, John's iPhone 15 Pro, temporary uncommitted dev tool
 - Sound name `default`: plays the user's iOS Default Alerts tone. Passed.
 - `app-settings:` from the web view: opens Reminderly's page in iOS Settings. Passed.
 All three passed. No bundled sound file, native helper or new dependency is needed.
+
+Results (2026-10-15):
+- Stage 2 and 3 device checks: 7 of 7 passed (6 on John's iPhone 15 Pro, permission denied and recovery on the simulator).
+- Stage 4 on a fresh install (unused iPhone 17 simulator; John's iPhone and the existing simulator untouched): no iOS prompt at launch; ask at tutorial end; Not now gives not-now-1, ask again on the next timed reminder; second Not now gives not-now-2, no further ask; settings toggle shows the ask, Not now leaves it off; Allow turns on only that preference, then the iOS prompt; Don't Allow keeps the preference and shows Turn on in Settings; allowing in iOS Settings clears the row on return. A reinstall on the same test simulator confirmed Allow from the automatic ask turns on alerts and badge, sound stays off. Existing install with permission: no ask.
+- Defect found and fixed during stage 4 verification: the badge plugin requested iOS permission on every badge set or clear, so a new install saw the iOS prompt at launch. The badge is now only set once permission is granted.
 
 Checkpoints: a progress update with validation evidence after step 1 (device checks) and after each of steps 2 to 5. Tests are written alongside each change, with commits at each stage on the branch. Final CTO technical sign-off before merging to `main`.
 

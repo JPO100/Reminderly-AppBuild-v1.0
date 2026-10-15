@@ -47,8 +47,9 @@ With developer tools excluded, these values are what users get. Development defa
 | Reminder attachments | `ff-reminder-attachments` | off | Decision (D3) | Merged 2026-10-14; passed John's iPhone testing |
 | Smart reminders, templates, pinned lists | `ff-smart-reminders`, `ff-saved-lists`, `ff-pinned-lists` | on | on | Complete features |
 | Default templates for new users | `config-templates-in-clean-state` | off | off (decided 2026-10-14) | No seeded templates for new users |
-| Notifications | `ff-notifications`, `pref-notif-alerts` | on, off (fallback on) | on, on after the Phase 4 permission flow | Core to a reminders app |
-| Badge, include today | `pref-notif-badge`, `pref-notif-include-today` | off (fallback on), on | Decision | |
+| Notifications | `ff-notifications`, `pref-notif-alerts` | on, off | on, on after the in-app ask | Core to a reminders app. Phase 4 on feature/notifications-settings, not yet merged |
+| Notification sound | `pref-notif-sound` | off | off (D3, approved 2026-10-15) | iOS default sound when on |
+| Badge, include today | `pref-notif-badge`, `pref-notif-include-today` | off, on | on after the in-app ask, on | Allow in the in-app ask turns alerts and badge on |
 | Haptics | `ff-haptics`, `pref-haptics` | on, off | on, on | iOS convention |
 | Sounds | `ff-sounds`, `pref-sounds` | off, off | Decision | |
 | Siri for reminders | `ff-` / `pref-siri-reminders` | off / off | on / on | Confirmed decision |
@@ -109,7 +110,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Requirement | Status | Reference | Notes |
 |-------------|--------|-----------|-------|
 | App works without notification permission | Complete | 4.5.4 | |
-| In-app permission request with context; alerts preference and flag wired | Outstanding | 5.1.1(iv), HIG | Phase 4 in [settings-flags-spec.md](./settings-flags-spec.md); permission currently requested on first sync |
+| In-app permission request with context; alerts preference and flag wired | Complete on feature/notifications-settings, awaiting merge | 5.1.1(iv), HIG | Phase 4 ([plans/notifications-phase-4.md](./plans/notifications-phase-4.md)): in-app ask before the iOS prompt, no automatic prompt, verified on a fresh simulator install 2026-10-15 |
 | Notification actions, badge and midnight badge on device | Verify before submission | 2.1 | Protected area |
 | Lock screen widget shows correct data | Verify before submission | 2.1 | |
 | Siri shortcut works end to end with release defaults | Outstanding (decided) | 2.1(a) | Currently registered but off by default, so it silently does nothing |
@@ -168,7 +169,7 @@ Decided within D1 (2026-10-14): annual subscription at £9, all features free wi
 1. Tutorial opens on every launch (decided fix outstanding).
 2. Siri shortcut does nothing with current defaults.
 3. "1 minute time increments" info text is wrong.
-4. Notification preferences and permission flow not wired (Phase 4).
+4. Notification preferences and permission flow: complete on feature/notifications-settings, awaiting merge (Phase 4).
 5. Developer tools reachable in all builds.
 
 Details: [architecture.md](./architecture.md) (Known constraints) and the feature documents.
@@ -177,6 +178,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-15 | Notifications Phase 4 complete on feature/notifications-settings (not merged): user notification settings, sound off by default, in-app permission ask, no automatic iOS prompt |
 | 2026-10-12 | Plan created from the Phase 3 assessment. Decisions recorded: iPhone only, Siri enabled, developer tools excluded from release builds, tutorial once on first launch. Monetisation added as an outstanding dependency |
 
 ## Sources

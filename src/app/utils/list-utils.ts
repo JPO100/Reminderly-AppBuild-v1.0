@@ -19,6 +19,8 @@ export type CreatedList = {
   smartReminderTime?: string | null;
   status?: 'active' | 'done' | 'deleted';
   statusChangedAt?: number | null;
+  // When an active list last became fully ticked (null while not fully ticked). Used by Clear done lists nightly.
+  fullyTickedAt?: number | null;
 };
 
 // List buckets: Todo (nothing ticked, including empty lists), Started (some ticked), Done (all ticked).
@@ -131,6 +133,65 @@ export function getCurrentListCategory(items: ListItem[]): ListCategory {
   if (total > 0 && checked === total) return "complete";
   if (checked > 0) return "started";
   return "todo";
+}
+
+function isActiveList(list: CreatedList): boolean {
+  return list.status !== 'done' && list.status !== 'deleted';
+}
+
+function isPinned(list: CreatedList, pinnedListsEnabled: boolean): boolean {
+  return pinnedListsEnabled && typeof list.pinnedAt === 'number';
+}
+
+/**
+ * Keeps fullyTickedAt in step with each active list's items: stamped when a list becomes fully ticked,
+ * cleared when it stops being fully ticked. Returns the same array when nothing changes.
+ */
+export function syncFullyTickedAt(lists: CreatedList[], nowMs: number): CreatedList[] {
+  let changed = false;
+  const next = lists.map((list) => {
+    if (!isActiveList(list)) return list;
+    const fullyTicked = getCurrentListCategory(list.items) === 'complete';
+    if (fullyTicked && typeof list.fullyTickedAt !== 'number') {
+      changed = true;
+      return { ...list, fullyTickedAt: nowMs };
+    }
+    if (!fullyTicked && list.fullyTickedAt != null) {
+      changed = true;
+      return { ...list, fullyTickedAt: null };
+    }
+    return list;
+  });
+  return changed ? next : lists;
+}
+
+/**
+ * The list as marked done. Manual completion ticks every item now. Clear done lists nightly (autoDoneAt)
+ * keeps the items and their tick times, and dates the list from when it became fully ticked.
+ */
+export function markListDone(list: CreatedList, nowMs: number, autoDoneAt?: number): CreatedList {
+  return {
+    ...list,
+    items: autoDoneAt != null ? list.items : list.items.map((item) => ({ ...item, completed: true, completedAt: nowMs })),
+    status: 'done',
+    statusChangedAt: autoDoneAt ?? nowMs,
+  };
+}
+
+/** Fully ticked, active and unpinned: shows "Clears tonight" while Clear done lists nightly is on. */
+export function isListClearingTonight(list: CreatedList, pinnedListsEnabled: boolean): boolean {
+  return isActiveList(list) && !isPinned(list, pinnedListsEnabled) && getCurrentListCategory(list.items) === 'complete';
+}
+
+/** Lists Clear done lists nightly moves to Done: clearing tonight and fully ticked before the start of the local day. */
+export function getListsToAutoClear(lists: CreatedList[], now: Date, pinnedListsEnabled: boolean): CreatedList[] {
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  return lists.filter((list) => (
+    isListClearingTonight(list, pinnedListsEnabled)
+    && typeof list.fullyTickedAt === 'number'
+    && list.fullyTickedAt < startOfToday.getTime()
+  ));
 }
 
 /** Todo, then Started, then Done. Lists keep their existing order (oldest first) within each bucket. */

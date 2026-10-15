@@ -57,6 +57,10 @@ import {
   getCurrentListCategory,
   orderListsByCategory,
   LIST_CATEGORY_COLOURS,
+  syncFullyTickedAt,
+  isListClearingTonight,
+  getListsToAutoClear,
+  markListDone,
   getDisplayListItems,
   resolveListSortMode,
   getBlankedLists,
@@ -678,6 +682,7 @@ export default function App() {
   // Lists settings > Sort items A to Z sets the order for every list. Templates always edit A to Z.
   // The legacy per-list sortMode is kept in saved data but no longer read.
   const [listSortAz, setListSortAz] = useStoredSetting('reminderly-pref-list-sort-az');
+  const [listAutoClear, setListAutoClear] = useStoredSetting('reminderly-pref-list-auto-clear');
   const [isTemplateEditorSort, setIsTemplateEditorSort] = useState(false);
   const listSortMode = resolveListSortMode(listSortAz, isTemplateEditorSort);
   const [listSmartReminders, setListSmartReminders] = useState(false);
@@ -863,7 +868,7 @@ export default function App() {
   const [pendingDeletedListIds, setPendingDeletedListIds] = useState<Set<string>>(new Set());
   const [pendingDeletedSavedListIds, setPendingDeletedSavedListIds] = useState<Set<string>>(new Set());
   const [pendingUndeletedListIds, setPendingUndeletedListIds] = useState<Set<string>>(new Set());
-  const handleCompleteClickRef = useRef<((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; isRepeat?: boolean; source?: 'manual' | 'list-sync' }) => void) | null>(null);
+  const handleCompleteClickRef = useRef<((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; isRepeat?: boolean; source?: 'manual' | 'list-sync'; quiet?: boolean }) => void) | null>(null);
   const handleUncompleteClickRef = useRef<((reminderId: string, opts?: { source?: 'manual' | 'list-sync' }) => void) | null>(null);
   const handleDeleteClickRef = useRef<((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; source?: 'manual' | 'list-sync' }) => void) | null>(null);
   const pendingUndoneListStatusChangedAtRef = useRef<Map<string, number>>(new Map());
@@ -1494,6 +1499,11 @@ export default function App() {
     } catch {
       // Fail silently
     }
+  }, [createdLists]);
+
+  // Records when each active list became fully ticked (Clear done lists nightly). No change, no update.
+  useEffect(() => {
+    setCreatedLists((prev) => syncFullyTickedAt(prev, Date.now()));
   }, [createdLists]);
 
   useEffect(() => {
@@ -2390,6 +2400,17 @@ export default function App() {
     return labels[category];
   };
 
+  // Marks a list done and completes its linked smart reminder. Manual completion calls this after the
+  // cross-out delay. Clear done lists nightly calls it with auto: no animation or haptic, the items keep
+  // their tick times and the done date is when the list became fully ticked.
+  const commitListDone = useCallback((listId: string, auto?: { doneAt: number }) => {
+    setCreatedLists((prev) => prev.map((list) => (list.id === listId ? markListDone(list, Date.now(), auto?.doneAt) : list)));
+    const linkedReminder = reminders.find((reminder) => reminder.isSmartReminder === true && reminder.linkedListId === listId && reminder.completedAt == null && reminder.deletedAt == null);
+    if (linkedReminder) {
+      handleCompleteClickRef.current?.(linkedReminder.id, { source: 'list-sync', quiet: auto != null });
+    }
+  }, [reminders]);
+
   const handleListCompleteClick = useCallback((listId: string) => {
     if (completeListTimersRef.current.has(listId)) return;
     if (deleteListTimersRef.current.has(listId)) return;
@@ -2404,22 +2425,7 @@ export default function App() {
 
     const timer = window.setTimeout(() => {
       completeListTimersRef.current.delete(listId);
-      setCreatedLists((prev) =>
-        prev.map((list) =>
-          list.id === listId
-            ? {
-                ...list,
-                items: list.items.map((item) => ({ ...item, completed: true, completedAt: Date.now() })),
-                status: 'done',
-                statusChangedAt: Date.now(),
-              }
-            : list
-        )
-      );
-      const linkedReminder = reminders.find((reminder) => reminder.isSmartReminder === true && reminder.linkedListId === listId && reminder.completedAt == null && reminder.deletedAt == null);
-      if (linkedReminder) {
-        handleCompleteClickRef.current?.(linkedReminder.id, { source: 'list-sync' });
-      }
+      commitListDone(listId);
       setPendingDoneListIds((prev) => {
         const next = new Set(prev);
         next.delete(listId);
@@ -2428,7 +2434,27 @@ export default function App() {
     }, COMPLETION_DELAY);
 
     completeListTimersRef.current.set(listId, timer);
-  }, [reminders]);
+  }, [commitListDone]);
+
+  // Clear done lists nightly: on the existing time refresh (launch, resume, midnight) and when the setting
+  // is turned on, lists fully ticked before today move to Done. Skips the list open in the editor and any
+  // list mid-animation. The ref stops a list being completed twice before the state update lands.
+  const autoClearingListIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    autoClearingListIdsRef.current.forEach((id) => {
+      if (!createdLists.some((list) => list.id === id && list.status !== 'done' && list.status !== 'deleted')) {
+        autoClearingListIdsRef.current.delete(id);
+      }
+    });
+    if (!listAutoClear) return;
+    const openListId = isListsOverlayOpen ? editingListId : null;
+    for (const list of getListsToAutoClear(createdLists, new Date(), pinnedListsFeatureEnabled)) {
+      if (list.id === openListId || autoClearingListIdsRef.current.has(list.id)) continue;
+      if (completeListTimersRef.current.has(list.id) || deleteListTimersRef.current.has(list.id)) continue;
+      autoClearingListIdsRef.current.add(list.id);
+      commitListDone(list.id, { doneAt: list.fullyTickedAt as number });
+    }
+  }, [listAutoClear, createdLists, timeRefreshTick, isListsOverlayOpen, editingListId, pinnedListsFeatureEnabled, commitListDone]);
 
   const handleListUndoClick = useCallback((listId: string) => {
     if (undoListTimersRef.current.has(listId)) return;
@@ -2609,7 +2635,7 @@ export default function App() {
 
   // Mark a reminder as done: immediate visual commit, then 350ms delayed data commit.
   // For repeating reminders, a second 500ms timer reschedules the next occurrence.
-  const handleCompleteClick = useCallback((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; isRepeat?: boolean; source?: 'manual' | 'list-sync' }) => {
+  const handleCompleteClick = useCallback((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; isRepeat?: boolean; source?: 'manual' | 'list-sync'; quiet?: boolean }) => {
     const targetReminder = reminders.find((r) => r.id === reminderId);
     const linkedSmartListId = targetReminder?.isSmartReminder
       ? targetReminder.linkedListId ?? null
@@ -2634,8 +2660,8 @@ export default function App() {
       setTimeout(() => setEmptyRerenderTick((c) => c + 1), EMPTY_STATE_DELAY + 350);
     }
 
-    // Haptic feedback on complete
-    hapticTap('markDone');
+    // Haptic feedback on complete (not when Clear done lists nightly completes it on launch or resume)
+    if (!opts?.quiet) hapticTap('markDone');
 
     // Immediate visual commit
     setPendingDoneIds((prev) => {
@@ -3880,6 +3906,7 @@ export default function App() {
                                   <div className={`flex items-center overflow-visible cursor-pointer${isPendingAwayList ? ' line-through' : ''} min-w-0`} style={{ textDecorationColor: isPendingAwayList ? DELETED_GREY : '#BABABA' }} onClick={() => openListEditor(list)}>
                                     <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingAwayList ? DELETED_GREY : '#BABABA', textDecorationColor: isPendingAwayList ? DELETED_GREY : '#BABABA' }}>
                                       {formatListProgress(visibleCompletedCount, list.items.length)}
+                                      {listAutoClear && !isPendingAwayList && isListClearingTonight(list, pinnedListsFeatureEnabled) ? '. Clears tonight' : null}
                                       {isSmartRemindersEnabled && (list.smartReminders ?? false) ? (
                                         <span style={{ color: isPendingAwayList ? DELETED_GREY : '#BABABA' }}>
                                           {`. ${formatSmartReminderDueBy(list.smartReminderDueDate, list.smartReminderTime)}`}
@@ -5513,6 +5540,8 @@ export default function App() {
                   onSiriChange={setListsSettingsSiriOn}
                   sortAzOn={listSortAz}
                   onSortAzChange={setListSortAz}
+                  autoClearOn={listAutoClear}
+                  onAutoClearChange={setListAutoClear}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}
                 />
                 </ShowInfoIconsContext.Provider>

@@ -9,6 +9,10 @@ import {
   getDisplayListItems,
   LIST_CATEGORY_COLOURS,
   orderListsByCategory,
+  syncFullyTickedAt,
+  isListClearingTonight,
+  getListsToAutoClear,
+  markListDone,
   resolveListSortMode,
   storageStringToDate,
 } from '../utils/list-utils';
@@ -239,6 +243,145 @@ export function getListChecks(): Check[] {
         const unpinned = { ...pinned, pinnedAt: null };
         assert(getCurrentListCategory(pinned.items) === 'started', 'Pinned 9/20 should be Started');
         assert(LIST_CATEGORY_COLOURS[getCurrentListCategory(pinned.items)] === LIST_CATEGORY_COLOURS[getCurrentListCategory(unpinned.items)], 'Pinned and unpinned should share the bucket colour');
+      },
+    },
+
+    {
+      id: 'list-auto-clear-setting-default-off',
+      name: 'Clear done lists nightly: defaults off',
+      run: () => {
+        assert(SETTINGS_DEFAULTS['reminderly-pref-list-auto-clear'] === 'false', 'Clear done lists nightly should default off');
+      },
+    },
+
+    {
+      id: 'list-auto-clear-stamp-tracks-full-tick',
+      name: 'Clear done lists nightly: fullyTickedAt is stamped on full tick, cleared on untick and reset on retick',
+      run: () => {
+        const t1 = new Date(2026, 9, 14, 20, 0).getTime();
+        const t2 = new Date(2026, 9, 15, 9, 0).getTime();
+        let lists = [makeList({ id: 'l', title: 'L', items: makeItems(2, 2) })];
+        lists = syncFullyTickedAt(lists, t1);
+        assert(lists[0].fullyTickedAt === t1, 'Stamped when fully ticked');
+        const same = syncFullyTickedAt(lists, t2);
+        assert(same === lists, 'No change returns the same array');
+        lists = syncFullyTickedAt([{ ...lists[0], items: makeItems(1, 2) }], t2);
+        assert(lists[0].fullyTickedAt === null, 'Cleared on untick');
+        lists = syncFullyTickedAt([{ ...lists[0], items: makeItems(2, 2) }], t2);
+        assert(lists[0].fullyTickedAt === t2, 'Reticking resets to the new time');
+        const restored = JSON.parse(JSON.stringify(lists));
+        assert(syncFullyTickedAt(restored, t2 + 1000)[0].fullyTickedAt === t2, 'Preserved across a restart');
+      },
+    },
+
+    {
+      id: 'list-auto-clear-stamp-on-delete-last-unticked',
+      name: 'Clear done lists nightly: deleting the last unticked item stamps now, not the older tick times',
+      run: () => {
+        const oldTick = new Date(2026, 9, 10, 12, 0).getTime();
+        const now = new Date(2026, 9, 15, 15, 0).getTime();
+        const items = [{ ...makeItem('a', 'A', true), completedAt: oldTick }, makeItem('b', 'B', false)];
+        let lists = syncFullyTickedAt([makeList({ id: 'l', title: 'L', items })], oldTick);
+        assert(lists[0].fullyTickedAt == null, 'Not stamped while an item is unticked');
+        lists = syncFullyTickedAt([{ ...lists[0], items: [items[0]] }], now);
+        assert(lists[0].fullyTickedAt === now, 'Stamped when the deletion made it fully ticked');
+        assert(getListsToAutoClear(lists, new Date(now), true).length === 0, 'Not cleared the same day');
+      },
+    },
+
+    {
+      id: 'list-auto-clear-stamp-skips-done-and-deleted',
+      name: 'Clear done lists nightly: done and deleted lists are not stamped or changed',
+      run: () => {
+        const lists = [
+          makeList({ id: 'd', title: 'D', items: makeItems(2, 2), status: 'done' }),
+          makeList({ id: 'x', title: 'X', items: makeItems(2, 2), status: 'deleted' }),
+        ];
+        assert(syncFullyTickedAt(lists, Date.now()) === lists, 'Done and deleted lists unchanged');
+      },
+    },
+
+    {
+      id: 'list-auto-clear-eligibility',
+      name: 'Clear done lists nightly: only active, unpinned, fully ticked lists ticked before today qualify',
+      run: () => {
+        const now = new Date(2026, 9, 15, 8, 0);
+        const yesterday = new Date(2026, 9, 14, 22, 0).getTime();
+        const lists = [
+          makeList({ id: 'eligible', title: 'E', items: makeItems(3, 3), fullyTickedAt: yesterday }),
+          makeList({ id: 'today', title: 'T', items: makeItems(3, 3), fullyTickedAt: new Date(2026, 9, 15, 0, 5).getTime() }),
+          makeList({ id: 'pinned', title: 'P', items: makeItems(3, 3), fullyTickedAt: yesterday, pinnedAt: 1 }),
+          makeList({ id: 'empty', title: 'Em', items: [], fullyTickedAt: yesterday }),
+          makeList({ id: 'partial', title: 'Pa', items: makeItems(2, 3), fullyTickedAt: yesterday }),
+          makeList({ id: 'done', title: 'D', items: makeItems(3, 3), fullyTickedAt: yesterday, status: 'done' }),
+          makeList({ id: 'deleted', title: 'X', items: makeItems(3, 3), fullyTickedAt: yesterday, status: 'deleted' }),
+          makeList({ id: 'unstamped', title: 'U', items: makeItems(3, 3) }),
+        ];
+        const ids = getListsToAutoClear(lists, now, true).map((list) => list.id).join(',');
+        assert(ids === 'eligible', `Expected only eligible, got ${ids}`);
+        const flagOff = getListsToAutoClear(lists, now, false).map((list) => list.id).join(',');
+        assert(flagOff === 'eligible,pinned', `With pinned lists off, pinned lists behave as unpinned, got ${flagOff}`);
+      },
+    },
+
+    {
+      id: 'list-auto-clear-midnight-boundary',
+      name: 'Clear done lists nightly: midnight boundary, catch-up after several days and clock changes',
+      run: () => {
+        const justBeforeMidnight = new Date(2026, 9, 14, 23, 59, 59, 999).getTime();
+        const atMidnight = new Date(2026, 9, 15, 0, 0, 0, 0).getTime();
+        const late = makeList({ id: 'late', title: 'L', items: makeItems(1, 1), fullyTickedAt: justBeforeMidnight });
+        const onTheDot = makeList({ id: 'dot', title: 'D', items: makeItems(1, 1), fullyTickedAt: atMidnight });
+        assert(getListsToAutoClear([late], new Date(justBeforeMidnight), true).length === 0, 'Not before midnight');
+        assert(getListsToAutoClear([late], new Date(atMidnight), true).length === 1, 'Cleared at midnight');
+        assert(getListsToAutoClear([onTheDot], new Date(2026, 9, 15, 23, 59), true).length === 0, 'Ticked at 00:00 waits for the next midnight');
+        assert(getListsToAutoClear([onTheDot], new Date(2026, 9, 16, 0, 0), true).length === 1, 'Cleared at the next midnight');
+        assert(getListsToAutoClear([late], new Date(2026, 9, 20, 9, 0), true).length === 1, 'Caught up after several days away');
+        assert(getListsToAutoClear([late], new Date(2026, 9, 14, 10, 0), true).length === 0, 'Clock moved back before the tick: not cleared');
+      },
+    },
+
+    {
+      id: 'list-auto-clear-completes-once',
+      name: 'Clear done lists nightly: a cleared list is done and never selected again',
+      run: () => {
+        const tickedAt = new Date(2026, 9, 14, 18, 0).getTime();
+        const now = new Date(2026, 9, 16, 9, 0);
+        const list = makeList({ id: 'l', title: 'L', items: makeItems(2, 2), fullyTickedAt: tickedAt });
+        const done = markListDone(list, now.getTime(), tickedAt);
+        assert(done.status === 'done', 'Marked done');
+        assert(getListsToAutoClear([done], now, true).length === 0, 'Not selected again once done');
+      },
+    },
+
+    {
+      id: 'list-auto-clear-mark-done-data',
+      name: 'Clear done lists nightly: auto keeps tick times and dates the list from full tick; manual unchanged',
+      run: () => {
+        const tick = new Date(2026, 9, 14, 18, 0).getTime();
+        const now = new Date(2026, 9, 16, 9, 0).getTime();
+        const items = [{ ...makeItem('a', 'A', true), completedAt: tick - 1000 }, { ...makeItem('b', 'B', true), completedAt: tick }];
+        const list = makeList({ id: 'l', title: 'L', items, fullyTickedAt: tick, smartReminders: true, smartReminderDueDate: '2026-10-20' });
+        const auto = markListDone(list, now, tick);
+        assert(auto.statusChangedAt === tick, 'Auto done date is when the list became fully ticked');
+        assert(JSON.stringify(auto.items) === JSON.stringify(items), 'Auto keeps items and tick times');
+        assert(auto.smartReminderDueDate === '2026-10-20' && auto.smartReminders === true, 'Smart reminder fields unchanged');
+        const manual = markListDone(makeList({ id: 'm', title: 'M', items: makeItems(1, 3) }), now);
+        assert(manual.status === 'done' && manual.statusChangedAt === now, 'Manual done date is now');
+        assert(manual.items.every((item) => item.completed && item.completedAt === now), 'Manual ticks every item now');
+      },
+    },
+
+    {
+      id: 'list-auto-clear-hint',
+      name: 'Clear done lists nightly: Clears tonight only on fully ticked, unpinned, active lists',
+      run: () => {
+        const full = makeList({ id: 'f', title: 'F', items: makeItems(3, 3) });
+        assert(isListClearingTonight(full, true), 'Fully ticked shows the hint');
+        assert(!isListClearingTonight({ ...full, items: makeItems(2, 3) }, true), 'Unticking removes the hint');
+        assert(!isListClearingTonight({ ...full, pinnedAt: 5 }, true), 'Pinned lists never show it');
+        assert(!isListClearingTonight({ ...full, items: [] }, true), 'Empty lists never show it');
+        assert(!isListClearingTonight({ ...full, status: 'done' }, true), 'Done lists never show it');
       },
     },
 

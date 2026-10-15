@@ -870,7 +870,7 @@ export default function App() {
   const [pendingDeletedListIds, setPendingDeletedListIds] = useState<Set<string>>(new Set());
   const [pendingDeletedSavedListIds, setPendingDeletedSavedListIds] = useState<Set<string>>(new Set());
   const [pendingUndeletedListIds, setPendingUndeletedListIds] = useState<Set<string>>(new Set());
-  const handleCompleteClickRef = useRef<((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; isRepeat?: boolean; source?: 'manual' | 'list-sync'; quiet?: boolean }) => void) | null>(null);
+  const handleCompleteClickRef = useRef<((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; isRepeat?: boolean; source?: 'manual' | 'list-sync' }) => void) | null>(null);
   const handleUncompleteClickRef = useRef<((reminderId: string, opts?: { source?: 'manual' | 'list-sync' }) => void) | null>(null);
   const handleDeleteClickRef = useRef<((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; source?: 'manual' | 'list-sync' }) => void) | null>(null);
   const pendingUndoneListStatusChangedAtRef = useRef<Map<string, number>>(new Map());
@@ -2403,14 +2403,16 @@ export default function App() {
     return labels[category];
   };
 
-  // Marks a list done and completes its linked smart reminder. Manual completion calls this after the
-  // cross-out delay. Clear done lists nightly calls it with auto: no animation or haptic, the items keep
-  // their tick times and the done date is when the list became fully ticked.
+  // Marks a list done. Manual completion calls this after the cross-out delay and completes the linked
+  // smart reminder through list-sync. Clear done lists nightly calls it with auto: no animation, the items
+  // keep their tick times and the done date is when the list became fully ticked. Its smart reminder is
+  // completed by the smart reminder sync at that same done date, so list-sync (which would reset it to now) is skipped.
   const commitListDone = useCallback((listId: string, auto?: { doneAt: number }) => {
     setCreatedLists((prev) => prev.map((list) => (list.id === listId ? markListDone(list, Date.now(), auto?.doneAt) : list)));
+    if (auto) return;
     const linkedReminder = reminders.find((reminder) => reminder.isSmartReminder === true && reminder.linkedListId === listId && reminder.completedAt == null && reminder.deletedAt == null);
     if (linkedReminder) {
-      handleCompleteClickRef.current?.(linkedReminder.id, { source: 'list-sync', quiet: auto != null });
+      handleCompleteClickRef.current?.(linkedReminder.id, { source: 'list-sync' });
     }
   }, [reminders]);
 
@@ -2638,7 +2640,7 @@ export default function App() {
 
   // Mark a reminder as done: immediate visual commit, then 350ms delayed data commit.
   // For repeating reminders, a second 500ms timer reschedules the next occurrence.
-  const handleCompleteClick = useCallback((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; isRepeat?: boolean; source?: 'manual' | 'list-sync'; quiet?: boolean }) => {
+  const handleCompleteClick = useCallback((reminderId: string, opts?: { armEmptyDelay?: boolean; filterKey?: string; isRepeat?: boolean; source?: 'manual' | 'list-sync' }) => {
     const targetReminder = reminders.find((r) => r.id === reminderId);
     const linkedSmartListId = targetReminder?.isSmartReminder
       ? targetReminder.linkedListId ?? null
@@ -2663,8 +2665,8 @@ export default function App() {
       setTimeout(() => setEmptyRerenderTick((c) => c + 1), EMPTY_STATE_DELAY + 350);
     }
 
-    // Haptic feedback on complete (not when Clear done lists nightly completes it on launch or resume)
-    if (!opts?.quiet) hapticTap('markDone');
+    // Haptic feedback on complete
+    hapticTap('markDone');
 
     // Immediate visual commit
     setPendingDoneIds((prev) => {

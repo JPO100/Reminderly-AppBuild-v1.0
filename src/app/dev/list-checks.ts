@@ -411,6 +411,32 @@ export function getListChecks(): Check[] {
     },
 
     {
+      id: 'list-smart-reminder-done-auto-clear-keeps-date',
+      name: 'Smart reminder sync: auto-clear keeps the list done date on the reminder after the 350ms step; manual is dated now',
+      run: () => {
+        const tickedAt = new Date(2026, 9, 13, 18, 0).getTime();
+        const clearAt = new Date(2026, 9, 15, 9, 0).getTime();
+        const reminder = { id: 'r', originalText: 'x', displayText: 'x', createdAt: 1, schedule: { kind: 'scheduled' as const, date: '2026-10-16', time: '12:00' }, linkedListId: 'l', isSmartReminder: true };
+        const list = makeList({ id: 'l', title: 'L', items: makeItems(2, 2), fullyTickedAt: tickedAt, smartReminders: true, smartReminderDueDate: '2026-10-16' });
+        // Mirrors commitListDone in App.tsx: list-sync completion (completedAt = now after 350ms) runs for manual only.
+        const commit = (auto: boolean, nowMs: number) => {
+          const done = markListDone(list, nowMs, auto ? list.fullyTickedAt as number : undefined);
+          let r = syncSmartReminderForInactiveList(reminder, done, nowMs)!;
+          const runsListSync = !auto;
+          if (runsListSync) r = { ...r, completedAt: nowMs + 350 };
+          return { done, r };
+        };
+        for (const trigger of ['launch', 'open app']) {
+          const { done, r } = commit(true, clearAt);
+          assert(done.statusChangedAt === tickedAt, `${trigger}: list dated when fully ticked`);
+          assert(r.completedAt === tickedAt, `${trigger}: reminder keeps the list done date after 350ms`);
+        }
+        const manual = commit(false, clearAt);
+        assert(manual.done.statusChangedAt === clearAt && manual.r.completedAt === clearAt + 350, 'Manual: list and reminder dated now, unchanged behaviour');
+      },
+    },
+
+    {
       id: 'list-smart-reminder-inactive-list-unchanged-cases',
       name: 'Smart reminder sync: deleted or missing lists still remove it; done and deleted reminders untouched; repeat safe',
       run: () => {

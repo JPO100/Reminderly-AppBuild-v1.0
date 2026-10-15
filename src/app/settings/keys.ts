@@ -33,6 +33,7 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-smart-reminders': 'true',
   'reminderly-ff-saved-lists': 'true',
   'reminderly-ff-pinned-lists': 'true',
+  'reminderly-pref-list-sort-az': 'false',
   'reminderly-config-templates-in-clean-state': 'false',
 
   // Notifications

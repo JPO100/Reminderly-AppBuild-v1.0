@@ -22,7 +22,7 @@ type ListItem = { id: string; text: string; completed: boolean; completedAt?: nu
 
 type CreatedList = {
   id: string; title: string; items: ListItem[];
-  sortMode?: 'alphabetical' | 'insertion';
+  sortMode?: 'alphabetical' | 'insertion'; // legacy, not read (see Lists settings > Sort items A to Z)
   pinnedAt?: number | null;
   smartReminders?: boolean; smartReminderDueDate?: string | null; smartReminderTime?: string | null;
   status?: 'active' | 'done' | 'deleted'; statusChangedAt?: number | null;
@@ -94,9 +94,9 @@ A list can own one smart reminder: a normal `Reminder` with `isSmartReminder: tr
 Bottom sheet for creating and editing lists and templates, with a 45px header and a tick submit button.
 
 - Title editing; add, edit and delete items (`AddListItemInput`, `EditableListItem`, swipe to reveal delete); item order follows the sort mode.
-- Sort modes: insertion (unchecked first, then checked items, most recently checked first) or alphabetical (`getDisplayListItems`).
+- Sort modes: insertion (unchecked first, then checked items, most recently checked first) or alphabetical (`getDisplayListItems`). One setting for every list: Lists settings > Sort items A to Z (`reminderly-pref-list-sort-az`, default off), resolved by `resolveListSortMode`. A newly added item stays where it was typed briefly before moving into A to Z order. The per-list `sortMode` field is legacy: kept in saved data, never read or written.
 - Creates or saves on backdrop close or the header tick.
-- A settings button opens the list settings overlay (`src/imports/InfoOverlay.tsx`): sort order (List alphabetically / List in order added), Uncheck all items, Create template, Set smart reminder, Delete list.
+- A settings button opens the list settings overlay (`src/imports/InfoOverlay.tsx`): Uncheck all items, Create template, Set smart reminder, Delete list.
 - Template editing reuses the editor with alphabetical sort and no smart reminders, saving to the templates set.
 
 ### List info

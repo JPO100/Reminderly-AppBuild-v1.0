@@ -56,6 +56,7 @@ import {
   createSmartReminderForList,
   getCurrentListCategory,
   getDisplayListItems,
+  resolveListSortMode,
   getBlankedLists,
   clearListSmartReminder,
 } from "./utils/list-utils";
@@ -680,13 +681,15 @@ export default function App() {
   const [listInfoOverlayListId, setListInfoOverlayListId] = useState<string | null>(null);
   const [doneInfoTarget, setDoneInfoTarget] = useState<{ kind: 'reminder' | 'list'; id: string } | null>(null);
   const [savedDeletedListInfoId, setSavedDeletedListInfoId] = useState<string | null>(null);
-  const [listSortMode, setListSortMode] = useState<'alphabetical' | 'insertion'>('insertion');
-  const [listSettingsSortModeDraft, setListSettingsSortModeDraft] = useState<'alphabetical' | 'insertion'>('insertion');
+  // Lists settings > Sort items A to Z sets the order for every list. Templates always edit A to Z.
+  // The legacy per-list sortMode is kept in saved data but no longer read.
+  const [listSortAz, setListSortAz] = useStoredSetting('reminderly-pref-list-sort-az');
+  const [isTemplateEditorSort, setIsTemplateEditorSort] = useState(false);
+  const listSortMode = resolveListSortMode(listSortAz, isTemplateEditorSort);
   const [listSmartReminders, setListSmartReminders] = useState(false);
   const [listSmartReminderDueDate, setListSmartReminderDueDate] = useState<string | null>(null);
   const [listSmartReminderTime, setListSmartReminderTime] = useState<string | null>(null);
   const [pendingListInfoSmartReminderListId, setPendingListInfoSmartReminderListId] = useState<string | null>(null);
-  const listSettingsSortApplyTimerRef = useRef<number | null>(null);
   const listSettingsUncheckAllTimerRef = useRef<number | null>(null);
   const handleSmartRemindersChange = (val: boolean) => {
     setListSmartReminders(val);
@@ -718,7 +721,7 @@ export default function App() {
     setListItems(list.items.map((item) => ({ id: (item as any).id || crypto.randomUUID(), ...item })));
     setListOverlayMode('edit');
     setEditingListId(list.id);
-    setListSortMode(list.sortMode || 'insertion');
+    setIsTemplateEditorSort(false);
     setListSmartReminders(list.smartReminders ?? false);
     setListSmartReminderDueDate(list.smartReminderDueDate ?? null);
     setListSmartReminderTime(list.smartReminderTime ?? null);
@@ -843,32 +846,10 @@ export default function App() {
 
   const closeListSettingsOverlay = useCallback(() => {
     setIsListSettingsOpen(false);
-    if (listSettingsSortApplyTimerRef.current !== null) {
-      clearTimeout(listSettingsSortApplyTimerRef.current);
-      listSettingsSortApplyTimerRef.current = null;
-    }
-    if (listSettingsSortModeDraft !== listSortMode) {
-      const nextSortMode = listSettingsSortModeDraft;
-      listSettingsSortApplyTimerRef.current = window.setTimeout(() => {
-        listSettingsSortApplyTimerRef.current = null;
-        setListSortMode(nextSortMode);
-      }, 150);
-    }
-  }, [listSettingsSortModeDraft, listSortMode]);
+  }, []);
 
   const handleListSettingsUncheckAll = useCallback(() => {
     setIsListSettingsOpen(false);
-    if (listSettingsSortApplyTimerRef.current !== null) {
-      clearTimeout(listSettingsSortApplyTimerRef.current);
-      listSettingsSortApplyTimerRef.current = null;
-    }
-    if (listSettingsSortModeDraft !== listSortMode) {
-      const nextSortMode = listSettingsSortModeDraft;
-      listSettingsSortApplyTimerRef.current = window.setTimeout(() => {
-        listSettingsSortApplyTimerRef.current = null;
-        setListSortMode(nextSortMode);
-      }, 150);
-    }
     if (listSettingsUncheckAllTimerRef.current !== null) {
       clearTimeout(listSettingsUncheckAllTimerRef.current);
       listSettingsUncheckAllTimerRef.current = null;
@@ -877,7 +858,7 @@ export default function App() {
       listSettingsUncheckAllTimerRef.current = null;
       setListItems(prev => prev.map(i => ({ ...i, completed: false, completedAt: null })));
     }, 150);
-  }, [listSettingsSortModeDraft, listSortMode]);
+  }, []);
 
   // UI-only: list-item-specific insertion state (mirrors list insertion state, for items within the overlay)
   const [listItemReinsertedId, setListItemReinsertedId] = useState<string | null>(null);
@@ -2084,7 +2065,7 @@ export default function App() {
     setListOverlayMode('edit');
     setEditingListId(null);
     setEditingSavedListId(list.id);
-    setListSortMode('alphabetical');
+    setIsTemplateEditorSort(true);
     setListSmartReminders(false);
     setListSmartReminderDueDate(null);
     setListSmartReminderTime(null);
@@ -2099,7 +2080,7 @@ export default function App() {
     setListOverlayMode('edit');
     setEditingListId(null);
     setEditingSavedListId(list.id);
-    setListSortMode('alphabetical');
+    setIsTemplateEditorSort(true);
     setListSmartReminders(false);
     setListSmartReminderDueDate(null);
     setListSmartReminderTime(null);
@@ -2123,7 +2104,7 @@ export default function App() {
     setAlphabeticalPinnedListItemIndex(0);
     setListTitle(list.title);
     setListItems(list.items.map((item) => ({ id: (item as any).id || crypto.randomUUID(), ...item })));
-    setListSortMode(list.sortMode || 'insertion');
+    setIsTemplateEditorSort(false);
     setListSmartReminders(list.smartReminders ?? false);
     setListSmartReminderDueDate(list.smartReminderDueDate ?? null);
     setListSmartReminderTime(list.smartReminderTime ?? null);
@@ -2138,7 +2119,6 @@ export default function App() {
       id: newId,
       title: list.title,
       items: list.items.map((item) => ({ ...item, id: crypto.randomUUID(), completed: false, completedAt: null })),
-      sortMode: 'insertion',
       pinnedAt: null,
       smartReminders: false,
       smartReminderDueDate: null,
@@ -4003,7 +3983,7 @@ export default function App() {
               <button
                 className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full transition-colors"
                 style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
-                onClick={() => { hapticTap('createList'); setListTitle(pickDefaultListName(createdLists.map(l => l.title))); setListItems([]); setListOverlayMode('create'); setEditingListId(null); setListSortMode('insertion'); setListSmartReminders(false); setListSmartReminderDueDate(null); setListSmartReminderTime(null); setIsListsOverlayOpen(true); }}
+                onClick={() => { hapticTap('createList'); setListTitle(pickDefaultListName(createdLists.map(l => l.title))); setListItems([]); setListOverlayMode('create'); setEditingListId(null); setIsTemplateEditorSort(false); setListSmartReminders(false); setListSmartReminderDueDate(null); setListSmartReminderTime(null); setIsListsOverlayOpen(true); }}
               >
                 <div className="relative shrink-0 size-[15px]">
                   <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
@@ -4816,7 +4796,7 @@ export default function App() {
                           setListOverlayMode('create');
                           setEditingListId(null);
                           setEditingSavedListId(null);
-                          setListSortMode('alphabetical');
+                          setIsTemplateEditorSort(true);
                           setListSmartReminders(false);
                           setListSmartReminderDueDate(null);
                           setListSmartReminderTime(null);
@@ -4875,10 +4855,10 @@ export default function App() {
             }
             if (listOverlayMode === 'edit' && editingListId !== null) {
               const targetId = editingListId;
-              setCreatedLists((prev) => prev.map((l) => l.id === targetId ? { ...l, title, items, sortMode: listSortMode, smartReminders: listSmartReminders, smartReminderDueDate: listSmartReminderDueDate, smartReminderTime: listSmartReminderTime ?? (listSmartReminders && listSmartReminderDueDate ? '12:00' : null), status: l.status ?? 'active', statusChangedAt: l.statusChangedAt ?? null } : l));
+              setCreatedLists((prev) => prev.map((l) => l.id === targetId ? { ...l, title, items, smartReminders: listSmartReminders, smartReminderDueDate: listSmartReminderDueDate, smartReminderTime: listSmartReminderTime ?? (listSmartReminders && listSmartReminderDueDate ? '12:00' : null), status: l.status ?? 'active', statusChangedAt: l.statusChangedAt ?? null } : l));
             } else if (title.length > 0 && items.length > 0) {
               const newId = crypto.randomUUID();
-              setCreatedLists((prev) => [...prev, { id: newId, title, items, sortMode: listSortMode, pinnedAt: null, smartReminders: listSmartReminders, smartReminderDueDate: listSmartReminderDueDate, smartReminderTime: listSmartReminderTime ?? (listSmartReminders && listSmartReminderDueDate ? '12:00' : null), status: 'active', statusChangedAt: null }]);
+              setCreatedLists((prev) => [...prev, { id: newId, title, items, pinnedAt: null, smartReminders: listSmartReminders, smartReminderDueDate: listSmartReminderDueDate, smartReminderTime: listSmartReminderTime ?? (listSmartReminders && listSmartReminderDueDate ? '12:00' : null), status: 'active', statusChangedAt: null }]);
               setEditingListId(newId);
               setListOverlayMode('edit');
             }
@@ -4935,7 +4915,7 @@ export default function App() {
                       onClose={() => persistOverlayListDraft({ closeAfterSave: true })}
                       onGearClick={isSavedListCreateOverlay
                         ? (isSavedListEditOverlay && editingSavedListId !== null ? () => setTemplateEditorMenuId(editingSavedListId) : undefined)
-                        : () => { setListSettingsSortModeDraft(listSortMode); setIsListSettingsOpen(true); }}
+                        : () => { setIsListSettingsOpen(true); }}
                       subtitleText={isSavedListCreateOverlay
                         ? `${listItems.length} ${listItems.length === 1 ? 'item' : 'items'}`
                         : listSmartReminders
@@ -5061,7 +5041,7 @@ export default function App() {
           />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
-              <InfoOverlay sortMode={listSettingsSortModeDraft} onSortChange={setListSettingsSortModeDraft} listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
+              <InfoOverlay listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
                 const listId = editingListId;
                 if (!listId) return;
                 runOverlayDeleteSequence(() => {
@@ -5580,6 +5560,8 @@ export default function App() {
                   siriAvailable={isSiriListsAvailable}
                   siriOn={listsSettingsSiriOn}
                   onSiriChange={setListsSettingsSiriOn}
+                  sortAzOn={listSortAz}
+                  onSortAzChange={setListSortAz}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}
                 />
                 </ShowInfoIconsContext.Provider>

@@ -1335,3 +1335,12 @@ Completed:
 Test results: Vitest 220/220 passed. Self Check 395/395 passed (Node run). Repo guard passed. Web build succeeded. Web preview with seeded lists: 0/0 and 0/5 grey under Todo; 1/5, 15/18 and pinned 9/20 and 15/22 blue (pinned at top with pin icon); 18/18 purple under Done; unticking one item moved 18/18 to Started with list data and legacy sortMode intact. Simulator and iPhone 15 Pro built, installed and launched. Awaiting John's device checks and CTO review before merge.
 
 Merged and closed (2026-10-15): fix/list-category-colour merged into main with --no-ff (merge commit 81eab60) after CTO approval and John's iPhone checks. Post-merge on main: Vitest 220/220, Self Check 395/395 (Node run), repo guard passed, web build succeeded. Branch deleted locally and remotely. Tutorial mockups unchanged and accepted for this delivery; alignment to be scoped separately. No TestFlight or App Store release authorised.
+
+### 2026-10-15 (fix/pinned-list-navy - navy circle for pinned lists)
+
+Branch: fix/pinned-list-navy (created from main at 75e2db5, verified equal to origin/main), independent of feature/list-auto-clear. Type A. John asked for navy pinned lists after device use; Claude flagged that it reverses an approved decision and sent a CTO change note; the CTO approved.
+
+Completed:
+- Pinned list circles are navy `#1C2C42` again (`getListCircleColour` in list-utils), only while the pinned lists flag is on. Buckets, filters, ordering and the pin icon unchanged
+
+Test results: Vitest 220/220 passed. Self Check 395/395 passed (Node run). Repo guard passed. Web build succeeded. Web preview: pinned 0/3, 9/20 and 4/4 navy with pin icon at the top of All; unpinned Todo grey, Started blue, Done purple; filters unchanged. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded. Awaiting CTO merge approval.

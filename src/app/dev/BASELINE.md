@@ -2,7 +2,12 @@
 
 Last updated: 2026-10-15
 
-## Verified Baseline (2026-10-15, fix/list-category-colour)
+## Verified Baseline (2026-10-15, feature/list-auto-clear)
+
+- Vitest (`npm run test`): 229 passed, 0 failed (12 files). list-sort.test.ts also runs the auto-clear checks.
+- Self Check: 404 passed, 0 failed across 11 suites (Node run). 9 Clear done lists nightly checks added to Lists and smart reminders (default off, fullyTickedAt stamp/clear/reset/restart, deletion of the last unticked item, done and deleted lists untouched, eligibility, midnight boundary and catch-up and clock changes, completes once, auto versus manual done data, Clears tonight hint).
+
+## Previous baseline (2026-10-15, fix/list-category-colour)
 
 - Vitest (`npm run test`): 220 passed, 0 failed (12 files). list-sort.test.ts now also runs the list bucket checks.
 - Self Check: 395 passed, 0 failed across 11 suites (Node run). Lists and smart reminders: the todo/started/almost/complete check replaced by 5 bucket checks (0/0, 0/5, 1/5, 9/20, 15/18, 18/18; colours; check and uncheck transitions; order; pinned bucket colour).

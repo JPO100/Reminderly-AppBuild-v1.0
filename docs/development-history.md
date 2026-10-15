@@ -1269,4 +1269,4 @@ Completed:
 - Wheel container sets `touch-action: none`, so a drag that starts on a wheel always moves the wheel. The panel still scrolls outside the wheels
 - Pointer cancel ends the drag and keeps the current value
 
-Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run). Simulator: panel scroll and both wheels work. iPhone 15 Pro confirmation outstanding.
+Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run). Simulator: panel scroll and both wheels work. iPhone 15 Pro: confirmed by John, wheels scroll and hold their value. Awaiting CTO approval to merge into main.

@@ -10,6 +10,8 @@
 import type { Check } from './check-system';
 import { scheduleEquality, detectScheduleDeltas, scheduleDerived } from '../utils/schedule';
 import type { Schedule } from '../types/reminder';
+import { getDatePresetValue } from '../utils/date-presets';
+import type { DatePreset } from '../utils/date-presets';
 
 /**
  * Simple assertion helper for checks
@@ -23,6 +25,13 @@ function assert(condition: boolean, message: string): void {
 /**
  * Deep equality helper for objects
  */
+function assertPreset(preset: DatePreset, now: Date, y: number, m: number, d: number, hour: number): void {
+  const { date, time } = getDatePresetValue(preset, now);
+  const got = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()} at ${time.hour}:${time.minute}`;
+  const expected = `${y}-${m}-${d} 0:0 at ${hour}:0`;
+  assert(got === expected, `${preset} from ${now.toString()}: expected ${expected}, got ${got}`);
+}
+
 function deepEqual<T>(a: T, b: T): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
@@ -553,6 +562,69 @@ export function getScheduleChecks(): Check[] {
         const schedule = makeSchedule({ repeatRule: null });
         const result = scheduleDerived.isRecurring(schedule);
         assert(result === false, 'Expected isRecurring to be false when repeatRule is null');
+      },
+    },
+
+    // ========================================================================
+    // Date presets (docs/plans/date-presets.md). Months below are 1-based.
+    // ========================================================================
+
+    {
+      id: 'date-preset-normal-day',
+      name: 'Date presets: Wednesday afternoon gives tomorrow 8am, today 6pm and Monday 8am',
+      run: () => {
+        const now = new Date(2026, 9, 14, 14, 30); // Wednesday 14 October 2026
+        assertPreset('tomorrowMorning', now, 2026, 10, 15, 8);
+        assertPreset('tonight', now, 2026, 10, 14, 18);
+        assertPreset('nextWeek', now, 2026, 10, 19, 8);
+      },
+    },
+
+    {
+      id: 'date-preset-tonight-after-6pm',
+      name: 'Date presets: Tonight after 6pm is still today at 6pm',
+      run: () => {
+        assertPreset('tonight', new Date(2026, 9, 14, 21, 45), 2026, 10, 14, 18);
+        assertPreset('tonight', new Date(2026, 9, 14, 23, 59), 2026, 10, 14, 18);
+      },
+    },
+
+    {
+      id: 'date-preset-next-week-every-day',
+      name: 'Date presets: Next week is the next Monday after today from every day of the week',
+      run: () => {
+        // Sunday 11 October 2026 to Saturday 17 October 2026
+        const expected: [number, number, number][] = [
+          [2026, 10, 12], // Sunday -> next day
+          [2026, 10, 19], // Monday -> 7 days later
+          [2026, 10, 19], [2026, 10, 19], [2026, 10, 19], [2026, 10, 19], [2026, 10, 19],
+        ];
+        expected.forEach(([y, m, d], i) => assertPreset('nextWeek', new Date(2026, 9, 11 + i, 10, 0), y, m, d, 8));
+      },
+    },
+
+    {
+      id: 'date-preset-month-and-year-end',
+      name: 'Date presets: month end and 31 December roll over correctly',
+      run: () => {
+        assertPreset('tomorrowMorning', new Date(2026, 1, 28, 9, 0), 2026, 3, 1, 8); // 28 Feb 2026
+        assertPreset('tomorrowMorning', new Date(2026, 11, 31, 22, 0), 2027, 1, 1, 8);
+        assertPreset('nextWeek', new Date(2026, 11, 31, 22, 0), 2027, 1, 4, 8); // Thursday -> Monday 4 Jan
+        assertPreset('tonight', new Date(2026, 11, 31, 22, 0), 2026, 12, 31, 18);
+      },
+    },
+
+    {
+      id: 'date-preset-daylight-saving',
+      name: 'Date presets: daylight saving start and end weeks keep the calendar date and hour',
+      run: () => {
+        // UK clocks go forward on Sunday 29 March 2026 and back on Sunday 25 October 2026
+        assertPreset('tomorrowMorning', new Date(2026, 2, 28, 23, 30), 2026, 3, 29, 8);
+        assertPreset('nextWeek', new Date(2026, 2, 28, 23, 30), 2026, 3, 30, 8);
+        assertPreset('nextWeek', new Date(2026, 2, 29, 12, 0), 2026, 3, 30, 8);
+        assertPreset('tomorrowMorning', new Date(2026, 9, 24, 23, 30), 2026, 10, 25, 8);
+        assertPreset('nextWeek', new Date(2026, 9, 25, 12, 0), 2026, 10, 26, 8);
+        assertPreset('tonight', new Date(2026, 9, 25, 12, 0), 2026, 10, 25, 18);
       },
     },
   ];

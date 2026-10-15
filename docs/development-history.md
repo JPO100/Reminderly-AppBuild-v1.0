@@ -1396,3 +1396,5 @@ Completed:
 - Spacing: 10px gaps by default; at 393-401pt (iPhone 15 Pro width) the pills spread edge to edge (justify-between, no minimum gap). CSS breakpoints only, no JS. Preset behaviour (tomorrow 8am) unchanged
 
 Test results: date-presets Vitest 7/7 passed. Web build succeeded. Web preview measurements: 375pt "Tomorrow" with 10px gaps; 393pt "Tomorrow morning" edge to edge (24 to 369) with 7.2pt gaps, no overflow; 402pt "Tomorrow morning" with 10px gaps, 3.5pt spare. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded; simulator panel checked visually. Awaiting John's 15 Pro check and CTO merge approval (after fix/preset-pill-off-colour).
+
+Pre-merge (2026-10-15): John confirmed the edge-to-edge spacing on his iPhone 15 Pro. Full Vitest 233/233 passed, Self Check 408/408 passed (Node run), repo guard passed. Merge request sent to the CTO for fix/preset-pill-off-colour and feature/date-preset-spacing.

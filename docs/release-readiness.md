@@ -171,7 +171,7 @@ Decided within D1 (2026-10-14): annual subscription at £9, all features free wi
 3. "1 minute time increments" info text is wrong.
 4. Notification preferences and permission flow: complete on feature/notifications-settings, awaiting merge (Phase 4).
 5. Developer tools reachable in all builds.
-6. Marking a list done removes its linked smart reminder instead of completing it (pre-existing race). Must be fixed on fix/smart-reminder-list-done before any TestFlight release that includes Clear done lists nightly (CTO, 2026-10-15).
+6. Marking a list done removes its linked smart reminder instead of completing it (pre-existing race). Must be fixed before any TestFlight release that includes Clear done lists nightly (CTO, 2026-10-15). Fixed on fix/smart-reminder-list-done, awaiting CTO merge approval.
 
 Details: [architecture.md](./architecture.md) (Known constraints) and the feature documents.
 

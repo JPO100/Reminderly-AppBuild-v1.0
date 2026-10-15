@@ -14,10 +14,13 @@ import {
   isListClearingTonight,
   getListsToAutoClear,
   markListDone,
+  syncSmartReminderForInactiveList,
   resolveListSortMode,
   storageStringToDate,
 } from '../utils/list-utils';
 import { SETTINGS_DEFAULTS } from '../settings/keys';
+import { computeBadgeCount } from '../reminder-utils';
+import { buildScheduledNotifications } from '../notifications';
 import type { CreatedList, ListItem } from '../utils/list-utils';
 
 function assert(condition: boolean, message: string): void {
@@ -387,6 +390,88 @@ export function getListChecks(): Check[] {
         assert(!isListClearingTonight({ ...full, pinnedAt: 5 }, true), 'Pinned lists never show it');
         assert(!isListClearingTonight({ ...full, items: [] }, true), 'Empty lists never show it');
         assert(!isListClearingTonight({ ...full, status: 'done' }, true), 'Done lists never show it');
+      },
+    },
+
+    {
+      id: 'list-smart-reminder-done-list-moves-to-done',
+      name: 'Smart reminder sync: a done list keeps its smart reminder, completed at the list done time',
+      run: () => {
+        const doneAt = new Date(2026, 9, 14, 18, 0).getTime();
+        const now = new Date(2026, 9, 15, 9, 0).getTime();
+        const reminder = { id: 'r', originalText: 'x', displayText: 'x', createdAt: 1, schedule: { kind: 'scheduled' as const, date: '2026-10-16', time: '12:00' }, linkedListId: 'l', isSmartReminder: true };
+        const manualDone = markListDone(makeList({ id: 'l', title: 'L', items: makeItems(1, 2), smartReminders: true, smartReminderDueDate: '2026-10-16' }), doneAt);
+        const synced = syncSmartReminderForInactiveList(reminder, manualDone, now);
+        assert(synced != null && synced.completedAt === doneAt, 'Manual completion: reminder kept and completed at the list done time');
+        const autoDone = markListDone(makeList({ id: 'l', title: 'L', items: makeItems(2, 2), fullyTickedAt: doneAt - 5000 }), now, doneAt - 5000);
+        assert(syncSmartReminderForInactiveList(reminder, autoDone, now)?.completedAt === doneAt - 5000, 'Auto-clear: reminder kept and completed at the list done time');
+        const noTime = { ...manualDone, statusChangedAt: null };
+        assert(syncSmartReminderForInactiveList(reminder, noTime, now)?.completedAt === now, 'Done list without a done time: completed now');
+      },
+    },
+
+    {
+      id: 'list-smart-reminder-done-auto-clear-keeps-date',
+      name: 'Smart reminder sync: auto-clear keeps the list done date on the reminder after the 350ms step; manual is dated now',
+      run: () => {
+        const tickedAt = new Date(2026, 9, 13, 18, 0).getTime();
+        const clearAt = new Date(2026, 9, 15, 9, 0).getTime();
+        const reminder = { id: 'r', originalText: 'x', displayText: 'x', createdAt: 1, schedule: { kind: 'scheduled' as const, date: '2026-10-16', time: '12:00' }, linkedListId: 'l', isSmartReminder: true };
+        const list = makeList({ id: 'l', title: 'L', items: makeItems(2, 2), fullyTickedAt: tickedAt, smartReminders: true, smartReminderDueDate: '2026-10-16' });
+        // Mirrors commitListDone in App.tsx: list-sync completion (completedAt = now after 350ms) runs for manual only.
+        const commit = (auto: boolean, nowMs: number) => {
+          const done = markListDone(list, nowMs, auto ? list.fullyTickedAt as number : undefined);
+          let r = syncSmartReminderForInactiveList(reminder, done, nowMs)!;
+          const runsListSync = !auto;
+          if (runsListSync) r = { ...r, completedAt: nowMs + 350 };
+          return { done, r };
+        };
+        for (const trigger of ['launch', 'open app']) {
+          const { done, r } = commit(true, clearAt);
+          assert(done.statusChangedAt === tickedAt, `${trigger}: list dated when fully ticked`);
+          assert(r.completedAt === tickedAt, `${trigger}: reminder keeps the list done date after 350ms`);
+        }
+        const manual = commit(false, clearAt);
+        assert(manual.done.statusChangedAt === clearAt && manual.r.completedAt === clearAt + 350, 'Manual: list and reminder dated now, unchanged behaviour');
+      },
+    },
+
+    {
+      id: 'list-smart-reminder-inactive-list-unchanged-cases',
+      name: 'Smart reminder sync: deleted or missing lists still remove it; done and deleted reminders untouched; repeat safe',
+      run: () => {
+        const now = new Date(2026, 9, 15, 9, 0).getTime();
+        const reminder = { id: 'r', originalText: 'x', displayText: 'x', createdAt: 1, schedule: { kind: 'scheduled' as const, date: '2026-10-16', time: '12:00' }, linkedListId: 'l', isSmartReminder: true };
+        const deletedList = makeList({ id: 'l', title: 'L', items: makeItems(0, 2), status: 'deleted', statusChangedAt: now });
+        assert(syncSmartReminderForInactiveList(reminder, deletedList, now) === null, 'Deleted list: removed as before');
+        assert(syncSmartReminderForInactiveList(reminder, undefined, now) === null, 'Missing list: removed as before');
+        const completed = { ...reminder, completedAt: 123 };
+        const deleted = { ...reminder, deletedAt: 456 };
+        const doneList = markListDone(makeList({ id: 'l', title: 'L', items: makeItems(2, 2) }), now);
+        assert(syncSmartReminderForInactiveList(completed, doneList, now) === completed, 'Completed reminder unchanged');
+        assert(syncSmartReminderForInactiveList(deleted, doneList, now) === deleted, 'Deleted reminder unchanged');
+        const once = syncSmartReminderForInactiveList(reminder, doneList, now)!;
+        const twice = syncSmartReminderForInactiveList(once, doneList, now + 60000);
+        assert(twice === once, 'Processing again leaves the completed reminder unchanged');
+      },
+    },
+
+    {
+      id: 'list-smart-reminder-done-list-notifications-and-badge',
+      name: 'Smart reminder sync: once moved to Done, the reminder has no notification and leaves the badge',
+      run: () => {
+        const now = new Date(2026, 9, 15, 9, 0);
+        const overdue = { id: 'r', originalText: 'x', displayText: 'x', createdAt: 1, schedule: { kind: 'scheduled' as const, date: '2026-10-14', time: '12:00' }, linkedListId: 'l', isSmartReminder: true };
+        const future = new Date(Date.now() + 7 * 86400000);
+        const futureKey = `${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, '0')}-${String(future.getDate()).padStart(2, '0')}`;
+        const upcoming = { ...overdue, id: 'u', schedule: { kind: 'scheduled' as const, date: futureKey, time: '12:00' } };
+        assert(computeBadgeCount([overdue], false, now) === 1, 'Overdue smart reminder counts before');
+        assert(buildScheduledNotifications([upcoming], false, false, true, false).some((n) => n.extra?.reminderId === 'u'), 'Upcoming smart reminder scheduled before');
+        const doneList = markListDone(makeList({ id: 'l', title: 'L', items: makeItems(2, 2) }), now.getTime());
+        const doneOverdue = syncSmartReminderForInactiveList(overdue, doneList, now.getTime())!;
+        const doneUpcoming = syncSmartReminderForInactiveList(upcoming, doneList, now.getTime())!;
+        assert(computeBadgeCount([doneOverdue], false, now) === 0, 'Badge drops once moved to Done');
+        assert(!buildScheduledNotifications([doneUpcoming], false, false, true, false).some((n) => n.extra?.reminderId === 'u'), 'Notification cancelled once moved to Done');
       },
     },
 

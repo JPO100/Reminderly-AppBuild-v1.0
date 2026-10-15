@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { Reminder } from '../reminder-utils';
 import { computeBadgeCount, getNextTimeRefreshBoundary } from '../reminder-utils';
 import { buildScheduledNotifications } from '../notifications';
+import { getNotificationChecks } from '../dev/notification-checks';
 
 function makeReminder(overrides: Partial<Reminder> = {}): Reminder {
   return {
@@ -400,4 +401,11 @@ describe('Phase 4 alerts, badge and sound', () => {
         .toBe(buildScheduledNotifications(reminders, true, true, true, false).length);
     }
   });
+});
+
+// Phase 4 ask state rules (plan section 6), shared with Self Check.
+describe('Phase 4 notification ask', () => {
+  for (const check of getNotificationChecks().filter((c) => c.id.startsWith('notif-ask-'))) {
+    it(check.name, () => check.run());
+  }
 });

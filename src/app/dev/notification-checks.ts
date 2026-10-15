@@ -2,6 +2,7 @@ import type { Check } from './check-system';
 import type { Reminder } from '../reminder-utils';
 import { computeBadgeCount, getNextTimeRefreshBoundary, getTodayProgress } from '../reminder-utils';
 import { buildScheduledNotifications } from '../notifications';
+import { askStateAfterNotNow, askStateOnLaunch, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from '../notification-ask';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -389,6 +390,54 @@ export function getNotificationChecks(): Check[] {
         const result = buildScheduledNotifications(reminders, true, false, false, false);
         assert(result.length === 64, `Expected 64, got ${result.length}`);
         assert(result.some((n) => n.id === 2147483647), 'Expected midnight notification');
+      },
+    },
+    {
+      id: 'notif-ask-automatic',
+      name: 'Phase 4 ask: automatic ask only while permission is undecided, never asked or declined once',
+      run: () => {
+        for (const trigger of ['tutorial', 'timed-reminder'] as const) {
+          assert(shouldAskAutomatically(null, trigger, 'prompt'), `Never asked should ask at ${trigger}`);
+          assert(!shouldAskAutomatically(null, trigger, 'granted'), 'Granted should not ask');
+          assert(!shouldAskAutomatically(null, trigger, 'denied'), 'Denied should not ask');
+          assert(!shouldAskAutomatically('not-now-2', trigger, 'prompt'), 'not-now-2 should not ask');
+          assert(!shouldAskAutomatically('accepted', trigger, 'prompt'), 'accepted should not ask');
+          assert(!shouldAskAutomatically('something-else', trigger, 'prompt'), 'Unrecognised state should not ask');
+        }
+        assert(shouldAskAutomatically('not-now-1', 'timed-reminder', 'prompt'), 'not-now-1 should ask at the next timed reminder');
+        assert(!shouldAskAutomatically('not-now-1', 'tutorial', 'prompt'), 'not-now-1 should not ask at the tutorial');
+      },
+    },
+    {
+      id: 'notif-ask-not-now',
+      name: 'Phase 4 ask: Not now moves automatic asks on one step and leaves settings asks unchanged',
+      run: () => {
+        assert(askStateAfterNotNow(null, 'automatic') === 'not-now-1', 'First Not now should be not-now-1');
+        assert(askStateAfterNotNow('not-now-1', 'automatic') === 'not-now-2', 'Second Not now should be not-now-2');
+        assert(askStateAfterNotNow('not-now-2', 'automatic') === 'not-now-2', 'not-now-2 should stay');
+        for (const state of [null, 'not-now-1', 'not-now-2', 'odd']) {
+          assert(askStateAfterNotNow(state, 'settings') === state, `Settings Not now should keep ${state}`);
+        }
+      },
+    },
+    {
+      id: 'notif-ask-launch-and-settings',
+      name: 'Phase 4 ask: existing installs with permission are accepted, settings toggles ask only while undecided',
+      run: () => {
+        assert(askStateOnLaunch(null, 'granted') === 'accepted', 'Granted with no state should become accepted');
+        assert(askStateOnLaunch(null, 'prompt') === null, 'Undecided should stay unasked');
+        assert(askStateOnLaunch(null, 'denied') === null, 'Denied should stay unasked');
+        assert(askStateOnLaunch('not-now-1', 'granted') === 'not-now-1', 'A saved state should be kept');
+        assert(settingsToggleNeedsAsk(true, 'prompt'), 'Turning on while undecided should ask');
+        assert(!settingsToggleNeedsAsk(true, 'granted') && !settingsToggleNeedsAsk(true, 'denied'), 'Decided permission should not ask');
+        assert(!settingsToggleNeedsAsk(false, 'prompt'), 'Turning off should never ask');
+        const map = new Map<string, string>();
+        const storage = { getItem: (k: string) => map.get(k) ?? null, setItem: (k: string, v: string) => { map.set(k, v); } };
+        assert(readAskState(storage) === null, 'Missing state should read as null');
+        writeAskState(null, storage);
+        assert(map.size === 0, 'Writing null should write nothing');
+        writeAskState('not-now-1', storage);
+        assert(readAskState(storage) === 'not-now-1', 'Saved state should read back');
       },
     },
     {

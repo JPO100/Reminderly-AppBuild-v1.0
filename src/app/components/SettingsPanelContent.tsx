@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
-import { LocalNotifications } from "@capacitor/local-notifications";
-import { App as CapacitorApp } from "@capacitor/app";
 import { ToggleRow, MenuRow, KeyLine } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
@@ -146,23 +144,8 @@ export type NotifPrefs = { alerts: boolean; sound: boolean; badge: boolean; incl
 
 // Notifications sub-page (docs/plans/notifications-phase-4.md, section 2). Sound shows while alerts are on,
 // include today while the badge is on. Permission never changes a preference: when iOS has denied it,
-// a row at the top opens Reminderly's page in iOS Settings. Re-checked when the app returns to the foreground.
-function NotificationSettings({ prefs, onChange }: { prefs: NotifPrefs; onChange: (key: keyof NotifPrefs, value: boolean) => void }) {
-  const [isDenied, setIsDenied] = useState(false);
-
-  useEffect(() => {
-    const check = () => {
-      LocalNotifications.checkPermissions()
-        .then((permission) => setIsDenied(permission.display === "denied"))
-        .catch(() => setIsDenied(false));
-    };
-    check();
-    const listener = CapacitorApp.addListener("appStateChange", (state) => {
-      if (state.isActive) check();
-    });
-    return () => { void listener.then((handle) => handle.remove()); };
-  }, []);
-
+// a row at the top opens Reminderly's page in iOS Settings. App re-checks permission on return to the foreground.
+function NotificationSettings({ prefs, isDenied, onChange }: { prefs: NotifPrefs; isDenied: boolean; onChange: (key: keyof NotifPrefs, value: boolean) => void }) {
   return (
     <>
       {isDenied && <MenuRow label="Turn on in Settings" onClick={() => { window.location.href = "app-settings:"; }} infoTitle="Notifications are turned off for Reminderly in iOS Settings. Open Settings to allow them. Your choices below are kept." />}
@@ -192,7 +175,7 @@ function TutorialRow({ label, onClick }: { label: string; onClick: () => void })
 const SIRI_INFO = "Lets you use Siri and the Shortcuts app to create and manage reminders with your voice. Turn this off to stop Reminderly appearing in Siri and Shortcuts.";
 const SOUNDS_INFO = "Choose when Reminderly plays a soft click, such as when you complete or delete an item.";
 
-export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailable, notifPrefs, onNotifChange, calendarAvailable, calendarOn, onCalendarChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; calendarAvailable: boolean; calendarOn: boolean; onCalendarChange: (value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
+export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailable, notifPrefs, notifPermissionDenied, onNotifChange, calendarAvailable, calendarOn, onCalendarChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; notifPermissionDenied: boolean; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; calendarAvailable: boolean; calendarOn: boolean; onCalendarChange: (value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
 
   return (
@@ -200,7 +183,7 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       title="Reminders settings"
       subPage={subPage}
       onBack={() => setSubPage(null)}
-      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : subPage === "Sounds" ? <SoundSettings panel="reminders" /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} onChange={onNotifChange} /> : null}
+      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : subPage === "Sounds" ? <SoundSettings panel="reminders" /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : null}
     >
       {calendarAvailable && <ToggleRow label="Show calendar" isOn={calendarOn} onToggle={() => onCalendarChange(!calendarOn)} infoTitle="Shows a calendar view so you can see your reminders by date." />}
       {datePresetsAvailable && <ToggleRow label="Show date presets" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}

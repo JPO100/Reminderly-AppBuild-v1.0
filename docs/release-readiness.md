@@ -179,7 +179,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
-| 2026-10-15 | Clear done lists nightly on feature/list-auto-clear (not merged). Known issue 6 added: smart reminder sync fix required before a TestFlight release containing it |
+| 2026-10-15 | Clear done lists nightly merged to main (9dc03ea). Known issue 6 added: smart reminder sync fix required before a TestFlight release containing it |
 | 2026-10-15 | Notifications Phase 4 complete on feature/notifications-settings (not merged): user notification settings, sound off by default, in-app permission ask, no automatic iOS prompt |
 | 2026-10-12 | Plan created from the Phase 3 assessment. Decisions recorded: iPhone only, Siri enabled, developer tools excluded from release builds, tutorial once on first launch. Monetisation added as an outstanding dependency |
 

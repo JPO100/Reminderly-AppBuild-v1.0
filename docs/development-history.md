@@ -1333,3 +1333,5 @@ Completed:
 - Not changed: tutorial mockups (own palette, Started purple and Done blue) and the Dev tools dummy list generator (its "almost" mode only generates data)
 
 Test results: Vitest 220/220 passed. Self Check 395/395 passed (Node run). Repo guard passed. Web build succeeded. Web preview with seeded lists: 0/0 and 0/5 grey under Todo; 1/5, 15/18 and pinned 9/20 and 15/22 blue (pinned at top with pin icon); 18/18 purple under Done; unticking one item moved 18/18 to Started with list data and legacy sortMode intact. Simulator and iPhone 15 Pro built, installed and launched. Awaiting John's device checks and CTO review before merge.
+
+Merged and closed (2026-10-15): fix/list-category-colour merged into main with --no-ff (merge commit 81eab60) after CTO approval and John's iPhone checks. Post-merge on main: Vitest 220/220, Self Check 395/395 (Node run), repo guard passed, web build succeeded. Branch deleted locally and remotely. Tutorial mockups unchanged and accepted for this delivery; alignment to be scoped separately. No TestFlight or App Store release authorised.

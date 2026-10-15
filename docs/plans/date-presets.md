@@ -8,7 +8,7 @@ Add a row of preset pills to the new and edit reminder panel, between the text f
 
 | Pill | Date | Time |
 |---|---|---|
-| Tomorrow morning | Next day | 8:00am |
+| Tomorrow | Next day | 8:00am |
 | Tonight | Today | 6:00pm |
 | Next week | The next Monday after today | 8:00am |
 
@@ -37,9 +37,9 @@ Classification: Type B (feature work). Touches date and time handling, a protect
 ### Date rules
 
 - Calculations use local calendar arithmetic (`new Date(year, month, day, hour, minute)` on the device's local time), never adding fixed millisecond offsets. This keeps the result correct across daylight saving changes, month ends and year ends.
-- Tomorrow morning: today's local date plus one calendar day, at 8:00am.
+- Tomorrow: today's local date plus one calendar day, at 8:00am.
 - Tonight: today's local date at 6:00pm.
-- Next week: the next Monday strictly after today, at 8:00am. From a Sunday that is the next day (the same date as Tomorrow morning). From a Monday it is 7 days later.
+- Next week: the next Monday strictly after today, at 8:00am. From a Sunday that is the next day (the same date as Tomorrow). From a Monday it is 7 days later.
 - 8:00am and 6:00pm are valid in both the 5-minute and 1-minute time increment settings.
 
 ### Tonight after 6pm
@@ -65,7 +65,7 @@ Classification: Type B (feature work). Touches date and time handling, a protect
 - Pill style matches the filter pills on the main reminders list: Lato bold 14, 45px tall, fully rounded, 16px side padding.
 - Default: 1px #BABABA outline, #BABABA text.
 - Active: 2px #4784F8 outline, #4784F8 text.
-- Pills are their natural width. On screens 393pt and wider (iPhone 15 Pro and up) they spread to fill the row, so the gap is set automatically (7.2pt on 393pt, 11.7pt on 402pt). On narrower screens the gap is the standard 10px and the row scrolls sideways. Decided by John 2026-10-15 after the 8px gap still overflowed at 393pt by 1.6pt. If more pills are added later and they no longer fit, the row scrolls sideways.
+- Pills are their natural width with the standard 10px gap, aligned left. If they no longer fit, the row scrolls sideways. (John, 2026-10-15: label shortened from "Tomorrow morning" to "Tomorrow" so all three fit on iPhone screens without spreading the pills.)
 - Vertical spacing: 24px between the text field and the pills row, and 24px between the pills row and the Set date row.
 - Built from the existing filter pill styling. No new visual pattern.
 

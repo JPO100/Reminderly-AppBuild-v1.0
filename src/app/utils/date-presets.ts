@@ -5,7 +5,7 @@
 export type DatePreset = 'tomorrowMorning' | 'tonight' | 'nextWeek';
 
 export const DATE_PRESETS: { id: DatePreset; label: string }[] = [
-  { id: 'tomorrowMorning', label: 'Tomorrow morning' },
+  { id: 'tomorrowMorning', label: 'Tomorrow' },
   { id: 'tonight', label: 'Tonight' },
   { id: 'nextWeek', label: 'Next week' },
 ];

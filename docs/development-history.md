@@ -1254,3 +1254,5 @@ Completed:
 - Tonight saved after 6pm schedules no notification (Vitest, using the existing `buildScheduledNotifications` past-time rule)
 
 Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run, 6 new). Production build succeeded. Simulator checks passed on the iPhone 17 Pro simulator. iPhone confirmation of Tonight after 6pm outstanding.
+
+Follow-up (2026-10-15, after CTO and product review): "Tomorrow morning" label shortened to "Tomorrow". Pills keep the standard 10px gap, aligned left, and fit on 375pt screens and wider (295.5pt needed, 327pt available at 375pt); the row still scrolls sideways if it ever does not fit. Vitest 190/190 passed. Deployed to the iPhone 17 Pro simulator and iPhone 15 Pro.

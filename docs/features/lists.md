@@ -96,6 +96,17 @@ Bottom sheet for creating and editing lists and templates, with a 45px header an
 - A settings button opens the list settings overlay (`src/imports/InfoOverlay.tsx`): Uncheck all items, Create template, Set smart reminder, Delete list.
 - Template editing reuses the editor with alphabetical sort and no smart reminders, saving to the templates set.
 
+### Clear done lists nightly
+
+Lists settings toggle, `reminderly-pref-list-auto-clear`, default off (CTO, 2026-10-15).
+
+- `fullyTickedAt` on each active list records when it last became fully ticked (`syncFullyTickedAt`, run on every list change): stamped when the list becomes fully ticked (including by deleting its last unticked item), cleared when it stops being fully ticked, reset when reticked, saved with the list. Lists already fully ticked before this feature are stamped on first run, so they clear no earlier than the following midnight.
+- Eligible (`getListsToAutoClear`): active, unpinned, at least one item, all ticked, `fullyTickedAt` before the start of the current local day.
+- Runs on the existing time refresh (launch, return to foreground, midnight boundary) and when the setting is turned on; catches up after days away. No background execution. Skips the list open in the editor and lists mid-animation; a ref guard completes each list once.
+- Completion uses the shared `commitListDone` path with manual completion: status done and linked smart reminder completed through list-sync. Auto-clear is quiet (no haptic or click), keeps item tick times and dates the list from `fullyTickedAt` (`markListDone`). Manual completion is unchanged.
+- Hint: while the setting is on, eligible-tonight lists (fully ticked, active, unpinned) show ". Clears tonight" after the progress text. It disappears as soon as the list is no longer fully ticked.
+- Known issue (pre-existing, separate fix `fix/smart-reminder-list-done`): when a list is marked done, manually or by auto-clear, the smart reminder sync removes the linked smart reminder before list-sync completion commits, so it does not appear in Done.
+
 ### List info
 
 `src/imports/list-info-overlay.tsx`, opened from a row's menu button: Set smart reminder and date, Mark as done, Edit list, Pin to top / Unpin from top (pinned lists flag), Create template, Delete list. Mark as done, pin and delete close the overlay first, then apply.

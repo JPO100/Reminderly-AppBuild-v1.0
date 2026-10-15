@@ -243,6 +243,7 @@ Resync (the existing cancel-and-reschedule-if-different logic) runs when:
 | - | `reminderly-ff-haptics` | On | - |
 | `reminderly-haptics-config` | `reminderly-pref-haptics` | New install: all haptics off, actions on. Existing: all on (current default) | Copied |
 | `reminderly-ff-pinned-lists` | Unchanged | On | Kept |
+| - | `reminderly-pref-list-auto-clear` (Lists settings > Clear done lists nightly) | Off | - |
 | Per-list `sortMode` (list data) | `reminderly-pref-list-sort-az` (Lists settings > Sort items A to Z) | Off (order added) | Not migrated. Per-list values kept in list data but no longer read (CTO, 2026-10-15) |
 | `reminderly-ff-onboarding-tutorial` | Unchanged | On | Kept |
 | `reminderly-ff-tutorial-first-launch` | `reminderly-config-tutorial-first-launch` | On | Copied |

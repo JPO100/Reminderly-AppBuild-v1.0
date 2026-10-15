@@ -144,6 +144,8 @@ Reminders settings:
 
 Lists settings:
 
+- Sort items A to Z (toggle, `reminderly-pref-list-sort-az`, default off): item order for every list
+- Clear done lists nightly (toggle, `reminderly-pref-list-auto-clear`, default off): fully ticked lists move to Done after midnight (see [lists.md](./lists.md))
 - Use Siri shortcuts (toggle, only once Siri for lists exists)
 - Haptic feedback (page), Sounds (page)
 - Lists tutorial

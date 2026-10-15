@@ -171,6 +171,7 @@ Decided within D1 (2026-10-14): annual subscription at £9, all features free wi
 3. "1 minute time increments" info text is wrong.
 4. Notification preferences and permission flow: complete on feature/notifications-settings, awaiting merge (Phase 4).
 5. Developer tools reachable in all builds.
+6. Marking a list done removes its linked smart reminder instead of completing it (pre-existing race). Must be fixed on fix/smart-reminder-list-done before any TestFlight release that includes Clear done lists nightly (CTO, 2026-10-15).
 
 Details: [architecture.md](./architecture.md) (Known constraints) and the feature documents.
 
@@ -178,6 +179,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-15 | Clear done lists nightly on feature/list-auto-clear (not merged). Known issue 6 added: smart reminder sync fix required before a TestFlight release containing it |
 | 2026-10-15 | Notifications Phase 4 complete on feature/notifications-settings (not merged): user notification settings, sound off by default, in-app permission ask, no automatic iOS prompt |
 | 2026-10-12 | Plan created from the Phase 3 assessment. Decisions recorded: iPhone only, Siri enabled, developer tools excluded from release builds, tutorial once on first launch. Monetisation added as an outstanding dependency |
 

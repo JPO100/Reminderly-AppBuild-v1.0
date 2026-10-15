@@ -1249,7 +1249,7 @@ Branch: feature/date-presets (created from main at 4abbf9c, approved by the CTO 
 Completed:
 - Date preset pills in the new and edit reminder panel: Tomorrow morning (next day 8am), Tonight (today 6pm), Next week (next Monday after today 8am)
 - Tapping a pill turns date and time on with the pickers closed; tapping the active pill turns them off through the manual toggle-off path; any later date or time change resets the pill. Repeats unchanged. Hidden in smart reminder mode
-- Dev tools > Reminders > Date presets flag (default off) and Reminders settings > Date presets (default on); flag off overrides the setting
+- Dev tools > Reminders > Date presets flag (default off) and Reminders settings > Show date presets (default on); flag off overrides the setting
 - Preset dates use local calendar arithmetic (`utils/date-presets.ts`); checks cover every weekday, month and year end and UK daylight saving weeks
 - Tonight saved after 6pm schedules no notification (Vitest, using the existing `buildScheduledNotifications` past-time rule)
 

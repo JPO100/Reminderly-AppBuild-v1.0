@@ -267,7 +267,7 @@ Phase 3 change: the NLC mode and recognition preferences are stored as boolean k
 | - | `reminderly-ff-nlc-phone`, `reminderly-ff-nlc-contacts` (temporary) | Off | - |
 | `reminderly-ff-paywall` | Unchanged | Off | Kept |
 | - | `reminderly-ff-reminder-attachments` | Off (Dev tools > Reminders > Reminder attachments). Off hides attachment UI and keeps attachments | - |
-| - | `reminderly-ff-date-presets` | Off (Dev tools > Reminders > Date presets). With `reminderly-pref-date-presets` (Reminders settings > Date presets, on) shows the date preset pills. Flag off hides the pills and the setting and keeps the setting's value | - |
+| - | `reminderly-ff-date-presets` | Off (Dev tools > Reminders > Date presets). With `reminderly-pref-date-presets` (Reminders settings > Show date presets, on) shows the date preset pills. Flag off hides the pills and the setting and keeps the setting's value | - |
 | Hide overdue (not saved) | Stays unsaved | Off | - |
 | `reminderly-dev-tools-password-required` | Unchanged (access, not a setting) | As today | Kept |
 

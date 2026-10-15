@@ -74,7 +74,7 @@ Classification: Type B (feature work). Touches date and time handling, a protect
 Follows the existing flag and preference pattern (`docs/settings-flags-spec.md`).
 
 - Dev tools flag: `reminderly-ff-date-presets`, default off. Shown in Dev tools > Reminders > Features. Requires Enable reminders to be on.
-- User setting: "Date presets" in Settings > Reminders, key `reminderly-pref-date-presets`, default on. Shown only when the flag is on.
+- User setting: "Show date presets" in Settings > Reminders (renamed from "Date presets" by John, 2026-10-15), key `reminderly-pref-date-presets`, default on. Shown only when the flag is on.
 - Active when the Reminders flag, the date presets flag and the preference are all on. The Dev tools flag overrides the user setting: when the flag is off, the feature is off whatever the setting says, and the setting's saved value is kept.
 - When the feature is off, the pills row is removed from the layout and the panel looks and behaves exactly as it does today.
 

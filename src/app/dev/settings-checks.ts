@@ -611,5 +611,28 @@ export function getSettingsChecks(): Check[] {
         assert(!isFeatureActive('calendar', { storage }), 'Reminders off should hide the calendar');
       },
     },
+    {
+      id: 'settings-date-presets-flag-and-pref',
+      name: 'Date presets: flag defaults off and setting on, active only when Reminders, flag and setting are on',
+      run: () => {
+        assert(SETTINGS_DEFAULTS['reminderly-ff-date-presets'] === 'false', 'Date presets flag should default off');
+        assert(SETTINGS_DEFAULTS['reminderly-pref-date-presets'] === 'true', 'Date presets setting should default on');
+        const storage = memoryStorage({});
+        assert(!isFeatureActive('datePresets', { storage }), 'Never saved should be off');
+        storage.setItem('reminderly-ff-date-presets', 'true');
+        assert(isFeatureActive('datePresets', { storage }), 'Flag on with setting never saved should be on');
+        writeStoredBool('reminderly-pref-date-presets', false, storage);
+        assert(!readStoredBool('reminderly-pref-date-presets', true, storage), 'Setting off should be saved');
+        assert(!isFeatureActive('datePresets', { storage }), 'Flag on with setting off should be off');
+        writeStoredBool('reminderly-pref-date-presets', true, storage);
+        assert(isFeatureActive('datePresets', { storage }), 'Flag and setting on should be active');
+        storage.setItem('reminderly-ff-date-presets', 'false');
+        assert(!isFeatureActive('datePresets', { storage }), 'Flag off should override the setting');
+        assert(storage.getItem('reminderly-pref-date-presets') === 'true', 'Flag off should keep the user setting');
+        storage.setItem('reminderly-ff-date-presets', 'true');
+        storage.setItem('reminderly-ff-reminders', 'false');
+        assert(!isFeatureActive('datePresets', { storage }), 'Reminders off should hide date presets');
+      },
+    },
   ];
 }

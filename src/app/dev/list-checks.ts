@@ -8,6 +8,7 @@ import {
   getCurrentListCategory,
   getDisplayListItems,
   LIST_CATEGORY_COLOURS,
+  getListCircleColour,
   orderListsByCategory,
   resolveListSortMode,
   storageStringToDate,
@@ -232,13 +233,17 @@ export function getListChecks(): Check[] {
     },
 
     {
-      id: 'list-category-pinned-uses-bucket',
-      name: 'Pinned lists: bucket colour comes from items, pinning does not change the bucket',
+      id: 'list-category-pinned-navy',
+      name: 'Pinned lists: navy circle, bucket unchanged; unpinned or pinned lists off use the bucket colour',
       run: () => {
         const pinned = makeList({ id: 'p', title: 'Pinned', items: makeItems(9, 20), pinnedAt: 1 });
         const unpinned = { ...pinned, pinnedAt: null };
-        assert(getCurrentListCategory(pinned.items) === 'started', 'Pinned 9/20 should be Started');
-        assert(LIST_CATEGORY_COLOURS[getCurrentListCategory(pinned.items)] === LIST_CATEGORY_COLOURS[getCurrentListCategory(unpinned.items)], 'Pinned and unpinned should share the bucket colour');
+        assert(getCurrentListCategory(pinned.items) === 'started', 'Pinned 9/20 should still be Started');
+        for (const [checked, total] of [[0, 5], [9, 20], [5, 5]]) {
+          assert(getListCircleColour({ ...pinned, items: makeItems(checked, total) }, true) === '#1C2C42', `Pinned ${checked}/${total} should be navy`);
+        }
+        assert(getListCircleColour(unpinned, true) === '#60C1E7', 'Unpinned 9/20 should be Started blue');
+        assert(getListCircleColour(pinned, false) === '#60C1E7', 'With pinned lists off, the bucket colour is used');
       },
     },
 

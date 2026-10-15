@@ -57,6 +57,7 @@ import {
   getCurrentListCategory,
   orderListsByCategory,
   LIST_CATEGORY_COLOURS,
+  getListCircleColour,
   getDisplayListItems,
   resolveListSortMode,
   getBlankedLists,
@@ -3826,7 +3827,7 @@ export default function App() {
                     const isPinnedList = pinnedListsFeatureEnabled && typeof list.pinnedAt === 'number';
                     const pendingListColour = isPendingDeletedList ? DELETED_LIST_COLOUR : DONE_LIST_COLOUR;
                     const visibleCompletedCount = isPendingDoneList ? list.items.length : list.items.filter(i => i.completed).length;
-                    const catColor = LIST_CATEGORY_COLOURS[getCurrentListCategory(list.items)];
+                    const catColor = getListCircleColour(list, pinnedListsFeatureEnabled);
                     return (
                       <motion.div
                         key={list.id}

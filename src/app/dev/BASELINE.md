@@ -4,7 +4,7 @@ Last updated: 2026-10-15
 
 ## Verified Baseline (2026-10-15, feature/notifications-settings, Phase 4 stage 4)
 
-- Vitest (`npm run test`): 208 passed, 0 failed (11 files). 3 Phase 4 ask checks run through notifications.test.ts.
+- Vitest (`npm run test`): 207 passed, 0 failed (11 files). 3 Phase 4 ask checks run through notifications.test.ts. Dev tools controls guard: Enable notifications removed (the Notifications flag moved into Dev tools > Reminders as a single row).
 - Self Check: 389 passed, 0 failed across 11 suites (Node run). 3 Phase 4 ask checks added to Notification and badge (automatic ask rules, Not now transitions, launch and settings entry).
 
 ## Previous baseline (2026-10-15, feature/notifications-settings, Phase 4 stage 3)

@@ -31,7 +31,7 @@ import passwordResetSvgPaths from "../../imports/svg-p8ebad7jx7";
 
 const DEV_TOOLS_PASSWORD = '123';
 
-type DevToolsPage = 'home' | 'dummy-reminders' | 'dummy-lists' | 'dev-tools-password' | 'system' | 'natural-language' | 'onboarding' | 'notifications-area' | 'testing' | 'reminders' | 'lists' | 'siri' | 'config' | 'testing-tools';
+type DevToolsPage = 'home' | 'dummy-reminders' | 'dummy-lists' | 'dev-tools-password' | 'system' | 'natural-language' | 'onboarding' | 'testing' | 'reminders' | 'lists' | 'siri' | 'config' | 'testing-tools';
 
 // Dev tools look: #F7F7F7 page with 20px side and 24px top margins, a 45px header, and white cards
 // (6px corners) 24px apart. Card rows are 60px with 20px side padding and a full-width 1px #F7F7F7 line between rows.
@@ -543,79 +543,6 @@ function OnboardingPage({ onBack, onClose, isOnboardingTutorialEnabled, onOnboar
   );
 }
 
-function NotificationsAreaPage({ onBack, onClose, enableNotifications, onEnableNotificationsChange, reminderAlerts, onReminderAlertsChange, appBadge, onAppBadgeChange, includeTodayInBadge, onIncludeTodayInBadgeChange }: { onBack: () => void; onClose: () => void; enableNotifications: boolean; onEnableNotificationsChange: (value: boolean) => void; reminderAlerts: boolean; onReminderAlertsChange: (value: boolean) => void; appBadge: boolean; onAppBadgeChange: (value: boolean) => void; includeTodayInBadge: boolean; onIncludeTodayInBadgeChange: (value: boolean) => void }) {
-  const [pendingNotificationsState, setPendingNotificationsState] = useState<boolean | null>(null);
-
-  return (
-    <>
-    <PageShell title="Notifications" onBack={onBack} onClose={onClose}>
-      <DevCard>
-      <DevToggleRow label="Enable notifications" isOn={enableNotifications} onToggle={() => setPendingNotificationsState(!enableNotifications)} infoTitle="Master toggle for the notifications system. When enabled, the app can send system notifications and display an app badge count. Disabling this turns off all notification sub-features below including system alerts, app badge, and badge count settings." />
-      </DevCard>
-    </PageShell>
-      {pendingNotificationsState !== null && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/50 z-[60]"
-            onClick={() => setPendingNotificationsState(null)}
-          />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
-            <div
-              className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card"
-              style={{ width: 340 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingNotificationsState
-                    ? 'Turn on notifications?'
-                    : 'Turn off notifications?'}
-                </p>
-              </div>
-              <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingNotificationsState
-                    ? 'The Notifications feature will be enabled, turning on access to system notifications, app badge, and badge count settings.'
-                    : 'The Notifications feature will be disabled, turning off access to system notifications, app badge, and badge count settings.'}
-                </p>
-              </div>
-              <div className="flex gap-[30px] w-full justify-between">
-                <button
-                  onClick={() => setPendingNotificationsState(null)}
-                  className="h-[50px] rounded-[100px] cursor-pointer px-[16px]"
-                  style={{ backgroundColor: '#BABABA' }}
-                >
-                  <div className="flex items-center justify-center size-full">
-                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
-                      <p className="leading-[normal]">Cancel</p>
-                    </div>
-                  </div>
-                </button>
-                <button
-                  onClick={() => {
-                    onEnableNotificationsChange(pendingNotificationsState);
-                    setPendingNotificationsState(null);
-                  }}
-                  className="h-[50px] rounded-[100px] cursor-pointer px-[16px]"
-                  style={{ backgroundColor: '#4784F8' }}
-                >
-                  <div className="flex items-center justify-center size-full">
-                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
-                      <p className="leading-[normal]">
-                        {pendingNotificationsState ? 'Yes, turn on' : 'Yes, turn off'}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </>
-  );
-}
-
 function TestingPage({ onBack, onClose }: { onBack: () => void; onClose: () => void }) {
   const [isRunning, setIsRunning] = useState(false);
   const [report, setReport] = useState<RunReport | null>(null);
@@ -788,7 +715,7 @@ function TestingPage({ onBack, onClose }: { onBack: () => void; onClose: () => v
   );
 }
 
-function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChange, isListsEnabled, repeatToggle, setRepeatToggle, oneMinuteFlag, setOneMinuteFlag, calendarFlag, setCalendarFlag, attachmentsFlag, setAttachmentsFlag, datePresetsFlag, setDatePresetsFlag }: { onBack: () => void; onClose: () => void; enableReminders: boolean; onEnableRemindersChange: (value: boolean) => void; isListsEnabled: boolean; repeatToggle: boolean; setRepeatToggle: (value: boolean) => void; oneMinuteFlag: boolean; setOneMinuteFlag: (value: boolean) => void; calendarFlag: boolean; setCalendarFlag: (value: boolean) => void; attachmentsFlag: boolean; setAttachmentsFlag: (value: boolean) => void; datePresetsFlag: boolean; setDatePresetsFlag: (value: boolean) => void }) {
+function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChange, isListsEnabled, notificationsFlag, setNotificationsFlag, repeatToggle, setRepeatToggle, oneMinuteFlag, setOneMinuteFlag, calendarFlag, setCalendarFlag, attachmentsFlag, setAttachmentsFlag, datePresetsFlag, setDatePresetsFlag }: { onBack: () => void; onClose: () => void; enableReminders: boolean; onEnableRemindersChange: (value: boolean) => void; isListsEnabled: boolean; notificationsFlag: boolean; setNotificationsFlag: (value: boolean) => void; repeatToggle: boolean; setRepeatToggle: (value: boolean) => void; oneMinuteFlag: boolean; setOneMinuteFlag: (value: boolean) => void; calendarFlag: boolean; setCalendarFlag: (value: boolean) => void; attachmentsFlag: boolean; setAttachmentsFlag: (value: boolean) => void; datePresetsFlag: boolean; setDatePresetsFlag: (value: boolean) => void }) {
   const isLastModule = enableReminders && !isListsEnabled;
   const [showLastModuleNotice, setShowLastModuleNotice] = useState(false);
   const [pendingRemindersState, setPendingRemindersState] = useState<boolean | null>(null);
@@ -801,6 +728,7 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
         <DevToggleRow label="Enable reminders" isOn={enableReminders} onToggle={() => { if (isLastModule) setShowLastModuleNotice(true); else setPendingRemindersState(!enableReminders); }} infoTitle="Master availability flag for Reminders. When off, the app shows Lists only, reminder notifications are cancelled and the badge cleared. Reminder data and preferences are kept and return when turned back on. Reminders and Lists cannot both be off: while Lists is off, tapping this explains why." />
         </DevCard>
         <DevCard title="Features">
+        <DevToggleRow label="Notifications" isOn={notificationsFlag} onToggle={() => setNotificationsFlag(!notificationsFlag)} disabled={!enableReminders} infoTitle="Controls whether reminder notifications are available to users. The user chooses alerts, sound and the app badge in Reminders settings > Notifications. When off, pending notifications are cancelled, the badge clears and the user setting is hidden. The user's choices are kept. Requires Enable reminders to be on." />
         <DevToggleRow label="Repeat reminders" isOn={repeatToggle} onToggle={() => setRepeatToggle(!repeatToggle)} disabled={!enableReminders} infoTitle="Controls whether reminders can have repeat rules (e.g. daily, weekly, monthly). When disabled, the repeat option is hidden from the reminder creation and edit flows. Requires Enable reminders to be on." />
         <DevToggleRow label="1 minute time increments" isOn={oneMinuteFlag} onToggle={() => setOneMinuteFlag(!oneMinuteFlag)} disabled={!enableReminders} infoTitle="Controls whether the 1 minute time increments setting is available to users. The user's own choice is a user preference (Testing tools > User preferences until it moves to Reminders settings). Hides the user setting and uses 5 minute steps when off. The user's choice is kept." />
         <DevToggleRow label="Calendar" isOn={calendarFlag} onToggle={() => setCalendarFlag(!calendarFlag)} disabled={!enableReminders} infoTitle="Controls whether the calendar view is available to users. The user turns it on in Reminders settings > Show calendar. Hides the user setting and the calendar when off. The user's choice is kept. Requires Enable reminders to be on." />
@@ -1124,7 +1052,6 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
         onNavigateReminders={() => setPage('reminders')}
         onNavigateLists={() => setPage('lists')}
         onNavigateNlc={() => setPage('natural-language')}
-        onNavigateNotifications={() => setPage('notifications-area')}
         onNavigateOnboarding={() => setPage('onboarding')}
         onNavigateTesting={() => setPage('testing-tools')}
         onNavigateSystem={() => setPage('system')}
@@ -1137,8 +1064,6 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
         onEnableListsChange={changeListsFlag}
         enableNlc={nlcEnabled}
         onEnableNlcChange={onNlcEnabledChange}
-        enableNotifications={enableNotifications}
-        onEnableNotificationsChange={setEnableNotifications}
         enableOnboarding={isOnboardingTutorialEnabled}
         onEnableOnboardingChange={onOnboardingTutorialEnabledChange}
         enableSiri={siriShortcutsEnabled}
@@ -1151,7 +1076,7 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
     );
   } else if (page === 'reminders') {
     content = (
-      <RemindersPage onBack={() => setPage('home')} onClose={onClose} enableReminders={enableReminders} onEnableRemindersChange={changeRemindersFlag} isListsEnabled={isListsEnabled} repeatToggle={repeatFlag} setRepeatToggle={onRepeatFlagChange} oneMinuteFlag={oneMinuteFlag} setOneMinuteFlag={onOneMinuteFlagChange} calendarFlag={calendarFlag} setCalendarFlag={onCalendarFlagChange} attachmentsFlag={attachmentsFlag} setAttachmentsFlag={onAttachmentsFlagChange} datePresetsFlag={datePresetsFlag} setDatePresetsFlag={onDatePresetsFlagChange} />
+      <RemindersPage onBack={() => setPage('home')} onClose={onClose} enableReminders={enableReminders} onEnableRemindersChange={changeRemindersFlag} isListsEnabled={isListsEnabled} notificationsFlag={enableNotifications} setNotificationsFlag={setEnableNotifications} repeatToggle={repeatFlag} setRepeatToggle={onRepeatFlagChange} oneMinuteFlag={oneMinuteFlag} setOneMinuteFlag={onOneMinuteFlagChange} calendarFlag={calendarFlag} setCalendarFlag={onCalendarFlagChange} attachmentsFlag={attachmentsFlag} setAttachmentsFlag={onAttachmentsFlagChange} datePresetsFlag={datePresetsFlag} setDatePresetsFlag={onDatePresetsFlagChange} />
     );
   } else if (page === 'dummy-reminders') {
     content = (
@@ -1180,10 +1105,6 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
   } else if (page === 'dev-tools-password') {
     content = (
       <DevToolsPasswordPage onBack={() => setPage('home')} onClose={onClose} passwordRequired={isDevToolsPasswordRequired} onPasswordRequiredChange={onDevToolsPasswordRequiredChange} />
-    );
-  } else if (page === 'notifications-area') {
-    content = (
-      <NotificationsAreaPage onBack={() => setPage('home')} onClose={onClose} enableNotifications={enableNotifications} onEnableNotificationsChange={setEnableNotifications} reminderAlerts={notifReminderAlerts} onReminderAlertsChange={onNotifReminderAlertsChange} appBadge={notifAppBadge} onAppBadgeChange={onNotifAppBadgeChange} includeTodayInBadge={notifIncludeTodayInBadge} onIncludeTodayInBadgeChange={onNotifIncludeTodayInBadgeChange} />
     );
   } else if (page === 'siri') {
     content = (

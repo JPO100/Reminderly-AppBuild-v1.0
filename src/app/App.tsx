@@ -951,6 +951,7 @@ export default function App() {
   const [notifReminderAlerts, setNotifReminderAlerts] = useStoredSetting('reminderly-pref-notif-alerts');
   const [notifAppBadge, setNotifAppBadge] = useStoredSetting('reminderly-pref-notif-badge');
   const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useStoredSetting('reminderly-pref-notif-include-today');
+  const [notifSound] = useStoredSetting('reminderly-pref-notif-sound');
   const [isRepeatsOverlayOpen, setIsRepeatsOverlayOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialVariant, setTutorialVariant] = useState<TutorialVariant>('reminders');
@@ -1289,22 +1290,22 @@ export default function App() {
   }, [reminders]);
 
   useEffect(() => {
-    // Reminders off: cancel pending, then remove delivered Reminderly notifications. Back on: reschedule.
-    if (!isRemindersEnabled) {
+    // Reminders or Notifications flag off: cancel pending, then remove delivered Reminderly notifications. Back on: reschedule.
+    if (!isRemindersEnabled || !notificationsFlag) {
       void clearReminderNotifications();
       return;
     }
-    void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge);
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, isRemindersEnabled]);
+    void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge, notifReminderAlerts, notifSound);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, notifReminderAlerts, notifSound, isRemindersEnabled, notificationsFlag]);
 
-  // Reminders off: clear again each time the app returns to the foreground
+  // Reminders or Notifications flag off: clear again each time the app returns to the foreground
   useEffect(() => {
-    if (isRemindersEnabled) return;
+    if (isRemindersEnabled && notificationsFlag) return;
     const listener = CapacitorApp.addListener('appStateChange', (state) => {
       if (state.isActive) void clearReminderNotifications();
     });
     return () => { void listener.then((handle) => handle.remove()); };
-  }, [isRemindersEnabled]);
+  }, [isRemindersEnabled, notificationsFlag]);
 
 
 
@@ -1407,13 +1408,13 @@ export default function App() {
 
 
   useEffect(() => {
-    if (!notifAppBadge || !isRemindersEnabled) {
+    if (!notifAppBadge || !isRemindersEnabled || !notificationsFlag) {
       void Badge.clear();
       return;
     }
     const count = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date());
     void Badge.set({ count });
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled]);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled, notificationsFlag]);
 
   // Lock screen widget: refresh today's progress on any reminder change, on resume and at time boundaries.
   // Flag off: clear the shared data so the widget shows its neutral empty state.

@@ -40,6 +40,7 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-pref-notif-alerts': 'false',
   'reminderly-pref-notif-badge': 'false',
   'reminderly-pref-notif-include-today': 'true',
+  'reminderly-pref-notif-sound': 'false',
 
   // Haptics: master off, individual actions on (missing actions merge to on in utils/haptics.ts)
   'reminderly-ff-haptics': 'true',

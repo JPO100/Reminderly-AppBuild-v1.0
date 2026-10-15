@@ -2,7 +2,12 @@
 
 Last updated: 2026-10-15
 
-## Verified Baseline (2026-10-15, feature/date-presets)
+## Verified Baseline (2026-10-15, feature/notifications-settings, Phase 4 stage 2)
+
+- Vitest (`npm run test`): 201 passed, 0 failed (11 files). 11 Phase 4 scheduling tests added to notifications.test.ts (alerts and badge combinations, badge-only, sound, 64 limit).
+- Self Check: 382 passed, 0 failed across 11 suites (Node run). 4 Phase 4 checks added to Notification and badge (badge-only, alerts and badge off, sound on alerts only, badge-only limit).
+
+## Previous baseline (2026-10-15, feature/date-presets)
 
 - Vitest (`npm run test`): 190 passed, 0 failed (11 files; date-presets.test.ts added).
 - Self Check: 378 passed, 0 failed across 11 suites (Node run). 5 date preset checks added to Schedule and reminder logic, 1 date presets gate check added to Settings foundation.

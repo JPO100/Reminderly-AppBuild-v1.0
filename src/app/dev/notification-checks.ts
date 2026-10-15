@@ -329,6 +329,69 @@ export function getNotificationChecks(): Check[] {
       },
     },
     {
+      id: 'notif-phase4-badge-only',
+      name: 'Phase 4: alerts off, badge on schedules silent badge-only notifications plus midnight',
+      run: () => {
+        const reminders = [
+          makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } }),
+          makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+        ];
+        const result = buildScheduledNotifications(reminders, true, false, false, true);
+        const badgeOnly = result.filter((n) => n.id !== 2147483647);
+        assert(badgeOnly.length === 1, `Expected 1 badge-only notification, got ${badgeOnly.length}`);
+        const n = badgeOnly[0];
+        assert(n.title === '' && n.body === '', 'Badge-only notification should have no title or body');
+        assert(n.silent === true && n.sound === undefined, 'Badge-only notification should be silent with no sound');
+        assert(n.actionTypeId === '', 'Badge-only notification should have no actions');
+        assert(n.badge > 0, `Expected a badge number, got ${n.badge}`);
+        assert(result.some((x) => x.id === 2147483647), 'Expected midnight notification');
+      },
+    },
+    {
+      id: 'notif-phase4-alerts-badge-off',
+      name: 'Phase 4: alerts off, badge off schedules nothing',
+      run: () => {
+        const reminders = [
+          makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } }),
+          makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+        ];
+        const result = buildScheduledNotifications(reminders, false, true, false, true);
+        assert(result.length === 0, `Expected nothing scheduled, got ${result.length}`);
+      },
+    },
+    {
+      id: 'notif-phase4-sound-alerts-only',
+      name: 'Phase 4: sound on adds the default sound to alerts only',
+      run: () => {
+        const reminders = [
+          makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } }),
+          makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+        ];
+        const on = buildScheduledNotifications(reminders, true, false, true, true);
+        const off = buildScheduledNotifications(reminders, true, false, true, false);
+        assert(on.find((n) => n.id !== 2147483647)?.sound === 'default', 'Expected default sound on the alert');
+        assert(on.find((n) => n.id === 2147483647)?.sound === undefined, 'Midnight notification should have no sound');
+        assert(off.every((n) => n.sound === undefined), 'Sound off should leave every notification without a sound');
+      },
+    },
+    {
+      id: 'notif-phase4-badge-only-limit',
+      name: 'Phase 4: badge-only stays within 64 with the midnight slot reserved',
+      run: () => {
+        const reminders: Reminder[] = [makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } })];
+        for (let i = 0; i < 70; i++) {
+          reminders.push(makeReminder({
+            id: `r-${i}`,
+            displayText: `Reminder ${i}`,
+            schedule: { kind: 'scheduled', date: futureDate(Math.floor(i / 24) + 1), time: `${String(i % 24).padStart(2, '0')}:00` },
+          }));
+        }
+        const result = buildScheduledNotifications(reminders, true, false, false, false);
+        assert(result.length === 64, `Expected 64, got ${result.length}`);
+        assert(result.some((n) => n.id === 2147483647), 'Expected midnight notification');
+      },
+    },
+    {
       id: 'notif-refresh-boundary-midnight',
       name: 'Refresh boundary: returns ms to midnight when no timed reminders today',
       run: () => {

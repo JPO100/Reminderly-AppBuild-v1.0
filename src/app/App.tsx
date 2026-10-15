@@ -1480,13 +1480,16 @@ export default function App() {
 
 
   useEffect(() => {
+    // The badge plugin requests iOS permission on every set and clear, so it is only called once permission
+    // is granted. Without permission iOS shows no badge, and the in-app ask stays the only prompt (F3).
+    if (notifPermission !== 'granted') return;
     if (!notifAppBadge || !isRemindersEnabled || !notificationsFlag) {
       void Badge.clear();
       return;
     }
     const count = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date());
     void Badge.set({ count });
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled, notificationsFlag]);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled, notificationsFlag, notifPermission]);
 
   // Lock screen widget: refresh today's progress on any reminder change, on resume and at time boundaries.
   // Flag off: clear the shared data so the widget shows its neutral empty state.

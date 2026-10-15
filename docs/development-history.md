@@ -1292,3 +1292,13 @@ Completed:
 - Pointer cancel ends the drag and keeps the current value
 
 Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run). Simulator: panel scroll and both wheels work. iPhone 15 Pro: confirmed by John, wheels scroll and hold their value. Awaiting CTO approval to merge into main.
+
+Merged and closed (2026-10-15): feature/notifications-settings merged into main with --no-ff (merge commit 3fea7ae) after CTO final technical approval and John's iPhone checks. Post-merge on main: Vitest 207/207, Self Check 389/389, web and iOS builds succeeded. Branch cleanup authorised by the CTO: feature/date-presets (08076ff), fix/time-picker-scroll (c629523) and feature/notifications-settings (53d93bb) confirmed merged and safe-deleted locally and remotely; only main remains. Phase 4 formally closed by the CTO.
+
+### 2026-10-15 (fix/notification-settings-inactive-rows - Notifications page inactive rows)
+
+Branch: fix/notification-settings-inactive-rows (created from main at 3fea7ae). Type A, CTO fast-track approval. John asked for this to be done on main; Claude challenged that under the working agreement and proposed a branch and CTO plan note instead.
+
+Completed:
+- Reminders settings > Notifications: Sound stays listed but inactive while Notifications is off, and Include today in badge while App badge is off (grey #D9D9D9 text and toggle, shown off, cannot be changed). Previously both rows were hidden. Saved choices are kept and return when the parent is turned back on. Uses the existing ToggleRow disabled state
+

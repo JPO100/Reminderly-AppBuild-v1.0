@@ -105,7 +105,7 @@ Lists settings toggle, `reminderly-pref-list-auto-clear`, default off (CTO, 2026
 - Runs on the existing time refresh (launch, return to foreground, midnight boundary) and when the setting is turned on; catches up after days away. No background execution. Skips the list open in the editor and lists mid-animation; a ref guard completes each list once.
 - Completion uses the shared `commitListDone` path with manual completion: status done and linked smart reminder completed through list-sync. Auto-clear is quiet (no haptic or click), keeps item tick times and dates the list from `fullyTickedAt` (`markListDone`). Manual completion is unchanged.
 - Hint: while the setting is on, eligible-tonight lists (fully ticked, active, unpinned) show ". Clears tonight" after the progress text. It disappears as soon as the list is no longer fully ticked.
-- Known issue (pre-existing, separate fix `fix/smart-reminder-list-done`): when a list is marked done, manually or by auto-clear, the smart reminder sync removes the linked smart reminder before list-sync completion commits, so it does not appear in Done.
+- Smart reminders: when a list is marked done, manually or by auto-clear, the smart reminder sync (`syncSmartReminderForInactiveList`) completes its still-active smart reminder at the list's done time, so it moves to Done with the list. Deleted or missing lists still remove it. Restoring the list un-completes the same reminder (fix/smart-reminder-list-done).
 
 ### List info
 

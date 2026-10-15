@@ -1358,3 +1358,16 @@ Completed:
 Test results: Vitest 220/220 passed. Self Check 395/395 passed (Node run). Repo guard passed. Web build succeeded. Web preview: pinned 0/3, 9/20 and 4/4 navy with pin icon at the top of All; unpinned Todo grey, Started blue, Done purple; filters unchanged. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded. Awaiting CTO merge approval.
 
 Merged and closed (2026-10-15): after CTO incident review (device build swap between the two branches, not a code regression), feature/list-auto-clear was redeployed and the setting confirmed visible with its saved state intact. feature/list-auto-clear merged into main with --no-ff (merge commit 9dc03ea); post-merge Vitest 229/229, Self Check 404/404, repo guard passed, web build succeeded. fix/pinned-list-navy then merged with --no-ff (merge commit 56df01b): App.tsx import list conflict resolved by keeping both sides, synced iOS web asset regenerated, BASELINE and history entries combined. Combined main: Vitest 229/229, Self Check 404/404 (Node run), repo guard passed, web build succeeded; simulator and iPhone 15 Pro built, installed and launched with both changes. Both branches deleted locally and remotely. fix/smart-reminder-list-done remains required before any TestFlight release containing auto-clear. No TestFlight or App Store release authorised.
+
+### 2026-10-15 (fix/smart-reminder-list-done - smart reminders move to Done with their list)
+
+Branch: fix/smart-reminder-list-done (created from main at 0e97fb7, verified equal to origin/main). Type B. Protected areas: completion flows, notifications, badge. CTO authorised after closing the auto-clear and navy merges; required before any TestFlight release containing auto-clear.
+
+Issue (pre-existing, found during auto-clear verification): the smart reminder sync effect removed a list's still-active smart reminder as soon as the list was no longer active. List-sync completion commits the reminder's completedAt after 350ms, so the sync always won and marking a list done (manually or by auto-clear) deleted the reminder instead of moving it to Done.
+
+Completed:
+- `syncSmartReminderForInactiveList` (list-utils), used by the sync effect for lists that are no longer active: a done list's active smart reminder is completed at the list's done time (`statusChangedAt`); deleted and missing lists still remove it; done and deleted reminders untouched. List-sync completion still runs afterwards and sets the completion time to now, as before
+- No change to notification or badge code: both already exclude completed reminders, so cancellation and badge updates behave as before
+- Not changed (observed only): deleting a list has the same race with its smart reminder's deletedAt; outside this fix's scope
+
+Test results: Vitest 232/232 passed. Self Check 407/407 passed (Node run). Repo guard passed. Web build succeeded. Web preview: manual completion and auto-clear (setting turned on with an overdue list) both left the linked smart reminder in Done (previously deleted); restoring the manual list returned the same reminder to active with no duplicate; two reloads left reminder data stable (only the loader's existing null-field tidy-up on first load). Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded. Awaiting John's device checks and CTO merge approval.

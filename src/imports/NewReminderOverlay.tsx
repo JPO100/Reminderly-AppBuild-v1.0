@@ -1816,9 +1816,10 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
         </motion.div>
       </div>
       <div className="flex-1 min-h-0 flex flex-col px-[24px] pt-[24px] pb-[24px]">
+        {/* Spacing by width: 10px gaps, except iPhone 15 Pro width (393-401pt) where the pills spread edge to edge */}
         {isDatePresetsEnabled && !isSmartReminderMode && (
-          <div className="flex items-center gap-[10px] shrink-0 mb-[24px] overflow-x-auto" style={{ scrollbarWidth: 'none' }} data-name="date-presets">
-            {DATE_PRESETS.map(({ id, label }) => {
+          <div className="flex items-center gap-[10px] min-[393px]:max-[401.98px]:gap-0 min-[393px]:max-[401.98px]:justify-between shrink-0 mb-[24px] overflow-x-auto" style={{ scrollbarWidth: 'none' }} data-name="date-presets">
+            {DATE_PRESETS.map(({ id, label, shortLabel }) => {
               const isActive = activePreset?.id === id;
               return (
                 <button
@@ -1828,7 +1829,9 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
                   className="bg-white content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer"
                   style={isActive ? { boxShadow: 'inset 0 0 0 2px #4784F8', color: '#4784F8' } : { boxShadow: 'inset 0 0 0 1px #B7B7B7', color: '#B7B7B7' }}
                 >
-                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">{label}</div>
+                  <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
+                    {shortLabel ? (<><span className="min-[393px]:hidden">{shortLabel}</span><span className="hidden min-[393px]:inline">{label}</span></>) : label}
+                  </div>
                 </button>
               );
             })}

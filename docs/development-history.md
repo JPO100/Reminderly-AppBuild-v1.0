@@ -1386,3 +1386,13 @@ Completed:
 - Date preset pills in the off state now use `#B7B7B7` for the border and text instead of `#BABABA`, matching the Date, Time and Repeats off state. Active pill unchanged (`#4784F8`)
 
 Test results: no automated tests (trivial styling). Web build succeeded. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded; simulator new reminder panel checked by eye, pills and Date label render the same grey. Awaiting CTO merge approval.
+
+### 2026-10-15 (feature/date-preset-spacing - preset label and spacing by screen width)
+
+Branch: feature/date-preset-spacing (created from fix/preset-pill-off-colour at efe4747, which is unmerged and touches the same pill code). Type B under Working Agreement v1.3. John's direct request; even spacing on the 15 Pro agreed as a trial that can be rolled back.
+
+Completed:
+- Tomorrow preset label is "Tomorrow morning" (new optional `shortLabel` "Tomorrow" in DATE_PRESETS). Below 393pt (smaller than iPhone 15 Pro) the short label shows
+- Spacing: 10px gaps by default; at 393-401pt (iPhone 15 Pro width) the pills spread edge to edge (justify-between, no minimum gap). CSS breakpoints only, no JS. Preset behaviour (tomorrow 8am) unchanged
+
+Test results: date-presets Vitest 7/7 passed. Web build succeeded. Web preview measurements: 375pt "Tomorrow" with 10px gaps; 393pt "Tomorrow morning" edge to edge (24 to 369) with 7.2pt gaps, no overflow; 402pt "Tomorrow morning" with 10px gaps, 3.5pt spare. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded; simulator panel checked visually. Awaiting John's 15 Pro check and CTO merge approval (after fix/preset-pill-off-colour).

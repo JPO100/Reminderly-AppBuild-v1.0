@@ -1,6 +1,6 @@
 # Date presets - scope
 
-Status: technical plan approved by the CTO after full document review, 2026-10-15. Implementation starts once John confirms D2. Branch `feature/date-presets` approved, not yet created.
+Status: implemented on `feature/date-presets` (2026-10-15), pushed for CTO review. D2 confirmed by John. Not merged.
 
 ## 1. Summary
 
@@ -131,5 +131,5 @@ A build at completion. Development deployment to the simulator and iPhone after 
 | # | Decision | Status |
 |---|---|---|
 | D1 | Hide pills when creating a smart reminder from a list | Confirmed by John. Closed |
-| D2 | User setting "Date presets" under Settings > Reminders, default on; Dev tools flag default off and overrides it | Technically approved. John to confirm |
+| D2 | User setting "Date presets" under Settings > Reminders, default on; Dev tools flag default off and overrides it | Confirmed by John. Closed |
 | D3 | Branch `feature/date-presets` from a clean, up-to-date main | Approved |

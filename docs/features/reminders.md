@@ -226,6 +226,7 @@ On confirm it permanently removes all done and deleted reminders, including pend
 Header: title + tick submit button (45px)
   "New reminder", "Edit reminder", "Add smart reminder" or "Edit smart reminder"
 Text input ("Don't forget...") with NLC highlighting
+Date presets row (when date presets are on)
 Date row + inline month calendar
 Time row + inline TimePicker
 Repeats row (opens the Repeats overlay)
@@ -234,6 +235,7 @@ Repeats row (opens the Repeats overlay)
 - Submit is active only when the text is not empty after trimming.
 - Date and time: time needs a date. Turning date off turns time off; turning time on sets the date to today if none is set.
 - The calendar view can prefill the date (see [scheduling-and-nlc.md](./scheduling-and-nlc.md)).
+- Date presets: Tomorrow morning (next day 8am), Tonight (today 6pm, overdue if already past) and Next week (next Monday after today, 8am). Tapping a pill turns date and time on with the pickers closed; tapping the active pill turns them off; any later date or time change resets the pill. Repeats is not changed. Hidden in smart reminder mode. Shown when Dev tools > Reminders > Date presets and Reminders settings > Date presets are both on. See [../plans/date-presets.md](../plans/date-presets.md).
 - Time picker: 15-minute steps, or 1-minute steps when 1 minute increments are available and chosen.
 - Repeats: tapping opens the Repeats overlay; the chosen rule shows as a label. With repeat reminders off, no rule can be created and an edited reminder keeps its existing rule (`keepRepeatRuleWhenOff`).
 - The text input uses three layers: a transparent textarea, a mirror behind it that colours tokens, and a hit layer above it that makes tokens tappable. One render function draws both overlays so they never drift; scroll is synchronised. Details in [scheduling-and-nlc.md](./scheduling-and-nlc.md).

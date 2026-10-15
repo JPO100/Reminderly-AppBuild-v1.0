@@ -70,6 +70,7 @@ These findings come from the code paths and add to or correct the earlier audit.
 | F13 | Lists off today: Lists tab hidden, main view stays on reminders, colours switch to the reminders-only palette, tutorial uses the reminders variant. Lists data is kept | `App.tsx` `isListsEnabled` usages | Matches the model. Reused for Reminders off |
 | F14 | Paywall has no state or reader in the app. Only Self Check references the key. A "paywall" comment sits above the Lists flag code | `dev-tools-checks.ts`; `App.tsx` comment | Kept as a reserved flag. The comment is fixed when that code is next touched |
 | F15 | Reminder attachments merged from the `reminder-attachments` branch (2026-10-14) | `NewReminderOverlay.tsx`, `utils/attachment-storage.ts` | Flag `reminderly-ff-reminder-attachments`, default off |
+| F16 | Date presets added on `feature/date-presets` (2026-10-15) | `NewReminderOverlay.tsx`, `utils/date-presets.ts` | Flag `reminderly-ff-date-presets`, default off; preference `reminderly-pref-date-presets`, default on |
 
 ## 4. Resolver
 
@@ -266,6 +267,7 @@ Phase 3 change: the NLC mode and recognition preferences are stored as boolean k
 | - | `reminderly-ff-nlc-phone`, `reminderly-ff-nlc-contacts` (temporary) | Off | - |
 | `reminderly-ff-paywall` | Unchanged | Off | Kept |
 | - | `reminderly-ff-reminder-attachments` | Off (Dev tools > Reminders > Reminder attachments). Off hides attachment UI and keeps attachments | - |
+| - | `reminderly-ff-date-presets` | Off (Dev tools > Reminders > Date presets). With `reminderly-pref-date-presets` (Reminders settings > Date presets, on) shows the date preset pills. Flag off hides the pills and the setting and keeps the setting's value | - |
 | Hide overdue (not saved) | Stays unsaved | Off | - |
 | `reminderly-dev-tools-password-required` | Unchanged (access, not a setting) | As today | Kept |
 

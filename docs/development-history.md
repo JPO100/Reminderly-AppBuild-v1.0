@@ -1256,3 +1256,17 @@ Completed:
 Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run, 6 new). Production build succeeded. Simulator checks passed on the iPhone 17 Pro simulator. iPhone confirmation of Tonight after 6pm outstanding.
 
 Follow-up (2026-10-15, after CTO and product review): "Tomorrow morning" label shortened to "Tomorrow". Pills keep the standard 10px gap, aligned left, and fit on 375pt screens and wider (295.5pt needed, 327pt available at 375pt); the row still scrolls sideways if it ever does not fit. Vitest 190/190 passed. Deployed to the iPhone 17 Pro simulator and iPhone 15 Pro.
+
+### 2026-10-15 (fix/time-picker-scroll - time picker wheels)
+
+Branch: fix/time-picker-scroll (created from main at bd5b11a, verified equal to origin/main). Phase 4 (feature/notifications-settings) paused after stage 2 while this is fixed.
+
+Issue: on the iPhone 15 Pro the time picker wheels could not be scrolled. A drag jumped the value to the end of the wheel and scrolled the whole panel instead. Not reproducible on the taller iPhone 17 Pro simulator.
+
+Cause: the wheels (`src/imports/TimePicker.tsx`) follow pointer events but did not set `touch-action: none`. When the new reminder panel is scrollable, iOS claims a vertical drag as a scroll and cancels the pointer; the cancel handler ran the drag-end snap with an unreliable position. The date presets row (+69pt) makes the panel scrollable on 852pt screens, which exposed it.
+
+Completed:
+- Wheel container sets `touch-action: none`, so a drag that starts on a wheel always moves the wheel. The panel still scrolls outside the wheels
+- Pointer cancel ends the drag and keeps the current value
+
+Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run). Simulator: panel scroll and both wheels work. iPhone 15 Pro confirmation outstanding.

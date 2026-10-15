@@ -140,6 +140,18 @@ function WheelColumn({ values, selectedValue, onChange, formatValue }: WheelColu
     [selectedIndex, snapToIndex]
   );
 
+  // Cancelled drag (iOS interrupted the touch): end it and keep the current value
+  const handlePointerCancel = useCallback(
+    (e: React.PointerEvent) => {
+      if (!dragState.current.isDragging) return;
+      dragState.current.isDragging = false;
+      const el = containerRef.current;
+      if (el && el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      setOffsetY(0);
+    },
+    []
+  );
+
   // Render items centered around selected
   // During drag, compute a virtual index so the correct items are shown in real-time
   const dragIndexOffset = dragState.current.isDragging ? Math.round(-offsetY / ITEM_HEIGHT) : 0;
@@ -162,11 +174,11 @@ function WheelColumn({ values, selectedValue, onChange, formatValue }: WheelColu
     <div
       ref={containerRef}
       className={`relative shrink-0 w-[84px] overflow-hidden cursor-grab active:cursor-grabbing select-none`}
-      style={{ height: ITEM_HEIGHT * VISIBLE_ITEMS - 2 * CROP }}
+      style={{ height: ITEM_HEIGHT * VISIBLE_ITEMS - 2 * CROP, touchAction: "none" }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       data-name="Hours"
     >
       {/* Inner wrapper shifted up by CROP so clipping is symmetric */}

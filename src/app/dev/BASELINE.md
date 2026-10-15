@@ -2,7 +2,12 @@
 
 Last updated: 2026-10-15
 
-## Verified Baseline (2026-10-15, fix/smart-reminder-list-done)
+## Verified Baseline (2026-10-15, fix/smart-reminder-list-done, with auto-clear date correction)
+
+- Vitest (`npm run test`): 233 passed, 0 failed (12 files).
+- Self Check: 408 passed, 0 failed across 11 suites (Node run). Auto-clear date check added (reminder keeps the list done date after the 350ms step at launch and in the open app; manual dated now).
+
+## Previous baseline (2026-10-15, fix/smart-reminder-list-done)
 
 - Vitest (`npm run test`): 232 passed, 0 failed (12 files). list-sort.test.ts also runs the smart reminder sync checks.
 - Self Check: 404 + 3 = 407 passed, 0 failed across 11 suites (Node run). 3 checks added to Lists and smart reminders (done list keeps its smart reminder at the done time for manual and auto-clear; deleted and missing lists unchanged, done and deleted reminders untouched, repeat processing safe; notification removed and badge drops once moved to Done).

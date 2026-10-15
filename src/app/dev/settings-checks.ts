@@ -43,8 +43,9 @@ const EXISTING = { 'reminderly.reminders.v1': '[]' };
 const LEGACY_TO_AUTHORITATIVE: [string, string, boolean][] = [
   ['dev.listsEnabled', 'reminderly-ff-lists', true],
   ['reminderly-dev-one-minute-time-increments', 'reminderly-pref-one-minute-increments', false],
-  ['reminderly-notif-reminder-alerts', 'reminderly-pref-notif-alerts', true],
-  ['reminderly-notif-app-badge', 'reminderly-pref-notif-badge', true],
+  // Phase 4: alerts and badge default off for new installs (existing installs get on from the migration)
+  ['reminderly-notif-reminder-alerts', 'reminderly-pref-notif-alerts', false],
+  ['reminderly-notif-app-badge', 'reminderly-pref-notif-badge', false],
   ['reminderly-notif-include-today-in-badge', 'reminderly-pref-notif-include-today', true],
   ['reminderly-ff-tutorial-first-launch', 'reminderly-config-tutorial-first-launch', true],
   ['reminderly-ff-tutorial-every-start', 'reminderly-test-tutorial-every-start', false],
@@ -72,8 +73,78 @@ const ALL_OLD_KEYS: Record<string, string> = {
   'reminderly-tutorial-reminders-shown': 'true',
 };
 
+const NOTIF_PREFS = ['reminderly-pref-notif-alerts', 'reminderly-pref-notif-badge', 'reminderly-pref-notif-include-today'];
+const NOTIF_SOUND = 'reminderly-pref-notif-sound';
+
 export function getSettingsChecks(): Check[] {
   return [
+    // Notifications Phase 4 (docs/plans/notifications-phase-4.md, section 7.1)
+    {
+      id: 'settings-phase4-fallbacks-removed',
+      name: 'Phase 4: notification settings use their development defaults, not transitional fallbacks',
+      run: () => {
+        for (const key of ['reminderly-ff-notifications', ...NOTIF_PREFS, NOTIF_SOUND]) {
+          assert(!(key in TRANSITIONAL_FALLBACKS), `${key} should have no transitional fallback`);
+        }
+        const storage = memoryStorage();
+        migrateSettings(storage);
+        assert(readStoredBool('reminderly-ff-notifications', undefined, storage) === true, 'Notifications flag should default on');
+        assert(readStoredBool('reminderly-pref-notif-alerts', undefined, storage) === false, 'New install alerts should default off');
+        assert(readStoredBool('reminderly-pref-notif-badge', undefined, storage) === false, 'New install badge should default off');
+        assert(readStoredBool('reminderly-pref-notif-include-today', undefined, storage) === true, 'Include today should default on');
+        assert(readStoredBool(NOTIF_SOUND, undefined, storage) === false, 'Sound should default off');
+      },
+    },
+    {
+      id: 'settings-phase4-saved-off-kept',
+      name: 'Phase 4: saved off notification preferences stay off after migration and fallback removal (old and new keys)',
+      run: () => {
+        const oldKeys = memoryStorage({
+          ...EXISTING,
+          'reminderly-notif-reminder-alerts': 'false',
+          'reminderly-notif-app-badge': 'false',
+          'reminderly-notif-include-today-in-badge': 'false',
+        });
+        migrateSettings(oldKeys);
+        const newKeys = memoryStorage({ ...EXISTING, ...Object.fromEntries(NOTIF_PREFS.map((key) => [key, 'false'])), [NOTIF_SOUND]: 'false' });
+        migrateSettings(newKeys);
+        for (const storage of [oldKeys, newKeys]) {
+          for (const key of NOTIF_PREFS) {
+            assert(storage.getItem(key) === 'false', `${key} should stay saved as false`);
+            assert(readStoredBool(key, undefined, storage) === false, `${key} should read as off`);
+          }
+          assert(!isFeatureActive('notificationAlerts', { storage, permissionGranted: true }), 'Alerts should be inactive');
+          assert(!isFeatureActive('notificationBadge', { storage, permissionGranted: true }), 'Badge should be inactive');
+        }
+        assert(readStoredBool(NOTIF_SOUND, undefined, newKeys) === false, 'Saved sound off should stay off');
+      },
+    },
+    {
+      id: 'settings-phase4-saved-on-kept',
+      name: 'Phase 4: saved on notification preferences stay on, and an existing install with nothing saved keeps alerts and badge on',
+      run: () => {
+        const saved = memoryStorage({ ...EXISTING, ...Object.fromEntries(NOTIF_PREFS.map((key) => [key, 'true'])), [NOTIF_SOUND]: 'true' });
+        migrateSettings(saved);
+        for (const key of [...NOTIF_PREFS, NOTIF_SOUND]) assert(readStoredBool(key, undefined, saved) === true, `${key} should stay on`);
+        const empty = memoryStorage(EXISTING);
+        migrateSettings(empty);
+        assert(readStoredBool('reminderly-pref-notif-alerts', undefined, empty) === true, 'Existing install alerts should stay on');
+        assert(readStoredBool('reminderly-pref-notif-badge', undefined, empty) === true, 'Existing install badge should stay on');
+      },
+    },
+    {
+      id: 'settings-phase4-sound-default',
+      name: 'Phase 4: sound is off when never saved for new and existing installs, and the migration never writes it',
+      run: () => {
+        for (const initial of [{}, EXISTING, ALL_OLD_KEYS]) {
+          const storage = memoryStorage(initial);
+          migrateSettings(storage);
+          migrateSettings(storage);
+          assert(storage.getItem(NOTIF_SOUND) === null, 'Migration should not write the sound key');
+          assert(readStoredBool(NOTIF_SOUND, undefined, storage) === false, 'Sound should resolve off');
+        }
+      },
+    },
     // Migration
     {
       id: 'settings-migration-new-install',
@@ -229,10 +300,11 @@ export function getSettingsChecks(): Check[] {
       id: 'settings-stored-precedence',
       name: 'Stored settings: a saved value wins over the fallback, a missing value uses it',
       run: () => {
-        const storage = memoryStorage({ 'reminderly-pref-notif-alerts': 'false', 'reminderly-ff-smart-reminders': 'true' });
-        assert(readStoredBool('reminderly-pref-notif-alerts', undefined, storage) === false, 'Saved false should win over fallback true');
+        const storage = memoryStorage({ 'reminderly-dev-tools-password-required': 'false', 'reminderly-ff-smart-reminders': 'true' });
+        assert(readStoredBool('reminderly-dev-tools-password-required', undefined, storage) === false, 'Saved false should win over fallback true');
         assert(readStoredBool('reminderly-ff-smart-reminders', undefined, storage) === true, 'Saved true should win over fallback false');
-        assert(readStoredBool('reminderly-pref-notif-badge', undefined, storage) === true, 'Missing badge should use fallback true');
+        assert(readStoredBool('reminderly-dev-tools-password-required', undefined, memoryStorage()) === true, 'Missing password setting should use fallback true');
+        assert(readStoredBool('reminderly-pref-notif-badge', undefined, storage) === false, 'Missing badge should use the development default (off)');
         assert(readStoredBool('reminderly-ff-saved-lists', undefined, storage) === true, 'Missing templates should use the development default (on)');
       },
     },

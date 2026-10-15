@@ -60,7 +60,7 @@ describe('dev tools controls', () => {
     'Reminders', 'Enable reminders', 'Repeat reminders', '1 minute time increments', 'Calendar',
     'Lists', 'Enable lists', 'Smart reminders', 'List templates', 'Pinned lists',
     'Natural Language Capture', 'Enable Natural Language Capture',
-    'Notifications', 'Enable notifications',
+    'Notifications',
     'Siri shortcuts', 'Siri for reminders',
     'Onboarding', 'Enable onboarding', 'Show tutorial on first launch',
     'System', 'Haptics', 'Sounds', 'Lock screen widget', 'Settings menu', 'Show info icons',

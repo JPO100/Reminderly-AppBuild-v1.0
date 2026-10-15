@@ -1257,6 +1257,28 @@ Test results: Vitest 190/190 passed. Self Check 378/378 passed (Node run, 6 new)
 
 Follow-up (2026-10-15, after CTO and product review): "Tomorrow morning" label shortened to "Tomorrow". Pills keep the standard 10px gap, aligned left, and fit on 375pt screens and wider (295.5pt needed, 327pt available at 375pt); the row still scrolls sideways if it ever does not fit. Vitest 190/190 passed. Deployed to the iPhone 17 Pro simulator and iPhone 15 Pro.
 
+### 2026-10-15 (feature/notifications-settings - Notifications Phase 4)
+
+Branch: feature/notifications-settings (created from main at bd5b11a after verifying main clean and equal to origin/main; approved by the CTO and John). Plan: [plans/notifications-phase-4.md](plans/notifications-phase-4.md).
+
+Decisions: D1 to D5 approved by the CTO. Notification sound added to Phase 4 scope by John: one on/off toggle using the iOS default sound, off by default for all users (D3).
+
+Completed:
+- Scope committed (2e9eaa5)
+- Step 1 device checks on the iPhone 15 Pro, all passed: current alerts are silent; sound name `default` plays the iOS Default Alerts tone; `app-settings:` opens Reminderly's iOS Settings page. Temporary test card removed, not committed
+- Stage 2 (7e2e79c): alerts preference controls alerts (F1); alerts and badge independent with silent badge-only notifications (same selection and 64 limit); sound on adds the iOS default sound to alerts only; sync checks permission and never prompts (F3); Notifications flag off cancels notifications and clears the badge. Vitest 201/201, Self Check 382/382
+- fix/time-picker-scroll merged into this branch so Phase 4 builds have working time wheels (fix awaits CTO approval for main)
+- Stage 3: notification transitional fallbacks removed (new installs: alerts and badge off, include today on, sound off); Settings > Reminders > Notifications page with Notifications, Sound (while alerts on), App badge and Include today in badge (while badge on); "Turn on in Settings" row when iOS permission is denied, re-checked on return to the foreground. Settings checks for saved off and on values, defaults and the sound key. Vitest 205/205, Self Check 386/386. Toggling on while permission is undecided saves the preference only; the in-app ask (6.3) is stage 4
+- Device checks for stages 2 and 3, all passed. iPhone 15 Pro (John): default state; Notifications on with Sound off gives a silent alert and badge update; Sound on plays the Default Alerts tone; Notifications off with App badge on gives badge-only updates and no alert; both off clears the badge; child rows restore their values. iPhone 17 Pro simulator: with Allow Notifications off in iOS Settings, Turn on in Settings appears with toggles unchanged, opens Reminderly's iOS Settings page, and disappears on return to the foreground once allowed
+- Stage 4 (5b83592): in-app ask at the end of the Reminders tutorial and when a timed reminder is saved, only while iOS permission is undecided; Not now gives not-now-1 then not-now-2; settings toggles ask first while undecided (Not now from settings changes nothing); existing installs with permission marked accepted on launch; permission re-checked on return to the foreground, then resync. Vitest 208/208, Self Check 389/389. Existing-install path verified on the simulator (no ask)
+- Dev tools Notifications flag moved from the home page into Dev tools > Reminders > Features at John's request (notifications are reminders only). The separate Notifications page is removed; the flag is a plain toggle like the other Reminders features. Vitest 207/207 (one duplicate label check removed)
+- fix/time-picker-scroll fast-forwarded into main (bd5b11a to c629523) with CTO approval; local and remote main in sync. Feature branch already contained the fix, no update needed
+- Fresh-permission journeys verified on an unused iPhone 17 simulator (John's iPhone and the existing simulator untouched): tutorial ask, Not now twice (not-now-1, not-now-2), settings ask with Not now and Allow, iOS prompt only after Allow, denied with Turn on in Settings, recovery, Allow from the automatic ask. All passed
+- Defect found during that verification and fixed: the badge plugin (@capawesome/capacitor-badge) requests iOS permission on every Badge.set and Badge.clear, so a new install saw the iOS prompt at launch. The in-app badge effect now runs only once permission is granted. Verified: no prompt on a fresh install; badge still updates on the existing simulator install
+- Phase 4 documentation (plan section 13): features/notifications.md, features/settings.md, settings-flags-spec.md (12.3 Phase 4 as delivered, 7.3 settings rule superseded), release-readiness.md, plan results
+- John's iPhone 15 Pro checks passed: Dev tools layout (Notifications first in Dev tools > Reminders > Features, gone from the home page), flag gating (off hides Reminders settings > Notifications and clears the badge, on restores it with preferences kept), and the Turn on in Settings link opens Reminderly's iOS Settings page and clears once allowed
+- CTO final technical approval for a --no-ff merge into main, conditional on the checks above (2026-10-15)
+
 ### 2026-10-15 (fix/time-picker-scroll - time picker wheels)
 
 Branch: fix/time-picker-scroll (created from main at bd5b11a, verified equal to origin/main). Phase 4 (feature/notifications-settings) paused after stage 2 while this is fixed.

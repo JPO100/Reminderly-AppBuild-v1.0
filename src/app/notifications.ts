@@ -15,6 +15,7 @@ type ScheduledNotificationPayload = {
     actionTypeId: string;
     badge: number;
     silent?: boolean;
+    sound?: string;
 };
 
 export async function registerNotificationActionTypes() {
@@ -52,6 +53,7 @@ function getNotificationSignature(notification: {
     extra?: { reminderId?: unknown; badgeDeltaOnAction?: unknown };
     actionTypeId?: string;
     badge?: number;
+    sound?: string;
 }): string {
     return JSON.stringify({
         id: notification.id ?? null,
@@ -62,6 +64,7 @@ function getNotificationSignature(notification: {
         badgeDeltaOnAction: typeof notification.extra?.badgeDeltaOnAction === "number" ? notification.extra.badgeDeltaOnAction : 0,
         actionTypeId: notification.actionTypeId ?? "",
         badge: notification.badge ?? 0,
+        sound: notification.sound ?? "",
     });
 }
 
@@ -104,11 +107,18 @@ function buildMidnightBadgeNotification(
     };
 }
 
+// Alerts and badge are independent (docs/settings-flags-spec.md 7.4). Alerts off with badge on
+// schedules silent badge-only notifications (no title, body, sound or actions), using the same
+// selection and limit as alerts. Sound applies to alerts only; "default" plays the iOS default sound.
 export function buildScheduledNotifications(
     reminders: Reminder[],
     notifAppBadge: boolean,
     notifIncludeTodayInBadge: boolean,
+    notifAlerts = true,
+    notifSound = false,
 ): ScheduledNotificationPayload[] {
+    if (!notifAlerts && !notifAppBadge) return [];
+
     const midnightNotification = buildMidnightBadgeNotification(reminders, notifAppBadge, notifIncludeTodayInBadge);
     const reservedSlots = midnightNotification ? 1 : 0;
 
@@ -141,6 +151,19 @@ export function buildScheduledNotifications(
 
             const badgeDeltaOnAction = badge > 0 ? 1 : 0;
 
+            if (!notifAlerts) {
+                return {
+                    id: notificationId,
+                    title: "",
+                    body: "",
+                    schedule: { at },
+                    extra: { reminderId: "", badgeDeltaOnAction: 0 },
+                    actionTypeId: "",
+                    silent: true,
+                    badge,
+                };
+            }
+
             return {
                 id: notificationId,
                 title: "Reminderly",
@@ -149,6 +172,7 @@ export function buildScheduledNotifications(
                 extra: { reminderId: reminder.id, badgeDeltaOnAction },
                 actionTypeId: "reminder-actions",
                 badge,
+                ...(notifSound ? { sound: "default" } : {}),
             };
         });
 
@@ -166,11 +190,15 @@ export async function syncReminderNotifications(
     reminders: Reminder[],
     notifAppBadge: boolean,
     notifIncludeTodayInBadge: boolean,
+    notifAlerts: boolean,
+    notifSound: boolean,
 ) {
-    const permission = await LocalNotifications.requestPermissions();
+    // Never prompts. Permission is asked for by the in-app ask (spec 7.3). Without permission nothing
+    // new is scheduled and pending notifications are left as they are.
+    const permission = await LocalNotifications.checkPermissions();
     if (permission.display !== "granted") return;
 
-    const notifications = buildScheduledNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge);
+    const notifications = buildScheduledNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge, notifAlerts, notifSound);
     const pending = await LocalNotifications.getPending();
 
     const pendingSignatures = pending.notifications

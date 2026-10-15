@@ -54,12 +54,6 @@ const homeOverlayCopy: Record<string, { onTitle: string; onSubtitle: string; off
     offTitle: 'Turn off NLC?',
     offSubtitle: 'Reminders will be saved exactly as typed. Dates and times will only be set manually.',
   },
-  notifications: {
-    onTitle: 'Turn on notifications?',
-    onSubtitle: 'The Notifications feature will be enabled, turning on access to system notifications, app badge, and badge count settings.',
-    offTitle: 'Turn off notifications?',
-    offSubtitle: 'The Notifications feature will be disabled, turning off access to system notifications, app badge, and badge count settings.',
-  },
   onboarding: {
     onTitle: 'Turn on onboarding tutorial?',
     onSubtitle: 'The onboarding tutorial will be accessible from Settings and shown to new users on first launch.',
@@ -73,7 +67,6 @@ export default function DevTools({
   onNavigateReminders,
   onNavigateLists,
   onNavigateNlc,
-  onNavigateNotifications,
   onNavigateOnboarding,
   onNavigateTesting,
   onNavigateSystem,
@@ -86,8 +79,6 @@ export default function DevTools({
   onEnableListsChange,
   enableNlc,
   onEnableNlcChange,
-  enableNotifications,
-  onEnableNotificationsChange,
   enableOnboarding,
   onEnableOnboardingChange,
   enableSiri,
@@ -97,7 +88,6 @@ export default function DevTools({
   onNavigateReminders: () => void;
   onNavigateLists: () => void;
   onNavigateNlc: () => void;
-  onNavigateNotifications: () => void;
   onNavigateOnboarding: () => void;
   onNavigateTesting: () => void;
   onNavigateSystem: () => void;
@@ -110,8 +100,6 @@ export default function DevTools({
   onEnableListsChange: (value: boolean) => void;
   enableNlc: boolean;
   onEnableNlcChange: (value: boolean) => void;
-  enableNotifications: boolean;
-  onEnableNotificationsChange: (value: boolean) => void;
   enableOnboarding: boolean;
   onEnableOnboardingChange: (value: boolean) => void;
   enableSiri: boolean;
@@ -126,7 +114,6 @@ export default function DevTools({
       reminders: onEnableRemindersChange,
       lists: onEnableListsChange,
       nlc: onEnableNlcChange,
-      notifications: onEnableNotificationsChange,
       onboarding: onEnableOnboardingChange,
     };
     handlers[pendingToggle.feature](pendingToggle.target);
@@ -145,7 +132,6 @@ export default function DevTools({
           <DevNavToggleRow label="Reminders" isOn={enableReminders} onToggle={() => { if (enableReminders && !enableLists) { setShowLastModuleNotice(true); return; } setPendingToggle({ feature: 'reminders', target: !enableReminders }); }} onClick={onNavigateReminders} />
           <DevNavToggleRow label="Lists" isOn={enableLists} onToggle={() => { if (enableLists && !enableReminders) { setShowLastModuleNotice(true); return; } setPendingToggle({ feature: 'lists', target: !enableLists }); }} onClick={onNavigateLists} />
           <DevNavToggleRow label="Natural Language Capture" isOn={enableNlc} onToggle={() => setPendingToggle({ feature: 'nlc', target: !enableNlc })} onClick={onNavigateNlc} />
-          <DevNavToggleRow label="Notifications" isOn={enableNotifications} onToggle={() => setPendingToggle({ feature: 'notifications', target: !enableNotifications })} onClick={onNavigateNotifications} />
           <DevNavToggleRow label="Onboarding" isOn={enableOnboarding} onToggle={() => setPendingToggle({ feature: 'onboarding', target: !enableOnboarding })} onClick={onNavigateOnboarding} />
           <DevNavToggleRow label="Siri shortcuts" isOn={enableSiri} onToggle={() => onEnableSiriChange(!enableSiri)} onClick={onNavigateSiri} />
           <DevMenuRow label="System" onClick={onNavigateSystem} />

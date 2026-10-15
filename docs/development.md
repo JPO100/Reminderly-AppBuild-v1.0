@@ -57,10 +57,9 @@ Decision (2026-10-11, John, product owner): dev tools control availability only 
 
 | Group | Page | Controls and storage keys |
 |-------|------|---------------------------|
-| Feature flags | Reminders (master) | Enable reminders `reminderly-ff-reminders`; Repeat reminders `reminderly-ff-repeat-reminders`; 1 minute time increments `reminderly-ff-one-minute-increments`; Calendar `reminderly-ff-calendar` |
+| Feature flags | Reminders (master) | Enable reminders `reminderly-ff-reminders`; Notifications `reminderly-ff-notifications` (alerts, sound and badge are user settings in Reminders settings > Notifications); Repeat reminders `reminderly-ff-repeat-reminders`; 1 minute time increments `reminderly-ff-one-minute-increments`; Calendar `reminderly-ff-calendar` |
 | | Lists (master) | Enable lists `reminderly-ff-lists`; Smart reminders `reminderly-ff-smart-reminders`; List templates `reminderly-ff-saved-lists`; Pinned lists `reminderly-ff-pinned-lists` |
 | | Natural Language | Enable Natural Language Capture `reminderly-ff-nlc` |
-| | Notifications | Enable notifications `reminderly-ff-notifications` (stored, not yet read by scheduling; Phase 4) |
 | | Siri shortcuts | Siri for reminders `reminderly-ff-siri-reminders` |
 | | Onboarding | Enable onboarding `reminderly-ff-onboarding-tutorial`; Show tutorial on first launch `reminderly-config-tutorial-first-launch` |
 | | System | Settings menu `reminderly-ff-settings-menu-v2`; Haptics `reminderly-ff-haptics`; Sounds `reminderly-ff-sounds`; Lock screen widget `reminderly-ff-lock-screen-widget`; Show info icons `reminderly-ff-info-icons` |

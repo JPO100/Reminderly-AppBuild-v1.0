@@ -73,12 +73,14 @@ Reminders and Lists cannot both be off (`canChangeModuleFlag`).
 
 | Key | Default | Effect |
 |-----|---------|--------|
-| `reminderly-ff-notifications` | on | Stored; not yet read by scheduling (Phase 4) |
-| `reminderly-pref-notif-alerts` | off (fallback on) | Stored; not yet read by scheduling (Phase 4) |
-| `reminderly-pref-notif-badge` | off (fallback on) | App icon badge and badge payloads |
+| `reminderly-ff-notifications` | on | Availability (Dev tools > Reminders > Features). Off cancels notifications, clears the badge and hides the user setting |
+| `reminderly-pref-notif-alerts` | off | Reminder alerts |
+| `reminderly-pref-notif-sound` | off | Alerts play the iOS default sound |
+| `reminderly-pref-notif-badge` | off | App icon badge and badge payloads |
 | `reminderly-pref-notif-include-today` | on | Badge counts today's reminders as well as overdue |
+| `reminderly-notif-ask-state` | missing | In-app permission ask state (internal, not a preference) |
 
-The three notification preferences currently fall back to on when never saved (`TRANSITIONAL_FALLBACKS`) until Phase 4. There is no user-facing notifications page yet. See [notifications.md](./notifications.md).
+New installs use the defaults above; the in-app ask turns alerts and badge on when the user taps Allow. Existing installs keep their saved values (the migration wrote alerts and badge on where nothing was saved). Permission never changes a preference. See [notifications.md](./notifications.md).
 
 ### Natural language capture
 
@@ -135,6 +137,7 @@ Reminders settings:
 - Show calendar (toggle)
 - Use Siri shortcuts (toggle)
 - 1 minute time increments (toggle)
+- Notifications (page): Notifications, Sound (while Notifications is on), App badge, Include today in badge (while App badge is on); "Turn on in Settings" at the top when iOS permission is denied
 - Natural Language Capture (page): on/off, Recognise dates, times, repeats (repeats only while repeat reminders are active), Apply as you type
 - Haptic feedback (page), Sounds (page)
 - Reminders tutorial (re-runs the tutorial)

@@ -27,6 +27,10 @@ import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
 import { shouldAutoOpenTutorial } from "./utils/tutorial-pages";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { ASK_STATE_ACCEPTED, askStateAfterNotNow, askStateOnLaunch, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
+import type { AskSource, AskTrigger } from "./notification-ask";
+import NotificationAskDialog from "./components/NotificationAskDialog";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
 import { keepRepeatRuleWhenOff } from "./settings/resolver";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
@@ -951,6 +955,7 @@ export default function App() {
   const [notifReminderAlerts, setNotifReminderAlerts] = useStoredSetting('reminderly-pref-notif-alerts');
   const [notifAppBadge, setNotifAppBadge] = useStoredSetting('reminderly-pref-notif-badge');
   const [notifIncludeTodayInBadge, setNotifIncludeTodayInBadge] = useStoredSetting('reminderly-pref-notif-include-today');
+  const [notifSound, setNotifSound] = useStoredSetting('reminderly-pref-notif-sound');
   const [isRepeatsOverlayOpen, setIsRepeatsOverlayOpen] = useState(false);
   const [isTutorialOpen, setIsTutorialOpen] = useState(false);
   const [tutorialVariant, setTutorialVariant] = useState<TutorialVariant>('reminders');
@@ -1288,23 +1293,91 @@ export default function App() {
     }
   }, [reminders]);
 
+  // iOS notification permission, read on launch and each time the app returns to the foreground.
+  // Permission never changes a preference (docs/plans/notifications-phase-4.md, sections 6 and 7).
+  const [notifPermission, setNotifPermission] = useState<string | null>(null);
+  const [notifResyncTick, setNotifResyncTick] = useState(0);
+  const [notifAsk, setNotifAsk] = useState<{ source: AskSource; pref?: 'alerts' | 'badge' } | null>(null);
+
+  const refreshNotifPermission = useCallback(async (): Promise<string | null> => {
+    try {
+      const permission = await LocalNotifications.checkPermissions();
+      setNotifPermission(permission.display);
+      return permission.display;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Launch: existing installs that already have permission are marked accepted, so they are never asked
   useEffect(() => {
-    // Reminders off: cancel pending, then remove delivered Reminderly notifications. Back on: reschedule.
-    if (!isRemindersEnabled) {
+    void refreshNotifPermission().then((permission) => {
+      const state = readAskState();
+      const next = askStateOnLaunch(state, permission);
+      if (next !== state) writeAskState(next);
+    });
+  }, [refreshNotifPermission]);
+
+  // Foreground: re-check permission, then resync with the saved preferences
+  useEffect(() => {
+    const listener = CapacitorApp.addListener('appStateChange', (state) => {
+      if (!state.isActive) return;
+      void refreshNotifPermission().then(() => setNotifResyncTick((tick) => tick + 1));
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, [refreshNotifPermission]);
+
+  // Automatic in-app ask (tutorial end, timed reminder saved). Shown after the closing overlay has gone
+  const maybeAskForNotifications = useCallback((trigger: AskTrigger) => {
+    if (!isRemindersEnabled || !notificationsFlag) return;
+    window.setTimeout(() => {
+      void refreshNotifPermission().then((permission) => {
+        if (shouldAskAutomatically(readAskState(), trigger, permission)) setNotifAsk({ source: 'automatic' });
+      });
+    }, 400);
+  }, [isRemindersEnabled, notificationsFlag, refreshNotifPermission]);
+
+  const handleNotifAskAllow = () => {
+    const ask = notifAsk;
+    setNotifAsk(null);
+    if (!ask) return;
+    writeAskState(ASK_STATE_ACCEPTED);
+    if (ask.source === 'automatic') {
+      setNotifReminderAlerts(true);
+      setNotifAppBadge(true);
+    } else if (ask.pref === 'alerts') {
+      setNotifReminderAlerts(true);
+    } else if (ask.pref === 'badge') {
+      setNotifAppBadge(true);
+    }
+    void LocalNotifications.requestPermissions()
+      .then((permission) => setNotifPermission(permission.display))
+      .catch(() => undefined);
+  };
+
+  const handleNotifAskNotNow = () => {
+    const ask = notifAsk;
+    setNotifAsk(null);
+    if (ask) writeAskState(askStateAfterNotNow(readAskState(), ask.source));
+  };
+
+  useEffect(() => {
+    // Reminders or Notifications flag off: cancel pending, then remove delivered Reminderly notifications. Back on: reschedule.
+    if (!isRemindersEnabled || !notificationsFlag) {
       void clearReminderNotifications();
       return;
     }
-    void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge);
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, isRemindersEnabled]);
+    void syncReminderNotifications(reminders, notifAppBadge, notifIncludeTodayInBadge, notifReminderAlerts, notifSound);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, notifReminderAlerts, notifSound, isRemindersEnabled, notificationsFlag, notifPermission, notifResyncTick]);
 
-  // Reminders off: clear again each time the app returns to the foreground
+  // Reminders or Notifications flag off: clear again each time the app returns to the foreground
   useEffect(() => {
-    if (isRemindersEnabled) return;
+    if (isRemindersEnabled && notificationsFlag) return;
     const listener = CapacitorApp.addListener('appStateChange', (state) => {
       if (state.isActive) void clearReminderNotifications();
     });
     return () => { void listener.then((handle) => handle.remove()); };
-  }, [isRemindersEnabled]);
+  }, [isRemindersEnabled, notificationsFlag]);
 
 
 
@@ -1407,13 +1480,16 @@ export default function App() {
 
 
   useEffect(() => {
-    if (!notifAppBadge || !isRemindersEnabled) {
+    // The badge plugin requests iOS permission on every set and clear, so it is only called once permission
+    // is granted. Without permission iOS shows no badge, and the in-app ask stays the only prompt (F3).
+    if (notifPermission !== 'granted') return;
+    if (!notifAppBadge || !isRemindersEnabled || !notificationsFlag) {
       void Badge.clear();
       return;
     }
     const count = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date());
     void Badge.set({ count });
-  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled]);
+  }, [reminders, notifAppBadge, notifIncludeTodayInBadge, timeRefreshTick, isRemindersEnabled, notificationsFlag, notifPermission]);
 
   // Lock screen widget: refresh today's progress on any reminder change, on resume and at time boundaries.
   // Flag off: clear the shared data so the widget shows its neutral empty state.
@@ -1596,7 +1672,8 @@ export default function App() {
   const closeTutorial = useCallback(() => {
     markTutorialSeen(tutorialVariant);
     setIsTutorialOpen(false);
-  }, [tutorialVariant]);
+    if (tutorialVariant === 'reminders') maybeAskForNotifications('tutorial');
+  }, [tutorialVariant, maybeAskForNotifications]);
 
   // Auto-launch tutorial on mount based on toggle states
   useEffect(() => {
@@ -1673,6 +1750,7 @@ export default function App() {
   const addReminder = useCallback((reminder: Reminder) => {
     // Haptic feedback on new reminder
     hapticTap('createReminder');
+    if (reminder.schedule.kind === 'scheduled' && reminder.schedule.time) maybeAskForNotifications('timed-reminder');
 
     // Cancel any pending insert timer (last-one-wins)
     if (newReminderInsertTimerRef.current !== null) {
@@ -1691,7 +1769,7 @@ export default function App() {
         setInsertHighlightId(null);
       }, INSERT_HIGHLIGHT_MS);
     }, NEW_REMINDER_INSERT_DELAY);
-  }, []);
+  }, [maybeAskForNotifications]);
 
   useEffect(() => {
     const PENDING_SIRI_TEXT_KEY = 'reminderly.pendingSiriText';
@@ -1812,6 +1890,7 @@ export default function App() {
 
   // Update an existing reminder in place (id unchanged)
   const updateReminder = useCallback((updated: Reminder) => {
+    if (updated.schedule.kind === 'scheduled' && updated.schedule.time) maybeAskForNotifications('timed-reminder');
     if (updated.isSmartReminder === true && updated.linkedListId) {
       if (updated.schedule.kind !== 'scheduled') return;
       setCreatedLists((prev) =>
@@ -1836,7 +1915,7 @@ export default function App() {
     setReminders((prev) =>
       prev.map((r) => (r.id === updated.id ? updated : r))
     );
-  }, [editingListId, listSmartReminderTime]);
+  }, [editingListId, listSmartReminderTime, maybeAskForNotifications]);
 
   // Convert RepeatRule → RepeatConfig for edit mode initialisation
   const repeatRuleToConfig = (rule: RepeatRule | null | undefined): RepeatConfig => {
@@ -5448,6 +5527,17 @@ export default function App() {
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <RemindersSettingsContent
+                  notificationsAvailable={isRemindersEnabled && notificationsFlag}
+                  notifPrefs={{ alerts: notifReminderAlerts, sound: notifSound, badge: notifAppBadge, includeToday: notifIncludeTodayInBadge }}
+                  notifPermissionDenied={notifPermission === 'denied'}
+                  onNotifChange={(key, value) => {
+                    // Turning alerts or badge on while iOS has not decided shows the in-app ask first (section 6.3)
+                    if ((key === 'alerts' || key === 'badge') && settingsToggleNeedsAsk(value, notifPermission)) {
+                      setNotifAsk({ source: 'settings', pref: key });
+                      return;
+                    }
+                    ({ alerts: setNotifReminderAlerts, sound: setNotifSound, badge: setNotifAppBadge, includeToday: setNotifIncludeTodayInBadge })[key](value);
+                  }}
                   calendarAvailable={isRemindersEnabled && calendarFlag && isCalendarScreenTallEnough}
                   calendarOn={calendarPref}
                   onCalendarChange={setCalendarPref}
@@ -5497,6 +5587,8 @@ export default function App() {
           </div>
         </>
       )}
+
+      {notifAsk && <NotificationAskDialog onAllow={handleNotifAskAllow} onNotNow={handleNotifAskNotNow} />}
 
       {/* Tutorial Overlay */}
       <AnimatePresence>

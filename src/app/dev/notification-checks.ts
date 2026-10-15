@@ -2,6 +2,7 @@ import type { Check } from './check-system';
 import type { Reminder } from '../reminder-utils';
 import { computeBadgeCount, getNextTimeRefreshBoundary, getTodayProgress } from '../reminder-utils';
 import { buildScheduledNotifications } from '../notifications';
+import { askStateAfterNotNow, askStateOnLaunch, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from '../notification-ask';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -326,6 +327,117 @@ export function getNotificationChecks(): Check[] {
         const result = buildScheduledNotifications(reminders, true, false);
         assert(result.length === 64, `Expected 64, got ${result.length}`);
         assert(result.find((n) => n.id === 2147483647) === undefined, 'Unexpected midnight notification');
+      },
+    },
+    {
+      id: 'notif-phase4-badge-only',
+      name: 'Phase 4: alerts off, badge on schedules silent badge-only notifications plus midnight',
+      run: () => {
+        const reminders = [
+          makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } }),
+          makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+        ];
+        const result = buildScheduledNotifications(reminders, true, false, false, true);
+        const badgeOnly = result.filter((n) => n.id !== 2147483647);
+        assert(badgeOnly.length === 1, `Expected 1 badge-only notification, got ${badgeOnly.length}`);
+        const n = badgeOnly[0];
+        assert(n.title === '' && n.body === '', 'Badge-only notification should have no title or body');
+        assert(n.silent === true && n.sound === undefined, 'Badge-only notification should be silent with no sound');
+        assert(n.actionTypeId === '', 'Badge-only notification should have no actions');
+        assert(n.badge > 0, `Expected a badge number, got ${n.badge}`);
+        assert(result.some((x) => x.id === 2147483647), 'Expected midnight notification');
+      },
+    },
+    {
+      id: 'notif-phase4-alerts-badge-off',
+      name: 'Phase 4: alerts off, badge off schedules nothing',
+      run: () => {
+        const reminders = [
+          makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } }),
+          makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+        ];
+        const result = buildScheduledNotifications(reminders, false, true, false, true);
+        assert(result.length === 0, `Expected nothing scheduled, got ${result.length}`);
+      },
+    },
+    {
+      id: 'notif-phase4-sound-alerts-only',
+      name: 'Phase 4: sound on adds the default sound to alerts only',
+      run: () => {
+        const reminders = [
+          makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } }),
+          makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+        ];
+        const on = buildScheduledNotifications(reminders, true, false, true, true);
+        const off = buildScheduledNotifications(reminders, true, false, true, false);
+        assert(on.find((n) => n.id !== 2147483647)?.sound === 'default', 'Expected default sound on the alert');
+        assert(on.find((n) => n.id === 2147483647)?.sound === undefined, 'Midnight notification should have no sound');
+        assert(off.every((n) => n.sound === undefined), 'Sound off should leave every notification without a sound');
+      },
+    },
+    {
+      id: 'notif-phase4-badge-only-limit',
+      name: 'Phase 4: badge-only stays within 64 with the midnight slot reserved',
+      run: () => {
+        const reminders: Reminder[] = [makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } })];
+        for (let i = 0; i < 70; i++) {
+          reminders.push(makeReminder({
+            id: `r-${i}`,
+            displayText: `Reminder ${i}`,
+            schedule: { kind: 'scheduled', date: futureDate(Math.floor(i / 24) + 1), time: `${String(i % 24).padStart(2, '0')}:00` },
+          }));
+        }
+        const result = buildScheduledNotifications(reminders, true, false, false, false);
+        assert(result.length === 64, `Expected 64, got ${result.length}`);
+        assert(result.some((n) => n.id === 2147483647), 'Expected midnight notification');
+      },
+    },
+    {
+      id: 'notif-ask-automatic',
+      name: 'Phase 4 ask: automatic ask only while permission is undecided, never asked or declined once',
+      run: () => {
+        for (const trigger of ['tutorial', 'timed-reminder'] as const) {
+          assert(shouldAskAutomatically(null, trigger, 'prompt'), `Never asked should ask at ${trigger}`);
+          assert(!shouldAskAutomatically(null, trigger, 'granted'), 'Granted should not ask');
+          assert(!shouldAskAutomatically(null, trigger, 'denied'), 'Denied should not ask');
+          assert(!shouldAskAutomatically('not-now-2', trigger, 'prompt'), 'not-now-2 should not ask');
+          assert(!shouldAskAutomatically('accepted', trigger, 'prompt'), 'accepted should not ask');
+          assert(!shouldAskAutomatically('something-else', trigger, 'prompt'), 'Unrecognised state should not ask');
+        }
+        assert(shouldAskAutomatically('not-now-1', 'timed-reminder', 'prompt'), 'not-now-1 should ask at the next timed reminder');
+        assert(!shouldAskAutomatically('not-now-1', 'tutorial', 'prompt'), 'not-now-1 should not ask at the tutorial');
+      },
+    },
+    {
+      id: 'notif-ask-not-now',
+      name: 'Phase 4 ask: Not now moves automatic asks on one step and leaves settings asks unchanged',
+      run: () => {
+        assert(askStateAfterNotNow(null, 'automatic') === 'not-now-1', 'First Not now should be not-now-1');
+        assert(askStateAfterNotNow('not-now-1', 'automatic') === 'not-now-2', 'Second Not now should be not-now-2');
+        assert(askStateAfterNotNow('not-now-2', 'automatic') === 'not-now-2', 'not-now-2 should stay');
+        for (const state of [null, 'not-now-1', 'not-now-2', 'odd']) {
+          assert(askStateAfterNotNow(state, 'settings') === state, `Settings Not now should keep ${state}`);
+        }
+      },
+    },
+    {
+      id: 'notif-ask-launch-and-settings',
+      name: 'Phase 4 ask: existing installs with permission are accepted, settings toggles ask only while undecided',
+      run: () => {
+        assert(askStateOnLaunch(null, 'granted') === 'accepted', 'Granted with no state should become accepted');
+        assert(askStateOnLaunch(null, 'prompt') === null, 'Undecided should stay unasked');
+        assert(askStateOnLaunch(null, 'denied') === null, 'Denied should stay unasked');
+        assert(askStateOnLaunch('not-now-1', 'granted') === 'not-now-1', 'A saved state should be kept');
+        assert(settingsToggleNeedsAsk(true, 'prompt'), 'Turning on while undecided should ask');
+        assert(!settingsToggleNeedsAsk(true, 'granted') && !settingsToggleNeedsAsk(true, 'denied'), 'Decided permission should not ask');
+        assert(!settingsToggleNeedsAsk(false, 'prompt'), 'Turning off should never ask');
+        const map = new Map<string, string>();
+        const storage = { getItem: (k: string) => map.get(k) ?? null, setItem: (k: string, v: string) => { map.set(k, v); } };
+        assert(readAskState(storage) === null, 'Missing state should read as null');
+        writeAskState(null, storage);
+        assert(map.size === 0, 'Writing null should write nothing');
+        writeAskState('not-now-1', storage);
+        assert(readAskState(storage) === 'not-now-1', 'Saved state should read back');
       },
     },
     {

@@ -175,7 +175,7 @@ Ask state key (D10): `reminderly-notif-ask-state`, a plain string.
 - Accepting the in-app ask but denying the iOS prompt: the state stays `accepted`, so there are no further automatic asks. The user recovers through notification settings, which link to Reminderly's iOS Settings page.
 - Any unrecognised value suppresses automatic asks (it is not treated as missing). It is replaced only when the user interacts with notification settings.
 - The key records the in-app ask only. The iOS permission result is always read from iOS, never from this key.
-- Turning notifications on from settings while the state is `not-now-1` or `not-now-2` shows the iOS prompt (if iOS still allows it) and sets `accepted`.
+- Superseded in Phase 4 (see 12.3): turning notifications on from settings while iOS has not decided shows the in-app ask first, never the iOS prompt directly. Allow sets `accepted` and then shows the iOS prompt; Not now from settings leaves the state unchanged.
 
 ### 7.4 Scheduled notifications and resync
 
@@ -357,10 +357,9 @@ Phase 2 as delivered:
 
 | Group | Page | Controls |
 |---|---|---|
-| Feature flags | Reminders | Enable reminders, Repeat reminders, 1 minute time increments (availability flag) |
+| Feature flags | Reminders | Enable reminders, Notifications (moved here in Phase 4), Repeat reminders, 1 minute time increments (availability flag) |
 | Feature flags | Lists | Enable lists, Smart reminders, List templates, Pinned lists |
 | Feature flags | Natural Language Capture | Enable Natural Language Capture |
-| Feature flags | Notifications | Enable notifications |
 | Feature flags | Siri | Siri for reminders |
 | Feature flags | Onboarding | Enable onboarding, Show tutorial on first launch |
 | Feature flags | System | Settings menu, Show info icons |
@@ -424,6 +423,18 @@ Added on feature/click-sounds (2026-10-11). A soft click, generated in code with
 - Dev tools > System > Sounds controls availability (`reminderly-ff-sounds`). When off, no sounds play and the Sounds rows are hidden; saved choices are kept.
 - `hapticTap` calls `playClick` first, so each feature follows only its own flag and switches.
 - The audio session is set to ambient where supported, so clicks follow the silent switch and mix with other audio.
+
+## 12.3 Phase 4 as delivered: notifications
+
+Delivered on feature/notifications-settings (2026-10-15). Scope, decisions and device results: [plans/notifications-phase-4.md](plans/notifications-phase-4.md).
+
+- Reminders settings > Notifications: Notifications (alerts), Sound, App badge, Include today in badge. Notification sound added to Phase 4 by John: one on/off toggle using the iOS default sound, off by default for all users.
+- Alerts and badge are independent (section 7.2), including silent badge-only notifications. F1 fixed: the alerts preference controls alerts.
+- No automatic iOS prompt (F3). The in-app ask follows 7.3, except the settings entry point: a settings toggle shows the in-app ask first while iOS has not decided, Allow turns on only that preference, and Not now from settings does not change the ask state.
+- The badge plugin requests permission on every set and clear, so the in-app badge is only set once permission is granted.
+- Permission re-checked on return to the foreground, then resync (F4).
+- Notification transitional fallbacks removed; new installs use the development defaults. No migration change.
+- The Notifications availability flag moved from the Dev tools home page to Dev tools > Reminders > Features.
 
 ## 13. Decisions
 

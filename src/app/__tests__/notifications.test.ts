@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { Reminder } from '../reminder-utils';
 import { computeBadgeCount, getNextTimeRefreshBoundary } from '../reminder-utils';
 import { buildScheduledNotifications } from '../notifications';
+import { getNotificationChecks } from '../dev/notification-checks';
 
 function makeReminder(overrides: Partial<Reminder> = {}): Reminder {
   return {
@@ -296,4 +297,115 @@ describe('reminders off safeguard', () => {
   it('an empty reminder list builds no notifications', () => {
     expect(buildScheduledNotifications([], true, true)).toEqual([]);
   });
+});
+
+// Phase 4: alerts and badge independent (spec 7.4, plan section 5), sound on alerts only (plan section 3).
+describe('Phase 4 alerts, badge and sound', () => {
+  const MIDNIGHT_ID = 2147483647;
+  const timed = (id: string, days: number, time = '10:00') =>
+    makeReminder({ id, displayText: id, schedule: { kind: 'scheduled', date: futureDate(days), time } });
+  const mixed = () => [
+    timed('a', 1),
+    timed('b', 2),
+    makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+  ];
+  const manyTimed = (withDateOnly: boolean) => {
+    const reminders: Reminder[] = withDateOnly
+      ? [makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } })]
+      : [];
+    for (let i = 0; i < 70; i++) {
+      reminders.push(timed(`r-${i}`, Math.floor(i / 24) + 1, `${String(i % 24).padStart(2, '0')}:00`));
+    }
+    return reminders;
+  };
+
+  it('defaults keep alerts on and sound off for existing callers', () => {
+    const result = buildScheduledNotifications([timed('a', 1)], true, false);
+    expect(result[0].title).toBe('Reminderly');
+    expect(result[0].sound).toBeUndefined();
+  });
+
+  it('alerts on, badge on: alerts carry badge numbers, plus midnight', () => {
+    const result = buildScheduledNotifications(mixed(), true, false, true, false);
+    const alerts = result.filter((n) => n.id !== MIDNIGHT_ID);
+    expect(alerts).toHaveLength(2);
+    expect(alerts.every((n) => n.title === 'Reminderly' && n.actionTypeId === 'reminder-actions')).toBe(true);
+    expect(alerts.every((n) => n.badge > 0)).toBe(true);
+    expect(result.some((n) => n.id === MIDNIGHT_ID)).toBe(true);
+  });
+
+  it('alerts on, badge off: alerts with no badge number and no midnight', () => {
+    const result = buildScheduledNotifications(mixed(), false, false, true, false);
+    expect(result).toHaveLength(2);
+    expect(result.every((n) => n.title === 'Reminderly' && n.badge === 0)).toBe(true);
+    expect(result.some((n) => n.id === MIDNIGHT_ID)).toBe(false);
+  });
+
+  it('alerts off, badge on: silent badge-only notifications at reminder times, plus midnight', () => {
+    const reminders = mixed();
+    const result = buildScheduledNotifications(reminders, true, false, false, true);
+    const badgeOnly = result.filter((n) => n.id !== MIDNIGHT_ID);
+    expect(badgeOnly).toHaveLength(2);
+    for (const n of badgeOnly) {
+      expect(n.title).toBe('');
+      expect(n.body).toBe('');
+      expect(n.silent).toBe(true);
+      expect(n.actionTypeId).toBe('');
+      expect(n.sound).toBeUndefined();
+      expect(n.extra).toEqual({ reminderId: '', badgeDeltaOnAction: 0 });
+      expect(n.badge).toBe(computeBadgeCount(reminders, false, new Date(n.schedule.at.getTime() + 1)));
+    }
+    expect(result.some((n) => n.id === MIDNIGHT_ID)).toBe(true);
+  });
+
+  it('badge-only notifications match alert ids and times', () => {
+    const alerts = buildScheduledNotifications(mixed(), true, true, true, false);
+    const badgeOnly = buildScheduledNotifications(mixed(), true, true, false, false);
+    expect(badgeOnly.map((n) => [n.id, n.schedule.at.getTime(), n.badge]))
+      .toEqual(alerts.map((n) => [n.id, n.schedule.at.getTime(), n.badge]));
+  });
+
+  it('alerts off, badge off: nothing scheduled', () => {
+    expect(buildScheduledNotifications(mixed(), false, true, false, true)).toEqual([]);
+  });
+
+  it('sound on adds the default sound to alerts only', () => {
+    const result = buildScheduledNotifications(mixed(), true, false, true, true);
+    const alerts = result.filter((n) => n.id !== MIDNIGHT_ID);
+    expect(alerts.every((n) => n.sound === 'default')).toBe(true);
+    expect(result.find((n) => n.id === MIDNIGHT_ID)?.sound).toBeUndefined();
+  });
+
+  it('sound off leaves alerts without a sound', () => {
+    const result = buildScheduledNotifications(mixed(), true, false, true, false);
+    expect(result.every((n) => n.sound === undefined)).toBe(true);
+  });
+
+  it('badge-only stays within 64 with no date-only reminder', () => {
+    const result = buildScheduledNotifications(manyTimed(false), true, false, false, false);
+    expect(result).toHaveLength(64);
+    expect(result.every((n) => n.silent === true && n.title === '')).toBe(true);
+  });
+
+  it('badge-only stays within 64 with the midnight slot reserved', () => {
+    const result = buildScheduledNotifications(manyTimed(true), true, false, false, false);
+    expect(result).toHaveLength(64);
+    expect(result.filter((n) => n.id !== MIDNIGHT_ID)).toHaveLength(63);
+    expect(result.some((n) => n.id === MIDNIGHT_ID)).toBe(true);
+  });
+
+  it('badge-only never schedules more than alerts', () => {
+    for (const withDateOnly of [false, true]) {
+      const reminders = manyTimed(withDateOnly);
+      expect(buildScheduledNotifications(reminders, true, true, false, false).length)
+        .toBe(buildScheduledNotifications(reminders, true, true, true, false).length);
+    }
+  });
+});
+
+// Phase 4 ask state rules (plan section 6), shared with Self Check.
+describe('Phase 4 notification ask', () => {
+  for (const check of getNotificationChecks().filter((c) => c.id.startsWith('notif-ask-'))) {
+    it(check.name, () => check.run());
+  }
 });

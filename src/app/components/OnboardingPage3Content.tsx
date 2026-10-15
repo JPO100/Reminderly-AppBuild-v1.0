@@ -162,42 +162,6 @@ export function TutorialListSettingsOverlay() {
               </div>
             }
           />
-          <TutorialOverlayToggleRow
-            title="List in order added"
-            subtitle="Most recent at the top"
-            active
-            icon={
-              <div className="h-[20.824px] relative shrink-0 w-[20.83px]">
-                <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20.8301 20.8242">
-                  <g>
-                    <path d={infoOverlaySvgPaths.p1f326770} fill="#4784F8" />
-                    <path d={infoOverlaySvgPaths.p10221f80} fill="#4784F8" />
-                    <path d={infoOverlaySvgPaths.p30c3ae80} fill="#4784F8" />
-                    <path d={infoOverlaySvgPaths.p2dfdd480} fill="#4784F8" />
-                    <path d={infoOverlaySvgPaths.p390e3940} fill="#4784F8" />
-                  </g>
-                </svg>
-              </div>
-            }
-          />
-          <TutorialOverlayToggleRow
-            title="List alphabetically"
-            subtitle="Displayed A - Z"
-            active={false}
-            icon={
-              <div className="h-[20.814px] relative shrink-0 w-[22.387px]">
-                <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.3867 20.8145">
-                  <g>
-                    <path d={infoOverlaySvgPaths.pa5a1880} fill="#D9D9D9" />
-                    <path d={infoOverlaySvgPaths.p3a034e00} fill="#D9D9D9" />
-                    <path d={infoOverlaySvgPaths.pbb6b280} fill="#D9D9D9" />
-                    <path clipRule="evenodd" d={infoOverlaySvgPaths.p37945200} fill="#D9D9D9" fillRule="evenodd" />
-                    <path d={infoOverlaySvgPaths.p3a58ae80} fill="#D9D9D9" />
-                  </g>
-                </svg>
-              </div>
-            }
-          />
         </div>
         <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
           <TutorialListSettingsButton label="Uncheck all items" color="#4784F8" />
@@ -229,42 +193,6 @@ export function TutorialListSettingsOverlayWithToggle({ smartToggleActive }: { s
                     <path clipRule="evenodd" d={infoOverlaySvgPaths.p23b20a00} fill={smartIconColor} fillRule="evenodd" />
                     <path clipRule="evenodd" d={infoOverlaySvgPaths.p15d6fbb2} fill={smartIconColor} fillRule="evenodd" />
                     <path clipRule="evenodd" d={infoOverlaySvgPaths.p1797f00} fill={smartIconColor} fillRule="evenodd" />
-                  </g>
-                </svg>
-              </div>
-            }
-          />
-          <TutorialOverlayToggleRow
-            title="List in order added"
-            subtitle="Most recent at the top"
-            active
-            icon={
-              <div className="h-[20.824px] relative shrink-0 w-[20.83px]">
-                <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20.8301 20.8242">
-                  <g>
-                    <path d={infoOverlaySvgPaths.p1f326770} fill="#4784F8" />
-                    <path d={infoOverlaySvgPaths.p10221f80} fill="#4784F8" />
-                    <path d={infoOverlaySvgPaths.p30c3ae80} fill="#4784F8" />
-                    <path d={infoOverlaySvgPaths.p2dfdd480} fill="#4784F8" />
-                    <path d={infoOverlaySvgPaths.p390e3940} fill="#4784F8" />
-                  </g>
-                </svg>
-              </div>
-            }
-          />
-          <TutorialOverlayToggleRow
-            title="List alphabetically"
-            subtitle="Displayed A - Z"
-            active={false}
-            icon={
-              <div className="h-[20.814px] relative shrink-0 w-[22.387px]">
-                <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.3867 20.8145">
-                  <g>
-                    <path d={infoOverlaySvgPaths.pa5a1880} fill="#D9D9D9" />
-                    <path d={infoOverlaySvgPaths.p3a034e00} fill="#D9D9D9" />
-                    <path d={infoOverlaySvgPaths.pbb6b280} fill="#D9D9D9" />
-                    <path clipRule="evenodd" d={infoOverlaySvgPaths.p37945200} fill="#D9D9D9" fillRule="evenodd" />
-                    <path d={infoOverlaySvgPaths.p3a58ae80} fill="#D9D9D9" />
                   </g>
                 </svg>
               </div>

@@ -183,7 +183,7 @@ type ListItem = { id: string; text: string; completed: boolean; completedAt?: nu
 
 type CreatedList = {
   id: string; title: string; items: ListItem[];
-  sortMode?: 'alphabetical' | 'insertion';
+  sortMode?: 'alphabetical' | 'insertion'; // legacy, not read (see Lists settings > Sort items A to Z)
   pinnedAt?: number | null;
   smartReminders?: boolean; smartReminderDueDate?: string | null; smartReminderTime?: string | null;
   status?: 'active' | 'done' | 'deleted'; statusChangedAt?: number | null;

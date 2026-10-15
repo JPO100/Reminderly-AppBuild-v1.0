@@ -1302,3 +1302,16 @@ Branch: fix/notification-settings-inactive-rows (created from main at 3fea7ae). 
 Completed:
 - Reminders settings > Notifications: Sound stays listed but inactive while Notifications is off, and Include today in badge while App badge is off (grey #D9D9D9 text and toggle, shown off, cannot be changed). Previously both rows were hidden. Saved choices are kept and return when the parent is turned back on. Uses the existing ToggleRow disabled state
 
+
+### 2026-10-15 (feature/global-list-sort - one sort setting for all lists)
+
+Branch: feature/global-list-sort (created from main at cc10b14, verified equal to origin/main). Type B, touches local storage persistence. CTO approved the proposal with Option 1.
+
+Completed:
+- Lists settings: new "Sort items A to Z" toggle (ToggleRow, info text approved). Stored as `reminderly-pref-list-sort-az`, default off (order added)
+- Sort rows (List in order added / List alphabetically) removed from the list 3-dot overlay and from the lists tutorial mockups
+- Single source of truth: `resolveListSortMode` in list-utils derives the order from the global setting. The template editor still always sorts A to Z. Switching the setting re-sorts every list, including an open one
+- No migration. Existing per-list `sortMode` values are kept untouched in list data and are no longer read or written
+- Existing temporary placement of a newly added item before A to Z repositioning unchanged
+
+Test results: Vitest 215/215 passed. Self Check 391/391 passed (Node run). Repo guard passed. Web build succeeded. Simulator (iPhone 17 Pro): Lists settings shows the toggle, setting persists across relaunch. iPhone 15 Pro: built, signed, installed and launched. Awaiting John's device checks and CTO review before merge.

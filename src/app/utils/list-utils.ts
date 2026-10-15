@@ -125,6 +125,12 @@ export function getCurrentListCategory(items: ListItem[]): ListCategory {
   return "todo";
 }
 
+// Lists settings > Sort items A to Z decides the order for every list. A list's own legacy
+// sortMode is not read. The template editor always sorts A to Z.
+export function resolveListSortMode(sortAzOn: boolean, isTemplateEditor: boolean): 'alphabetical' | 'insertion' {
+  return isTemplateEditor || sortAzOn ? 'alphabetical' : 'insertion';
+}
+
 export function getDisplayListItems(
   listItems: ListItem[],
   sortMode: 'alphabetical' | 'insertion',

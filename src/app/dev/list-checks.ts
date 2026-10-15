@@ -7,8 +7,10 @@ import {
   formatListDueDate,
   getCurrentListCategory,
   getDisplayListItems,
+  resolveListSortMode,
   storageStringToDate,
 } from '../utils/list-utils';
+import { SETTINGS_DEFAULTS } from '../settings/keys';
 import type { CreatedList, ListItem } from '../utils/list-utils';
 
 function assert(condition: boolean, message: string): void {
@@ -227,42 +229,52 @@ export function getListChecks(): Check[] {
     },
 
     {
-      id: 'list-settings-close-delays-sort-apply',
-      name: 'List settings: closing overlay delays sort apply by 150ms when draft changed',
+      id: 'list-sort-global-default-order-added',
+      name: 'List ordering: Sort items A to Z defaults off, so lists show in order added',
       run: () => {
-        const listSettingsSortModeDraft: 'alphabetical' | 'insertion' = 'alphabetical';
-        const listSortMode: 'alphabetical' | 'insertion' = 'insertion';
-        let isListSettingsOpen = true;
-        let appliedSortMode: 'alphabetical' | 'insertion' = listSortMode;
-        let scheduledDelay: number | null = null;
-
-        // Mirrors closeListSettingsOverlay in App.tsx.
-        isListSettingsOpen = false;
-        if (listSettingsSortModeDraft !== listSortMode) {
-          const nextSortMode = listSettingsSortModeDraft;
-          scheduledDelay = 150;
-          appliedSortMode = nextSortMode;
-        }
-
-        assert(isListSettingsOpen === false, 'Overlay should close first');
-        assert(scheduledDelay === 150, `Expected 150ms delay, got ${scheduledDelay}`);
-        assert(appliedSortMode === 'alphabetical', `Expected alphabetical after delayed apply, got ${appliedSortMode}`);
+        assert(SETTINGS_DEFAULTS['reminderly-pref-list-sort-az'] === 'false', 'Sort items A to Z should default off');
+        assert(resolveListSortMode(false, false) === 'insertion', 'Expected order added when the setting is off');
+        assert(resolveListSortMode(true, false) === 'alphabetical', 'Expected A to Z when the setting is on');
       },
     },
 
     {
-      id: 'list-settings-close-no-sort-delay-when-unchanged',
-      name: 'List settings: closing overlay does not schedule sort apply when draft matches current',
+      id: 'list-sort-global-ignores-legacy-sort-mode',
+      name: 'List ordering: the global setting decides the order, a list\'s legacy sortMode is ignored',
       run: () => {
-        const listSettingsSortModeDraft: 'alphabetical' | 'insertion' = 'insertion';
-        const listSortMode: 'alphabetical' | 'insertion' = 'insertion';
-        let scheduledDelay: number | null = null;
-
-        if (listSettingsSortModeDraft !== listSortMode) {
-          scheduledDelay = 150;
+        const items = [makeItem('b', 'Banana', false), makeItem('a', 'Apple', false)];
+        const legacyAlphabetical = makeList({ id: 'l1', title: 'Shop', items, sortMode: 'alphabetical' });
+        const legacyInsertion = makeList({ id: 'l2', title: 'Jobs', items, sortMode: 'insertion' });
+        for (const list of [legacyAlphabetical, legacyInsertion]) {
+          const off = getDisplayListItems(list.items, resolveListSortMode(false, false), null, 0).map((item) => item.id).join(',');
+          const on = getDisplayListItems(list.items, resolveListSortMode(true, false), null, 0).map((item) => item.id).join(',');
+          assert(off === 'b,a', `Expected b,a with the setting off, got ${off}`);
+          assert(on === 'a,b', `Expected a,b with the setting on, got ${on}`);
         }
+      },
+    },
 
-        assert(scheduledDelay === null, `Expected no delay, got ${scheduledDelay}`);
+    {
+      id: 'list-sort-template-editor-always-az',
+      name: 'List ordering: the template editor sorts A to Z whatever the setting',
+      run: () => {
+        assert(resolveListSortMode(false, true) === 'alphabetical', 'Template editor should sort A to Z with the setting off');
+        assert(resolveListSortMode(true, true) === 'alphabetical', 'Template editor should sort A to Z with the setting on');
+      },
+    },
+
+    {
+      id: 'list-sort-toggle-leaves-item-data-unchanged',
+      name: 'List ordering: switching sort mode never changes list data or the underlying insertion order',
+      run: () => {
+        const list = makeList({ id: 'l1', title: 'Shop', items: [makeItem('c', 'Carrot', true), makeItem('b', 'Banana', false), makeItem('a', 'Apple', false)], sortMode: 'alphabetical' });
+        const before = JSON.stringify(list);
+        getDisplayListItems(list.items, resolveListSortMode(true, false), null, 0);
+        getDisplayListItems(list.items, resolveListSortMode(false, false), null, 0);
+        getDisplayListItems(list.items, resolveListSortMode(true, false), 'b', 0);
+        assert(JSON.stringify(list) === before, 'List data should be unchanged after switching sort mode');
+        assert(list.items.map((item) => item.id).join(',') === 'c,b,a', 'Underlying insertion order should be unchanged');
+        assert(list.sortMode === 'alphabetical', 'Legacy sortMode should be kept untouched');
       },
     },
 
@@ -271,25 +283,18 @@ export function getListChecks(): Check[] {
       name: 'List settings: Uncheck all closes overlay and applies item reset after 150ms',
       run: () => {
         let isListSettingsOpen = true;
-        let sortDelay: number | null = null;
         let uncheckDelay: number | null = null;
         let items = [
           makeItem('a', 'Milk', true),
           makeItem('b', 'Bread', false),
         ];
-        const draftSortMode: 'alphabetical' | 'insertion' = 'alphabetical';
-        const liveSortMode: 'alphabetical' | 'insertion' = 'insertion';
 
         // Mirrors handleListSettingsUncheckAll in App.tsx.
         isListSettingsOpen = false;
-        if (draftSortMode !== liveSortMode) {
-          sortDelay = 150;
-        }
         uncheckDelay = 150;
         items = items.map((item) => ({ ...item, completed: false }));
 
         assert(isListSettingsOpen === false, 'Overlay should close first');
-        assert(sortDelay === 150, `Expected 150ms sort delay, got ${sortDelay}`);
         assert(uncheckDelay === 150, `Expected 150ms uncheck delay, got ${uncheckDelay}`);
         assert(items.every((item) => item.completed === false), 'Expected all items unchecked');
       },

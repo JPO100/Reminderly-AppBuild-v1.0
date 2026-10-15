@@ -16,32 +16,6 @@ function SmartRemindersLabel({ active, smartReminderDueDate, smartReminderTime, 
   );
 }
 
-function AlphabeticalLabel({ active }: { active: boolean }) {
-  return (
-    <div className={`content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative ${active ? '' : 'text-[#d9d9d9]'}`}>
-      <div className={`flex flex-col justify-start overflow-hidden relative shrink-0 text-[17px] text-ellipsis w-full whitespace-nowrap ${active ? 'text-[#1C2C42]' : ''}`}>
-        <p className="leading-[17px] overflow-hidden text-ellipsis" style={{ fontWeight: 700 }}>List alphabetically</p>
-      </div>
-      <div className={`flex flex-col justify-start relative shrink-0 text-[14px] w-full ${active ? 'text-[#bababa]' : ''}`}>
-        <p className="leading-[14px]" style={{ fontWeight: 700 }}>Displayed A - Z</p>
-      </div>
-    </div>
-  );
-}
-
-function InsertionLabel({ active }: { active: boolean }) {
-  return (
-    <div className={`content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative ${active ? '' : 'text-[#d9d9d9]'}`}>
-      <div className={`flex flex-col justify-start overflow-hidden relative shrink-0 text-[17px] text-ellipsis w-full whitespace-nowrap ${active ? 'text-[#1C2C42]' : ''}`}>
-        <p className="leading-[17px] overflow-hidden text-ellipsis" style={{ fontWeight: 700 }}>List in order added</p>
-      </div>
-      <div className={`flex flex-col justify-start relative shrink-0 text-[14px] w-full ${active ? 'text-[#bababa]' : ''}`}>
-        <p className="leading-[14px]" style={{ fontWeight: 700 }}>Most recent at the top</p>
-      </div>
-    </div>
-  );
-}
-
 function ToggleButton({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
     <button className={`${active ? 'bg-[#4784F8] justify-end' : 'bg-[#d9d9d9]'} content-stretch cursor-pointer flex h-[30px] items-center self-start p-[3.75px] relative rounded-[37.5px] shrink-0 w-[56px]`} onClick={(event) => { event.stopPropagation(); onClick(); }}>
@@ -54,11 +28,8 @@ function ToggleButton({ active, onClick }: { active: boolean; onClick: () => voi
   );
 }
 
-function Frame3({ sortMode, onSortChange, smartReminders, onSmartRemindersChange, showSmartReminders, displaySmartReminderDate, smartReminderTime, selectedSmartReminderDate, isDatePickerOpen, onDateSelect, onSetDate, onCloseDatePicker, onOpenDatePicker, onOpenSmartReminderEditor, highlightDueDate, animateFadeOut }: { sortMode: 'alphabetical' | 'insertion'; onSortChange: (mode: 'alphabetical' | 'insertion') => void; smartReminders: boolean; onSmartRemindersChange: (val: boolean) => void; showSmartReminders: boolean; displaySmartReminderDate: Date | null; smartReminderTime: string | null | undefined; selectedSmartReminderDate: Date; isDatePickerOpen: boolean; onDateSelect: (date: Date) => void; onSetDate: () => void; onCloseDatePicker: () => void; onOpenDatePicker: () => void; onOpenSmartReminderEditor?: () => void; highlightDueDate: boolean; animateFadeOut: boolean }) {
-  const isAlpha = sortMode === 'alphabetical';
-  const isInsertion = sortMode === 'insertion';
+function Frame3({ smartReminders, onSmartRemindersChange, showSmartReminders, displaySmartReminderDate, smartReminderTime, selectedSmartReminderDate, isDatePickerOpen, onDateSelect, onSetDate, onCloseDatePicker, onOpenDatePicker, onOpenSmartReminderEditor, highlightDueDate, animateFadeOut }: { smartReminders: boolean; onSmartRemindersChange: (val: boolean) => void; showSmartReminders: boolean; displaySmartReminderDate: Date | null; smartReminderTime: string | null | undefined; selectedSmartReminderDate: Date; isDatePickerOpen: boolean; onDateSelect: (date: Date) => void; onSetDate: () => void; onCloseDatePicker: () => void; onOpenDatePicker: () => void; onOpenSmartReminderEditor?: () => void; highlightDueDate: boolean; animateFadeOut: boolean }) {
   const smartRemindersActive = showSmartReminders && smartReminders;
-  const showSortRows = !smartRemindersActive || !isDatePickerOpen;
 
   const handleSmartRemindersRowClick = () => {
     if (!showSmartReminders || !smartRemindersActive) return;
@@ -102,40 +73,6 @@ function Frame3({ sortMode, onSortChange, smartReminders, onSmartRemindersChange
           <DatePickerButtons onSetDate={onSetDate} />
         </div>
       )}
-        </div>
-      )}
-      {showSortRows && (
-        <div className="content-stretch flex flex-col gap-[30px] items-start w-full">
-          <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full cursor-pointer" onClick={() => onSortChange(isInsertion ? 'alphabetical' : 'insertion')}>
-            <div className="h-[20.824px] relative shrink-0 w-[20.83px]" data-name="Union">
-              <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 20.8301 20.8242">
-                <g id="Union">
-                  <path d={svgPaths.p1f326770} fill={`var(--fill-0, ${isInsertion ? '#1C2C42' : '#D9D9D9'})`} />
-                  <path d={svgPaths.p10221f80} fill={`var(--fill-0, ${isInsertion ? '#1C2C42' : '#D9D9D9'})`} />
-                  <path d={svgPaths.p30c3ae80} fill={`var(--fill-0, ${isInsertion ? '#1C2C42' : '#D9D9D9'})`} />
-                  <path d={svgPaths.p2dfdd480} fill={`var(--fill-0, ${isInsertion ? '#1C2C42' : '#D9D9D9'})`} />
-                  <path d={svgPaths.p390e3940} fill={`var(--fill-0, ${isInsertion ? '#1C2C42' : '#D9D9D9'})`} />
-                </g>
-              </svg>
-            </div>
-            <InsertionLabel active={isInsertion} />
-            <ToggleButton active={isInsertion} onClick={() => onSortChange(isInsertion ? 'alphabetical' : 'insertion')} />
-          </div>
-          <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full cursor-pointer" onClick={() => onSortChange(isAlpha ? 'insertion' : 'alphabetical')}>
-            <div className="h-[20.814px] relative shrink-0 w-[22.387px]" data-name="Union">
-              <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.3867 20.8145">
-                <g id="Union">
-                  <path d={svgPaths.pa5a1880} fill={`var(--fill-0, ${isAlpha ? '#1C2C42' : '#D9D9D9'})`} />
-                  <path d={svgPaths.p3a034e00} fill={`var(--fill-0, ${isAlpha ? '#1C2C42' : '#D9D9D9'})`} />
-                  <path d={svgPaths.pbb6b280} fill={`var(--fill-0, ${isAlpha ? '#1C2C42' : '#D9D9D9'})`} />
-                  <path clipRule="evenodd" d={svgPaths.p37945200} fill={`var(--fill-0, ${isAlpha ? '#1C2C42' : '#D9D9D9'})`} fillRule="evenodd" />
-                  <path d={svgPaths.p3a58ae80} fill={`var(--fill-0, ${isAlpha ? '#1C2C42' : '#D9D9D9'})`} />
-                </g>
-              </svg>
-            </div>
-            <AlphabeticalLabel active={isAlpha} />
-            <ToggleButton active={isAlpha} onClick={() => onSortChange(isAlpha ? 'insertion' : 'alphabetical')} />
-          </div>
         </div>
       )}
     </div>
@@ -237,7 +174,7 @@ function Buttons({ onUncheckAll, onCreateTemplate, createTemplateStage, onDelete
   );
 }
 
-export default function InfoOverlay({ sortMode, onSortChange, listTitle, onUncheckAll, onCreateTemplate, createTemplateStage, onDelete, allUnchecked, smartReminders, onSmartRemindersChange, showSmartReminders, smartReminderDueDate, smartReminderTime, onSetSmartReminderDueDate, onOpenSmartReminderEditor }: { sortMode: 'alphabetical' | 'insertion'; onSortChange: (mode: 'alphabetical' | 'insertion') => void; listTitle: string; onUncheckAll: () => void; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; allUnchecked: boolean; smartReminders: boolean; onSmartRemindersChange: (val: boolean) => void; showSmartReminders: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; onSetSmartReminderDueDate: (date: Date) => void; onOpenSmartReminderEditor?: () => void }) {
+export default function InfoOverlay({ listTitle, onUncheckAll, onCreateTemplate, createTemplateStage, onDelete, allUnchecked, smartReminders, onSmartRemindersChange, showSmartReminders, smartReminderDueDate, smartReminderTime, onSetSmartReminderDueDate, onOpenSmartReminderEditor }: { listTitle: string; onUncheckAll: () => void; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; allUnchecked: boolean; smartReminders: boolean; onSmartRemindersChange: (val: boolean) => void; showSmartReminders: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; onSetSmartReminderDueDate: (date: Date) => void; onOpenSmartReminderEditor?: () => void }) {
   const smartRemindersActive = showSmartReminders && smartReminders;
   const [draftSmartReminderDate, setDraftSmartReminderDate] = useState<Date>(smartReminderDueDate ?? new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(smartRemindersActive && smartReminderDueDate == null);
@@ -320,7 +257,7 @@ export default function InfoOverlay({ sortMode, onSortChange, listTitle, onUnche
       <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center w-full">
         <p className="leading-[normal] whitespace-pre-wrap break-words" style={{ fontWeight: 700 }}>{listTitle}</p>
       </div>
-      <Frame3 sortMode={sortMode} onSortChange={onSortChange} smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} showSmartReminders={showSmartReminders} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />
+      {showSmartReminders && <Frame3 smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} showSmartReminders={showSmartReminders} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />}
       <Buttons onUncheckAll={onUncheckAll} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} allUnchecked={allUnchecked} showUncheckAll={!smartRemindersActive || !isDatePickerOpen} />
     </div>
   );

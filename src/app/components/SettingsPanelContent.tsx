@@ -198,11 +198,12 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
   );
 }
 
-export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsAvailable, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; soundsAvailable: boolean; hapticsAvailable: boolean; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
+export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsAvailable, siriAvailable, siriOn, onSiriChange, sortAzOn, onSortAzChange }: { onOpenTutorial?: () => void; soundsAvailable: boolean; hapticsAvailable: boolean; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; sortAzOn: boolean; onSortAzChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
 
   return (
     <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Haptic feedback" ? <HapticSettings panel="lists" /> : subPage === "Sounds" ? <SoundSettings panel="lists" /> : null}>
+      <ToggleRow label="Sort items A to Z" isOn={sortAzOn} onToggle={() => onSortAzChange(!sortAzOn)} infoTitle="Sorts the items in every list alphabetically. When off, items appear in the order you added them, most recent at the top." />
       {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
       {hapticsAvailable && <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you check off a list item or delete a list." />}
       {soundsAvailable && <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />}

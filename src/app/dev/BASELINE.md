@@ -2,7 +2,12 @@
 
 Last updated: 2026-10-15
 
-## Verified Baseline (2026-10-15, feature/notifications-settings, Phase 4 stage 4)
+## Verified Baseline (2026-10-15, feature/global-list-sort)
+
+- Vitest (`npm run test`): 215 passed, 0 failed (12 files). New list-sort.test.ts runs the list ordering checks.
+- Self Check: 391 passed, 0 failed across 11 suites (Node run). 4 checks added to Lists and smart reminders (global default, legacy sortMode ignored, template editor A to Z, list data unchanged when switching). 2 per-list draft sort checks retired with the overlay rows; Uncheck all check kept without the sort step.
+
+## Previous baseline (2026-10-15, feature/notifications-settings, Phase 4 stage 4)
 
 - Vitest (`npm run test`): 207 passed, 0 failed (11 files). 3 Phase 4 ask checks run through notifications.test.ts. Dev tools controls guard: Enable notifications removed (the Notifications flag moved into Dev tools > Reminders as a single row).
 - Self Check: 389 passed, 0 failed across 11 suites (Node run). 3 Phase 4 ask checks added to Notification and badge (automatic ask rules, Not now transitions, launch and settings entry).

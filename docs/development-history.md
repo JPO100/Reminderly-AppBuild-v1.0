@@ -1442,3 +1442,5 @@ Onboarding consistency corrections A-D (2026-10-17, CTO approved after John's cl
 - D2 Re-run page: highlights the Settings button, opens Reminders settings (production RemindersSettingsContent, three rows), highlights the Reminders tutorial option, then stops
 
 Test results: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded. Preview: re-run page at 375pt (tutorial option circle 35px centred on its chevron) and 393pt (settings circle 50px centred on the button); row dots aligned under the settings button.
+
+Settings panel height (2026-10-17, John): the production Reminders and Lists settings panels are 570px tall at 393pt and wider (iPhone 15 Pro and larger), 450px below that (smaller screens still scroll). On the 15 Pro, Reminders settings shows six rows including "Reminders tutorial" without scrolling (six rows need 510px). The centred-overlay max-height cap (screen minus 200px, 652px on the 15 Pro) is unchanged. Vitest 233/233, Self Check 408/408, repo guard passed, build succeeded.

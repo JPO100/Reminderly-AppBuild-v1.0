@@ -115,7 +115,7 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
               event.currentTarget.blur();
             }}
             placeholder=""
-            className="font-['Lato',sans-serif] not-italic text-[20px] leading-[23px] whitespace-nowrap bg-transparent border-none outline-none w-full min-w-0 p-0 m-0 placeholder-[#bababa] caret-[#1C2C42]"
+            className="font-['Lato',sans-serif] not-italic text-[20px] leading-[23px] whitespace-nowrap overflow-hidden text-ellipsis bg-transparent border-none outline-none w-full min-w-0 p-0 m-0 placeholder-[#bababa] caret-[#1C2C42]"
             style={{ color: textColor, transition: "color 300ms", fontWeight: 700 }}
           />
         </div>

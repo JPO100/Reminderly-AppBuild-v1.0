@@ -210,6 +210,24 @@ function RepeatReminderIndicator({ color = "#BABABA" }: { color?: string }) {
   );
 }
 
+// Static copy of the app's RowMenuButton dots
+export function TutorialRowMenuDots({ menuButtonRef }: { menuButtonRef?: ((node: HTMLDivElement | null) => void) | null }) {
+  return (
+    <div
+      className="relative shrink-0 self-stretch w-[20px] flex items-center justify-center"
+      style={{ padding: 0, lineHeight: 0 }}
+      aria-hidden="true"
+      ref={menuButtonRef ?? undefined}
+    >
+      <div className="flex flex-row items-center justify-center gap-[3px]">
+        <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
+        <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
+        <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
+      </div>
+    </div>
+  );
+}
+
 function TutorialStaticReminderRow({
   titleColor = "#1C2C42",
   title,
@@ -299,20 +317,7 @@ function TutorialStaticReminderRow({
           </div>
         </div>
       </div>
-      {showMenuButton && (
-        <div
-          className="relative shrink-0 self-stretch w-[20px] flex items-center justify-center"
-          style={{ padding: 0, lineHeight: 0 }}
-          aria-hidden="true"
-          ref={menuButtonRef ?? undefined}
-        >
-          <div className="flex flex-row items-center justify-center gap-[3px]">
-            <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
-            <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
-            <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
-          </div>
-        </div>
-      )}
+      {showMenuButton && <TutorialRowMenuDots menuButtonRef={menuButtonRef} />}
     </div>
   );
 }

@@ -4890,7 +4890,6 @@ export default function App() {
                         : listSmartReminders
                         ? `${formatListProgress(listItems.filter((item) => item.completed).length, listItems.length)}. ${formatSmartReminderDueBy(listSmartReminderDueDate, listSmartReminderTime)}`
                         : formatListProgress(listItems.filter((item) => item.completed).length, listItems.length)}
-                      showSavedListSubtitleIcon={isSavedListCreateOverlay}
                       showSmartRemindersSubtitle={!isSavedListCreateOverlay && isSmartRemindersEnabled && listSmartReminders}
                       reserveSmartRemindersSubtitleSpace={!isSavedListCreateOverlay && isSmartRemindersEnabled}
                       showMenuButton={!isSavedListCreateOverlay || isSavedListEditOverlay}

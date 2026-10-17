@@ -1423,3 +1423,11 @@ Onboarding corrections (2026-10-17, CTO request after John's device testing): co
 - Observed, not changed (outside the templates scope): the tutorial Lists pill colours (Started purple, Done blue) differ from the app (Started cyan, Done purple); the tutorial row dots do not use the app's 11.5px settings alignment inset; the settings button only appears on the tutorial Lists row when templates are on
 
 Test results: Vitest 233/233 passed. Self Check 408/408 passed (Node run). Repo guard passed. Web build succeeded. Web preview at 375pt: Lists tutorial page 1 header matched the app; page 5 ran all phases in order (templates throb centred on the icon button, templates view 4.0s, row throb 4.7s on the target row, editor 8.1s, menu overlay 11.6s showing "Use as list"); production templates page and x unchanged (App.tsx no diff). Simulator iPhone 17 Pro and iPhone 15 Pro (physical): build, install and launch succeeded. Awaiting CTO review and merge approval.
+
+Onboarding round 3 (2026-10-17, CTO request): tutorial only; App.tsx unchanged.
+- Row menu dots on tutorial reminder, list and template rows use the app's 11.5px inset when the settings menu is on (`TutorialRowMenuDots` alignWithSettingsButton). At 393pt list rows sit within 0.4px of the settings button; template rows match the header "..." exactly
+- Tutorial Lists row shows the settings button whenever the settings menu is on, as in the app
+- Lists page 4 and page 5 menu highlight: the 50px button ring centred on the 45px menu button (was 35px with a +7 offset, about 24px rendered and 4.8px off-centre). Page 4 measured: ring 34.8 centred on the 31.3 button
+- Templates button highlight scaled to the filter row's button scale
+
+Test results: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded. Not separately re-measured: 375pt and the reminders tutorial highlights (unchanged code, ring positions measured from their targets).

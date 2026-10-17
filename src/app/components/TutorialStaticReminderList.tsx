@@ -210,12 +210,13 @@ function RepeatReminderIndicator({ color = "#BABABA" }: { color?: string }) {
   );
 }
 
-// Static copy of the app's RowMenuButton dots
-export function TutorialRowMenuDots({ menuButtonRef }: { menuButtonRef?: ((node: HTMLDivElement | null) => void) | null }) {
+// Static copy of the app's RowMenuButton dots. Settings menu on: inset from the right so the dots
+// centre on the Settings button's dots, as in the app (22.5 - 10 - 1 = 11.5px in app units)
+export function TutorialRowMenuDots({ menuButtonRef, alignWithSettingsButton = false }: { menuButtonRef?: ((node: HTMLDivElement | null) => void) | null; alignWithSettingsButton?: boolean }) {
   return (
     <div
       className="relative shrink-0 self-stretch w-[20px] flex items-center justify-center"
-      style={{ padding: 0, lineHeight: 0 }}
+      style={{ padding: 0, lineHeight: 0, marginRight: alignWithSettingsButton ? '11.5px' : undefined }}
       aria-hidden="true"
       ref={menuButtonRef ?? undefined}
     >
@@ -239,6 +240,7 @@ function TutorialStaticReminderRow({
   isPendingDone = false,
   showMenuButton = true,
   menuButtonRef,
+  alignMenuWithSettingsButton = false,
 }: {
   titleColor?: string;
   title: string;
@@ -250,6 +252,7 @@ function TutorialStaticReminderRow({
   isPendingDone?: boolean;
   showMenuButton?: boolean;
   menuButtonRef?: ((node: HTMLDivElement | null) => void) | null;
+  alignMenuWithSettingsButton?: boolean;
 }) {
   const isPendingAway = isDone || isPendingDone;
   const effectiveTitleColor = isPendingAway ? DONE_BLUE : titleColor;
@@ -317,7 +320,7 @@ function TutorialStaticReminderRow({
           </div>
         </div>
       </div>
-      {showMenuButton && <TutorialRowMenuDots menuButtonRef={menuButtonRef} />}
+      {showMenuButton && <TutorialRowMenuDots menuButtonRef={menuButtonRef} alignWithSettingsButton={alignMenuWithSettingsButton} />}
     </div>
   );
 }
@@ -353,7 +356,8 @@ export default function TutorialStaticReminderList({
   prependSmartReminder?: boolean;
   combineLaterSometime?: boolean;
 }) {
-  // Settings menu on: Sometime is presented as Later (yellow, included in the Later filter)
+  // Settings menu on (combineLaterSometime): Sometime is presented as Later (yellow, included in the Later filter)
+  // and row menu dots align with the Settings button, as in the app
   const getCircleColor = (item: TutorialReminder | TutorialList) =>
     combineLaterSometime && "category" in item && item.category === "sometime" ? "#FDB146" : item.circleColor;
   const sequenceIds = mode === "lists" ? PAGE_1_LIST_BUILD_SEQUENCE_IDS : PAGE_1_BUILD_SEQUENCE_IDS;
@@ -652,6 +656,7 @@ export default function TutorialStaticReminderList({
                   circleColor={SMART_REMINDER_CIRCLE_COLOR}
                   showSmartReminderIcon
                   titleColor={insertHighlightId === SMART_REMINDER_ID ? SMART_REMINDER_CIRCLE_COLOR : "#1C2C42"}
+                  alignMenuWithSettingsButton={combineLaterSometime}
                 />
               </motion.div>
             )}
@@ -674,6 +679,7 @@ export default function TutorialStaticReminderList({
                     isPendingDone={isPendingDone}
                     showMenuButton={!isDoneReminder}
                     menuButtonRef={item.id === menuTargetReminderId ? onMenuTargetElementChange ?? null : null}
+                    alignMenuWithSettingsButton={combineLaterSometime}
                   />
                 </div>
               );
@@ -711,6 +717,7 @@ export default function TutorialStaticReminderList({
                     isPendingDone={isPendingDone}
                     showMenuButton={!isDoneReminder}
                     menuButtonRef={item.id === menuTargetReminderId ? onMenuTargetElementChange ?? null : null}
+                    alignMenuWithSettingsButton={combineLaterSometime}
                   />
                 </motion.div>
               );

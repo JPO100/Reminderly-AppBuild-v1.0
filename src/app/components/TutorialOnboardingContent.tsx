@@ -63,8 +63,8 @@ const LISTS_PAGE_3_DEMO_ITEM_ID = "work-prepare-update";
 const LISTS_PAGE_3_ADD_INPUT_DELAY = 750;
 const LISTS_PAGE_3_TYPING_STEP_DELAY = 80;
 const LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE = 50;
-// The 50px button ring at the filter row's button scale (45px buttons drawn at 32.308px)
-const FILTER_ROW_BUTTON_HIGHLIGHT_CIRCLE_SIZE = LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE * (32.308 / 45);
+// Menu button ring inside the scaled list panel: drawn at the same on-screen size as the 50px Templates ring
+const SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE = LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / TUTORIAL_REMINDER_LIST_SCALE;
 const LISTS_PAGE_3_POST_INSERT_PAUSE = 2000;
 const LISTS_PAGE_3_POST_CLOSE_PAUSE = 2000;
 const LIST_ITEM_INSERT_HIGHLIGHT_MS = 1000;
@@ -522,10 +522,10 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
                     <motion.div
                       className="absolute z-10 pointer-events-none"
                       style={{
-                        left: menuDotsRect.left + (menuDotsRect.width / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
-                        top: menuDotsRect.top + (menuDotsRect.height / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
-                        width: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
-                        height: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
+                        left: menuDotsRect.left + (menuDotsRect.width / 2) - (SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
+                        top: menuDotsRect.top + (menuDotsRect.height / 2) - (SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
+                        width: SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
+                        height: SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
                       }}
                       initial={{ opacity: 0 }}
                       animate={{
@@ -538,7 +538,7 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
                         ease: "easeInOut",
                       }}
                     >
-                      <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+                      <svg width={SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE} height={SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE} viewBox="0 0 50 50" fill="none">
                         <circle cx="25" cy="25" r="23.5" stroke="#4784F8" strokeWidth="3" />
                       </svg>
                     </motion.div>
@@ -1196,10 +1196,10 @@ function ListsTutorialPlaceholderPage({
                             key="page5-menu-throb"
                             className="absolute z-10 pointer-events-none"
                             style={{
-                              left: page5MenuDotsRect.left + (page5MenuDotsRect.width / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
-                              top: page5MenuDotsRect.top + (page5MenuDotsRect.height / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
-                              width: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
-                              height: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
+                              left: page5MenuDotsRect.left + (page5MenuDotsRect.width / 2) - (SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
+                              top: page5MenuDotsRect.top + (page5MenuDotsRect.height / 2) - (SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
+                              width: SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
+                              height: SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
                             }}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: [0, 1, 0, 0, 1, 0, 0, 1, 0] }}
@@ -1210,7 +1210,7 @@ function ListsTutorialPlaceholderPage({
                               ease: "easeInOut",
                             }}
                           >
-                            <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+                            <svg width={SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE} height={SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE} viewBox="0 0 50 50" fill="none">
                               <circle cx="25" cy="25" r="23.5" stroke="#4784F8" strokeWidth="3" />
                             </svg>
                           </motion.div>
@@ -1424,10 +1424,10 @@ function ListsTutorialPlaceholderPage({
               <motion.div
                 className="absolute z-10 pointer-events-none"
                 style={{
-                  left: page5TemplatesButtonRect.left + (page5TemplatesButtonRect.width / 2) - (FILTER_ROW_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
-                  top: page5TemplatesButtonRect.top + (page5TemplatesButtonRect.height / 2) - (FILTER_ROW_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
-                  width: FILTER_ROW_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
-                  height: FILTER_ROW_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
+                  left: page5TemplatesButtonRect.left + (page5TemplatesButtonRect.width / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
+                  top: page5TemplatesButtonRect.top + (page5TemplatesButtonRect.height / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
+                  width: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
+                  height: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
                 }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: [0, 1, 0, 0, 1, 0, 0, 1, 0] }}
@@ -1438,7 +1438,7 @@ function ListsTutorialPlaceholderPage({
                   ease: "easeInOut",
                 }}
               >
-                <svg width={FILTER_ROW_BUTTON_HIGHLIGHT_CIRCLE_SIZE} height={FILTER_ROW_BUTTON_HIGHLIGHT_CIRCLE_SIZE} viewBox="0 0 50 50" fill="none">
+                <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
                   <circle cx="25" cy="25" r="23.5" stroke="#4784F8" strokeWidth="3" />
                 </svg>
               </motion.div>

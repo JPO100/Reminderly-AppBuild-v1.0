@@ -1431,3 +1431,5 @@ Onboarding round 3 (2026-10-17, CTO request): tutorial only; App.tsx unchanged.
 - Templates button highlight scaled to the filter row's button scale
 
 Test results: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded. Not separately re-measured: 375pt and the reminders tutorial highlights (unchanged code, ring positions measured from their targets).
+
+Highlight size correction (2026-10-17, John: page 4 ring still barely larger than the button): the Templates ring is restored to its previous 50px on screen. The page 4 and page 5 menu rings now use the same on-screen size (50 / TUTORIAL_REMINDER_LIST_SCALE inside the scaled panel = 50px rendered around the 31.3px button), still centred on the button. Vitest 233/233, Self Check 408/408, repo guard passed, web build succeeded.

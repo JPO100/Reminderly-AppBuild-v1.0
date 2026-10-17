@@ -121,7 +121,7 @@ export function formatSelectedDate(date: Date | null, now?: Date): string | null
 }
 
 // Time display formatting
-function formatSelectedTime(time: { hour: number; minute: number } | null): string | null {
+export function formatSelectedTime(time: { hour: number; minute: number } | null): string | null {
   if (!time) return null;
   const h24 = time.hour;
   const period = h24 >= 12 ? 'pm' : 'am';

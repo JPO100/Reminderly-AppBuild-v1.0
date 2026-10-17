@@ -33,6 +33,15 @@ export function askStateAfterNotNow(state: string | null, source: AskSource): st
   return state;
 }
 
+/**
+ * Tutorial closed (docs/plans/onboarding-gaps.md, section 4): closing on the Never miss a reminder page without
+ * Allow counts as Not now; closing before reaching it, or after Allow, leaves the ask state unchanged.
+ */
+export function askStateOnTutorialClose(state: string | null, closedOnAskPage: boolean, allowed: boolean): string | null {
+  if (!closedOnAskPage || allowed) return state;
+  return askStateAfterNotNow(state, 'automatic');
+}
+
 /** Existing installs that already have permission are marked accepted, so they are never asked. */
 export function askStateOnLaunch(state: string | null, permission: string | null | undefined): string | null {
   return state === null && permission === 'granted' ? ASK_STATE_ACCEPTED : state;

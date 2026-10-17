@@ -20,7 +20,7 @@ const DONE_LIST_COLOUR = "#404040";
 const DONE_REMINDER_COLOUR = "#3F3F3F";
 const PAGE_1_BUILD_SEQUENCE_IDS = ["sometime", "later-2", "later", "this-week", "today-2", "today"] as const;
 
-type TutorialReminder = {
+export type TutorialReminder = {
   id: string;
   title: string;
   category: "today" | "thisWeek" | "later" | "sometime";
@@ -344,6 +344,9 @@ export default function TutorialStaticReminderList({
   onRowTargetElementChange,
   prependSmartReminder = false,
   combineLaterSometime = false,
+  insertedReminder,
+  insertedReminderAfterId,
+  insertedReminderHighlighted = false,
 }: {
   mode?: "reminders" | "lists";
   page1BuildSequence?: boolean;
@@ -359,6 +362,10 @@ export default function TutorialStaticReminderList({
   onRowTargetElementChange?: (element: HTMLDivElement | null) => void;
   prependSmartReminder?: boolean;
   combineLaterSometime?: boolean;
+  // Create a reminder pages: a reminder saved in the mock sheet, faded in after insertedReminderAfterId
+  insertedReminder?: TutorialReminder | null;
+  insertedReminderAfterId?: string;
+  insertedReminderHighlighted?: boolean;
 }) {
   // Settings menu on (combineLaterSometime): Sometime is presented as Later (yellow, included in the Later filter)
   // and row menu dots align with the Settings button, as in the app
@@ -598,9 +605,15 @@ export default function TutorialStaticReminderList({
   }, [mode, onPage3DoneSequenceComplete, page3DoneSequence, page3DoneSequenceCycle]);
 
   const sourceVisibleIds = doneReminderIds ?? visibleIds;
-  const visibleReminders = sourceVisibleIds
-    .map((id) => STATIC_REMINDERS.find((reminder) => reminder.id === id))
-    .filter((reminder): reminder is (typeof STATIC_REMINDERS)[number] => reminder != null)
+  const reminderSource: readonly TutorialReminder[] = insertedReminder && doneReminderIds == null
+    ? STATIC_REMINDERS.flatMap((reminder) => reminder.id === insertedReminderAfterId ? [reminder, insertedReminder] : [reminder])
+    : STATIC_REMINDERS;
+  const reminderSourceIds = insertedReminder && doneReminderIds == null
+    ? reminderSource.map((reminder) => reminder.id).filter((id) => id === insertedReminder.id || sourceVisibleIds.includes(id))
+    : sourceVisibleIds;
+  const visibleReminders = reminderSourceIds
+    .map((id) => reminderSource.find((reminder) => reminder.id === id))
+    .filter((reminder): reminder is TutorialReminder => reminder != null)
     .filter((reminder) => {
       if (doneReminderIds != null) return true;
       if (activeFilter == null) return true;
@@ -666,9 +679,10 @@ export default function TutorialStaticReminderList({
               </motion.div>
             )}
             {visibleItems.map((item) => {
-              const isReinserted = reinsertedId === item.id;
+              const isInsertedReminder = mode === "reminders" && item.id === insertedReminder?.id;
+              const isReinserted = reinsertedId === item.id || isInsertedReminder;
               const isPage3ResetFade = page3ResetFadeIds.has(item.id);
-              const isHighlighted = insertHighlightId === item.id;
+              const isHighlighted = insertHighlightId === item.id || (isInsertedReminder && insertedReminderHighlighted);
               const isDoneReminder = doneReminderIds != null;
               const isPendingDone = pendingDoneIds.has(item.id);
               if (suppressPage3ResetAnimation) {
@@ -695,6 +709,7 @@ export default function TutorialStaticReminderList({
                 <motion.div
                   key={item.id}
                   ref={mode === "lists" && item.id === rowTargetListId ? onRowTargetElementChange : undefined}
+                  data-tutorial-inserted={isInsertedReminder ? "true" : undefined}
                   layout
                   initial={isReinserted || isPage3ResetFade ? { opacity: 0 } : false}
                   animate={{ opacity: 1 }}

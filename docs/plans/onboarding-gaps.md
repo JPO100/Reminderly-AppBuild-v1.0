@@ -1,6 +1,6 @@
 # Onboarding gaps - scope
 
-Status: scope for CTO review on `feature/onboarding-gaps` (2026-10-17). Page breakdown and NLC page design agreed with John. Not implemented.
+Status: approved by the CTO (2026-10-17) and implemented on `feature/onboarding-gaps`. Deviations are listed in development-history.md. Not merged.
 
 ## 1. Summary
 

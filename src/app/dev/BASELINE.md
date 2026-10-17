@@ -1,6 +1,11 @@
 # Self-Check Baseline Report
 
-Last updated: 2026-10-15
+Last updated: 2026-10-17
+
+## Verified Baseline (2026-10-17, feature/onboarding-gaps)
+
+- Vitest (`npm run test`): 241 passed, 0 failed (13 files). Added `tutorial-nlc-demo.test.ts` (4) and 4 reminders tutorial sequence tests in `tutorial-pages.test.ts`.
+- Self Check: 409 passed, 0 failed across 11 suites (Node run). Added `notif-ask-tutorial-close` (closing on the Never miss a reminder page without Allow is Not now; closing earlier or after Allow changes nothing; the timed-reminder backup ask still applies).
 
 ## Verified Baseline (2026-10-15, fix/smart-reminder-list-done, with auto-clear date correction)
 

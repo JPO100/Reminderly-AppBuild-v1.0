@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { LIST_CATEGORY_COLOURS } from "@/app/utils/list-utils";
 
 export type TutorialFilterKey =
   | "today"
@@ -67,9 +68,9 @@ export const UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS: TutorialFilterItem[] = [
 ];
 
 export const SAVED_LISTS_TUTORIAL_FILTER_ITEMS: TutorialFilterItem[] = [
-  { key: "todo", label: "Todo", color: "#939393" },
-  { key: "started", label: "Started", color: "#9468D5" },
-  { key: "complete", label: "Done", color: "#005BE3" },
+  { key: "todo", label: "Todo", color: LIST_CATEGORY_COLOURS.todo },
+  { key: "started", label: "Started", color: LIST_CATEGORY_COLOURS.started },
+  { key: "complete", label: "Done", color: LIST_CATEGORY_COLOURS.complete },
 ];
 
 export const PAGE8_DONE_FILTER_ITEMS: TutorialFilterItem[] = [

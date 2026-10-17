@@ -21,7 +21,7 @@ import OnboardingPage3Content, {
 } from '@/app/components/OnboardingPage3Content';
 import OnboardingPage4Content, { OnboardingPage4Text } from '@/app/components/OnboardingPage4Content';
 import OnboardingPage5Content, { OnboardingPage5Text, PAGE_5_HIGHLIGHT_SEQUENCE_DELAY, PAGE_5_INITIAL_PAUSE_DELAY, PAGE_5_STATE_PAUSE_DELAY } from '@/app/components/OnboardingPage5Content';
-import OnboardingPage6Content, { OnboardingPage6Text } from '@/app/components/OnboardingPage6Content';
+import OnboardingPage6Content, { OnboardingPage6Overlay, OnboardingPage6Text } from '@/app/components/OnboardingPage6Content';
 import { TUTORIAL_BODY_CLASSNAME, TUTORIAL_TITLE_CLASSNAME } from '@/app/components/tutorialTokens';
 import TutorialPhoneShell from '@/app/components/TutorialPhoneShell';
 import TutorialStaticReminderList, { TUTORIAL_PAGE_2_DONE_LIST_IDS, TUTORIAL_REMINDER_LIST_SCALE, TutorialRowMenuDots } from '@/app/components/TutorialStaticReminderList';
@@ -74,7 +74,7 @@ const SMART_REMINDER_POST_SETTINGS_PAUSE = 750;
 const SMART_REMINDER_POST_TOGGLE_PAUSE = 750;
 const SMART_REMINDER_POST_CLOSE_PAUSE = 250;
 const SMART_REMINDER_SHEET_PRE_THROB_PAUSE = 750;
-const SMART_REMINDER_TICK_THROB_CIRCLE_SIZE = 62;
+const SMART_REMINDER_TICK_THROB_CIRCLE_SIZE = SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE;
 const NEW_REMINDER_INSERT_DELAY = 500;
 
 type Page5Phase = "none" | "templates-throb" | "templates-open" | "template-row-throb" | "editor-open" | "typing" | "add-throb" | "item-added" | "menu-throb" | "settings-overlay";
@@ -497,10 +497,10 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
                     <motion.div
                       className="absolute z-10 pointer-events-none"
                       style={{
-                        left: addButtonRect.left + (addButtonRect.width / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
-                        top: addButtonRect.top + (addButtonRect.height / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
-                        width: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
-                        height: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
+                        left: addButtonRect.left + (addButtonRect.width / 2) - (SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
+                        top: addButtonRect.top + (addButtonRect.height / 2) - (SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
+                        width: SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
+                        height: SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
                       }}
                       initial={{ opacity: 0 }}
                       animate={{
@@ -513,7 +513,7 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
                         ease: "easeInOut",
                       }}
                     >
-                      <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+                      <svg width={SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE} height={SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE} viewBox="0 0 50 50" fill="none">
                         <circle cx="25" cy="25" r="23.5" stroke="#4784F8" strokeWidth="3" />
                       </svg>
                     </motion.div>
@@ -668,8 +668,8 @@ function SmartReminderSheetOverlay({ visible, showTickThrob, onExitComplete }: {
                     ease: "easeInOut",
                   }}
                 >
-                  <svg width={SMART_REMINDER_TICK_THROB_CIRCLE_SIZE} height={SMART_REMINDER_TICK_THROB_CIRCLE_SIZE} viewBox={`0 0 ${SMART_REMINDER_TICK_THROB_CIRCLE_SIZE} ${SMART_REMINDER_TICK_THROB_CIRCLE_SIZE}`} fill="none">
-                    <circle cx={SMART_REMINDER_TICK_THROB_CIRCLE_SIZE / 2} cy={SMART_REMINDER_TICK_THROB_CIRCLE_SIZE / 2} r={SMART_REMINDER_TICK_THROB_CIRCLE_SIZE / 2 - 1.5} stroke="#4784F8" strokeWidth="3" />
+                  <svg width={SMART_REMINDER_TICK_THROB_CIRCLE_SIZE} height={SMART_REMINDER_TICK_THROB_CIRCLE_SIZE} viewBox="0 0 50 50" fill="none">
+                    <circle cx="25" cy="25" r="23.5" stroke="#4784F8" strokeWidth="3" />
                   </svg>
                 </motion.div>
               )}
@@ -1172,10 +1172,10 @@ function ListsTutorialPlaceholderPage({
                             key="page5-add-throb"
                             className="absolute z-10 pointer-events-none"
                             style={{
-                              left: page5AddButtonRect.left + (page5AddButtonRect.width / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
-                              top: page5AddButtonRect.top + (page5AddButtonRect.height / 2) - (LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE / 2),
-                              width: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
-                              height: LISTS_PAGE_3_ADD_HIGHLIGHT_CIRCLE_SIZE,
+                              left: page5AddButtonRect.left + (page5AddButtonRect.width / 2) - (SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
+                              top: page5AddButtonRect.top + (page5AddButtonRect.height / 2) - (SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE / 2),
+                              width: SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
+                              height: SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE,
                             }}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: [0, 1, 0, 0, 1, 0, 0, 1, 0] }}
@@ -1186,7 +1186,7 @@ function ListsTutorialPlaceholderPage({
                               ease: "easeInOut",
                             }}
                           >
-                            <svg width="50" height="50" viewBox="0 0 50 50" fill="none">
+                            <svg width={SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE} height={SCALED_PANEL_BUTTON_HIGHLIGHT_CIRCLE_SIZE} viewBox="0 0 50 50" fill="none">
                               <circle cx="25" cy="25" r="23.5" stroke="#4784F8" strokeWidth="3" />
                             </svg>
                           </motion.div>
@@ -1304,8 +1304,8 @@ function ListsTutorialPlaceholderPage({
               <motion.div
                 className="absolute z-10 pointer-events-none"
                 style={{
-                  left: page3TargetRect.left + (page3TargetRect.width / 2) - (TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / 2) - 40,
-                  top: page3TargetRect.top + (page3TargetRect.height / 2) - (TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / 2) + 10,
+                  left: page3TargetRect.left + (page3TargetRect.width / 2) - (TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / 2),
+                  top: page3TargetRect.top + (page3TargetRect.height / 2) - (TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / 2),
                   width: TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE,
                   height: TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE,
                 }}
@@ -1750,6 +1750,7 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
                 showHeaderMenu={false}
+                overlay={<OnboardingPage6Overlay />}
                 filterRow={
                   <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
                 }

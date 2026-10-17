@@ -1433,3 +1433,12 @@ Onboarding round 3 (2026-10-17, CTO request): tutorial only; App.tsx unchanged.
 Test results: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded. Not separately re-measured: 375pt and the reminders tutorial highlights (unchanged code, ring positions measured from their targets).
 
 Highlight size correction (2026-10-17, John: page 4 ring still barely larger than the button): the Templates ring is restored to its previous 50px on screen. The page 4 and page 5 menu rings now use the same on-screen size (50 / TUTORIAL_REMINDER_LIST_SCALE inside the scaled panel = 50px rendered around the 31.3px button), still centred on the button. Vitest 233/233, Self Check 408/408, repo guard passed, web build succeeded.
+
+Onboarding consistency corrections A-D (2026-10-17, CTO approved after John's clarification). Tutorial only; App.tsx unchanged.
+- A Done colours: tutorial rows being marked done and done rows use the app colours (lists #404040, reminders #3F3F3F) instead of #4784F8
+- B List pills: Todo/Started/Done use the app's LIST_CATEGORY_COLOURS
+- C Highlight circles: two sizes, 35px standard (rows, small controls) and 50px on screen large (45px buttons: templates, settings, add item, list menu, smart reminder tick); lists page 3 row circle centred on its target (fixed -40/+10 offsets removed)
+- D1 Reminder info overlay title and subtitle #1C2C42
+- D2 Re-run page: highlights the Settings button, opens Reminders settings (production RemindersSettingsContent, three rows), highlights the Reminders tutorial option, then stops
+
+Test results: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded. Preview: re-run page at 375pt (tutorial option circle 35px centred on its chevron) and 393pt (settings circle 50px centred on the button); row dots aligned under the settings button.

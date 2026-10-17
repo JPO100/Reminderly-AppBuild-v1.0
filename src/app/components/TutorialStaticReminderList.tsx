@@ -15,7 +15,9 @@ const TUTORIAL_RECYCLE_DELAY = 2000;
 const COMPLETION_DELAY = 350;
 const DONE_SEQUENCE_INITIAL_DELAY = 1000;
 const DONE_SEQUENCE_REMOVAL_GAP = 500;
-const DONE_BLUE = "#4784F8";
+// Done colours from the app: lists DONE_LIST_COLOUR, reminders with Lists on
+const DONE_LIST_COLOUR = "#404040";
+const DONE_REMINDER_COLOUR = "#3F3F3F";
 const PAGE_1_BUILD_SEQUENCE_IDS = ["sometime", "later-2", "later", "this-week", "today-2", "today"] as const;
 
 type TutorialReminder = {
@@ -241,6 +243,7 @@ function TutorialStaticReminderRow({
   showMenuButton = true,
   menuButtonRef,
   alignMenuWithSettingsButton = false,
+  doneColor = DONE_REMINDER_COLOUR,
 }: {
   titleColor?: string;
   title: string;
@@ -253,10 +256,11 @@ function TutorialStaticReminderRow({
   showMenuButton?: boolean;
   menuButtonRef?: ((node: HTMLDivElement | null) => void) | null;
   alignMenuWithSettingsButton?: boolean;
+  doneColor?: string;
 }) {
   const isPendingAway = isDone || isPendingDone;
-  const effectiveTitleColor = isPendingAway ? DONE_BLUE : titleColor;
-  const subtitleColor = isPendingAway ? DONE_BLUE : "#BABABA";
+  const effectiveTitleColor = isPendingAway ? doneColor : titleColor;
+  const subtitleColor = isPendingAway ? doneColor : "#BABABA";
 
   return (
     <div className="content-stretch flex items-start justify-between px-px relative w-full">
@@ -268,7 +272,7 @@ function TutorialStaticReminderRow({
               style={{ padding: 0, lineHeight: 0, marginTop: "3px" }}
             >
               {isPendingAway ? (
-                <CompletedCircleIcon className="absolute block size-full" color={DONE_BLUE} />
+                <CompletedCircleIcon className="absolute block size-full" color={doneColor} />
               ) : (
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 25 25">
                   <circle cx="12.5" cy="12.5" fill="white" r="11.5" stroke={circleColor} strokeWidth="2" />
@@ -657,6 +661,7 @@ export default function TutorialStaticReminderList({
                   showSmartReminderIcon
                   titleColor={insertHighlightId === SMART_REMINDER_ID ? SMART_REMINDER_CIRCLE_COLOR : "#1C2C42"}
                   alignMenuWithSettingsButton={combineLaterSometime}
+                    doneColor={mode === "lists" ? DONE_LIST_COLOUR : DONE_REMINDER_COLOUR}
                 />
               </motion.div>
             )}
@@ -680,6 +685,7 @@ export default function TutorialStaticReminderList({
                     showMenuButton={!isDoneReminder}
                     menuButtonRef={item.id === menuTargetReminderId ? onMenuTargetElementChange ?? null : null}
                     alignMenuWithSettingsButton={combineLaterSometime}
+                    doneColor={mode === "lists" ? DONE_LIST_COLOUR : DONE_REMINDER_COLOUR}
                   />
                 </div>
               );
@@ -718,6 +724,7 @@ export default function TutorialStaticReminderList({
                     showMenuButton={!isDoneReminder}
                     menuButtonRef={item.id === menuTargetReminderId ? onMenuTargetElementChange ?? null : null}
                     alignMenuWithSettingsButton={combineLaterSometime}
+                    doneColor={mode === "lists" ? DONE_LIST_COLOUR : DONE_REMINDER_COLOUR}
                   />
                 </motion.div>
               );

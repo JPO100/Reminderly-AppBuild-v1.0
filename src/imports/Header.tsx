@@ -1,5 +1,5 @@
 import svgPaths from "./svg-z3vqooufv8";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 // 45 x 45 header buttons (standard Settings / tick style). Inactive: #D9D9D9 circle with white icon
 function AddTickBtn({ active, onClick }: { active: boolean; onClick?: () => void }) {
@@ -65,7 +65,7 @@ function SavedListSubtitleIndicator() {
   );
 }
 
-export default function Header({ value, onChange, active, onSubmit, isEditMode, onGearClick, onClose, subtitleText, subtitleHighlightColor, showSmartRemindersSubtitle, reserveSmartRemindersSubtitleSpace, showMenuButton = true, showSavedListSubtitleIcon = false }: { value: string; onChange: (v: string) => void; active: boolean; onSubmit: () => void; isEditMode?: boolean; onGearClick?: () => void; onClose?: () => void; subtitleText?: string; subtitleHighlightColor?: string | null; showSmartRemindersSubtitle?: boolean; reserveSmartRemindersSubtitleSpace?: boolean; showMenuButton?: boolean; showSavedListSubtitleIcon?: boolean }) {
+export default function Header({ value, onChange, active, onSubmit, isEditMode, onGearClick, onClose, subtitleText, subtitleHighlightColor, showSmartRemindersSubtitle, reserveSmartRemindersSubtitleSpace, showMenuButton = true, showSavedListSubtitleIcon = false, leadingIcon }: { value: string; onChange: (v: string) => void; active: boolean; onSubmit: () => void; isEditMode?: boolean; onGearClick?: () => void; onClose?: () => void; subtitleText?: string; subtitleHighlightColor?: string | null; showSmartRemindersSubtitle?: boolean; reserveSmartRemindersSubtitleSpace?: boolean; showMenuButton?: boolean; showSavedListSubtitleIcon?: boolean; leadingIcon?: ReactNode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState(false);
@@ -95,7 +95,7 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
 
   // Subtitle pulled up 4.25px so the title-baseline to subtitle-cap gap (14.27px) matches the Lists list rows.
   // It overlaps the bottom of the 45px title row (no glyph overlap), so it ignores taps to keep the buttons fully tappable.
-  return (
+  const header = (
     <div className="flex flex-col relative w-full" data-name="header">
       <div className="flex items-center justify-between relative w-full h-[45px] gap-[12px]">
         <div className="flex flex-1 min-w-0 h-[45px] items-center">
@@ -115,7 +115,7 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
               event.currentTarget.blur();
             }}
             placeholder=""
-            className="font-['Lato',sans-serif] not-italic text-[20px] leading-[23px] whitespace-nowrap bg-transparent border-none outline-none w-full min-w-0 p-0 m-0 placeholder-[#bababa] caret-[#1C2C42]"
+            className="font-['Lato',sans-serif] not-italic text-[20px] leading-[23px] whitespace-nowrap overflow-hidden text-ellipsis bg-transparent border-none outline-none w-full min-w-0 p-0 m-0 placeholder-[#bababa] caret-[#1C2C42]"
             style={{ color: textColor, transition: "color 300ms", fontWeight: 700 }}
           />
         </div>
@@ -146,6 +146,18 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
           {showSavedListSubtitleIcon ? <SavedListSubtitleIndicator /> : null}
         </div>
       ) : null}
+    </div>
+  );
+
+  if (!leadingIcon) return header;
+
+  // Leading icon matches the 25px list item circle and 16px gap, so the title and subtitle line up with the item text below
+  return (
+    <div className="flex items-start gap-[16px] relative w-full">
+      <div className="flex h-[45px] shrink-0 items-center">
+        <div className="relative size-[25px]">{leadingIcon}</div>
+      </div>
+      <div className="flex-1 min-w-0">{header}</div>
     </div>
   );
 }

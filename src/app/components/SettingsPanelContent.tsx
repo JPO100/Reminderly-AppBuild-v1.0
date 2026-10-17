@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { ToggleRow, MenuRow, KeyLine } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
@@ -32,13 +32,19 @@ function PanelHeader({ title, onBack }: { title: string; onBack?: () => void }) 
 }
 
 // Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
+// Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged
 function PanelShell({ title, subPage, onBack, subContent, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent : children;
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [mainHeight, setMainHeight] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    if (subPage === null && rootRef.current) setMainHeight(rootRef.current.offsetHeight);
+  });
   return (
-    <div className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0">
+    <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight } : undefined}>
       <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
       {content && (
-        <div className="content-stretch flex flex-col gap-[30px] items-start relative w-full min-h-0 overflow-y-auto">
+        <div className="content-stretch flex flex-col gap-[30px] items-start relative w-full min-h-0 flex-1 overflow-y-auto">
           {content}
         </div>
       )}

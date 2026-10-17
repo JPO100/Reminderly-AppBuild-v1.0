@@ -1406,3 +1406,12 @@ Merged and closed (2026-10-15): CTO approved both branches; John confirmed. fix/
 Branch: feature/templates-page (created from main at 8675c29). Type C under Working Agreement v1.3; CTO agreed the classification and the in-container view switch. John's direct request.
 
 Plan: `docs/plans/templates-page.md`. Product decisions P1-P4 (keep "...", tab label stays "Lists", no transition, update tutorial page 5) follow the CTO recommendations and await John's confirmation. Implementation awaits CTO approval of the plan. No code changed.
+
+Implemented (2026-10-17, CTO approved the plan; John confirmed P1-P4): code commit aecdec3.
+- The templates button switches the Lists content to the List templates page (rendered in place of the filter row and lists; the `isTemplatesPageShown` flag reuses `savedListsPanelOpen` and `restoreSavedListsPanelAfterOverlayClose`). Header 45px: "List templates" (Lato Bold 20, #1C2C42), x button (back to Lists) and the existing "..." (Lists settings). No transition
+- Bottom sheet removed: AnimatePresence wrapper, backdrop, slide, drag handle and `templatesSheetDragControls`. Template rows, empty state and the New template button moved unchanged
+- Lists tab label stays "Lists"
+- The editor return flag is cleared by the logo tick (which also closes templates, so Done lists and templates stay exclusive), both tabs, the saved lists flag turning off, Use as list from the editor, and delete from the editor
+- Tutorial page 5: header row 45px with the blue 45px x; phases unchanged
+
+Test results: Vitest 233/233 passed. Self Check 408/408 passed (Node run). Repo guard passed. Web build succeeded. Web preview (393pt and 375pt): the page matched the visual; x, the templates button, both tabs, "..." and the logo tick behaved as planned; the row tap and Edit template opened the editor with the page underneath, and Save returned to the page; closing New template returned to the page; Use as list from the row menu left templates and opened the new list; delete from the row menu and from the editor; restore from Done lists; the empty state; Create template from list returned to the page via the editor; 12 templates scroll with the button pinned and no horizontal overflow. Tutorial page 5 ran through all phases. Simulator iPhone 17 Pro and iPhone 15 Pro (physical): build, install and launch succeeded; on the simulator the page opened and x returned to Lists. Awaiting CTO review and merge approval.

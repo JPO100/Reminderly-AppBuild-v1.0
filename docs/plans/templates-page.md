@@ -1,6 +1,6 @@
 # Templates panel to page - implementation plan
 
-Status: draft for CTO approval on `feature/templates-page` (2026-10-17). Product decisions P1-P4 follow the CTO recommendations and are awaiting John's confirmation. No code changed.
+Status: CTO approved; P1-P4 confirmed by John. Implemented on `feature/templates-page` (2026-10-17, aecdec3). Not merged.
 
 ## 1. Summary
 

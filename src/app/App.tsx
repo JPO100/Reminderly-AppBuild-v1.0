@@ -475,6 +475,14 @@ function pickDefaultListName(existingTitles: string[]): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+/** Next free "Template N" name, so a new template reads as a template */
+function pickDefaultTemplateName(existingTitles: string[]): string {
+  const used = new Set(existingTitles);
+  let n = 1;
+  while (used.has(`Template ${n}`)) n++;
+  return `Template ${n}`;
+}
+
 // Pure helper: compute next occurrence for a repeating reminder.
 // Always computes relative to the scheduled datetime being completed, never relative to "now".
 function getNextOccurrence(baseDateTime: Date, repeatRule: RepeatRule): Date {
@@ -3862,7 +3870,7 @@ export default function App() {
                 className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
                 style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
                 onClick={() => {
-                  setListTitle(pickDefaultListName(createdLists.map(l => l.title)));
+                  setListTitle(pickDefaultTemplateName(savedLists.map(l => l.title)));
                   setListItems([]);
                   setListOverlayMode('create');
                   setEditingListId(null);
@@ -4886,6 +4894,7 @@ export default function App() {
                       showSmartRemindersSubtitle={!isSavedListCreateOverlay && isSmartRemindersEnabled && listSmartReminders}
                       reserveSmartRemindersSubtitleSpace={!isSavedListCreateOverlay && isSmartRemindersEnabled}
                       showMenuButton={!isSavedListCreateOverlay || isSavedListEditOverlay}
+                      leadingIcon={isSavedListCreateOverlay ? <SavedListTemplateIcon /> : undefined}
                     />
                     <AddListItemInput onAdd={(text: string) => {
                       const newId = crypto.randomUUID();

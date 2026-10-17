@@ -1400,3 +1400,51 @@ Test results: date-presets Vitest 7/7 passed. Web build succeeded. Web preview m
 Pre-merge (2026-10-15): John confirmed the edge-to-edge spacing on his iPhone 15 Pro. Full Vitest 233/233 passed, Self Check 408/408 passed (Node run), repo guard passed. Merge request sent to the CTO for fix/preset-pill-off-colour and feature/date-preset-spacing.
 
 Merged and closed (2026-10-15): CTO approved both branches; John confirmed. fix/preset-pill-off-colour merged into main with --no-ff (merge commit 9aed557), then feature/date-preset-spacing (merge commit fc326ca); no conflicts. Post-merge on main: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded, synced iOS web asset unchanged. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded; simulator check showed "Tomorrow morning" with 10px gaps, tapping it set Date tomorrow and Time 8am with the pill active, tapping again cleared it. Both branches deleted locally and remotely. No TestFlight or App Store release authorised.
+
+### 2026-10-17 (feature/templates-page - templates panel to page)
+
+Branch: feature/templates-page (created from main at 8675c29). Type C under Working Agreement v1.3; CTO agreed the classification and the in-container view switch. John's direct request.
+
+Plan: `docs/plans/templates-page.md`. Product decisions P1-P4 (keep "...", tab label stays "Lists", no transition, update tutorial page 5) follow the CTO recommendations and await John's confirmation. Implementation awaits CTO approval of the plan. No code changed.
+
+Implemented (2026-10-17, CTO approved the plan; John confirmed P1-P4): code commit aecdec3.
+- The templates button switches the Lists content to the List templates page (rendered in place of the filter row and lists; the `isTemplatesPageShown` flag reuses `savedListsPanelOpen` and `restoreSavedListsPanelAfterOverlayClose`). Header 45px: "List templates" (Lato Bold 20, #1C2C42), x button (back to Lists) and the existing "..." (Lists settings). No transition
+- Bottom sheet removed: AnimatePresence wrapper, backdrop, slide, drag handle and `templatesSheetDragControls`. Template rows, empty state and the New template button moved unchanged
+- Lists tab label stays "Lists"
+- The editor return flag is cleared by the logo tick (which also closes templates, so Done lists and templates stay exclusive), both tabs, the saved lists flag turning off, Use as list from the editor, and delete from the editor
+- Tutorial page 5: header row 45px with the blue 45px x; phases unchanged
+
+Test results: Vitest 233/233 passed. Self Check 408/408 passed (Node run). Repo guard passed. Web build succeeded. Web preview (393pt and 375pt): the page matched the visual; x, the templates button, both tabs, "..." and the logo tick behaved as planned; the row tap and Edit template opened the editor with the page underneath, and Save returned to the page; closing New template returned to the page; Use as list from the row menu left templates and opened the new list; delete from the row menu and from the editor; restore from Done lists; the empty state; Create template from list returned to the page via the editor; 12 templates scroll with the button pinned and no horizontal overflow. Tutorial page 5 ran through all phases. Simulator iPhone 17 Pro and iPhone 15 Pro (physical): build, install and launch succeeded; on the simulator the page opened and x returned to Lists. Awaiting CTO review and merge approval.
+
+Onboarding corrections (2026-10-17, CTO request after John's device testing): code commit 6df2bd2. Tutorial only; App.tsx unchanged.
+- Lists row (all lists tutorial pages with templates on): the Templates pill is replaced by the 45px templates icon button (scaled like TutorialSettingsButton) plus the settings button when the settings menu is on, grouped right with 10px-equivalent gaps as in the app. The page 5 throb now targets the icon button
+- Templates view: template titles and icons #1C2C42 (were #4784F8); static row menu dots added (new shared `TutorialRowMenuDots`, also used by the existing tutorial rows with identical output); settings button beside x when the settings menu is on
+- Template menu overlay copy "Use as list" (was "Use a list"), matching the app
+- Observed, not changed (outside the templates scope): the tutorial Lists pill colours (Started purple, Done blue) differ from the app (Started cyan, Done purple); the tutorial row dots do not use the app's 11.5px settings alignment inset; the settings button only appears on the tutorial Lists row when templates are on
+
+Test results: Vitest 233/233 passed. Self Check 408/408 passed (Node run). Repo guard passed. Web build succeeded. Web preview at 375pt: Lists tutorial page 1 header matched the app; page 5 ran all phases in order (templates throb centred on the icon button, templates view 4.0s, row throb 4.7s on the target row, editor 8.1s, menu overlay 11.6s showing "Use as list"); production templates page and x unchanged (App.tsx no diff). Simulator iPhone 17 Pro and iPhone 15 Pro (physical): build, install and launch succeeded. Awaiting CTO review and merge approval.
+
+Onboarding round 3 (2026-10-17, CTO request): tutorial only; App.tsx unchanged.
+- Row menu dots on tutorial reminder, list and template rows use the app's 11.5px inset when the settings menu is on (`TutorialRowMenuDots` alignWithSettingsButton). At 393pt list rows sit within 0.4px of the settings button; template rows match the header "..." exactly
+- Tutorial Lists row shows the settings button whenever the settings menu is on, as in the app
+- Lists page 4 and page 5 menu highlight: the 50px button ring centred on the 45px menu button (was 35px with a +7 offset, about 24px rendered and 4.8px off-centre). Page 4 measured: ring 34.8 centred on the 31.3 button
+- Templates button highlight scaled to the filter row's button scale
+
+Test results: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded. Not separately re-measured: 375pt and the reminders tutorial highlights (unchanged code, ring positions measured from their targets).
+
+Highlight size correction (2026-10-17, John: page 4 ring still barely larger than the button): the Templates ring is restored to its previous 50px on screen. The page 4 and page 5 menu rings now use the same on-screen size (50 / TUTORIAL_REMINDER_LIST_SCALE inside the scaled panel = 50px rendered around the 31.3px button), still centred on the button. Vitest 233/233, Self Check 408/408, repo guard passed, web build succeeded.
+
+Onboarding consistency corrections A-D (2026-10-17, CTO approved after John's clarification). Tutorial only; App.tsx unchanged.
+- A Done colours: tutorial rows being marked done and done rows use the app colours (lists #404040, reminders #3F3F3F) instead of #4784F8
+- B List pills: Todo/Started/Done use the app's LIST_CATEGORY_COLOURS
+- C Highlight circles: two sizes, 35px standard (rows, small controls) and 50px on screen large (45px buttons: templates, settings, add item, list menu, smart reminder tick); lists page 3 row circle centred on its target (fixed -40/+10 offsets removed)
+- D1 Reminder info overlay title and subtitle #1C2C42
+- D2 Re-run page: highlights the Settings button, opens Reminders settings (production RemindersSettingsContent, three rows), highlights the Reminders tutorial option, then stops
+
+Test results: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded. Preview: re-run page at 375pt (tutorial option circle 35px centred on its chevron) and 393pt (settings circle 50px centred on the button); row dots aligned under the settings button.
+
+Settings panel height (2026-10-17, John): the production Reminders and Lists settings panels are 570px tall at 393pt and wider (iPhone 15 Pro and larger), 450px below that (smaller screens still scroll). On the 15 Pro, Reminders settings shows six rows including "Reminders tutorial" without scrolling (six rows need 510px). The centred-overlay max-height cap (screen minus 200px, 652px on the 15 Pro) is unchanged. Vitest 233/233, Self Check 408/408, repo guard passed, build succeeded.
+
+Settings panel height revised (2026-10-17, John): at 393pt and wider the Reminders and Lists settings panels now size to their own rows (h-auto) instead of a fixed 570px, so each adjusts independently when rows are turned on or off (for example the tutorial row). Below 393pt they stay 450px and scroll. The max-height cap is unchanged. Simulator iPhone 17 Pro: Reminders settings fits its five rows with standard padding. Vitest 233/233, repo guard passed, build succeeded.
+
+Settings sub-page height (2026-10-17, John): each settings panel keeps its main page height on its sub-pages (PanelShell records the main page height and applies it while a sub-page is open; taller sub-page content scrolls). Reminders and Lists are independent; when main rows change (for example tutorials off) the next sub-page uses the new height. Web preview: Reminders main, Notifications and Haptic feedback all 414px; Lists main and sub-page both 354px. Vitest 233/233, repo guard passed, build succeeded.

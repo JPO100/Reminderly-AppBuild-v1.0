@@ -1108,6 +1108,7 @@ export default function App() {
     setActiveListFilter('all');
     if (!enabled) {
       setSavedListsPanelOpen(false);
+      setRestoreSavedListsPanelAfterOverlayClose(false);
     }
   }, []);
 
@@ -2041,7 +2042,6 @@ export default function App() {
   const listsSheetDragControls = useDragControls();
   const repeatsSheetDragControls = useDragControls();
   const tutorialSheetDragControls = useDragControls();
-  const templatesSheetDragControls = useDragControls();
 
   const shouldCloseBottomSheetFromDrag = (offsetY: number, velocityY: number) => {
     return offsetY > 120 || velocityY > 600;
@@ -2283,6 +2283,7 @@ export default function App() {
       setTemplateEditorMenuId(null);
       setIsSavedListsOverlayOpen(false);
       setSavedListsPanelOpen(false);
+      setRestoreSavedListsPanelAfterOverlayClose(false);
       setActiveMainTab('lists');
       window.setTimeout(() => {
         openListOverlayForListId(savedListUseFeedback.createdListId);
@@ -2380,6 +2381,8 @@ export default function App() {
   const handleTickClick = () => {
     if (shownMainTab === 'lists') {
       setViewMode((prev) => (prev === 'lists-done' ? 'list' : 'lists-done'));
+      setSavedListsPanelOpen(false);
+      setRestoreSavedListsPanelAfterOverlayClose(false);
     } else {
       setViewMode((prev) => (prev === "list" ? "done-deleted" : "list"));
     }
@@ -3158,6 +3161,9 @@ export default function App() {
     })
     .length;
 
+  // List templates page: shown in place of the Lists content, and kept under the template editor when opened from it
+  const isTemplatesPageShown = shownMainTab === 'lists' && (savedListsPanelOpen || (isSavedListsOverlayOpen && restoreSavedListsPanelAfterOverlayClose));
+
   const visibleDeletedSavedListCount = savedLists
     .filter((list) => (list.status ?? 'active') === 'deleted')
     .filter((list) => doneDeletedFilter !== 'done')
@@ -3509,6 +3515,7 @@ export default function App() {
               setActiveFilter('all');
               setActiveListFilter('all');
               setSavedListsPanelOpen(false);
+              setRestoreSavedListsPanelAfterOverlayClose(false);
               setActiveMainTab('reminders');
             }}
           >
@@ -3533,6 +3540,7 @@ export default function App() {
               setActiveFilter('all');
               setActiveListFilter('all');
               setSavedListsPanelOpen(false);
+              setRestoreSavedListsPanelAfterOverlayClose(false);
               setActiveMainTab('lists');
             } : undefined}
           >
@@ -3542,7 +3550,7 @@ export default function App() {
             <div className="flex flex-row items-center justify-center size-full">
               <div className="content-stretch flex items-center justify-center px-[30px] relative size-full">
                 <div className={`flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] whitespace-nowrap ${activeMainTab === 'lists' ? 'text-[#4784F8]' : 'text-white'}`}>
-                  <p className="leading-[normal]">{viewMode === 'lists-done' ? 'Done lists' : (savedListsPanelOpen || restoreSavedListsPanelAfterOverlayClose) ? 'List templates' : 'Lists'}</p>
+                  <p className="leading-[normal]">{viewMode === 'lists-done' ? 'Done lists' : 'Lists'}</p>
                 </div>
               </div>
             </div>
@@ -3751,6 +3759,134 @@ export default function App() {
                 </div>
               );
             })()
+          ) : isTemplatesPageShown ? (
+            <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0">
+            {/* List templates page header */}
+            <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
+              <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
+                List templates
+              </div>
+              <div className="flex items-center gap-[10px]">
+                <button
+                  type="button"
+                  onClick={() => setSavedListsPanelOpen(false)}
+                  aria-label="Close templates"
+                  className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+                >
+                  <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                    <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                </button>
+                {settingsMenuFeatureEnabled && (
+                  <button
+                    type="button"
+                    onClick={handleHeaderMenuClick}
+                    aria-label="Open lists settings"
+                    className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+                  >
+                    <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                      <circle cx="16" cy="22.5" r="1.75" fill="white"/>
+                      <circle cx="22.5" cy="22.5" r="1.75" fill="white"/>
+                      <circle cx="29" cy="22.5" r="1.75" fill="white"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="relative w-full max-w-[768px] flex-1 min-h-0">
+              <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: savedListsPanelOpen ? 'auto' : 'hidden', height: '100%' }}>
+                {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).length === 0 ? (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
+                    <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
+                      No list templates yet.. get busy!
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-[23px] w-full" style={{ position: 'relative', zIndex: 1 }}>
+                    <AnimatePresence initial={false}>
+                    {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).map((list) => {
+                      const isPendingDeletedSavedList = pendingDeletedSavedListIds.has(list.id);
+                      const deletedSavedListColor = '#898989';
+                      return (
+                      <motion.div
+                        key={list.id}
+                        layout
+                        exit={{ opacity: 0 }}
+                        transition={{ layout: { duration: 0.25 } }}
+                      >
+                      <div className="content-stretch flex items-start justify-between px-px relative w-full">
+                        <div className="flex-[1_0_0] min-h-px min-w-px relative">
+                          <div className="flex flex-row items-start size-full">
+                            <div className="content-stretch flex gap-[16px] items-start pr-[16px] relative w-full min-w-0">
+                              <div className="relative shrink-0 size-[25px]" style={{ marginTop: '3px' }}>
+                                <SavedListTemplateIcon color={isPendingDeletedSavedList ? deletedSavedListColor : undefined} />
+                              </div>
+                              <div className="flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] justify-start min-h-px min-w-0 not-italic overflow-visible relative" style={{ gap: '9px', minHeight: '38px' }}>
+                                <div
+                                  className={`overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer${isPendingDeletedSavedList ? ' line-through' : ''}`}
+                                  style={{ color: isPendingDeletedSavedList ? deletedSavedListColor : '#1C2C42', textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#1C2C42', clipPath: 'inset(0 0 -4px 0)' }}
+                                  onClick={() => openSavedListEditor(list)}
+                                >
+                                  <p style={{ fontSize: '17px', fontWeight: 700, lineHeight: 1, overflow: 'visible', transform: 'translateY(-1px)' }}>
+                                    {list.title}
+                                  </p>
+                                </div>
+                                <div
+                                  className={`flex items-center overflow-visible cursor-pointer${isPendingDeletedSavedList ? ' line-through' : ''} min-w-0`}
+                                  style={{ textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}
+                                  onClick={() => openSavedListEditor(list)}
+                                >
+                                  <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}>
+                                    {list.items.length} {list.items.length === 1 ? 'item' : 'items'}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <RowMenuButton onClick={() => setSavedListMenuId(list.id)} alignWithSettingsButton={settingsMenuFeatureEnabled} />
+                      </div>
+                      </motion.div>
+                    );
+                    })}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
+              <button
+                type="button"
+                className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
+                style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
+                onClick={() => {
+                  setListTitle(pickDefaultListName(createdLists.map(l => l.title)));
+                  setListItems([]);
+                  setListOverlayMode('create');
+                  setEditingListId(null);
+                  setEditingSavedListId(null);
+                  setIsTemplateEditorSort(true);
+                  setListSmartReminders(false);
+                  setListSmartReminderDueDate(null);
+                  setListSmartReminderTime(null);
+                  setRestoreSavedListsPanelAfterOverlayClose(true);
+                  setSavedListsPanelOpen(false);
+                  setIsSavedListsOverlayOpen(true);
+                }}
+              >
+                <div className="relative shrink-0 size-[15px]">
+                  <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+                    <path d={svgPaths.p1e67ad80} fill="white" />
+                  </svg>
+                </div>
+                <div className="font-['Lato',sans-serif] font-bold text-[20px] text-white whitespace-nowrap">
+                  New template
+                </div>
+              </button>
+            </div>
+            </div>
           ) : (
             <>
             <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0">
@@ -4648,164 +4784,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Templates Overlay */}
-      <AnimatePresence>
-        {shownMainTab === 'lists' && (savedListsPanelOpen || (isSavedListsOverlayOpen && restoreSavedListsPanelAfterOverlayClose)) && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={() => setSavedListsPanelOpen(false)}
-              className="fixed inset-0 bg-black/0 z-40"
-              style={{ pointerEvents: savedListsPanelOpen ? 'auto' : 'none' }}
-            />
-
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="fixed left-0 right-0 z-50 mx-auto w-full"
-              style={{ bottom: 0, pointerEvents: savedListsPanelOpen ? 'auto' : 'none' }}
-            >
-              <motion.div
-                drag="y"
-                dragControls={templatesSheetDragControls}
-                dragListener={false}
-                dragConstraints={{ top: 0, bottom: viewportHeight }}
-                dragElastic={0}
-                dragMomentum={false}
-                onDragEnd={(_, info) => {
-                  if (!shouldCloseBottomSheetFromDrag(info.offset.y, info.velocity.y)) return;
-                  setSavedListsPanelOpen(false);
-                }}
-                className="bg-white relative rounded-tl-[15px] rounded-tr-[15px] size-full"
-              >
-                <div
-                  className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
-                  onPointerDown={(event) => templatesSheetDragControls.start(event)}
-                />
-                <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[30px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
-                    <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
-                      <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
-                        Templates
-                      </div>
-                      <button
-                        className="relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center cursor-pointer w-[45px] h-[45px]"
-                        type="button"
-                        onClick={() => setSavedListsPanelOpen(false)}
-                        aria-label="Close templates"
-                      >
-                        <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                          <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0 px-[24px] mt-[24px]">
-                    <div className="relative w-full max-w-[768px] flex-1 min-h-0">
-                      <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: savedListsPanelOpen ? 'auto' : 'hidden', height: '100%' }}>
-                        {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).length === 0 ? (
-                          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
-                            <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
-                              No list templates yet.. get busy!
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col gap-[23px] w-full" style={{ position: 'relative', zIndex: 1 }}>
-                            <AnimatePresence initial={false}>
-                            {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).map((list) => {
-                              const isPendingDeletedSavedList = pendingDeletedSavedListIds.has(list.id);
-                              const deletedSavedListColor = '#898989';
-                              return (
-                              <motion.div
-                                key={list.id}
-                                layout
-                                exit={{ opacity: 0 }}
-                                transition={{ layout: { duration: 0.25 } }}
-                              >
-                              <div className="content-stretch flex items-start justify-between px-px relative w-full">
-                                <div className="flex-[1_0_0] min-h-px min-w-px relative">
-                                  <div className="flex flex-row items-start size-full">
-                                    <div className="content-stretch flex gap-[16px] items-start pr-[16px] relative w-full min-w-0">
-                                      <div className="relative shrink-0 size-[25px]" style={{ marginTop: '3px' }}>
-                                        <SavedListTemplateIcon color={isPendingDeletedSavedList ? deletedSavedListColor : undefined} />
-                                      </div>
-                                      <div className="flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] justify-start min-h-px min-w-0 not-italic overflow-visible relative" style={{ gap: '9px', minHeight: '38px' }}>
-                                        <div
-                                          className={`overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer${isPendingDeletedSavedList ? ' line-through' : ''}`}
-                                          style={{ color: isPendingDeletedSavedList ? deletedSavedListColor : '#1C2C42', textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#1C2C42', clipPath: 'inset(0 0 -4px 0)' }}
-                                          onClick={() => openSavedListEditor(list)}
-                                        >
-                                          <p style={{ fontSize: '17px', fontWeight: 700, lineHeight: 1, overflow: 'visible', transform: 'translateY(-1px)' }}>
-                                            {list.title}
-                                          </p>
-                                        </div>
-                                        <div
-                                          className={`flex items-center overflow-visible cursor-pointer${isPendingDeletedSavedList ? ' line-through' : ''} min-w-0`}
-                                          style={{ textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}
-                                          onClick={() => openSavedListEditor(list)}
-                                        >
-                                          <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}>
-                                            {list.items.length} {list.items.length === 1 ? 'item' : 'items'}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                                <RowMenuButton onClick={() => setSavedListMenuId(list.id)} alignWithSettingsButton={settingsMenuFeatureEnabled} />
-                              </div>
-                              </motion.div>
-                            );
-                            })}
-                            </AnimatePresence>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
-                      <button
-                        type="button"
-                        className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
-                        style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
-                        onClick={() => {
-                          setListTitle(pickDefaultListName(createdLists.map(l => l.title)));
-                          setListItems([]);
-                          setListOverlayMode('create');
-                          setEditingListId(null);
-                          setEditingSavedListId(null);
-                          setIsTemplateEditorSort(true);
-                          setListSmartReminders(false);
-                          setListSmartReminderDueDate(null);
-                          setListSmartReminderTime(null);
-                          setRestoreSavedListsPanelAfterOverlayClose(true);
-                          setSavedListsPanelOpen(false);
-                          setIsSavedListsOverlayOpen(true);
-                        }}
-                      >
-                        <div className="relative shrink-0 size-[15px]">
-                          <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
-                            <path d={svgPaths.p1e67ad80} fill="white" />
-                          </svg>
-                        </div>
-                        <div className="font-['Lato',sans-serif] font-bold text-[20px] text-white whitespace-nowrap">
-                          New template
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
       {/* Lists Overlay */}
       <AnimatePresence>
         {shownMainTab === 'lists' && (isListsOverlayOpen || isSavedListsOverlayOpen) && (() => {
@@ -5301,6 +5279,7 @@ export default function App() {
                         setTemplateEditorMenuId(null);
                       }, () => {
                         setSavedListsPanelOpen(true);
+                        setRestoreSavedListsPanelAfterOverlayClose(false);
                         setIsSavedListsOverlayOpen(false);
                       }, () => {
                         handleSavedListDeleteClick(savedList.id);
@@ -5484,8 +5463,8 @@ export default function App() {
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsRemindersSettingsPanelOpen(false)} />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-              style={{ width: 340, height: 450, overflowY: 'hidden' }}
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none h-[450px] min-[393px]:h-auto"
+              style={{ width: 340, overflowY: 'hidden' }}
               onClick={(e) => e.stopPropagation()}
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
@@ -5532,8 +5511,8 @@ export default function App() {
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsListsSettingsPanelOpen(false)} />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-              style={{ width: 340, height: 450, overflowY: 'hidden' }}
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none h-[450px] min-[393px]:h-auto"
+              style={{ width: 340, overflowY: 'hidden' }}
               onClick={(e) => e.stopPropagation()}
             >
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>

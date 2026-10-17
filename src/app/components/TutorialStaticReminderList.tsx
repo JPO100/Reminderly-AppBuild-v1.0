@@ -15,7 +15,9 @@ const TUTORIAL_RECYCLE_DELAY = 2000;
 const COMPLETION_DELAY = 350;
 const DONE_SEQUENCE_INITIAL_DELAY = 1000;
 const DONE_SEQUENCE_REMOVAL_GAP = 500;
-const DONE_BLUE = "#4784F8";
+// Done colours from the app: lists DONE_LIST_COLOUR, reminders with Lists on
+const DONE_LIST_COLOUR = "#404040";
+const DONE_REMINDER_COLOUR = "#3F3F3F";
 const PAGE_1_BUILD_SEQUENCE_IDS = ["sometime", "later-2", "later", "this-week", "today-2", "today"] as const;
 
 type TutorialReminder = {
@@ -210,6 +212,25 @@ function RepeatReminderIndicator({ color = "#BABABA" }: { color?: string }) {
   );
 }
 
+// Static copy of the app's RowMenuButton dots. Settings menu on: inset from the right so the dots
+// centre on the Settings button's dots, as in the app (22.5 - 10 - 1 = 11.5px in app units)
+export function TutorialRowMenuDots({ menuButtonRef, alignWithSettingsButton = false }: { menuButtonRef?: ((node: HTMLDivElement | null) => void) | null; alignWithSettingsButton?: boolean }) {
+  return (
+    <div
+      className="relative shrink-0 self-stretch w-[20px] flex items-center justify-center"
+      style={{ padding: 0, lineHeight: 0, marginRight: alignWithSettingsButton ? '11.5px' : undefined }}
+      aria-hidden="true"
+      ref={menuButtonRef ?? undefined}
+    >
+      <div className="flex flex-row items-center justify-center gap-[3px]">
+        <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
+        <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
+        <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
+      </div>
+    </div>
+  );
+}
+
 function TutorialStaticReminderRow({
   titleColor = "#1C2C42",
   title,
@@ -221,6 +242,8 @@ function TutorialStaticReminderRow({
   isPendingDone = false,
   showMenuButton = true,
   menuButtonRef,
+  alignMenuWithSettingsButton = false,
+  doneColor = DONE_REMINDER_COLOUR,
 }: {
   titleColor?: string;
   title: string;
@@ -232,10 +255,12 @@ function TutorialStaticReminderRow({
   isPendingDone?: boolean;
   showMenuButton?: boolean;
   menuButtonRef?: ((node: HTMLDivElement | null) => void) | null;
+  alignMenuWithSettingsButton?: boolean;
+  doneColor?: string;
 }) {
   const isPendingAway = isDone || isPendingDone;
-  const effectiveTitleColor = isPendingAway ? DONE_BLUE : titleColor;
-  const subtitleColor = isPendingAway ? DONE_BLUE : "#BABABA";
+  const effectiveTitleColor = isPendingAway ? doneColor : titleColor;
+  const subtitleColor = isPendingAway ? doneColor : "#BABABA";
 
   return (
     <div className="content-stretch flex items-start justify-between px-px relative w-full">
@@ -247,7 +272,7 @@ function TutorialStaticReminderRow({
               style={{ padding: 0, lineHeight: 0, marginTop: "3px" }}
             >
               {isPendingAway ? (
-                <CompletedCircleIcon className="absolute block size-full" color={DONE_BLUE} />
+                <CompletedCircleIcon className="absolute block size-full" color={doneColor} />
               ) : (
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 25 25">
                   <circle cx="12.5" cy="12.5" fill="white" r="11.5" stroke={circleColor} strokeWidth="2" />
@@ -299,20 +324,7 @@ function TutorialStaticReminderRow({
           </div>
         </div>
       </div>
-      {showMenuButton && (
-        <div
-          className="relative shrink-0 self-stretch w-[20px] flex items-center justify-center"
-          style={{ padding: 0, lineHeight: 0 }}
-          aria-hidden="true"
-          ref={menuButtonRef ?? undefined}
-        >
-          <div className="flex flex-row items-center justify-center gap-[3px]">
-            <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
-            <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
-            <span className="block w-[3.5px] h-[3.5px] rounded-full bg-[#BABABA]" />
-          </div>
-        </div>
-      )}
+      {showMenuButton && <TutorialRowMenuDots menuButtonRef={menuButtonRef} alignWithSettingsButton={alignMenuWithSettingsButton} />}
     </div>
   );
 }
@@ -348,7 +360,8 @@ export default function TutorialStaticReminderList({
   prependSmartReminder?: boolean;
   combineLaterSometime?: boolean;
 }) {
-  // Settings menu on: Sometime is presented as Later (yellow, included in the Later filter)
+  // Settings menu on (combineLaterSometime): Sometime is presented as Later (yellow, included in the Later filter)
+  // and row menu dots align with the Settings button, as in the app
   const getCircleColor = (item: TutorialReminder | TutorialList) =>
     combineLaterSometime && "category" in item && item.category === "sometime" ? "#FDB146" : item.circleColor;
   const sequenceIds = mode === "lists" ? PAGE_1_LIST_BUILD_SEQUENCE_IDS : PAGE_1_BUILD_SEQUENCE_IDS;
@@ -647,6 +660,8 @@ export default function TutorialStaticReminderList({
                   circleColor={SMART_REMINDER_CIRCLE_COLOR}
                   showSmartReminderIcon
                   titleColor={insertHighlightId === SMART_REMINDER_ID ? SMART_REMINDER_CIRCLE_COLOR : "#1C2C42"}
+                  alignMenuWithSettingsButton={combineLaterSometime}
+                    doneColor={mode === "lists" ? DONE_LIST_COLOUR : DONE_REMINDER_COLOUR}
                 />
               </motion.div>
             )}
@@ -669,6 +684,8 @@ export default function TutorialStaticReminderList({
                     isPendingDone={isPendingDone}
                     showMenuButton={!isDoneReminder}
                     menuButtonRef={item.id === menuTargetReminderId ? onMenuTargetElementChange ?? null : null}
+                    alignMenuWithSettingsButton={combineLaterSometime}
+                    doneColor={mode === "lists" ? DONE_LIST_COLOUR : DONE_REMINDER_COLOUR}
                   />
                 </div>
               );
@@ -706,6 +723,8 @@ export default function TutorialStaticReminderList({
                     isPendingDone={isPendingDone}
                     showMenuButton={!isDoneReminder}
                     menuButtonRef={item.id === menuTargetReminderId ? onMenuTargetElementChange ?? null : null}
+                    alignMenuWithSettingsButton={combineLaterSometime}
+                    doneColor={mode === "lists" ? DONE_LIST_COLOUR : DONE_REMINDER_COLOUR}
                   />
                 </motion.div>
               );

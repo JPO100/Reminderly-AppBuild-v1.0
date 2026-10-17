@@ -120,11 +120,11 @@ export function TutorialReminderInfoOverlay({ reminder }: { reminder: Reminder }
   return (
     <TutorialMiniOverlayShell>
       <TutorialOverlayCard>
-        <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#4784F8] text-[18px] text-center">
+        <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[18px] text-center">
           <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>{reminder.displayText}</p>
         </div>
         <div className="content-stretch flex items-center justify-center gap-[8px] min-w-full relative shrink-0">
-          <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] min-w-0 not-italic relative shrink text-[15px] text-center max-w-full" style={{ color: "#4784F8" }}>
+          <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] min-w-0 not-italic relative shrink text-[15px] text-center max-w-full" style={{ color: "#1C2C42" }}>
             <p className="leading-[normal] whitespace-nowrap" style={{ fontWeight: 700 }}>{dueLine}</p>
           </div>
         </div>

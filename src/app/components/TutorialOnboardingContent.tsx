@@ -1334,16 +1334,15 @@ function ListsTutorialPlaceholderPage({
                         <div className="absolute inset-0 bg-white" style={{ zIndex: 2 }}>
                           {/* Mirrors production App.tsx line 3938: templates inner column */}
                           <div className="relative flex flex-col gap-[24px] w-full h-full min-h-0 pt-[0px]">
-                            {/* Mirrors production App.tsx line 3939: title row */}
-                            <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[40px]">
+                            {/* Mirrors production App.tsx List templates page header (45px, x button) */}
+                            <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
                               <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
                                 List templates
                               </div>
-                              <div className="relative shrink-0 p-0 m-0 border-none bg-transparent flex items-center justify-center self-center w-[30px] h-[30px]">
-                                <svg className="block shrink-0" width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                  <path d="M11.7528 0.439116C12.3385 -0.146356 13.2882 -0.146389 13.8739 0.439116C14.4596 1.02493 14.4596 1.97537 13.8739 2.56119L9.27819 7.15787L13.8739 11.7536C14.4596 12.3394 14.4596 13.2898 13.8739 13.8756C13.2882 14.4612 12.3385 14.4611 11.7528 13.8756L7.15709 9.27896L2.56041 13.8756C1.97466 14.461 1.02496 14.4612 0.439319 13.8756C-0.14644 13.2898 -0.146439 12.3394 0.439319 11.7536L5.03502 7.15787L0.439319 2.56119C-0.146439 1.97537 -0.14644 1.02493 0.439319 0.439116C1.02496 -0.146462 1.97466 -0.146282 2.56041 0.439116L7.15709 5.0358L11.7528 0.439116Z" fill="#BABABA"/>
-                                </svg>
-                              </div>
+                              <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                                <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                              </svg>
                             </div>
                             {/* Mirrors production App.tsx line 3954: inner scroll container */}
                             <div className="relative w-full max-w-[768px] flex-1 min-h-0">

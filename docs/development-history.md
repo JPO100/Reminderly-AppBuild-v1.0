@@ -1400,3 +1400,9 @@ Test results: date-presets Vitest 7/7 passed. Web build succeeded. Web preview m
 Pre-merge (2026-10-15): John confirmed the edge-to-edge spacing on his iPhone 15 Pro. Full Vitest 233/233 passed, Self Check 408/408 passed (Node run), repo guard passed. Merge request sent to the CTO for fix/preset-pill-off-colour and feature/date-preset-spacing.
 
 Merged and closed (2026-10-15): CTO approved both branches; John confirmed. fix/preset-pill-off-colour merged into main with --no-ff (merge commit 9aed557), then feature/date-preset-spacing (merge commit fc326ca); no conflicts. Post-merge on main: Vitest 233/233, Self Check 408/408 (Node run), repo guard passed, web build succeeded, synced iOS web asset unchanged. Simulator iPhone 17 Pro and iPhone 15 Pro: build, install and launch succeeded; simulator check showed "Tomorrow morning" with 10px gaps, tapping it set Date tomorrow and Time 8am with the pill active, tapping again cleared it. Both branches deleted locally and remotely. No TestFlight or App Store release authorised.
+
+### 2026-10-17 (feature/templates-page - templates panel to page)
+
+Branch: feature/templates-page (created from main at 8675c29). Type C under Working Agreement v1.3; CTO agreed the classification and the in-container view switch. John's direct request.
+
+Plan: `docs/plans/templates-page.md`. Product decisions P1-P4 (keep "...", tab label stays "Lists", no transition, update tutorial page 5) follow the CTO recommendations and await John's confirmation. Implementation awaits CTO approval of the plan. No code changed.

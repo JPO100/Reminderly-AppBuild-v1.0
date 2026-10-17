@@ -1,6 +1,6 @@
 # Onboarding gaps - scope
 
-Status: scope for CTO review on `feature/onboarding-gaps` (2026-10-17). Page breakdown agreed with John. Not implemented.
+Status: scope for CTO review on `feature/onboarding-gaps` (2026-10-17). Page breakdown and NLC page design agreed with John. Not implemented.
 
 ## 1. Summary
 
@@ -54,19 +54,30 @@ Both are animated mocks in the existing pattern: the New reminder button throbs,
 
 ### Type it naturally (NLC active only)
 
-NLC is a major feature when active, so it gets its own page (John, 2026-10-17). When NLC is not active the page is removed from the sequence.
+NLC is a major feature when active, so it gets its own page (John, 2026-10-17). Based on John's original NLC slide design, with the adjustments below agreed on 2026-10-17. When NLC is not active the page is removed from the sequence.
 
-- Title "Type it naturally". Subtitle "Add the date, time or repeat / as you type".
-- NLC active means `isNlcActive` (NLC flag `reminderly-ff-nlc` on and the user's NLC setting on). The flag and the user setting both default off, so tying the page to the flag alone would demo a feature new users have not switched on. Confirm with John (section 9).
-- Example follows the live recognition settings:
+Layout: title, subtitle and the tutorial phone, as on every other page. No header icon (John's original had one; no other page does and space is tight).
 
-| Repeats active and NLC repeats recognition on | Example |
+- Title: "Type it naturally". Not "Smart reminders", which is already the name for list-linked reminders.
+- Subtitle, following the live NLC mode, with the word "blue" shown in blue:
+  - Auto mode (default): "When Reminderly spots a time or date, it / turns the text blue and sets it for you"
+  - Click mode: "When Reminderly spots a time or date, it / turns the text blue - just tap it to set it"
+
+Animation (one example, no repeat variant):
+
+| Step | Phone mock |
 |---|---|
-| Yes | "Water the plants every Sunday at 9am": date, time and repeat highlighted and applied |
-| No | "Pick up the dry cleaning tomorrow at 3pm": date and time highlighted and applied |
+| 1 | New reminder button throbs; the New reminder sheet slides up over the list (existing tutorial phone shell, sheet built from `TutorialSmartReminderSheet`) |
+| 2 | "Take the bins out tonight" typed at 80ms per character; the tick turns blue once there is text, as in the live sheet; "tonight" turns blue when recognised |
+| 3 | Click mode only: throb and tap on "tonight" |
+| 4 | Set date switches on, value "Today" |
+| 5 | Set time switches on, value "9:00 PM" (NLC reads "tonight" as 21:00; live time format) |
+| 6 | Tick throbs, sheet closes, "Take the bins out" inserted in the list with the existing highlight, subtitle "Today at 9:00 PM" in the live format |
+| 7 | 2000ms pause, then repeat |
 
-- If NLC time or date recognition is off, only the recognised parts are highlighted, matching the live editor.
-- NLC mode: auto (default) shows the phrase applied as typed; click mode shows a throb and tap on the highlighted phrase.
+- NLC active means `isNlcActive` (NLC flag `reminderly-ff-nlc` on and the user's NLC setting on). The flag and the user setting both default off, so tying the page to the flag alone would demo a feature new users have not switched on (section 9).
+- The page is also hidden when both NLC date and time recognition are off, since "tonight" would not be recognised. With only one of them on, only that row switches on, matching the live editor.
+- Displayed text after save follows the live normalisation ("tonight" is stripped from the saved title).
 
 ## 4. Never miss a reminder page
 
@@ -110,7 +121,7 @@ Fixing the list at open keeps the dots stable after the user taps Allow.
 ## 6. Files
 
 - `src/app/utils/tutorial-pages.ts` - new page ids (create reminder, type it naturally, notification ask) in the visible sequence; config gains `nlcActive` and `notificationAskEligible`.
-- `src/app/components/OnboardingCreateReminderContent.tsx` - new; shared by the Create a reminder and Type it naturally pages (picker and NLC modes).
+- `src/app/components/OnboardingCreateReminderContent.tsx` - new; shared by the Create a reminder and Type it naturally pages (picker and NLC modes, auto and click).
 - `src/app/components/OnboardingNotificationAskContent.tsx` - new.
 - `src/app/components/TutorialOnboardingContent.tsx` - routing for the new pages; Lists copy.
 - `src/app/components/TutorialOverlay.tsx` - pass through new props.

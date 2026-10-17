@@ -1153,6 +1153,7 @@ function ListsTutorialPlaceholderPage({
                           onClose={() => {}}
                           subtitleText={`${page5EditorItems.length} items`}
                           showMenuButton
+                          leadingIcon={<TutorialSavedListTemplateIcon />}
                         />
                         <AddListItemInput
                           isEmpty={false}

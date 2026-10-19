@@ -3692,7 +3692,7 @@ export default function App() {
                 return (
                   <div className="flex flex-col items-center justify-center flex-1 min-h-0 w-full">
                     <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
-                      {doneDeletedFilter === 'deleted' ? 'No deleted lists yet…' : doneDeletedFilter === 'done' ? 'No done lists yet…' : 'No done or deleted lists yet…'}
+                      {doneDeletedFilter === 'deleted' ? 'No deleted lists yet...' : doneDeletedFilter === 'done' ? 'No done lists yet...' : 'No done or deleted lists yet...'}
                     </p>
                   </div>
                 );
@@ -3812,7 +3812,7 @@ export default function App() {
                 {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).length === 0 ? (
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
                     <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
-                      No list templates yet.. get busy!
+                      No list templates yet... get busy!
                     </p>
                   </div>
                 ) : (
@@ -4093,7 +4093,7 @@ export default function App() {
                     : visibleUnpinnedActiveLists.some(l => getCurrentListCategory(l.items) === activeListFilter);
                   if (!hasVisible) {
                     const emptyMessages: Record<string, string> = {
-                      all: "No lists here yet.. get busy!",
+                      all: "No lists here yet... get busy!",
                       complete: "No fully checked off lists yet",
                       started: "Nothing started here yet",
                       todo: "Nothing 'todo' here!",

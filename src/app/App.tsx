@@ -4574,9 +4574,9 @@ export default function App() {
                 })}
                 </AnimatePresence>
               </div>
-              {/* Calendar day with nothing due (design: reminders-cal-empty.svg, text box 52.75px below the list top) */}
+              {/* Calendar day with nothing due: standard empty state text (17px Lato, #CCCCCC), 52.75px below the list top */}
               {filtered.length === 0 && calendarDayKey && (
-                <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] text-[#BABABA] text-center w-full" style={{ marginTop: 52.75 }}>
+                <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full" style={{ marginTop: 52.75 }}>
                   {calendarDayKey === calendarTodayKey ? "No reminders today... take it easy!" : "No reminders... take it easy!"}
                 </p>
               )}
@@ -4597,7 +4597,7 @@ export default function App() {
                 // Calendar filter views use the same empty text style as a calendar day
                 if (isCalendarActive) {
                   return (
-                    <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] text-[#BABABA] text-center w-full" style={{ marginTop: 52.75 }}>
+                    <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full" style={{ marginTop: 52.75 }}>
                       {emptyMessages[activeFilter]}
                     </p>
                   );

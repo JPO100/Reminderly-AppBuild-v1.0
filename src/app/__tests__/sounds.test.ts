@@ -109,4 +109,22 @@ describe('hapticTap with sounds', () => {
     expect(impact).toHaveBeenCalledTimes(1);
     expect(started).toHaveBeenCalledTimes(1);
   });
+
+  it('template actions follow the Lists switches, on by default from older saved choices', async () => {
+    const lists = await loadHaptics({ 'reminderly-ff-sounds': 'true', 'reminderly-ff-haptics': 'true', 'reminderly-pref-sounds': '{"listsSounds":true}', 'reminderly-pref-haptics': '{"remindersHaptics":false,"listsHaptics":true}' });
+    lists.hapticTap('createTemplate');
+    lists.hapticTap('deleteTemplate');
+    lists.hapticTap('undeleteTemplate');
+    expect(impact).toHaveBeenCalledTimes(3);
+    expect(started).toHaveBeenCalledTimes(3);
+    const remindersOnly = await loadHaptics({ 'reminderly-ff-sounds': 'true', 'reminderly-ff-haptics': 'true', 'reminderly-pref-sounds': '{"remindersSounds":true}', 'reminderly-pref-haptics': '{"remindersHaptics":true,"listsHaptics":false}' });
+    remindersOnly.hapticTap('createTemplate');
+    expect(impact).toHaveBeenCalledTimes(3);
+    expect(started).toHaveBeenCalledTimes(3);
+    const switchOff = await loadHaptics({ 'reminderly-ff-sounds': 'true', 'reminderly-ff-haptics': 'true', 'reminderly-pref-sounds': '{"listsSounds":true,"deleteTemplate":false,"undeleteTemplate":false}', 'reminderly-pref-haptics': '{"listsHaptics":true,"deleteTemplate":false,"undeleteTemplate":false}' });
+    switchOff.hapticTap('deleteTemplate');
+    switchOff.hapticTap('createTemplate');
+    expect(impact).toHaveBeenCalledTimes(4);
+    expect(started).toHaveBeenCalledTimes(4);
+  });
 });

@@ -31,30 +31,52 @@ function PanelHeader({ title, onBack }: { title: string; onBack?: () => void }) 
   );
 }
 
-// The settings cards' 40px bottom padding. Rows that scroll run into it, so the next row shows cut off at the card's edge.
+// The settings cards' 40px bottom padding. Rows that scroll can run into it, up to the card's edge.
 const SCROLL_PEEK = 40;
 
-// Rows with 30px between them. When they do not fit they scroll and run to the bottom edge of the card (clipped by its
-// rounded corners), hinting at more; space after the last row lets it scroll clear of the edge. Rows that fit are unchanged.
-// The extra space and the negative margin cancel out, so the area's size is the same either way.
+// Rows with 30px between them. When they do not fit they scroll, and the area's bottom edge moves so it cuts through the
+// middle of a row (not a divider): the lowest row whose middle falls within the card's bottom padding (clipped by the card), or, when none
+// does, the row above it (the area ends higher). Half a row always shows, as a hard edge. Space after the last row lets it
+// scroll clear, ending 40px above the card's edge as usual. Rows that fit are unchanged.
 function ScrollArea({ children }: { children: ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
-  const [overflows, setOverflows] = useState(false);
+  // How far the bottom edge moves down (negative: up). null while the rows fit.
+  const [cut, setCut] = useState<number | null>(null);
+  const cutRef = useRef<number | null>(null);
   useLayoutEffect(() => {
     const scroll = scrollRef.current;
     const rows = rowsRef.current;
     if (!scroll || !rows) return;
-    const check = () => setOverflows(scroll.scrollHeight > scroll.clientHeight + 1);
-    check();
-    const observer = new ResizeObserver(check);
+    const measure = () => {
+      const current = cutRef.current ?? 0;
+      // Sizes as they would be without the cut, so the result never depends on itself
+      const visible = scroll.clientHeight - current;
+      const content = rows.offsetHeight - Math.max(current, 0);
+      let next: number | null = null;
+      if (content > visible + 1) {
+        next = 0;
+        for (const row of Array.from(rows.children) as HTMLElement[]) {
+          if (row.offsetHeight < 10) continue; // dividers
+          const middle = row.offsetTop + row.offsetHeight / 2 - visible;
+          if (middle > SCROLL_PEEK) break;
+          next = Math.round(middle);
+        }
+      }
+      if (next !== cutRef.current) {
+        cutRef.current = next;
+        setCut(next);
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
     observer.observe(scroll);
     observer.observe(rows);
     return () => observer.disconnect();
   }, []);
   return (
-    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={overflows ? { marginBottom: -SCROLL_PEEK } : undefined}>
-      <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={overflows ? { paddingBottom: SCROLL_PEEK } : undefined}>
+    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={cut !== null ? { marginBottom: -cut } : undefined}>
+      <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={cut !== null && cut > 0 ? { paddingBottom: cut } : undefined}>
         {children}
       </div>
     </div>
@@ -63,8 +85,7 @@ function ScrollArea({ children }: { children: ReactNode }) {
 
 // Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
 // Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged.
-// A sub-page that pins rows above its own ScrollArea sets subScrolls, so the shell does not scroll it as a whole.
-function PanelShell({ title, subPage, onBack, subContent, subScrolls = false, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; subScrolls?: boolean; children: ReactNode }) {
+function PanelShell({ title, subPage, onBack, subContent, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
@@ -74,13 +95,7 @@ function PanelShell({ title, subPage, onBack, subContent, subScrolls = false, ch
   return (
     <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight } : undefined}>
       <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
-      {content && (subPage && subScrolls ? (
-        <div className="content-stretch flex flex-col gap-[30px] items-start relative w-full min-h-0 flex-1">
-          {content}
-        </div>
-      ) : (
-        <ScrollArea>{content}</ScrollArea>
-      ))}
+      {content && <ScrollArea>{content}</ScrollArea>}
     </div>
   );
 }
@@ -104,7 +119,7 @@ function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; o
   );
 }
 
-// Haptic feedback sub-page: the panel's own on/off, pinned at the top, plus its groups, which scroll below it. Groups are always listed (template groups only while templates are available).
+// Haptic feedback sub-page: the panel's own on/off plus its groups, always listed (template groups only while templates are available).
 // Hidden groups keep their saved choices and play no part in the on/off below.
 // Off turns every group off; back on restores the previous choices (all on if none were on).
 // Turning a group on while off turns on only that group and the panel's on/off.
@@ -136,11 +151,9 @@ function HapticSettings({ panel, templatesAvailable = false }: { panel: HapticPa
     <>
       <ToggleRow label="Haptic feedback" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every vibration below off in one go. Turning it back on restores your previous choices." />
       <KeyLine />
-      <ScrollArea>
-        {groups.map(({ label, info, actions }) => (
-          <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
-        ))}
-      </ScrollArea>
+      {groups.map(({ label, info, actions }) => (
+        <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
+      ))}
     </>
   );
 }
@@ -174,11 +187,9 @@ function SoundSettings({ panel, templatesAvailable = false }: { panel: HapticPan
     <>
       <ToggleRow label="Sounds" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every click below off in one go. Turning it back on restores your previous choices." />
       <KeyLine />
-      <ScrollArea>
-        {groups.map(({ label, info, actions }) => (
-          <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
-        ))}
-      </ScrollArea>
+      {groups.map(({ label, info, actions }) => (
+        <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
+      ))}
     </>
   );
 }
@@ -227,7 +238,6 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       title="Reminders settings"
       subPage={subPage}
       onBack={() => setSubPage(null)}
-      subScrolls={subPage === "Haptic feedback" || subPage === "Sounds"}
       subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : subPage === "Sounds" ? <SoundSettings panel="reminders" /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : null}
     >
       {calendarAvailable && <ToggleRow label="Show calendar" isOn={calendarOn} onToggle={() => onCalendarChange(!calendarOn)} infoTitle="Shows a calendar view so you can see your reminders by date." />}
@@ -247,7 +257,7 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
   const [subPage, setSubPage] = useState<string | null>(null);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subScrolls={subPage === "Haptic feedback" || subPage === "Sounds"} subContent={subPage === "Haptic feedback" ? <HapticSettings panel="lists" templatesAvailable={templatesAvailable} /> : subPage === "Sounds" ? <SoundSettings panel="lists" templatesAvailable={templatesAvailable} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Haptic feedback" ? <HapticSettings panel="lists" templatesAvailable={templatesAvailable} /> : subPage === "Sounds" ? <SoundSettings panel="lists" templatesAvailable={templatesAvailable} /> : null}>
       <ToggleRow label="Sort items A to Z" isOn={sortAzOn} onToggle={() => onSortAzChange(!sortAzOn)} infoTitle="Sorts the items in every list alphabetically. When off, items appear in the order you added them, most recent at the top." />
       <ToggleRow label="Clear done lists nightly" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

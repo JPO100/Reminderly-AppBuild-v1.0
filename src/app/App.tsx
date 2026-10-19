@@ -2129,6 +2129,7 @@ export default function App() {
   };
 
   const useSavedList = (list: SavedListTemplate) => {
+    hapticTap('createList');
     const newId = crypto.randomUUID();
     setCreatedLists((prev) => [...prev, {
       id: newId,
@@ -2145,6 +2146,7 @@ export default function App() {
   };
 
   const createTemplateFromListData = useCallback((title: string, items: ListItem[]) => {
+    hapticTap('createTemplate');
     const createdTemplate: SavedListTemplate = {
       id: crypto.randomUUID(),
       title,
@@ -2325,6 +2327,7 @@ export default function App() {
 
   const handleSavedListDeleteClick = (savedListId: string) => {
     if (deleteSavedListTimersRef.current.has(savedListId)) return;
+    hapticTap('deleteTemplate');
 
     setPendingDeletedSavedListIds((prev) => {
       const next = new Set(prev);
@@ -2349,6 +2352,7 @@ export default function App() {
   };
 
   const handleSavedListRestoreClick = (savedListId: string) => {
+    hapticTap('undeleteTemplate');
     setSavedLists((prev) => prev.map((list) => (
       list.id === savedListId ? { ...list, status: 'active', statusChangedAt: null } : list
     )));
@@ -3870,6 +3874,7 @@ export default function App() {
                 className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
                 style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
                 onClick={() => {
+                  hapticTap('createTemplate');
                   setListTitle(pickDefaultTemplateName(savedLists.map(l => l.title)));
                   setListItems([]);
                   setListOverlayMode('create');
@@ -5527,6 +5532,7 @@ export default function App() {
                 <ListsSettingsContent
                   soundsAvailable={soundsFlag}
                   hapticsAvailable={hapticsFlag}
+                  templatesAvailable={savedListsFeatureEnabled}
                   siriAvailable={isSiriListsAvailable}
                   siriOn={listsSettingsSiriOn}
                   onSiriChange={setListsSettingsSiriOn}

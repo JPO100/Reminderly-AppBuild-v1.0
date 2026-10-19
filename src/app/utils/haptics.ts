@@ -15,7 +15,10 @@ export type HapticAction =
   | 'undeleteReminder'
   | 'undoListCompletion'
   | 'toggleListItemCheckbox'
-  | 'swipeRevealDelete';
+  | 'swipeRevealDelete'
+  | 'createTemplate'
+  | 'deleteTemplate'
+  | 'undeleteTemplate';
 
 export type HapticPanel = 'reminders' | 'lists';
 
@@ -47,6 +50,9 @@ const DEFAULT_CONFIG: HapticsConfig = {
   undoListCompletion: true,
   toggleListItemCheckbox: true,
   swipeRevealDelete: true,
+  createTemplate: true,
+  deleteTemplate: true,
+  undeleteTemplate: true,
 };
 
 /**
@@ -100,18 +106,21 @@ export const hapticTap = (action: HapticAction) => {
 /**
  * Haptic switches shown on each settings panel's Haptic feedback page. Each names one user action;
  * related actions follow it (restoring follows completing or deleting, swipe follows deleting).
+ * Template switches (templates: true) show only while templates are available.
  */
-export const HAPTIC_GROUPS: Record<HapticPanel, { label: string; info: string; actions: HapticAction[] }[]> = {
+export const HAPTIC_GROUPS: Record<HapticPanel, { label: string; info: string; actions: HapticAction[]; templates?: boolean }[]> = {
   reminders: [
     { label: 'Creating a reminder', info: 'A small vibration when you tap New reminder or create a reminder.', actions: ['createReminder'] },
     { label: 'Completing a reminder', info: 'A small vibration when you mark a reminder as done, or restore a done reminder.', actions: ['markDone', 'uncompleteReminder'] },
     { label: 'Deleting a reminder', info: 'A small vibration when you delete or restore a reminder, or clear done and deleted reminders.', actions: ['deleteReminder', 'undeleteReminder', 'clearAllDoneDeleted'] },
   ],
   lists: [
-    { label: 'Creating a list', info: 'A small vibration when you tap New list.', actions: ['createList'] },
+    { label: 'Creating a list', info: 'A small vibration when you tap New list or use a template.', actions: ['createList'] },
     { label: 'Ticking off a list item', info: 'A small vibration when you tick or untick a list item.', actions: ['toggleListItemCheckbox'] },
     { label: 'Completing a list', info: 'A small vibration when you mark a list as done, or restore it.', actions: ['markListComplete', 'undoListCompletion'] },
     { label: 'Deleting a list item', info: 'A small vibration when you delete a list item, or swipe to reveal delete.', actions: ['deleteListItem', 'swipeRevealDelete'] },
+    { label: 'Creating a template', info: 'A small vibration when you tap New template or create a template from a list.', actions: ['createTemplate'], templates: true },
+    { label: 'Deleting a template', info: 'A small vibration when you delete or restore a template.', actions: ['deleteTemplate', 'undeleteTemplate'], templates: true },
   ],
 };
 

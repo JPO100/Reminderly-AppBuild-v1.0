@@ -122,7 +122,7 @@ function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; o
 // Haptic feedback sub-page: the panel's own on/off plus its groups, always listed (template groups only while templates are available).
 // Hidden groups keep their saved choices and play no part in the on/off below.
 // Off turns every group off; back on restores the previous choices (all on if none were on).
-// Turning a group on while off turns on only that group and the panel's on/off.
+// While off, the groups are inactive (#D9D9D9, not tappable), as with Notifications sound; on but a group off keeps the usual grey.
 function HapticSettings({ panel, templatesAvailable = false }: { panel: HapticPanel; templatesAvailable?: boolean }) {
   const [config, setConfig] = useState<HapticsConfig>(getHapticsConfig);
   const groups = HAPTIC_GROUPS[panel].filter((group) => templatesAvailable || !group.templates);
@@ -152,7 +152,7 @@ function HapticSettings({ panel, templatesAvailable = false }: { panel: HapticPa
       <ToggleRow label="Haptic feedback" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every vibration below off in one go. Turning it back on restores your previous choices." />
       <KeyLine />
       {groups.map(({ label, info, actions }) => (
-        <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
+        <ToggleRow key={label} label={label} isOn={groupOn(actions)} disabled={!config[masterKey]} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
       ))}
     </>
   );
@@ -188,7 +188,7 @@ function SoundSettings({ panel, templatesAvailable = false }: { panel: HapticPan
       <ToggleRow label="Sounds" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every click below off in one go. Turning it back on restores your previous choices." />
       <KeyLine />
       {groups.map(({ label, info, actions }) => (
-        <ToggleRow key={label} label={label} isOn={groupOn(actions)} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
+        <ToggleRow key={label} label={label} isOn={groupOn(actions)} disabled={!config[masterKey]} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
       ))}
     </>
   );

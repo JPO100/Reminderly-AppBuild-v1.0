@@ -4,6 +4,16 @@ Status: plan, awaiting CTO review. Type C (shared styling across several screens
 Branch: fix/toggle-standard, from feature/list-template-haptics-sounds (1d45a29), which is awaiting merge approval. Rollback is redeploying that branch.
 Requested by John, 2026-10-19.
 
+## Branch position (2026-10-19)
+
+feature/list-template-haptics-sounds: complete and pushed, 8 commits ahead of main (d00588f); main has no new commits, so it merges without conflicts. Awaiting CTO merge approval, then John's confirmation.
+- Lists Haptic feedback and Sounds: Creating a template and Deleting a template switches (shown only while templates are available; new actions default on, no migration). Using a template follows Creating a list. Type B.
+- Settings panels: when rows do not fit, the bottom edge cuts through the middle of a row (hard edge; fades and gradients are off limits). The whole page scrolls, including the main switch. Applies to every settings page.
+- Haptic feedback and Sounds (Reminders and Lists): sub switches inactive (#D9D9D9, not tappable) while the main switch is off, following the Notifications sound pattern.
+- Evidence at 1d45a29: Vitest 234/234, Self Check 408/408 (Node run), repo guard passed, web and iOS builds succeeded, deployed to the simulator and iPhone. John confirmed the scroll cut and inactive sub switches on device. Template haptic and click triggers not yet individually confirmed on device.
+
+fix/toggle-standard: created from 1d45a29, holding this plan only (no source changes). If feature/list-template-haptics-sounds merges first, this branch follows it without conflicts; if it is rejected, this branch is rebased onto main with John's approval.
+
 ## Standard (agreed by John)
 
 Named colours: reminderly blue #4784F8, reminderly dark blue #1C2C42, medium grey #BABABA, inactive grey #D9D9D9.

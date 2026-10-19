@@ -76,8 +76,9 @@ function TutorialOverlayButton({ label, color }: { label: string; color: string 
 }
 
 function TutorialOverlayToggleRow({ title, subtitle, active, icon }: { title: string; subtitle: string; active: boolean; icon: ReactNode }) {
-  const textColor = active ? "#4784F8" : "#d9d9d9";
-  const toggleBg = active ? "#4784F8" : "#d9d9d9";
+  // Matches the live smart reminder row (toggle standard): dark blue title, medium grey subtitle
+  const textColor = "#1C2C42";
+  const toggleBg = active ? "#4784F8" : "#BABABA";
   return (
     <div className="content-stretch flex gap-[16px] items-start justify-center relative shrink-0 w-full">
       {icon}
@@ -85,7 +86,7 @@ function TutorialOverlayToggleRow({ title, subtitle, active, icon }: { title: st
         <div className="flex flex-col justify-start overflow-hidden relative shrink-0 text-[17px] text-ellipsis w-full whitespace-nowrap" style={{ color: textColor }}>
           <p className="leading-[17px] overflow-hidden text-ellipsis" style={{ fontWeight: 700 }}>{title}</p>
         </div>
-        <div className="flex flex-col justify-start relative shrink-0 text-[14px] w-full" style={{ color: active ? "#bababa" : textColor }}>
+        <div className="flex flex-col justify-start relative shrink-0 text-[14px] w-full" style={{ color: "#bababa" }}>
           <p className="leading-[14px]" style={{ fontWeight: 700 }}>{subtitle}</p>
         </div>
       </div>
@@ -154,9 +155,9 @@ export function TutorialListSettingsOverlay() {
               <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">
                   <g>
-                    <path clipRule="evenodd" d={infoOverlaySvgPaths.p23b20a00} fill="#D9D9D9" fillRule="evenodd" />
-                    <path clipRule="evenodd" d={infoOverlaySvgPaths.p15d6fbb2} fill="#D9D9D9" fillRule="evenodd" />
-                    <path clipRule="evenodd" d={infoOverlaySvgPaths.p1797f00} fill="#D9D9D9" fillRule="evenodd" />
+                    <path clipRule="evenodd" d={infoOverlaySvgPaths.p23b20a00} fill="#1C2C42" fillRule="evenodd" />
+                    <path clipRule="evenodd" d={infoOverlaySvgPaths.p15d6fbb2} fill="#1C2C42" fillRule="evenodd" />
+                    <path clipRule="evenodd" d={infoOverlaySvgPaths.p1797f00} fill="#1C2C42" fillRule="evenodd" />
                   </g>
                 </svg>
               </div>
@@ -174,7 +175,7 @@ export function TutorialListSettingsOverlay() {
 }
 
 export function TutorialListSettingsOverlayWithToggle({ smartToggleActive }: { smartToggleActive: boolean }) {
-  const smartIconColor = smartToggleActive ? "#4784F8" : "#d9d9d9";
+  const smartIconColor = "#1C2C42";
   return (
     <TutorialMiniOverlayShell>
       <div className="bg-white relative flex flex-col gap-[33px] items-center justify-start pt-[35px] pb-[35px] px-[32px] rounded-[32px] outline-none">
@@ -209,8 +210,9 @@ export function TutorialListSettingsOverlayWithToggle({ smartToggleActive }: { s
   );
 }
 
-function SmartReminderOptionRow({ label, valueLabel, isOn, iconContent, inactiveColor = "#B7B7B7" }: { label: string; valueLabel?: string; isOn: boolean; iconContent: ReactNode; inactiveColor?: string }) {
-  const color = isOn ? "#4784F8" : inactiveColor;
+// Matches the live Date, Time and Repeats rows (toggle standard): dark blue on and off, inactive grey while unavailable
+function SmartReminderOptionRow({ label, valueLabel, isOn, iconContent, inactive = false }: { label: string; valueLabel?: string; isOn: boolean; iconContent: ReactNode; inactive?: boolean }) {
+  const color = inactive ? "#D9D9D9" : "#1C2C42";
   return (
     <div className="content-stretch flex items-center justify-between gap-[16px] relative shrink-0 w-full">
       <div className="content-stretch flex gap-[16px] items-center relative min-w-0 flex-1">
@@ -222,7 +224,7 @@ function SmartReminderOptionRow({ label, valueLabel, isOn, iconContent, inactive
       </div>
       <div className="h-[30px] relative shrink-0 w-[56px]">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 56 30">
-          <rect fill={isOn ? "#4784F8" : "#D9D9D9"} height="30" rx="15" width="56" />
+          <rect fill={inactive ? "#D9D9D9" : isOn ? "#4784F8" : "#BABABA"} height="30" rx="15" width="56" />
           <circle cx={isOn ? "41" : "15"} cy="15" fill="white" r="11.25" />
         </svg>
       </div>
@@ -262,7 +264,7 @@ export function TutorialSmartReminderSheet({ onTickButtonElementChange }: { onTi
                     <mask fill="white" id="tut-smart-date-mask">
                       <path d={reminderOverlaySvgPaths.p37c4f500} />
                     </mask>
-                    <path d={reminderOverlaySvgPaths.pde59c80} fill="#4784F8" mask="url(#tut-smart-date-mask)" />
+                    <path d={reminderOverlaySvgPaths.pde59c80} fill="#1C2C42" mask="url(#tut-smart-date-mask)" />
                   </svg>
                 </div>
               }
@@ -277,7 +279,7 @@ export function TutorialSmartReminderSheet({ onTickButtonElementChange }: { onTi
                     <mask fill="white" id="tut-smart-time-mask">
                       <path d={reminderOverlaySvgPaths.p37c4f500} />
                     </mask>
-                    <path d={reminderOverlaySvgPaths.pde59c80} fill="#4784F8" mask="url(#tut-smart-time-mask)" />
+                    <path d={reminderOverlaySvgPaths.pde59c80} fill="#1C2C42" mask="url(#tut-smart-time-mask)" />
                   </svg>
                 </div>
               }
@@ -285,7 +287,7 @@ export function TutorialSmartReminderSheet({ onTickButtonElementChange }: { onTi
             <SmartReminderOptionRow
               label="Repeats"
               isOn={false}
-              inactiveColor="#D9D9D9"
+              inactive
               iconContent={
                 <div className="h-[25.071px] relative shrink-0 w-[25px]">
                   <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 25.0003 25.0708">

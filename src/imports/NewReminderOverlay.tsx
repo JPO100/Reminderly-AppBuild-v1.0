@@ -333,7 +333,7 @@ function Header({ isSubmitActive, onSubmit, title }: { isSubmitActive: boolean; 
 }
 
 function IconDetails({ isOn, selectedDate, onLabelClick }: { isOn: boolean; selectedDate: Date | null; onLabelClick?: () => void }) {
-  const color = isOn ? "#1C2C42" : "#B7B7B7";
+  const color = "#1C2C42";
   const dateLabel = isOn ? formatSelectedDate(selectedDate) : null;
   return (
     <div className="content-stretch flex gap-[16px] items-center relative min-w-0 flex-1" data-name="icon-details">
@@ -356,7 +356,7 @@ function IconDetails({ isOn, selectedDate, onLabelClick }: { isOn: boolean; sele
 }
 
 function IconDetails1({ isOn, selectedTime, onLabelClick }: { isOn: boolean; selectedTime: { hour: number; minute: number } | null; onLabelClick?: () => void }) {
-  const color = isOn ? "#1C2C42" : "#B7B7B7";
+  const color = "#1C2C42";
   const timeLabel = isOn ? formatSelectedTime(selectedTime) : null;
   return (
     <div className="content-stretch flex gap-[16px] items-center relative min-w-0 flex-1" data-name="icon-details">
@@ -378,8 +378,9 @@ function IconDetails1({ isOn, selectedTime, onLabelClick }: { isOn: boolean; sel
   );
 }
 
-function IconDetails2({ isOn, repeatConfig, onLabelClick, inactiveColor = "#B7B7B7" }: { isOn: boolean; repeatConfig: RepeatConfig; onLabelClick?: () => void; inactiveColor?: string }) {
-  const color = isOn ? "#1C2C42" : inactiveColor;
+// Toggle standard (docs/plans/toggle-standard.md): dark blue on and off, inactive grey while unavailable
+function IconDetails2({ isOn, repeatConfig, onLabelClick, inactive = false, inactiveColor = "#1C2C42" }: { isOn: boolean; repeatConfig: RepeatConfig; onLabelClick?: () => void; inactive?: boolean; inactiveColor?: string }) {
+  const color = inactive ? "#D9D9D9" : isOn ? "#1C2C42" : inactiveColor;
   const repeatLabel = isOn ? formatRepeatConfig(repeatConfig) : null;
   return (
     <div className="content-stretch flex gap-[16px] items-center relative min-w-0 flex-1" data-name="icon-details">
@@ -400,12 +401,12 @@ function IconDetails2({ isOn, repeatConfig, onLabelClick, inactiveColor = "#B7B7
   );
 }
 
-function ToggleBtn({ isOn, onToggle }: { isOn: boolean; onToggle: () => void }) {
+function ToggleBtn({ isOn, onToggle, inactive = false }: { isOn: boolean; onToggle: () => void; inactive?: boolean }) {
   return (
     <div className="h-[30px] relative shrink-0 w-[56px]" data-name="toggle-btn" onClick={onToggle} style={{ cursor: 'pointer' }}>
       <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 56 30">
         <g id="toggle-btn">
-          <rect fill={isOn ? "#4784F8" : "#D9D9D9"} height="30" rx="15" width="56" />
+          <rect fill={inactive ? "#D9D9D9" : isOn ? "#4784F8" : "#BABABA"} height="30" rx="15" width="56" />
           <circle cx={isOn ? "41" : "15"} cy="15" fill="white" id="btn" r="11.25" style={{ transition: 'cx 0.2s ease' }} />
         </g>
       </svg>
@@ -519,19 +520,21 @@ function SetTime({
   );
 }
 
-function SetRepeatsFrame({ isRepeatsOn, onRepeatsToggle, repeatConfig, onLabelClick, inactiveColor }: { isRepeatsOn: boolean; onRepeatsToggle: () => void; repeatConfig: RepeatConfig; onLabelClick?: () => void; inactiveColor?: string }) {
+function SetRepeatsFrame({ isRepeatsOn, onRepeatsToggle, repeatConfig, onLabelClick, inactive, inactiveColor }: { isRepeatsOn: boolean; onRepeatsToggle: () => void; repeatConfig: RepeatConfig; onLabelClick?: () => void; inactive?: boolean; inactiveColor?: string }) {
   return (
     <div className="content-stretch flex items-center justify-between gap-[16px] relative shrink-0 w-full" data-name="set-repeats-frame">
-      <IconDetails2 isOn={isRepeatsOn} repeatConfig={repeatConfig} onLabelClick={onLabelClick} inactiveColor={inactiveColor} />
-      <ToggleBtn isOn={isRepeatsOn} onToggle={onRepeatsToggle} />
+      <IconDetails2 isOn={isRepeatsOn} repeatConfig={repeatConfig} onLabelClick={onLabelClick} inactive={inactive} inactiveColor={inactiveColor} />
+      <ToggleBtn isOn={isRepeatsOn} onToggle={onRepeatsToggle} inactive={inactive} />
     </div>
   );
 }
 
-function SetRepeats({ isRepeatsOn, onRepeatsToggle, repeatConfig, onLabelClick, disabled, keepFullOpacityWhenDisabled = false, inactiveColor }: { isRepeatsOn: boolean; onRepeatsToggle: () => void; repeatConfig: RepeatConfig; onLabelClick?: () => void; disabled?: boolean; keepFullOpacityWhenDisabled?: boolean; inactiveColor?: string }) {
+// Unavailable (no date or time, or smart reminder mode): inactive grey and not tappable, at full opacity (toggle standard).
+// keepFullOpacityWhenDisabled is kept for its caller; every disabled state is now full opacity.
+function SetRepeats({ isRepeatsOn, onRepeatsToggle, repeatConfig, onLabelClick, disabled, inactiveColor }: { isRepeatsOn: boolean; onRepeatsToggle: () => void; repeatConfig: RepeatConfig; onLabelClick?: () => void; disabled?: boolean; keepFullOpacityWhenDisabled?: boolean; inactiveColor?: string }) {
   return (
-    <div className={`content-stretch flex flex-col items-start relative shrink-0 w-full transition-opacity duration-200 ${disabled ? `${keepFullOpacityWhenDisabled ? '' : 'opacity-30 '}pointer-events-none` : ''}`} data-name="set-repeats">
-      <SetRepeatsFrame isRepeatsOn={isRepeatsOn} onRepeatsToggle={onRepeatsToggle} repeatConfig={repeatConfig} onLabelClick={onLabelClick} inactiveColor={inactiveColor} />
+    <div className={`content-stretch flex flex-col items-start relative shrink-0 w-full ${disabled ? 'pointer-events-none' : ''}`} data-name="set-repeats">
+      <SetRepeatsFrame isRepeatsOn={isRepeatsOn} onRepeatsToggle={onRepeatsToggle} repeatConfig={repeatConfig} onLabelClick={onLabelClick} inactive={disabled} inactiveColor={inactiveColor} />
     </div>
   );
 }

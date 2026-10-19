@@ -5,11 +5,11 @@ import { formatSmartReminderDueByFromDate } from "../app/utils/list-utils";
 
 function SmartRemindersLabel({ active, smartReminderDueDate, smartReminderTime, highlightDueDate, animateFadeOut }: { active: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; highlightDueDate: boolean; animateFadeOut: boolean }) {
   return (
-    <div className={`content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative ${active ? '' : 'text-[#d9d9d9]'}`}>
-      <div className={`flex flex-col justify-start overflow-hidden relative shrink-0 text-[17px] text-ellipsis w-full whitespace-nowrap ${active ? 'text-[#1C2C42]' : ''}`}>
+    <div className={`content-stretch flex flex-[1_0_0] flex-col font-['Lato:Bold',sans-serif] gap-[9px] items-start justify-start leading-[0] min-h-px min-w-px not-italic relative`}>
+      <div className={`flex flex-col justify-start overflow-hidden relative shrink-0 text-[17px] text-ellipsis w-full whitespace-nowrap text-[#1C2C42]`}>
         <p className="leading-[17px] overflow-hidden text-ellipsis" style={{ fontWeight: 700 }}>Set smart reminder</p>
       </div>
-      <div className={`flex flex-col justify-start relative shrink-0 text-[14px] w-full ${active ? 'text-[#bababa]' : ''}`}>
+      <div className={`flex flex-col justify-start relative shrink-0 text-[14px] w-full text-[#bababa]`}>
         <p className="leading-[14px]" style={{ fontWeight: 700, color: active ? (highlightDueDate ? '#1C2C42' : '#BABABA') : undefined, transition: animateFadeOut ? 'color 300ms' : 'none' }}>{formatSmartReminderDueByFromDate(smartReminderDueDate, smartReminderTime)}</p>
       </div>
     </div>
@@ -18,7 +18,7 @@ function SmartRemindersLabel({ active, smartReminderDueDate, smartReminderTime, 
 
 function ToggleButton({ active, onClick }: { active: boolean; onClick: () => void }) {
   return (
-    <button className={`${active ? 'bg-[#4784F8] justify-end' : 'bg-[#d9d9d9]'} content-stretch cursor-pointer flex h-[30px] items-center self-start p-[3.75px] relative rounded-[37.5px] shrink-0 w-[56px]`} onClick={(event) => { event.stopPropagation(); onClick(); }}>
+    <button className={`${active ? 'bg-[#4784F8] justify-end' : 'bg-[#BABABA]'} content-stretch cursor-pointer flex h-[30px] items-center self-start p-[3.75px] relative rounded-[37.5px] shrink-0 w-[56px]`} onClick={(event) => { event.stopPropagation(); onClick(); }}>
       <div className="relative shrink-0 size-[22.5px]">
         <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.5 22.5">
           <circle cx="11.25" cy="11.25" fill="var(--fill-0, white)" r="11.25" />
@@ -58,9 +58,9 @@ function Frame3({ smartReminders, onSmartRemindersChange, showSmartReminders, di
             <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]" data-name="Union">
               <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">
                 <g id="Union">
-                  <path clipRule="evenodd" d={svgPaths.p23b20a00} fill={smartRemindersActive ? '#1C2C42' : '#D9D9D9'} fillRule="evenodd" />
-                  <path clipRule="evenodd" d={svgPaths.p15d6fbb2} fill={smartRemindersActive ? '#1C2C42' : '#D9D9D9'} fillRule="evenodd" />
-                  <path clipRule="evenodd" d={svgPaths.p1797f00} fill={smartRemindersActive ? '#1C2C42' : '#D9D9D9'} fillRule="evenodd" />
+                  <path clipRule="evenodd" d={svgPaths.p23b20a00} fill="#1C2C42" fillRule="evenodd" />
+                  <path clipRule="evenodd" d={svgPaths.p15d6fbb2} fill="#1C2C42" fillRule="evenodd" />
+                  <path clipRule="evenodd" d={svgPaths.p1797f00} fill="#1C2C42" fillRule="evenodd" />
                 </g>
               </svg>
             </div>

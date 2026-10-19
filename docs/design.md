@@ -11,7 +11,7 @@ UI changes follow these conventions and any supplied visual specification (`Clau
 | Name | Value | Use |
 |------|-------|-----|
 | Reminderly blue | `#4784F8` | Primary buttons, active toggles, NLC tokens, tutorial dots, app background behind the panels |
-| App text dark blue | `#1C2C42` | Headings, overlay and sheet titles, reminder titles, settings rows, pinned list circle and icon |
+| App text dark blue (reminderly dark blue) | `#1C2C42` | Headings, overlay and sheet titles, reminder titles, settings rows, pinned list circle and icon |
 | Picker blue | `#0088FE` | Calendar arrows, selected date in the date picker |
 
 ### Reminder categories
@@ -32,12 +32,12 @@ Done `#8168D5`, Started `#60C1E7`, Todo `#939393` (pinned lists show a navy `#1C
 
 | Use | Value |
 |-----|-------|
-| Subtitles, secondary text | `#BABABA` |
+| Subtitles, secondary text, toggle off track (medium grey) | `#BABABA` |
 | Deleted reminder | `#939393` |
 | Deleted list | `#898989` |
 | Done archive pill | `#404040` |
 | Empty state and disabled Clear all | `#CCCCCC` |
-| Inactive pill, disabled border, toggle off, past days | `#D9D9D9` |
+| Inactive pill, disabled border, inactive toggle and its text (inactive grey), past days | `#D9D9D9` |
 | Separator lines, calendar divider | `#EDEDED`, `#E4E4E4` |
 | Light fills | `#F5F5F5`, `#E4E4E4` (active option in Repeats) |
 
@@ -87,7 +87,12 @@ Where a container gap also spaces other content, header spacing is adjusted with
 - Row three-dot button: with the settings menu on, inset 11.5px from the right (`RowMenuButton` `alignWithSettingsButton`) so the dots centre under the header settings button. Applies to Reminders and Lists rows, done/deleted pages and Templates.
 - New reminder / New list button: full width (max 768px), fully rounded, `#4784F8`, 17px white label, 30px side padding, height `clamp(40px, calc(20vh - 73.6px), 60px)`.
 - Header logo: 209.653 x 35.653 SVG wordmark with tick.
-- Toggle: 56 x 30 track, 3.75px inset, 22.5px white knob; `#4784F8` on, `#D9D9D9` off; instant, no transition.
+- Toggle: 56 x 30 track, 3.75px inset, 22.5px white knob; instant, no transition.
+- Toggle standard (2026-10-19, docs/plans/toggle-standard.md), for every toggle including the reminder panel, Dev tools and the tutorial:
+  - On: text and row icon `#1C2C42`, track `#4784F8`.
+  - Off: text and row icon `#1C2C42`, track `#BABABA`.
+  - Inactive (unavailable): text, row icon and track `#D9D9D9`, not tappable.
+  - Subtitles `#BABABA` on and off. Info icons follow the text: normal on and off, `#D9D9D9` only when inactive.
 
 ### Tutorial phone
 
@@ -173,7 +178,7 @@ Toggle rows in centred overlays:
 - Row: full width, `flex gap-[16px] items-start`, whole row tappable; the toggle stops propagation to avoid double firing.
 - Rows wrapper: `flex-col gap-[30px]`.
 - Label block fills the remaining width: title 17px / 17px line height, single line with ellipsis; subtitle 14px / 14px, wraps; 9px between them.
-- On: title and icon `#1C2C42`, subtitle `#BABABA`, track `#4784F8`. Off: all `#D9D9D9`, track `#D9D9D9`. No hover, focus or disabled states.
+- On: title and icon `#1C2C42`, subtitle `#BABABA`, track `#4784F8`. Off: title and icon `#1C2C42`, subtitle `#BABABA`, track `#BABABA` (toggle standard). No hover, focus or disabled states.
 - Left icons: smart reminder bell 19.5 x 21.5 (1px top offset), insertion order 20.83 x 20.82, alphabetical 22.39 x 20.81. Info-line icons: bell 19 x 21, repeats 21 x 21, both `#BABABA`, 8px from text. Copy feedback icon 20 x 20 white, 12px from text.
 - `ToggleButton` and `SmartRemindersLabel` are duplicated identically in `src/imports/InfoOverlay.tsx` and `src/imports/list-info-overlay.tsx`; list info shows only the smart reminder row.
 

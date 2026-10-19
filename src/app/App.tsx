@@ -4574,11 +4574,14 @@ export default function App() {
                 })}
                 </AnimatePresence>
               </div>
-              {/* Calendar day with nothing due: standard empty state text (17px Lato, #CCCCCC), 52.75px below the list top */}
+              {/* Calendar day with nothing due: standard empty state, centred between the date heading and the New reminder button.
+                  The 2.75px top padding offsets the heading's -2.75px bottom margin so both gaps match. */}
               {filtered.length === 0 && calendarDayKey && (
-                <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full" style={{ marginTop: 52.75 }}>
-                  {calendarDayKey === calendarTodayKey ? "No reminders today... take it easy!" : "No reminders... take it easy!"}
-                </p>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0, paddingTop: 2.75 }}>
+                  <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
+                    {calendarDayKey === calendarTodayKey ? "No reminders today... take it easy!" : "No reminders... take it easy!"}
+                  </p>
+                </div>
               )}
               {filtered.length === 0 && !calendarDayKey && (() => {
                 const emptyMessages: Record<ReminderCategory | "all", string> = {
@@ -4594,16 +4597,9 @@ export default function App() {
                   return <div style={{ position: 'absolute', inset: 0, zIndex: 0 }} />;
                 }
                 emptyPlaceholderDelayRef.current = null;
-                // Calendar filter views use the same empty text style as a calendar day
-                if (isCalendarActive) {
-                  return (
-                    <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full" style={{ marginTop: 52.75 }}>
-                      {emptyMessages[activeFilter]}
-                    </p>
-                  );
-                }
+                // With the calendar showing, offset its heading's -2.75px bottom margin so the text sits midway (as for a calendar day)
                 return (
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0, paddingTop: isCalendarActive ? 2.75 : 0 }}>
                     <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
                       {emptyMessages[activeFilter]}
                     </p>

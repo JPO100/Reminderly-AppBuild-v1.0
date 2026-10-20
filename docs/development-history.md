@@ -58,6 +58,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### fix/list-item-edit-background-save
+
+Created: 2026-10-20
+Parent: main (a3eaf08)
+Purpose: Known issue 8 - an open list item edit was lost when the app was closed, because edits commit only on blur or Return and leaving the app does not blur the input. Fix: EditableListItem blurs its focused input on Capacitor appStateChange with isActive false, so the existing blur commit saves the edit (no new persistence logic). visibilitychange was tried first and rejected: it fires only on full backgrounding (about 1-2s after Home) and not before an app-switcher swipe-away, so those edits were still lost. Approved by the CTO
+Verification (simulator): app switcher swipe-away (including about 0.8s after opening the switcher), Home plus 0.5s kill, background and resume, edit near the bottom with the keyboard scroll fix, template editor with A-Z re-sort after a switcher close: all retained. Home plus a synthetic kill within tens of milliseconds still loses the edit; not reachable by a user. Side effect: anything that makes the app inactive (Notification Centre, Control Centre, calls, system alerts) ends the edit and saves it. Vitest 237/237, Self Check 411/411, build successful. List title and unsubmitted new-item text out of scope
+Status: Awaiting CTO review. Not merged
+
 ### fix/list-keyboard-scroll-lock
 
 Created: 2026-10-20

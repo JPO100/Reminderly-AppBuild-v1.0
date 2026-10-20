@@ -17,6 +17,7 @@ import {
   syncSmartReminderForInactiveList,
   resolveListSortMode,
   storageStringToDate,
+  getListSheetTop,
 } from '../utils/list-utils';
 import { SETTINGS_DEFAULTS } from '../settings/keys';
 import { computeBadgeCount } from '../reminder-utils';
@@ -854,6 +855,31 @@ export function getListChecks(): Check[] {
 
         assert(next.length === 1, `Expected one smart reminder added, got ${next.length}`);
         assert(next[0].id === 'smart-new', `Expected smart-new, got ${next[0].id}`);
+      },
+    },
+    {
+      id: 'list-sheet-top-unscrolled',
+      name: 'List sheet top: unchanged when the page is not scrolled',
+      run: () => {
+        const top = getListSheetTop(140.64, 0);
+        assert(top === 140.64, `Expected 140.64, got ${top}`);
+      },
+    },
+    {
+      id: 'list-sheet-top-keyboard-scrolled',
+      name: 'List sheet top: re-render while the keyboard has scrolled the page keeps the sheet in place',
+      run: () => {
+        // Logo measured 403px higher on screen while the iOS keyboard scrolls the page by 403px
+        const top = getListSheetTop(140.64 - 403, 403);
+        assert(top === 140.64, `Expected 140.64, got ${top}`);
+      },
+    },
+    {
+      id: 'list-sheet-top-invalid-scroll',
+      name: 'List sheet top: invalid page scroll is ignored',
+      run: () => {
+        const top = getListSheetTop(140.64, Number.NaN);
+        assert(top === 140.64, `Expected 140.64, got ${top}`);
       },
     },
   ];

@@ -173,6 +173,7 @@ Decided within D1 (2026-10-14): annual subscription at £9, all features free wi
 5. Developer tools reachable in all builds.
 6. Marking a list done removes its linked smart reminder instead of completing it (pre-existing race). Must be fixed before any TestFlight release that includes Clear done lists nightly (CTO, 2026-10-15). Fixed and merged to main (4daa7f5).
 7. Deleting a list removes its linked smart reminder instead of moving it to Deleted (same sync race as issue 6, recorded for future consideration by the CTO, 2026-10-15). Not scheduled.
+8. A list item edit still open (keyboard showing) when the app is closed or killed is lost; edits are saved on blur or Return only. Long-standing behaviour, recorded 2026-10-20. Fix needs approval. The related list editor lock after editing (which forced a restart) is fixed on fix/list-keyboard-scroll-lock, not merged.
 
 Details: [architecture.md](./architecture.md) (Known constraints) and the feature documents.
 
@@ -180,6 +181,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-20 | Known issue 8 recorded: open list item edit lost when the app is closed. List editor lock after editing fixed on fix/list-keyboard-scroll-lock (not merged) |
 | 2026-10-15 | Known issue 6 fixed (smart reminders move to Done with their list, merged 4daa7f5). Known issue 7 recorded: list deletion removes the linked smart reminder |
 | 2026-10-15 | Clear done lists nightly merged to main (9dc03ea). Known issue 6 added: smart reminder sync fix required before a TestFlight release containing it |
 | 2026-10-15 | Notifications Phase 4 complete on feature/notifications-settings (not merged): user notification settings, sound off by default, in-app permission ask, no automatic iOS prompt |

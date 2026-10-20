@@ -104,6 +104,12 @@ export function formatListProgress(doneCount: number, totalCount: number): strin
   return `${doneCount} of ${totalCount}`;
 }
 
+// List sheet top in page coordinates. The anchor is measured on screen, so add the page scroll: the iOS keyboard
+// scrolls the page while an item is edited, and a re-render then must not pin the sheet that far up.
+export function getListSheetTop(screenTop: number, pageScrollY: number): number {
+  return screenTop + (Number.isFinite(pageScrollY) ? pageScrollY : 0);
+}
+
 export function buildSmartReminderText(list: CreatedList): string {
   const total = list.items.length;
   const completed = list.items.filter((item) => item.completed).length;

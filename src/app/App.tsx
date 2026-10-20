@@ -67,6 +67,7 @@ import {
   resolveListSortMode,
   getBlankedLists,
   clearListSmartReminder,
+  getListSheetTop,
 } from "./utils/list-utils";
 import type { ListItem, CreatedList, ListCategory } from "./utils/list-utils";
 
@@ -4836,6 +4837,7 @@ export default function App() {
               setIsListsOverlayOpen(false);
             }
           };
+          const listsSheetTop = getListSheetTop(getBottomSheetTopPosition(), window.scrollY);
           return (
           <>
             {/* Backdrop */}
@@ -4850,8 +4852,8 @@ export default function App() {
             
             {/* Overlay sliding from bottom */}
             <motion.div
-              initial={{ y: "100%", top: getBottomSheetTopPosition() }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
+              initial={{ y: "100%", top: listsSheetTop }}
+              animate={{ y: 0, top: listsSheetTop }}
               exit={{ y: "100%" }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
               className="fixed left-0 right-0 z-50 mx-auto w-full"

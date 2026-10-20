@@ -1,3 +1,4 @@
+import { App as CapacitorApp } from "@capacitor/app";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -98,6 +99,17 @@ export default function EditableListItem({
             document.removeEventListener("pointerdown", handleOutsidePointerDown, true);
         };
     }, [isDeleteRevealed]);
+
+    // Leaving the app does not blur the input, so an open edit would be lost if the app is then closed.
+    // Blur it when the app stops being active (including the app switcher) so the normal blur commit saves it.
+    useEffect(() => {
+        if (!isFocused) return;
+
+        const listener = CapacitorApp.addListener("appStateChange", (state) => {
+            if (!state.isActive) inputRef.current?.blur();
+        });
+        return () => { void listener.then((handle) => handle.remove()); };
+    }, [isFocused]);
 
     useEffect(() => {
         return () => {

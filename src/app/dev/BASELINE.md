@@ -4,7 +4,7 @@ Last updated: 2026-10-20
 
 ## Verified Baseline (2026-10-20, fix/badge-overnight)
 
-- Vitest (`npm run test`): 235 passed, 0 failed (12 files). Midnight badge cases replaced: 7 midnights, counts per midnight, 0 counts skipped, slot priority for reminder notifications, reminder ids below the midnight range, badge and widget counts match. Guard cases removed (they enforced the defect).
+- Vitest (`npm run test`): 235 passed, 0 failed (12 files). Midnight badge cases replaced: 7 midnights, counts per midnight including 0, slot priority for reminder notifications, reminder ids below the midnight range, badge and widget counts match. Guard cases removed (they enforced the defect).
 - Self Check: 408 passed, 0 failed across 11 suites (Node run). Notification and badge: 9 midnight and limit checks replaced by 9 (listed below).
 
 ## Previous baseline (2026-10-15, fix/smart-reminder-list-done, with auto-clear date correction)
@@ -416,7 +416,7 @@ Notification and badge
 ✓ Scheduling limits: reminder ids never fall in the midnight id range
 ✓ Midnight notifications: the next 7 local midnights when the badge is on
 ✓ Midnight notifications: included when every reminder has a time (Include today on)
-✓ Midnight notifications: each carries the count for just after that midnight, 0 counts skipped
+✓ Midnight notifications: all 7 carry the count for just after that midnight, including 0
 ✓ Midnight notifications: excluded when badge is disabled
 ✓ Midnight notifications: silent with empty title and body
 ✓ Badge and widget: Include today count matches the widget outstanding count

@@ -226,11 +226,10 @@ describe('buildScheduledNotifications midnight badge notifications', () => {
     }
   });
 
-  it('skips midnights whose count is 0', () => {
+  it('schedules all 7 midnights, including counts of 0', () => {
     const reminders = [makeReminder({ id: 'later', schedule: { kind: 'scheduled', date: futureDate(3) } })];
     const midnights = buildScheduledNotifications(reminders, true, true).filter(isMidnight);
-    expect(midnights).toHaveLength(5);
-    expect(midnights.every((n) => n.badge === 1)).toBe(true);
+    expect(midnights.map((n) => n.badge)).toEqual([0, 0, 1, 1, 1, 1, 1]);
   });
 
   it('excludes midnight notifications when the badge is off', () => {
@@ -299,10 +298,14 @@ describe('getNextTimeRefreshBoundary', () => {
   });
 });
 
-// Phase 3: an empty reminder list must schedule nothing, including midnight badge notifications.
+// Phase 3: Reminders off clears every notification (clearReminderNotifications, reminders-off-notifications.test.ts).
+// An empty reminder list schedules no reminder notifications; with the badge on, only the 7 midnights at 0.
 describe('reminders off safeguard', () => {
-  it('an empty reminder list builds no notifications', () => {
-    expect(buildScheduledNotifications([], true, true)).toEqual([]);
+  it('an empty reminder list builds no reminder notifications', () => {
+    expect(buildScheduledNotifications([], false, true)).toEqual([]);
+    const result = buildScheduledNotifications([], true, true);
+    expect(result).toHaveLength(7);
+    expect(result.every((n) => isMidnight(n) && n.badge === 0)).toBe(true);
   });
 });
 

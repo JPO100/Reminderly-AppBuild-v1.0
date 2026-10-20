@@ -267,14 +267,15 @@ export function getNotificationChecks(): Check[] {
     },
     {
       id: 'notif-midnight-counts',
-      name: 'Midnight notifications: each carries the count for just after that midnight, 0 counts skipped',
+      name: 'Midnight notifications: all 7 carry the count for just after that midnight, including 0',
       run: () => {
         const reminders = [
           makeReminder({ id: 'later', schedule: { kind: 'scheduled', date: futureDate(3) } }),
           makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: futureDate(5), time: '10:00' } }),
         ];
         const midnights = buildScheduledNotifications(reminders, true, true).filter(isMidnight);
-        assert(midnights.length === 5, `Expected 5 midnights, got ${midnights.length}`);
+        assert(midnights.length === 7, `Expected 7 midnights, got ${midnights.length}`);
+        assert(midnights[0].badge === 0, `Expected badge 0 at the first midnight, got ${midnights[0].badge}`);
         for (const n of midnights) {
           const expected = computeBadgeCount(reminders, true, new Date(n.schedule.at.getTime() + 1));
           assert(n.badge === expected, `Expected badge ${expected}, got ${n.badge}`);

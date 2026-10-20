@@ -16,7 +16,7 @@ Decisions made by John on 2026-10-20, following the read-only badge investigatio
 
 CTO review, 2026-10-20: plan approved. R1, R2 and R3 approved as proposed. Correction: exclude the 7 midnight ids from reminder-generated ids (no new id mechanism). Done by hashing reminder ids modulo 2147483641, so they fall below the midnight range (section 4).
 
-Implementation note: a midnight whose count is 0 is skipped. Counts never fall as time passes with unchanged reminders, so a 0 midnight would change nothing; this also keeps an empty reminder list scheduling nothing.
+CTO implementation review, 2026-10-20: the skip for midnights with a count of 0 (added during implementation) was removed. All 7 midnights are always scheduled while the badge is on, including counts of 0, so the behaviour is deterministic with no extra conditional rule. Reminder notifications keep slot priority.
 
 ## 1. Problem
 

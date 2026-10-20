@@ -74,8 +74,7 @@ const MIDNIGHT_BADGE_DAYS = 7;
 export const MIDNIGHT_BADGE_FIRST_ID = 2147483641;
 
 // Silent badge-only notifications at the next 7 local midnights, so the badge follows day changes
-// while the app is suspended. Badge counts never fall as time passes, so a midnight whose count is 0
-// changes nothing and is skipped.
+// while the app is suspended. All 7 are scheduled, including counts of 0.
 function buildMidnightBadgeNotifications(
     reminders: Reminder[],
     notifIncludeTodayInBadge: boolean,
@@ -86,9 +85,6 @@ function buildMidnightBadgeNotifications(
         midnight.setDate(midnight.getDate() + day);
         midnight.setHours(0, 0, 0, 0);
 
-        const badge = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date(midnight.getTime() + 1));
-        if (badge === 0) continue;
-
         notifications.push({
             id: MIDNIGHT_BADGE_FIRST_ID + day - 1,
             title: "",
@@ -97,7 +93,7 @@ function buildMidnightBadgeNotifications(
             extra: { reminderId: "", badgeDeltaOnAction: 0 },
             actionTypeId: "",
             silent: true,
-            badge,
+            badge: computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date(midnight.getTime() + 1)),
         });
     }
     return notifications;

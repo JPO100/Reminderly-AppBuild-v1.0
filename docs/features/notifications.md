@@ -73,7 +73,7 @@ The refresh tick advances:
 Day changes while the app is closed (a date-only reminder becoming overdue, a reminder becoming due today with "include today" on). The same principle as the lock screen widget: future values are prepared in advance, so the app does not need to open.
 
 - When the badge preference is on, one notification at each of the next 7 local midnights, with the badge computed for just after that midnight.
-- A midnight whose count is 0 is skipped: counts never fall as time passes, so it would change nothing.
+- All 7 are always scheduled, including those with a count of 0, so the behaviour is deterministic.
 - Empty title and body, `silent: true`, no actions, no sound. Ids `2147483641` (next midnight) to `2147483647` (seventh); reminder ids are hashed below this range.
 - Rebuilt on every sync, so the 7 days always run from the last time the app was opened.
 

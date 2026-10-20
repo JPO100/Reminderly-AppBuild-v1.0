@@ -53,6 +53,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### fix/list-keyboard-scroll-lock
+
+Created: 2026-10-20
+Parent: main (7ab6fe5)
+Purpose: Fix the list editor locking with its header, title, close tick and add field off-screen after editing an item low in a long list. Root cause (measured on the simulator): with the keyboard open, iOS shrinks the viewport (874 to 471) and scrolls the page by 403 to reveal the item. Committing the edit re-renders the list sheet, whose top is taken from the logo's on-screen position, so the sheet was pinned 403px higher (140.6px to -262.4px) and stayed there after the keyboard closed. Fix: the list sheet adds the page scroll to that measured position (`getListSheetTop`, list sheet call site only; the shared `getBottomSheetTopPosition` is unchanged). Checks list-sheet-top-* added to list-checks (Vitest and Self Check)
+Persistence finding (no change, approval required): item edits are saved only on blur or Return, as since the list editor was built (3989b32, 2026-04-04). An edit still open when the app is killed is lost. Long-standing behaviour, not a regression
+Status: Awaiting review by the CTO. Not merged
+
 ### docs/rationalisation
 
 Created: 2026-10-12

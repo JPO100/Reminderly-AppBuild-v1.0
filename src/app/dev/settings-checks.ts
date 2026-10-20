@@ -459,11 +459,14 @@ export function getSettingsChecks(): Check[] {
       name: 'Haptics: every action belongs to exactly one switch, on the right panel',
       run: () => {
         const actions = ['markDone', 'createReminder', 'createList', 'markListComplete', 'deleteReminder', 'deleteListItem', 'clearAllDoneDeleted',
-          'uncompleteReminder', 'undeleteReminder', 'undoListCompletion', 'toggleListItemCheckbox', 'swipeRevealDelete'];
+          'uncompleteReminder', 'undeleteReminder', 'undoListCompletion', 'toggleListItemCheckbox', 'swipeRevealDelete',
+          'createTemplate', 'deleteTemplate', 'undeleteTemplate'];
         const grouped = [...HAPTIC_GROUPS.reminders, ...HAPTIC_GROUPS.lists].flatMap((group) => group.actions);
         assert(grouped.length === actions.length && actions.every((action) => grouped.filter((a) => a === action).length === 1), 'Each action should appear in exactly one switch');
         assert(panelForAction('markDone') === 'reminders' && panelForAction('toggleListItemCheckbox') === 'lists', 'Actions should map to their panel');
-        assert(HAPTIC_GROUPS.reminders.length === 3 && HAPTIC_GROUPS.lists.length === 4, 'Reminders should show three switches and Lists four');
+        assert(HAPTIC_GROUPS.reminders.length === 3 && HAPTIC_GROUPS.lists.length === 6, 'Reminders should show three switches and Lists six');
+        assert(panelForAction('createTemplate') === 'lists' && panelForAction('undeleteTemplate') === 'lists', 'Template actions should map to Lists');
+        assert(HAPTIC_GROUPS.lists.filter((group) => group.templates).map((group) => group.label).join() === 'Creating a template,Deleting a template', 'Only the template switches should depend on templates');
       },
     },
     {
@@ -477,6 +480,8 @@ export function getSettingsChecks(): Check[] {
         assert(on.remindersHaptics && on.listsHaptics && !on.toggleListItemCheckbox, 'Original master on should turn both panels on');
         const saved = normaliseHapticsConfig({ allHaptics: true, remindersHaptics: false, listsHaptics: true });
         assert(!saved.remindersHaptics && saved.listsHaptics, 'Saved panel choices should win');
+        const beforeTemplates = normaliseHapticsConfig({ listsHaptics: true, deleteListItem: false });
+        assert(beforeTemplates.createTemplate && beforeTemplates.deleteTemplate && beforeTemplates.undeleteTemplate && !beforeTemplates.deleteListItem, 'Template actions missing from older saved choices should start on');
       },
     },
     {
@@ -502,6 +507,7 @@ export function getSettingsChecks(): Check[] {
           assert(SOUND_GROUPS[panel].length === HAPTIC_GROUPS[panel].length, 'Each panel should show the same number of switches');
           SOUND_GROUPS[panel].forEach((group, i) => {
             assert(group.label === HAPTIC_GROUPS[panel][i].label, 'Switch labels should match haptics');
+            assert(group.templates === HAPTIC_GROUPS[panel][i].templates, 'Template switches should match haptics');
             assert(JSON.stringify(group.actions) === JSON.stringify(HAPTIC_GROUPS[panel][i].actions), 'Switch actions should match haptics');
             assert(group.actions.every((action) => soundPanelForAction(action) === panel), 'Actions should map to their panel');
           });

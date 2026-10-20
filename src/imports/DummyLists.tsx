@@ -120,15 +120,15 @@ export default function DummyLists({ onBack, onClose, onClearLists, onGenerateLi
             <div className="flex items-center gap-[16px]">
               <p
                 className="font-['Lato:Bold',sans-serif] leading-[23px] not-italic text-[17px] whitespace-nowrap"
-                style={{ color: includeDone ? '#1C2C42' : '#C9C9C9' }}
+                style={{ color: '#1C2C42' }}
               >
                 Include done list items
               </p>
-              <InfoIconWithOverlay color={includeDone ? '#939393' : '#D9D9D9'} header="Include done list items" title="When enabled, generated dummy lists will include items marked as done alongside active items. Use this to test how completed items appear within lists and how they affect smart reminder progress counts." />
+              <InfoIconWithOverlay color="#939393" header="Include done list items" title="When enabled, generated dummy lists will include items marked as done alongside active items. Use this to test how completed items appear within lists and how they affect smart reminder progress counts." />
             </div>
             <button
               onClick={() => setIncludeDone(!includeDone)}
-              className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors cursor-pointer ${includeDone ? 'bg-[#4784f8] justify-end' : 'bg-[#C9C9C9] justify-start'}`}
+              className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors cursor-pointer ${includeDone ? 'bg-[#4784f8] justify-end' : 'bg-[#BABABA] justify-start'}`}
             >
               <div className="relative shrink-0 size-[22.5px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.5 22.5">
@@ -141,15 +141,15 @@ export default function DummyLists({ onBack, onClose, onClearLists, onGenerateLi
             <div className="flex items-center gap-[16px]">
               <p
                 className="font-['Lato:Bold',sans-serif] leading-[23px] not-italic text-[17px] whitespace-nowrap"
-                style={{ color: includeSmartReminderLists ? '#1C2C42' : '#C9C9C9' }}
+                style={{ color: '#1C2C42' }}
               >
                 Include smart reminder lists
               </p>
-              <InfoIconWithOverlay color={includeSmartReminderLists ? '#939393' : '#D9D9D9'} header="Include smart reminder lists" title="When enabled, generated dummy lists will include lists that are linked to a smart reminder. This lets you test the smart reminder progress display and list-to-reminder navigation. Requires Smart reminders to be enabled in the Lists page." />
+              <InfoIconWithOverlay color="#939393" header="Include smart reminder lists" title="When enabled, generated dummy lists will include lists that are linked to a smart reminder. This lets you test the smart reminder progress display and list-to-reminder navigation. Requires Smart reminders to be enabled in the Lists page." />
             </div>
             <button
               onClick={() => setIncludeSmartReminderLists(!includeSmartReminderLists)}
-              className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors cursor-pointer ${includeSmartReminderLists ? 'bg-[#4784f8] justify-end' : 'bg-[#C9C9C9] justify-start'}`}
+              className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors cursor-pointer ${includeSmartReminderLists ? 'bg-[#4784f8] justify-end' : 'bg-[#BABABA] justify-start'}`}
             >
               <div className="relative shrink-0 size-[22.5px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.5 22.5">
@@ -162,15 +162,15 @@ export default function DummyLists({ onBack, onClose, onClearLists, onGenerateLi
             <div className="flex items-center gap-[16px]">
               <p
                 className="font-['Lato:Bold',sans-serif] leading-[23px] not-italic text-[17px] whitespace-nowrap"
-                style={{ color: includeSavedLists ? '#1C2C42' : '#C9C9C9' }}
+                style={{ color: '#1C2C42' }}
               >
                 Include List templates
               </p>
-              <InfoIconWithOverlay color={includeSavedLists ? '#939393' : '#D9D9D9'} header="Include List templates" title="When enabled, generated dummy lists will include saved list templates. Use this to test template display and selection in the list creation flow. Requires List templates to be enabled in the Lists page." />
+              <InfoIconWithOverlay color="#939393" header="Include List templates" title="When enabled, generated dummy lists will include saved list templates. Use this to test template display and selection in the list creation flow. Requires List templates to be enabled in the Lists page." />
             </div>
             <button
               onClick={() => setIncludeSavedLists(!includeSavedLists)}
-              className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors cursor-pointer ${includeSavedLists ? 'bg-[#4784f8] justify-end' : 'bg-[#C9C9C9] justify-start'}`}
+              className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors cursor-pointer ${includeSavedLists ? 'bg-[#4784f8] justify-end' : 'bg-[#BABABA] justify-start'}`}
             >
               <div className="relative shrink-0 size-[22.5px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 22.5 22.5">

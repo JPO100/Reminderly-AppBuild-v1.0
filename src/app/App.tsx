@@ -68,6 +68,7 @@ import {
   resolveListSortMode,
   getBlankedLists,
   clearListSmartReminder,
+  getListSheetTop,
 } from "./utils/list-utils";
 import type { ListItem, CreatedList, ListCategory } from "./utils/list-utils";
 
@@ -2173,6 +2174,7 @@ export default function App() {
   };
 
   const useSavedList = (list: SavedListTemplate) => {
+    hapticTap('createList');
     const newId = crypto.randomUUID();
     setCreatedLists((prev) => [...prev, {
       id: newId,
@@ -2189,6 +2191,7 @@ export default function App() {
   };
 
   const createTemplateFromListData = useCallback((title: string, items: ListItem[]) => {
+    hapticTap('createTemplate');
     const createdTemplate: SavedListTemplate = {
       id: crypto.randomUUID(),
       title,
@@ -2369,6 +2372,7 @@ export default function App() {
 
   const handleSavedListDeleteClick = (savedListId: string) => {
     if (deleteSavedListTimersRef.current.has(savedListId)) return;
+    hapticTap('deleteTemplate');
 
     setPendingDeletedSavedListIds((prev) => {
       const next = new Set(prev);
@@ -2393,6 +2397,7 @@ export default function App() {
   };
 
   const handleSavedListRestoreClick = (savedListId: string) => {
+    hapticTap('undeleteTemplate');
     setSavedLists((prev) => prev.map((list) => (
       list.id === savedListId ? { ...list, status: 'active', statusChangedAt: null } : list
     )));
@@ -3732,7 +3737,7 @@ export default function App() {
                 return (
                   <div className="flex flex-col items-center justify-center flex-1 min-h-0 w-full">
                     <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
-                      {doneDeletedFilter === 'deleted' ? 'No deleted lists yet…' : doneDeletedFilter === 'done' ? 'No done lists yet…' : 'No done or deleted lists yet…'}
+                      {doneDeletedFilter === 'deleted' ? 'No deleted lists yet...' : doneDeletedFilter === 'done' ? 'No done lists yet...' : 'No done or deleted lists yet...'}
                     </p>
                   </div>
                 );
@@ -3852,7 +3857,7 @@ export default function App() {
                 {savedLists.filter((list) => (list.status ?? 'active') !== 'deleted' || pendingDeletedSavedListIds.has(list.id)).length === 0 ? (
                   <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
                     <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
-                      No list templates yet.. get busy!
+                      No list templates yet... get busy!
                     </p>
                   </div>
                 ) : (
@@ -3914,6 +3919,7 @@ export default function App() {
                 className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
                 style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
                 onClick={() => {
+                  hapticTap('createTemplate');
                   setListTitle(pickDefaultTemplateName(savedLists.map(l => l.title)));
                   setListItems([]);
                   setListOverlayMode('create');
@@ -4132,7 +4138,7 @@ export default function App() {
                     : visibleUnpinnedActiveLists.some(l => getCurrentListCategory(l.items) === activeListFilter);
                   if (!hasVisible) {
                     const emptyMessages: Record<string, string> = {
-                      all: "No lists here yet.. get busy!",
+                      all: "No lists here yet... get busy!",
                       complete: "No fully checked off lists yet",
                       started: "Nothing started here yet",
                       todo: "Nothing 'todo' here!",
@@ -4613,11 +4619,14 @@ export default function App() {
                 })}
                 </AnimatePresence>
               </div>
-              {/* Calendar day with nothing due (design: reminders-cal-empty.svg, text box 52.75px below the list top) */}
+              {/* Calendar day with nothing due: standard empty state, centred between the date heading and the New reminder button.
+                  The 2.75px top padding offsets the heading's -2.75px bottom margin so both gaps match. */}
               {filtered.length === 0 && calendarDayKey && (
-                <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] text-[#BABABA] text-center w-full" style={{ marginTop: 52.75 }}>
-                  {calendarDayKey === calendarTodayKey ? "No reminders today... take it easy!" : "No reminders... take it easy!"}
-                </p>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0, paddingTop: 2.75 }}>
+                  <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
+                    {calendarDayKey === calendarTodayKey ? "No reminders today... take it easy!" : "No reminders... take it easy!"}
+                  </p>
+                </div>
               )}
               {filtered.length === 0 && !calendarDayKey && (() => {
                 const emptyMessages: Record<ReminderCategory | "all", string> = {
@@ -4633,16 +4642,9 @@ export default function App() {
                   return <div style={{ position: 'absolute', inset: 0, zIndex: 0 }} />;
                 }
                 emptyPlaceholderDelayRef.current = null;
-                // Calendar filter views use the same empty text style as a calendar day
-                if (isCalendarActive) {
-                  return (
-                    <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] text-[#BABABA] text-center w-full" style={{ marginTop: 52.75 }}>
-                      {emptyMessages[activeFilter]}
-                    </p>
-                  );
-                }
+                // With the calendar showing, offset its heading's -2.75px bottom margin so the text sits midway (as for a calendar day)
                 return (
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0 }}>
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 0, paddingTop: isCalendarActive ? 2.75 : 0 }}>
                     <p className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC]">
                       {emptyMessages[activeFilter]}
                     </p>
@@ -4879,6 +4881,7 @@ export default function App() {
               setIsListsOverlayOpen(false);
             }
           };
+          const listsSheetTop = getListSheetTop(getBottomSheetTopPosition(), window.scrollY);
           return (
           <>
             {/* Backdrop */}
@@ -4893,8 +4896,8 @@ export default function App() {
             
             {/* Overlay sliding from bottom */}
             <motion.div
-              initial={{ y: "100%", top: getBottomSheetTopPosition() }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
+              initial={{ y: "100%", top: listsSheetTop }}
+              animate={{ y: 0, top: listsSheetTop }}
               exit={{ y: "100%" }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
               className="fixed left-0 right-0 z-50 mx-auto w-full"
@@ -5571,6 +5574,7 @@ export default function App() {
                 <ListsSettingsContent
                   soundsAvailable={soundsFlag}
                   hapticsAvailable={hapticsFlag}
+                  templatesAvailable={savedListsFeatureEnabled}
                   siriAvailable={isSiriListsAvailable}
                   siriOn={listsSettingsSiriOn}
                   onSiriChange={setListsSettingsSiriOn}

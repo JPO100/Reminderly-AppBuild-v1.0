@@ -118,7 +118,7 @@ function DevToggle({ isOn, onToggle, disabled }: { isOn: boolean; onToggle: () =
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); if (!disabled) onToggle(); }}
-      className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors ${disabled ? 'bg-[#D9D9D9] justify-start' : (isOn ? 'bg-[#4784f8] justify-end' : 'bg-[#C9C9C9] justify-start')}`}
+      className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors ${disabled ? 'bg-[#D9D9D9] justify-start' : (isOn ? 'bg-[#4784f8] justify-end' : 'bg-[#BABABA] justify-start')}`}
       style={{ cursor: disabled ? 'default' : 'pointer' }}
     >
       <div className="relative shrink-0 size-[22.5px]">
@@ -145,8 +145,8 @@ export function DevToggleRow({ label, isOn, onToggle, disabled, infoHeader, info
   return (
     <div className="flex h-[60px] items-center gap-[20px] px-[20px] w-full">
       <DevToggle isOn={isOn} onToggle={onToggle} disabled={disabled} />
-      <p className={devRowLabelClass} style={{ color: disabled ? '#D9D9D9' : (isOn ? '#1C2C42' : '#C9C9C9') }}>{label}</p>
-      {infoTitle && <InfoIconWithOverlay color={disabled || !isOn ? '#D9D9D9' : undefined} header={infoHeader || label} title={infoTitle} />}
+      <p className={devRowLabelClass} style={{ color: disabled ? '#D9D9D9' : '#1C2C42' }}>{label}</p>
+      {infoTitle && <InfoIconWithOverlay color={disabled ? '#D9D9D9' : undefined} header={infoHeader || label} title={infoTitle} />}
     </div>
   );
 }
@@ -156,8 +156,8 @@ export function DevNavToggleRow({ label, isOn, onToggle, onClick }: { label: str
   return (
     <button type="button" onClick={onClick} className="flex h-[60px] items-center gap-[20px] px-[20px] w-full cursor-pointer">
       <DevToggle isOn={isOn} onToggle={onToggle} />
-      <p className={devRowLabelClass} style={{ color: isOn ? '#1C2C42' : '#D9D9D9' }}>{label}</p>
-      <DevChevron muted={!isOn} />
+      <p className={devRowLabelClass} style={{ color: '#1C2C42' }}>{label}</p>
+      <DevChevron />
     </button>
   );
 }
@@ -233,15 +233,15 @@ export function ToggleRow({ label, isOn, onToggle, disabled, infoHeader, infoTit
       <div className="flex items-center gap-[16px]">
         <p
           className="font-['Lato:Bold',sans-serif] leading-[23px] not-italic text-[17px] whitespace-nowrap"
-          style={{ color: disabled ? '#D9D9D9' : (isOn ? '#1C2C42' : '#C9C9C9') }}
+          style={{ color: disabled ? '#D9D9D9' : '#1C2C42' }}
         >
           {label}
         </p>
-        <InfoIconWithOverlay color={disabled || !isOn ? '#D9D9D9' : undefined} header={infoHeader || label} title={infoTitle || ''} />
+        <InfoIconWithOverlay color={disabled ? '#D9D9D9' : undefined} header={infoHeader || label} title={infoTitle || ''} />
       </div>
       <button
         onClick={() => { if (!disabled) onToggle(); }}
-        className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors ${disabled ? 'bg-[#D9D9D9] justify-start' : (isOn ? 'bg-[#4784f8] justify-end' : 'bg-[#C9C9C9] justify-start')}`}
+        className={`flex h-[30px] items-center p-[3.75px] rounded-[37.5px] shrink-0 w-[56px] transition-colors ${disabled ? 'bg-[#D9D9D9] justify-start' : (isOn ? 'bg-[#4784f8] justify-end' : 'bg-[#BABABA] justify-start')}`}
         style={{ cursor: disabled ? 'default' : 'pointer' }}
       >
         <div className="relative shrink-0 size-[22.5px]">

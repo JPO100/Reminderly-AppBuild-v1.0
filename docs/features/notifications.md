@@ -6,7 +6,7 @@ Protected area (see `Claude.md`). Local notifications for timed reminders, the a
 
 Implemented:
 
-- Local notifications for future, timed reminders, with badge payloads and a silent midnight badge notification.
+- Local notifications for future, timed reminders, with badge payloads, and silent badge notifications at the next 7 midnights.
 - In-app badge, refreshed on change, on resume and at time boundaries.
 - Notification actions Mark as done and Move to tomorrow, with native badge correction.
 - Tap to open the reminder.
@@ -38,7 +38,7 @@ There is no separate notification store; everything is derived from the reminder
 
 | Field | Value |
 |-------|-------|
-| `id` | Deterministic number hashed from the reminder id |
+| `id` | Deterministic number hashed from the reminder id, always below `MIDNIGHT_BADGE_FIRST_ID` (2147483641) |
 | `title` | `Reminderly` |
 | `body` | `reminder.displayText` |
 | `schedule.at` | Local date and time as a `Date` |
@@ -50,9 +50,9 @@ There is no separate notification store; everything is derived from the reminder
 
 | Alerts | Badge | Scheduled |
 |---|---|---|
-| On | On | Alerts carrying badge numbers, plus the midnight badge notification |
+| On | On | Alerts carrying badge numbers, plus the midnight badge notifications |
 | On | Off | Alerts with no badge number |
-| Off | On | Silent badge-only notifications at the same times (empty title and body, `silent: true`, no actions, no sound), plus the midnight one |
+| Off | On | Silent badge-only notifications at the same times (empty title and body, `silent: true`, no actions, no sound), plus the midnight ones |
 | Off | Off | Nothing |
 
 Badge-only notifications use the same selection and the same 64 limit as alerts.
@@ -68,16 +68,22 @@ The refresh tick advances:
 - at the next boundary from `getNextTimeRefreshBoundary` (midnight, or the next timed reminder today becoming overdue), polled at most every 30s;
 - on resume (`visibilitychange` and `appStateChange`), deduplicated within 500ms.
 
-## Silent midnight badge notification
+## Silent midnight badge notifications
 
-Handles the day boundary while the app is closed (for example a date-only reminder becoming overdue).
+Day changes while the app is closed (a date-only reminder becoming overdue, a reminder becoming due today with "include today" on). The same principle as the lock screen widget: future values are prepared in advance, so the app does not need to open.
 
-- Scheduled only when the badge preference is on and at least one active date-only scheduled reminder exists.
-- Empty title and body, `silent: true`, fixed id `2147483647`, badge computed for just after midnight.
+- When the badge preference is on, one notification at each of the next 7 local midnights, with the badge computed for just after that midnight.
+- All 7 are always scheduled, including those with a count of 0, so the behaviour is deterministic.
+- Empty title and body, `silent: true`, no actions, no sound. Ids `2147483641` (next midnight) to `2147483647` (seventh); reminder ids are hashed below this range.
+- Rebuilt on every sync, so the 7 days always run from the last time the app was opened.
 
 ## Scheduling limit
 
-iOS allows 64 pending notifications per app. Timed reminders are sorted by fire time and the first 64 are scheduled, or 63 when the midnight notification is needed. Later reminders get no notification until a later sync.
+iOS allows 64 pending notifications per app. Reminder notifications (alerts or badge-only) take the slots first: sorted by fire time, the first 64 are scheduled. Midnight badge notifications only use the slots left, earliest midnight first, so they never displace a reminder notification. With 58 or more upcoming timed reminders some or all midnights are dropped; each reminder notification still carries the full count when it fires. Later reminders get no notification until a later sync.
+
+## Badge and widget counts
+
+With "include today" on, the badge counts the same reminders as the lock screen widget's outstanding count (not done, not deleted, scheduled, due today or overdue). With it off, the badge counts overdue reminders only. A Vitest and Self Check case asserts the match.
 
 ## Sync
 
@@ -111,8 +117,10 @@ Registered as category `reminder-actions`:
 
 Actions taken from the lock screen without opening the app:
 
-- The patched native handler reduces the icon badge by `badgeDeltaOnAction` and reschedules every pending notification with its badge reduced by the same amount.
+- The patched native handler reduces the icon badge by `badgeDeltaOnAction` and reschedules every pending notification (including the midnight ones) with its badge reduced by the same amount.
 - The reminder itself changes when the app next opens, through the pending action hand-off below.
+
+Known limitation: the native handler cannot see reminder data, so later badges stay 1 lower when the reminder counts again. Move to tomorrow: the moved reminder comes due again (from midnight with "include today" on, or when it becomes overdue) but is not counted. Mark as done on a repeating reminder: the next occurrence is not counted. Each further action from a notification adds the same gap. Opening the app recalculates the badge and resyncs every notification. Accepted by the CTO (2026-10-20); an exact cut-off passed from the app is deferred.
 
 ## Tap and action hand-off
 
@@ -124,15 +132,15 @@ Actions taken from the lock screen without opening the app:
 
 ## Closed-app behaviour and limits
 
-- The icon badge updates when a notification fires, when a notification action is taken, and at midnight (when date-only reminders exist). Full reconciliation happens when the app next opens.
+- The icon badge updates when a notification fires, when a notification action is taken, and at each of the next 7 midnights. Full reconciliation happens when the app next opens.
 - The badge is not updated continuously; only at those moments.
-- The midnight notification covers one day boundary. A longer gap is corrected when the app is opened.
+- The midnight notifications cover 7 day boundaries from the last time the app was opened. A longer gap is corrected when the app is opened.
+- Badge counts in pending notifications reflect the reminders at the last sync (see the known limitation under Actions).
 - Beyond 64 pending notifications, later reminders are not notified until a later sync.
 
 ## Keys and events
 
 - `localStorage`: `reminderly.pendingNotificationReminderId`, `reminderly.pendingNotificationAction`
-- `UserDefaults`: `reminderly.nativeBadgeCount`
 - `window` event: `reminderly:notification-tap`
 - Preferences: `reminderly-pref-notif-alerts`, `reminderly-pref-notif-sound`, `reminderly-pref-notif-badge`, `reminderly-pref-notif-include-today`; flag `reminderly-ff-notifications` (Dev tools > Reminders > Features)
 - Ask state: `reminderly-notif-ask-state`

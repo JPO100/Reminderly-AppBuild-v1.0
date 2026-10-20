@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Reminder } from '../reminder-utils';
-import { computeBadgeCount, getNextTimeRefreshBoundary } from '../reminder-utils';
-import { buildScheduledNotifications } from '../notifications';
+import { computeBadgeCount, getNextTimeRefreshBoundary, getTodayProgress } from '../reminder-utils';
+import { MIDNIGHT_BADGE_FIRST_ID, buildScheduledNotifications } from '../notifications';
 import { getNotificationChecks } from '../dev/notification-checks';
 
 function makeReminder(overrides: Partial<Reminder> = {}): Reminder {
@@ -151,115 +151,122 @@ describe('buildScheduledNotifications badgeDeltaOnAction', () => {
   });
 });
 
+const isMidnight = (n: { id: number }) => n.id >= MIDNIGHT_BADGE_FIRST_ID;
+
+function manyTimedReminders(count: number): Reminder[] {
+  const reminders: Reminder[] = [];
+  for (let i = 0; i < count; i++) {
+    const date = futureDate(Math.floor(i / 24) + 1);
+    const hour = String(i % 24).padStart(2, '0');
+    reminders.push(makeReminder({
+      id: `r-${i}`,
+      displayText: `Reminder ${i}`,
+      schedule: { kind: 'scheduled', date, time: `${hour}:00` },
+    }));
+  }
+  return reminders;
+}
+
 describe('buildScheduledNotifications scheduling limits', () => {
-  it('limits to 64 notifications when no midnight notification needed', () => {
-    const reminders: Reminder[] = [];
-    for (let i = 0; i < 70; i++) {
-      const date = futureDate(Math.floor(i / 24) + 1);
-      const hour = String(i % 24).padStart(2, '0');
-      reminders.push(makeReminder({
-        id: `r-${i}`,
-        displayText: `Reminder ${i}`,
-        schedule: { kind: 'scheduled', date, time: `${hour}:00` },
-      }));
-    }
-    const result = buildScheduledNotifications(reminders, true, false);
+  it('64 or more timed reminders take every slot, with no midnight notifications', () => {
+    const result = buildScheduledNotifications(manyTimedReminders(70), true, false);
     expect(result.length).toBe(64);
     expect(result.every((n) => n.title === 'Reminderly')).toBe(true);
+    expect(result.some(isMidnight)).toBe(false);
   });
 
-  it('limits to 63 reminder notifications plus midnight when date-only reminder exists', () => {
-    const reminders: Reminder[] = [
-      makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+  it('midnight notifications only use slots left by reminder notifications, earliest first', () => {
+    const reminders = [
+      makeReminder({ id: 'overdue', schedule: { kind: 'scheduled', date: yesterdayDate() } }),
+      ...manyTimedReminders(60),
     ];
-    for (let i = 0; i < 70; i++) {
-      const date = futureDate(Math.floor(i / 24) + 1);
-      const hour = String(i % 24).padStart(2, '0');
-      reminders.push(makeReminder({
-        id: `r-${i}`,
-        displayText: `Reminder ${i}`,
-        schedule: { kind: 'scheduled', date, time: `${hour}:00` },
-      }));
-    }
     const result = buildScheduledNotifications(reminders, true, false);
-    const midnightNotif = result.find((n) => n.id === 2147483647);
-    const reminderNotifs = result.filter((n) => n.id !== 2147483647);
-    expect(midnightNotif).toBeDefined();
-    expect(reminderNotifs.length).toBe(63);
-    expect(result.length).toBe(64);
+    const midnights = result.filter(isMidnight);
+    expect(result.filter((n) => !isMidnight(n)).length).toBe(60);
+    expect(midnights.map((n) => n.id)).toEqual([0, 1, 2, 3].map((d) => MIDNIGHT_BADGE_FIRST_ID + d));
+  });
+
+  it('reminder ids never fall in the midnight id range', () => {
+    const result = buildScheduledNotifications(manyTimedReminders(64), false, false);
+    expect(result.every((n) => n.id < MIDNIGHT_BADGE_FIRST_ID)).toBe(true);
   });
 });
 
-describe('buildScheduledNotifications midnight badge notification', () => {
-  it('includes midnight notification when active date-only reminder exists', () => {
+describe('buildScheduledNotifications midnight badge notifications', () => {
+  it('schedules the next 7 local midnights when the badge is on', () => {
+    const reminders = [makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } })];
+    const midnights = buildScheduledNotifications(reminders, true, false).filter(isMidnight);
+    expect(midnights).toHaveLength(7);
+    midnights.forEach((n, i) => {
+      const expected = new Date();
+      expected.setDate(expected.getDate() + i + 1);
+      expected.setHours(0, 0, 0, 0);
+      expect(n.schedule.at.getTime()).toBe(expected.getTime());
+      expect(n.id).toBe(MIDNIGHT_BADGE_FIRST_ID + i);
+    });
+  });
+
+  it('includes midnights when every reminder has a time (Include today on)', () => {
+    const reminders = [makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } })];
+    const midnights = buildScheduledNotifications(reminders, true, true).filter(isMidnight);
+    expect(midnights).toHaveLength(7);
+    expect(midnights[0].badge).toBe(1);
+  });
+
+  it('each midnight carries the count for just after that midnight', () => {
     const reminders = [
       makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
+      makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: futureDate(2), time: '10:00' } }),
+      makeReminder({ id: 'later', schedule: { kind: 'scheduled', date: futureDate(4) } }),
     ];
-    const result = buildScheduledNotifications(reminders, true, false);
-    const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight).toBeDefined();
-  });
-
-  it('excludes midnight notification when all reminders have times', () => {
-    const reminders = [
-      makeReminder({ id: 'timed', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '10:00' } }),
-    ];
-    const result = buildScheduledNotifications(reminders, true, false);
-    const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight).toBeUndefined();
-  });
-
-  it('excludes midnight notification when badge is disabled', () => {
-    const reminders = [
-      makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
-    ];
-    const result = buildScheduledNotifications(reminders, false, false);
-    const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight).toBeUndefined();
-  });
-
-  it('midnight notification has empty title and body', () => {
-    const reminders = [
-      makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } }),
-    ];
-    const result = buildScheduledNotifications(reminders, true, false);
-    const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight!.title).toBe('');
-    expect(midnight!.body).toBe('');
-  });
-
-  it('excludes completed date-only reminders from midnight guard', () => {
-    const reminders = [
-      makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() }, completedAt: Date.now() }),
-    ];
-    const result = buildScheduledNotifications(reminders, true, false);
-    const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight).toBeUndefined();
-  });
-
-  it('excludes deleted date-only reminders from midnight guard', () => {
-    const reminders = [
-      makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() }, deletedAt: Date.now() }),
-    ];
-    const result = buildScheduledNotifications(reminders, true, false);
-    const midnight = result.find((n) => n.id === 2147483647);
-    expect(midnight).toBeUndefined();
-  });
-
-  it('gives all 64 slots to reminder notifications when no midnight notification needed', () => {
-    const reminders: Reminder[] = [];
-    for (let i = 0; i < 70; i++) {
-      const date = futureDate(Math.floor(i / 24) + 1);
-      const hour = String(i % 24).padStart(2, '0');
-      reminders.push(makeReminder({
-        id: `r-${i}`,
-        displayText: `Reminder ${i}`,
-        schedule: { kind: 'scheduled', date, time: `${hour}:00` },
-      }));
+    for (const includeToday of [false, true]) {
+      for (const n of buildScheduledNotifications(reminders, true, includeToday).filter(isMidnight)) {
+        expect(n.badge).toBe(computeBadgeCount(reminders, includeToday, new Date(n.schedule.at.getTime() + 1)));
+      }
     }
-    const result = buildScheduledNotifications(reminders, true, false);
-    expect(result.length).toBe(64);
-    expect(result.find((n) => n.id === 2147483647)).toBeUndefined();
+  });
+
+  it('schedules all 7 midnights, including counts of 0', () => {
+    const reminders = [makeReminder({ id: 'later', schedule: { kind: 'scheduled', date: futureDate(3) } })];
+    const midnights = buildScheduledNotifications(reminders, true, true).filter(isMidnight);
+    expect(midnights.map((n) => n.badge)).toEqual([0, 0, 1, 1, 1, 1, 1]);
+  });
+
+  it('excludes midnight notifications when the badge is off', () => {
+    const reminders = [makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } })];
+    expect(buildScheduledNotifications(reminders, false, false).some(isMidnight)).toBe(false);
+  });
+
+  it('midnight notifications are silent with empty title and body and no actions', () => {
+    const reminders = [makeReminder({ id: 'date-only', schedule: { kind: 'scheduled', date: todayDate() } })];
+    for (const n of buildScheduledNotifications(reminders, true, false).filter(isMidnight)) {
+      expect(n.title).toBe('');
+      expect(n.body).toBe('');
+      expect(n.silent).toBe(true);
+      expect(n.actionTypeId).toBe('');
+      expect(n.sound).toBeUndefined();
+    }
+  });
+});
+
+// Lock screen widget and badge count the same reminders when Include today is on
+describe('badge and widget counts', () => {
+  it('computeBadgeCount with Include today matches getTodayProgress outstanding', () => {
+    const now = new Date();
+    now.setHours(12, 0, 0, 0);
+    const reminders = [
+      makeReminder({ id: 'overdue-date', schedule: { kind: 'scheduled', date: yesterdayDate() } }),
+      makeReminder({ id: 'overdue-timed', schedule: { kind: 'scheduled', date: yesterdayDate(), time: '18:00' } }),
+      makeReminder({ id: 'today-date', schedule: { kind: 'scheduled', date: todayDate() } }),
+      makeReminder({ id: 'today-past', schedule: { kind: 'scheduled', date: todayDate(), time: '09:00' } }),
+      makeReminder({ id: 'today-future', schedule: { kind: 'scheduled', date: todayDate(), time: '18:00' } }),
+      makeReminder({ id: 'tomorrow', schedule: { kind: 'scheduled', date: tomorrowDate(), time: '09:00' } }),
+      makeReminder({ id: 'sometime', schedule: { kind: 'sometime' } }),
+      makeReminder({ id: 'done', schedule: { kind: 'scheduled', date: todayDate() }, completedAt: now.getTime() }),
+      makeReminder({ id: 'deleted', schedule: { kind: 'scheduled', date: yesterdayDate() }, deletedAt: now.getTime() }),
+    ];
+    expect(computeBadgeCount(reminders, true, now)).toBe(getTodayProgress(reminders, now).outstanding);
+    expect(computeBadgeCount(reminders, true, now)).toBe(5);
   });
 });
 
@@ -291,17 +298,19 @@ describe('getNextTimeRefreshBoundary', () => {
   });
 });
 
-// Phase 3: with Reminders off the app syncs an empty list, which must schedule nothing
-// (the sync then cancels every pending Reminderly notification, including the midnight badge one).
+// Phase 3: Reminders off clears every notification (clearReminderNotifications, reminders-off-notifications.test.ts).
+// An empty reminder list schedules no reminder notifications; with the badge on, only the 7 midnights at 0.
 describe('reminders off safeguard', () => {
-  it('an empty reminder list builds no notifications', () => {
-    expect(buildScheduledNotifications([], true, true)).toEqual([]);
+  it('an empty reminder list builds no reminder notifications', () => {
+    expect(buildScheduledNotifications([], false, true)).toEqual([]);
+    const result = buildScheduledNotifications([], true, true);
+    expect(result).toHaveLength(7);
+    expect(result.every((n) => isMidnight(n) && n.badge === 0)).toBe(true);
   });
 });
 
 // Phase 4: alerts and badge independent (spec 7.4, plan section 5), sound on alerts only (plan section 3).
 describe('Phase 4 alerts, badge and sound', () => {
-  const MIDNIGHT_ID = 2147483647;
   const timed = (id: string, days: number, time = '10:00') =>
     makeReminder({ id, displayText: id, schedule: { kind: 'scheduled', date: futureDate(days), time } });
   const mixed = () => [
@@ -327,24 +336,24 @@ describe('Phase 4 alerts, badge and sound', () => {
 
   it('alerts on, badge on: alerts carry badge numbers, plus midnight', () => {
     const result = buildScheduledNotifications(mixed(), true, false, true, false);
-    const alerts = result.filter((n) => n.id !== MIDNIGHT_ID);
+    const alerts = result.filter((n) => !isMidnight(n));
     expect(alerts).toHaveLength(2);
     expect(alerts.every((n) => n.title === 'Reminderly' && n.actionTypeId === 'reminder-actions')).toBe(true);
     expect(alerts.every((n) => n.badge > 0)).toBe(true);
-    expect(result.some((n) => n.id === MIDNIGHT_ID)).toBe(true);
+    expect(result.some((n) => isMidnight(n))).toBe(true);
   });
 
   it('alerts on, badge off: alerts with no badge number and no midnight', () => {
     const result = buildScheduledNotifications(mixed(), false, false, true, false);
     expect(result).toHaveLength(2);
     expect(result.every((n) => n.title === 'Reminderly' && n.badge === 0)).toBe(true);
-    expect(result.some((n) => n.id === MIDNIGHT_ID)).toBe(false);
+    expect(result.some((n) => isMidnight(n))).toBe(false);
   });
 
   it('alerts off, badge on: silent badge-only notifications at reminder times, plus midnight', () => {
     const reminders = mixed();
     const result = buildScheduledNotifications(reminders, true, false, false, true);
-    const badgeOnly = result.filter((n) => n.id !== MIDNIGHT_ID);
+    const badgeOnly = result.filter((n) => !isMidnight(n));
     expect(badgeOnly).toHaveLength(2);
     for (const n of badgeOnly) {
       expect(n.title).toBe('');
@@ -355,7 +364,7 @@ describe('Phase 4 alerts, badge and sound', () => {
       expect(n.extra).toEqual({ reminderId: '', badgeDeltaOnAction: 0 });
       expect(n.badge).toBe(computeBadgeCount(reminders, false, new Date(n.schedule.at.getTime() + 1)));
     }
-    expect(result.some((n) => n.id === MIDNIGHT_ID)).toBe(true);
+    expect(result.some((n) => isMidnight(n))).toBe(true);
   });
 
   it('badge-only notifications match alert ids and times', () => {
@@ -371,9 +380,9 @@ describe('Phase 4 alerts, badge and sound', () => {
 
   it('sound on adds the default sound to alerts only', () => {
     const result = buildScheduledNotifications(mixed(), true, false, true, true);
-    const alerts = result.filter((n) => n.id !== MIDNIGHT_ID);
+    const alerts = result.filter((n) => !isMidnight(n));
     expect(alerts.every((n) => n.sound === 'default')).toBe(true);
-    expect(result.find((n) => n.id === MIDNIGHT_ID)?.sound).toBeUndefined();
+    expect(result.find((n) => isMidnight(n))?.sound).toBeUndefined();
   });
 
   it('sound off leaves alerts without a sound', () => {
@@ -384,14 +393,13 @@ describe('Phase 4 alerts, badge and sound', () => {
   it('badge-only stays within 64 with no date-only reminder', () => {
     const result = buildScheduledNotifications(manyTimed(false), true, false, false, false);
     expect(result).toHaveLength(64);
-    expect(result.every((n) => n.silent === true && n.title === '')).toBe(true);
+    expect(result.every((n) => n.silent === true && n.title === '' && !isMidnight(n))).toBe(true);
   });
 
-  it('badge-only stays within 64 with the midnight slot reserved', () => {
+  it('badge-only gives reminder notifications priority over midnights', () => {
     const result = buildScheduledNotifications(manyTimed(true), true, false, false, false);
     expect(result).toHaveLength(64);
-    expect(result.filter((n) => n.id !== MIDNIGHT_ID)).toHaveLength(63);
-    expect(result.some((n) => n.id === MIDNIGHT_ID)).toBe(true);
+    expect(result.some(isMidnight)).toBe(false);
   });
 
   it('badge-only never schedules more than alerts', () => {

@@ -13,7 +13,12 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of fix/tutorial-first-launch (2026-10-14)
+Tip: merge of fix/list-keyboard-scroll-lock (2026-10-20)
+
+Merge - 2026-10-20: List editor keyboard scroll lock fix
+- Merge commit of fix/list-keyboard-scroll-lock (dd88b6d) into main (7ab6fe5) as ac17400, --no-ff, after CTO approval and John's confirmation. No conflicts
+- Verification on main: Vitest 237/237, Self Check 411/411, production build successful. Simulator verified by John; physical iPhone validation follows when the deployment hold lifts
+- Known issue 8 (open list item edit lost on app close) kept open and separate; no persistence changes
 
 Merge - 2026-10-14: Tutorial first-launch fix (D9 / F9)
 - Merge commit of fix/tutorial-first-launch (ce86ac7) into main (60bb9a8). No conflicts
@@ -59,7 +64,7 @@ Created: 2026-10-20
 Parent: main (7ab6fe5)
 Purpose: Fix the list editor locking with its header, title, close tick and add field off-screen after editing an item low in a long list. Root cause (measured on the simulator): with the keyboard open, iOS shrinks the viewport (874 to 471) and scrolls the page by 403 to reveal the item. Committing the edit re-renders the list sheet, whose top is taken from the logo's on-screen position, so the sheet was pinned 403px higher (140.6px to -262.4px) and stayed there after the keyboard closed. Fix: the list sheet adds the page scroll to that measured position (`getListSheetTop`, list sheet call site only; the shared `getBottomSheetTopPosition` is unchanged). Checks list-sheet-top-* added to list-checks (Vitest and Self Check)
 Persistence finding (no change, approval required): item edits are saved only on blur or Return, as since the list editor was built (3989b32, 2026-04-04). An edit still open when the app is killed is lost. Long-standing behaviour, not a regression
-Status: Awaiting review by the CTO. Not merged
+Status: Merged into main (merge commit ac17400, branch head dd88b6d, 2026-10-20). Pushed to origin and retained
 
 ### docs/rationalisation
 

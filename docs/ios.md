@@ -57,8 +57,9 @@ Scheduling, badge logic and the tap flow are described in [features/notification
 
 - `LocalNotificationsPlugin.swift`, `makeNotificationContent`: sets `content.badge` from the JS payload, so the icon badge updates when a notification fires, even with the app closed.
 - `LocalNotificationsHandler.swift`:
-  - `willPresent`: stores the delivered badge in `UserDefaults` (`reminderly.nativeBadgeCount`).
-  - `didReceive`: for `mark-done` or `move-tomorrow`, reads `badgeDeltaOnAction` from the notification's `cap_extra`. If above 0, `correctBadgeAfterAction` decrements the icon badge (not below 0) and stores it, and `reschedulePendingBadges` re-adds every pending notification with its badge reduced by the same delta (under `beginBackgroundTask`).
+  - `didReceive`: for `mark-done` or `move-tomorrow`, reads `badgeDeltaOnAction` from the notification's `cap_extra`. If above 0, `correctBadgeAfterAction` decrements the icon badge (not below 0), and `reschedulePendingBadges` re-adds every pending notification with its badge reduced by the same delta (under `beginBackgroundTask`).
+
+Badge plugin (`@capawesome/capacitor-badge`): `persist` is off in `capacitor.config.json`, so the plugin no longer restores the last value the app set when it loads (including background launches), which could overwrite a badge delivered by a notification.
 
 The badge correction affects counts only. The reminder change itself (done, moved, next repeat) happens in the web app when it next opens.
 

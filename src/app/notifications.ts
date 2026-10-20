@@ -69,42 +69,38 @@ function getNotificationSignature(notification: {
 }
 
 const MAX_SCHEDULED_NOTIFICATIONS = 64;
-const MIDNIGHT_BADGE_NOTIFICATION_ID = 2147483647;
+const MIDNIGHT_BADGE_DAYS = 7;
+// Ids 2147483641-2147483647 are the midnight badge notifications. Reminder ids are hashed below this.
+export const MIDNIGHT_BADGE_FIRST_ID = 2147483641;
 
-function hasActiveDateOnlyReminder(reminders: Reminder[]): boolean {
-    return reminders.some((r) =>
-        r.completedAt == null &&
-        r.deletedAt == null &&
-        r.schedule.kind === "scheduled" &&
-        !r.schedule.time
-    );
-}
-
-function buildMidnightBadgeNotification(
+// Silent badge-only notifications at the next 7 local midnights, so the badge follows day changes
+// while the app is suspended. Badge counts never fall as time passes, so a midnight whose count is 0
+// changes nothing and is skipped.
+function buildMidnightBadgeNotifications(
     reminders: Reminder[],
-    notifAppBadge: boolean,
     notifIncludeTodayInBadge: boolean,
-): ScheduledNotificationPayload | null {
-    if (!notifAppBadge) return null;
-    if (!hasActiveDateOnlyReminder(reminders)) return null;
+): ScheduledNotificationPayload[] {
+    const notifications: ScheduledNotificationPayload[] = [];
+    for (let day = 1; day <= MIDNIGHT_BADGE_DAYS; day++) {
+        const midnight = new Date();
+        midnight.setDate(midnight.getDate() + day);
+        midnight.setHours(0, 0, 0, 0);
 
-    const now = new Date();
-    const midnight = new Date(now);
-    midnight.setDate(midnight.getDate() + 1);
-    midnight.setHours(0, 0, 0, 0);
+        const badge = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date(midnight.getTime() + 1));
+        if (badge === 0) continue;
 
-    const badge = computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date(midnight.getTime() + 1));
-
-    return {
-        id: MIDNIGHT_BADGE_NOTIFICATION_ID,
-        title: "",
-        body: "",
-        schedule: { at: midnight },
-        extra: { reminderId: "", badgeDeltaOnAction: 0 },
-        actionTypeId: "",
-        silent: true,
-        badge,
-    };
+        notifications.push({
+            id: MIDNIGHT_BADGE_FIRST_ID + day - 1,
+            title: "",
+            body: "",
+            schedule: { at: midnight },
+            extra: { reminderId: "", badgeDeltaOnAction: 0 },
+            actionTypeId: "",
+            silent: true,
+            badge,
+        });
+    }
+    return notifications;
 }
 
 // Alerts and badge are independent (docs/settings-flags-spec.md 7.4). Alerts off with badge on
@@ -118,9 +114,6 @@ export function buildScheduledNotifications(
     notifSound = false,
 ): ScheduledNotificationPayload[] {
     if (!notifAlerts && !notifAppBadge) return [];
-
-    const midnightNotification = buildMidnightBadgeNotification(reminders, notifAppBadge, notifIncludeTodayInBadge);
-    const reservedSlots = midnightNotification ? 1 : 0;
 
     const notifications = reminders
         .filter((reminder) => {
@@ -141,7 +134,7 @@ export function buildScheduledNotifications(
             const at = new Date(year, month - 1, day, hour, minute, 0, 0);
 
             const notificationId = Array.from(reminder.id).reduce(
-                (acc, char) => ((acc * 31) + char.charCodeAt(0)) % 2147483647,
+                (acc, char) => ((acc * 31) + char.charCodeAt(0)) % MIDNIGHT_BADGE_FIRST_ID,
                 1
             );
 
@@ -176,11 +169,13 @@ export function buildScheduledNotifications(
             };
         });
 
+    // Reminder notifications take the 64 iOS slots first; midnight badge notifications only use what is left
     notifications.sort((a, b) => a.schedule.at.getTime() - b.schedule.at.getTime());
-    const result = notifications.slice(0, MAX_SCHEDULED_NOTIFICATIONS - reservedSlots);
+    const result = notifications.slice(0, MAX_SCHEDULED_NOTIFICATIONS);
 
-    if (midnightNotification) {
-        result.push(midnightNotification);
+    if (notifAppBadge) {
+        const freeSlots = MAX_SCHEDULED_NOTIFICATIONS - result.length;
+        result.push(...buildMidnightBadgeNotifications(reminders, notifIncludeTodayInBadge).slice(0, freeSlots));
     }
 
     return result;

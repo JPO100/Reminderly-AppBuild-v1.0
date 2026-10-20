@@ -1,6 +1,6 @@
 # Badge overnight repair - plan
 
-Status: awaiting CTO plan review. No code changed.
+Status: implemented (2026-10-20) on `fix/badge-overnight`. Awaiting John's iPhone validation across two consecutive midnights, then CTO merge approval.
 
 Type C under Working Agreement v1.3 (protected areas: notification scheduling, badge counts, date handling). Branch `fix/badge-overnight` from `main` at 7ab6fe5.
 
@@ -13,6 +13,10 @@ Decisions made by John on 2026-10-20, following the read-only badge investigatio
 - D3 Keep the existing native correction after notification actions. The exact cut-off enhancement is deferred.
 - D4 The widget's one-day limit stays out of scope (separate follow-up if wanted).
 - D5 Tests and documentation updated to the corrected behaviour.
+
+CTO review, 2026-10-20: plan approved. R1, R2 and R3 approved as proposed. Correction: exclude the 7 midnight ids from reminder-generated ids (no new id mechanism). Done by hashing reminder ids modulo 2147483641, so they fall below the midnight range (section 4).
+
+Implementation note: a midnight whose count is 0 is skipped. Counts never fall as time passes with unchanged reminders, so a 0 midnight would change nothing; this also keeps an empty reminder list scheduling nothing.
 
 ## 1. Problem
 
@@ -69,7 +73,7 @@ New rule: timed reminder notifications are chosen first (earliest first, up to 6
 - 64 or more: no midnight notifications. The badge still updates each time a reminder notification fires (each one carries the full count, including date-only reminders that have become overdue). Day changes between notifications are picked up at the next notification or the next time the app is opened.
 - Unchanged: reminders beyond the 64 earliest get no notification until the next sync (every app open), as today.
 
-Id collision: reminder ids are a hash in 0 to 2147483646. The 6 new midnight ids from 2147483641 to 2147483646 overlap that range. The chance of a clash is about 6 in 2.1 billion per reminder; accepted, noted in the docs.
+Ids: reminder ids are hashed modulo 2147483641 (was 2147483647), so they are always below the midnight range 2147483641 to 2147483647 and cannot clash. Existing reminder notification ids change once; the first sync after the update cancels and reschedules them, as it does for any change.
 
 ## 5. Counting rules (badge and widget)
 

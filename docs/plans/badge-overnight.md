@@ -1,6 +1,6 @@
 # Badge overnight repair - plan
 
-Status: implemented (2026-10-20) on `fix/badge-overnight`. Awaiting John's iPhone validation across two consecutive midnights, then CTO merge approval.
+Status: implemented and merged into main (edcdc18, 2026-10-20). Physical iPhone validation across two consecutive midnights outstanding; any problem is fixed on a new branch from main.
 
 Type C under Working Agreement v1.3 (protected areas: notification scheduling, badge counts, date handling). Branch `fix/badge-overnight` from `main` at 7ab6fe5.
 

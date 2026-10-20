@@ -13,7 +13,14 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of fix/list-keyboard-scroll-lock (2026-10-20)
+Tip: merge of fix/badge-overnight (2026-10-20)
+
+Merge - 2026-10-20: Consolidation (known issue 8 fix and badge overnight repair)
+- Merge commit of fix/list-item-edit-background-save (f8ff91a) into main (a3eaf08) as a368cad, --no-ff. No conflicts
+- Merge commit of fix/badge-overnight (fdaf97e) into main (a368cad) as edcdc18, --no-ff. Only conflict: generated ios/App/App/public/index.html, resolved by patch-package, vite build and cap copy ios from the merged source
+- Verification on main: Vitest 238/238, Self Check 411/411 (Node run), production build successful, native simulator build installed and launched. CTO consolidation approval; John confirmed
+- Outstanding: badge two-midnight physical iPhone validation; any problem goes to a new fix branch from main. Physical iPhone checks of both list fixes follow when the deployment hold lifts. No TestFlight or release changes
+- feature/onboarding-gaps parked unchanged for separate review. Merged fix branches deleted locally and on origin after confirmation in main
 
 Merge - 2026-10-20: List editor keyboard scroll lock fix
 - Merge commit of fix/list-keyboard-scroll-lock (dd88b6d) into main (7ab6fe5) as ac17400, --no-ff, after CTO approval and John's confirmation. No conflicts
@@ -64,7 +71,7 @@ Created: 2026-10-20
 Parent: main (a3eaf08)
 Purpose: Known issue 8 - an open list item edit was lost when the app was closed, because edits commit only on blur or Return and leaving the app does not blur the input. Fix: EditableListItem blurs its focused input on Capacitor appStateChange with isActive false, so the existing blur commit saves the edit (no new persistence logic). visibilitychange was tried first and rejected: it fires only on full backgrounding (about 1-2s after Home) and not before an app-switcher swipe-away, so those edits were still lost. Approved by the CTO
 Verification (simulator): app switcher swipe-away (including about 0.8s after opening the switcher), Home plus 0.5s kill, background and resume, edit near the bottom with the keyboard scroll fix, template editor with A-Z re-sort after a switcher close: all retained. Home plus a synthetic kill within tens of milliseconds still loses the edit; not reachable by a user. Side effect: anything that makes the app inactive (Notification Centre, Control Centre, calls, system alerts) ends the edit and saves it. Vitest 237/237, Self Check 411/411, build successful. List title and unsubmitted new-item text out of scope
-Status: Awaiting CTO review. Not merged
+Status: Merged into main (merge commit a368cad, branch head f8ff91a, 2026-10-20). Branch deleted after the merge
 
 ### fix/list-keyboard-scroll-lock
 
@@ -72,7 +79,7 @@ Created: 2026-10-20
 Parent: main (7ab6fe5)
 Purpose: Fix the list editor locking with its header, title, close tick and add field off-screen after editing an item low in a long list. Root cause (measured on the simulator): with the keyboard open, iOS shrinks the viewport (874 to 471) and scrolls the page by 403 to reveal the item. Committing the edit re-renders the list sheet, whose top is taken from the logo's on-screen position, so the sheet was pinned 403px higher (140.6px to -262.4px) and stayed there after the keyboard closed. Fix: the list sheet adds the page scroll to that measured position (`getListSheetTop`, list sheet call site only; the shared `getBottomSheetTopPosition` is unchanged). Checks list-sheet-top-* added to list-checks (Vitest and Self Check)
 Persistence finding (no change, approval required): item edits are saved only on blur or Return, as since the list editor was built (3989b32, 2026-04-04). An edit still open when the app is killed is lost. Long-standing behaviour, not a regression
-Status: Merged into main (merge commit ac17400, branch head dd88b6d, 2026-10-20). Pushed to origin and retained
+Status: Merged into main (merge commit ac17400, branch head dd88b6d, 2026-10-20). Branch deleted after consolidation
 
 ### docs/rationalisation
 
@@ -1511,3 +1518,5 @@ Badge overnight repair planned (2026-10-20, John, Type C, branch fix/badge-overn
 Badge overnight repair implemented (2026-10-20, CTO approved the plan with R1-R3 and the id correction, branch fix/badge-overnight): the single guarded midnight notification is replaced by silent badge notifications at the next 7 local midnights whenever the badge is on. Reminder notifications take the 64 iOS slots first; midnights only use slots left. Reminder notification ids are hashed below the midnight id range (2147483641-2147483647). Badge plugin `persist` off in capacitor.config.json. Dead `reminderly.nativeBadgeCount` writes removed from the local notifications patch; native action correction kept, with its future-count limitation documented. Removed: `hasActiveDateOnlyReminder`, `buildMidnightBadgeNotification` and the Vitest and Self Check cases that enforced the guard. Added: 7 midnights, per-midnight counts, slot priority, id range, and a badge-widget count match. Docs: features/notifications.md, ios.md, BASELINE.md, plan. Vitest 235/235, Self Check 408/408 (Node run). Physical iPhone validation across two consecutive midnights pending before acceptance.
 
 CTO adjustment (2026-10-20, same branch): the skip for midnight badge notifications with a count of 0 is removed. All 7 midnights are scheduled whenever the badge is on, including counts of 0 (deterministic, no extra conditional). Reminder notifications keep slot priority. Tests updated: all 7 midnights carry their count including 0; an empty reminder list with the badge on builds only the 7 midnights at 0 (Reminders off still clears everything through clearReminderNotifications). Vitest 235/235, Self Check 408/408 (Node run). Physical iPhone validation across two consecutive midnights still pending.
+
+Merged (2026-10-20): fix/badge-overnight merged into main with --no-ff (merge commit edcdc18) after CTO consolidation approval and John's confirmation, following fix/list-item-edit-background-save (a368cad). Generated index.html conflict resolved by rebuild. Vitest 238/238, Self Check 411/411, build successful on main. Physical iPhone validation across two consecutive midnights outstanding; issues go to a new fix branch from main. Branch deleted after the merge.

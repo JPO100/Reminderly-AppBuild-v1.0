@@ -13,7 +13,13 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of fix/badge-overnight (2026-10-20)
+Tip: merge of feature/onboarding-gaps (2026-10-20)
+
+Merge - 2026-10-20: Final consolidation (onboarding gaps)
+- feature/onboarding-gaps brought up to date with main in 63ffefa (conflicts: notification-checks imports, BASELINE and development history records, generated index.html; resolved with no behaviour change), then merged into main (071efb9) as 71ff2a5, --no-ff, no conflicts. CTO approved; John confirmed
+- Verification on main: Vitest 246/246, Self Check 412/412 (Node run), production build successful
+- All development branches merged and deleted locally and on origin (feature/onboarding-gaps, feature/list-template-haptics-sounds); main is the only branch
+- Outstanding (not blocking): badge validation on the physical iPhone (from the morning of 2026-10-21, on final main); simulator tutorial checks of the onboarding pages; onboarding fresh-install device checks (Allow, deny, Not now); physical iPhone checks of both list fixes. Any problem goes to a new fix branch from main. No TestFlight or release changes
 
 Merge - 2026-10-20: Consolidation (known issue 8 fix and badge overnight repair)
 - Merge commit of fix/list-item-edit-background-save (f8ff91a) into main (a3eaf08) as a368cad, --no-ff. No conflicts

@@ -1,6 +1,6 @@
 # Onboarding gaps - scope
 
-Status: approved by the CTO (2026-10-17) and implemented on `feature/onboarding-gaps`. Deviations are listed in development-history.md. Not merged.
+Status: approved by the CTO (2026-10-17), implemented and merged into main (71ff2a5, 2026-10-20). Deviations are listed in development-history.md. Simulator tutorial checks and fresh-install device checks outstanding.
 
 ## 1. Summary
 

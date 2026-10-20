@@ -1,8 +1,13 @@
 # Self-Check Baseline Report
 
-Last updated: 2026-10-15
+Last updated: 2026-10-20
 
-## Verified Baseline (2026-10-15, fix/smart-reminder-list-done, with auto-clear date correction)
+## Verified Baseline (2026-10-20, fix/badge-overnight)
+
+- Vitest (`npm run test`): 235 passed, 0 failed (12 files). Midnight badge cases replaced: 7 midnights, counts per midnight including 0, slot priority for reminder notifications, reminder ids below the midnight range, badge and widget counts match. Guard cases removed (they enforced the defect).
+- Self Check: 408 passed, 0 failed across 11 suites (Node run). Notification and badge: 9 midnight and limit checks replaced by 9 (listed below).
+
+## Previous baseline (2026-10-15, fix/smart-reminder-list-done, with auto-clear date correction)
 
 - Vitest (`npm run test`): 233 passed, 0 failed (12 files).
 - Self Check: 408 passed, 0 failed across 11 suites (Node run). Auto-clear date check added (reminder keeps the list done date after the 350ms step at launch and in the open app; manual dated now).
@@ -406,15 +411,15 @@ Notification and badge
 ✓ Notification payload: sets badge to 0 when notifAppBadge is false
 ✓ Badge delta: sets badgeDeltaOnAction to 1 when badge > 0
 ✓ Badge delta: sets badgeDeltaOnAction to 0 when badge is 0
-✓ Scheduling limits: limits to 64 notifications when no midnight needed
-✓ Scheduling limits: 63 reminder notifications plus midnight when date-only exists
-✓ Midnight notification: included when active date-only reminder exists
-✓ Midnight notification: excluded when all reminders have times
-✓ Midnight notification: excluded when badge is disabled
-✓ Midnight notification: has empty title and body
-✓ Midnight notification: excludes completed date-only reminders
-✓ Midnight notification: excludes deleted date-only reminders
-✓ Scheduling limits: all 64 slots for reminders when no midnight needed
+✓ Scheduling limits: 64 or more timed reminders take every slot, no midnight notifications
+✓ Scheduling limits: midnight notifications only use slots left by reminders, earliest first
+✓ Scheduling limits: reminder ids never fall in the midnight id range
+✓ Midnight notifications: the next 7 local midnights when the badge is on
+✓ Midnight notifications: included when every reminder has a time (Include today on)
+✓ Midnight notifications: all 7 carry the count for just after that midnight, including 0
+✓ Midnight notifications: excluded when badge is disabled
+✓ Midnight notifications: silent with empty title and body
+✓ Badge and widget: Include today count matches the widget outstanding count
 ✓ Refresh boundary: returns ms to midnight when no timed reminders today
 ✓ Refresh boundary: returns ms to next timed reminder when sooner than midnight
 ✓ Widget progress: today and overdue reminders count as outstanding

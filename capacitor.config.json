@@ -2,5 +2,10 @@
   "appId": "com.reminderly.app",
   "appName": "Reminderly",
   "webDir": "dist",
-  "loggingBehavior": "none"
+  "loggingBehavior": "none",
+  "plugins": {
+    "Badge": {
+      "persist": false
+    }
+  }
 }

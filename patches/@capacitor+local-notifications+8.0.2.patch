@@ -1,24 +1,8 @@
 diff --git a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
-index e0bf257..7e6076f 100644
+index e0bf257..fbb9d88 100644
 --- a/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
 +++ b/node_modules/@capacitor/local-notifications/ios/Sources/LocalNotificationsPlugin/LocalNotificationsHandler.swift
-@@ -26,6 +26,10 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
-     public func willPresent(notification: UNNotification) -> UNNotificationPresentationOptions {
-         let notificationData = makeNotificationRequestJSObject(notification.request)
- 
-+        if let badgeValue = notification.request.content.badge?.intValue {
-+            UserDefaults.standard.set(badgeValue, forKey: Self.nativeBadgeCountKey)
-+        }
-+
-         self.plugin?.notifyListeners("localNotificationReceived", data: notificationData)
- 
-         if let options = notificationRequestLookup[notification.request.identifier] {
-@@ -42,15 +46,14 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
-         ]
-     }
- 
-+    private static let nativeBadgeCountKey = "reminderly.nativeBadgeCount"
-+
+@@ -45,12 +45,9 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
      public func didReceive(response: UNNotificationResponse) {
          var data = JSObject()
  
@@ -31,7 +15,7 @@ index e0bf257..7e6076f 100644
          if actionId == UNNotificationDefaultActionIdentifier {
              data["actionId"] = "tap"
          } else if actionId == UNNotificationDismissActionIdentifier {
-@@ -59,16 +62,73 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
+@@ -59,16 +56,72 @@ public class LocalNotificationsHandler: NSObject, NotificationHandlerProtocol {
              data["actionId"] = actionId
          }
  
@@ -57,7 +41,6 @@ index e0bf257..7e6076f 100644
 +        let current = UIApplication.shared.applicationIconBadgeNumber
 +        let corrected = max(current - delta, 0)
 +
-+        UserDefaults.standard.set(corrected, forKey: Self.nativeBadgeCountKey)
 +        UIApplication.shared.applicationIconBadgeNumber = corrected
 +
 +        reschedulePendingBadges(delta: delta)

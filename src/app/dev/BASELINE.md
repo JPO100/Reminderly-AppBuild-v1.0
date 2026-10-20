@@ -2,10 +2,20 @@
 
 Last updated: 2026-10-20
 
-## Verified Baseline (2026-10-20, fix/badge-overnight)
+## Verified Baseline (2026-10-20, feature/onboarding-gaps merged with main)
+
+- Vitest (`npm run test`): 246 passed, 0 failed (13 files). Main (238) plus the onboarding tutorial tests (8).
+- Self Check: 412 passed, 0 failed across 11 suites (Node run). Main (411) plus `notif-ask-tutorial-close`.
+
+## Previous baseline (2026-10-20, fix/badge-overnight)
 
 - Vitest (`npm run test`): 235 passed, 0 failed (12 files). Midnight badge cases replaced: 7 midnights, counts per midnight including 0, slot priority for reminder notifications, reminder ids below the midnight range, badge and widget counts match. Guard cases removed (they enforced the defect).
 - Self Check: 408 passed, 0 failed across 11 suites (Node run). Notification and badge: 9 midnight and limit checks replaced by 9 (listed below).
+
+## Previous baseline (2026-10-17, feature/onboarding-gaps)
+
+- Vitest (`npm run test`): 241 passed, 0 failed (13 files). Added `tutorial-nlc-demo.test.ts` (4) and 4 reminders tutorial sequence tests in `tutorial-pages.test.ts`.
+- Self Check: 409 passed, 0 failed across 11 suites (Node run). Added `notif-ask-tutorial-close` (closing on the Never miss a reminder page without Allow is Not now; closing earlier or after Allow changes nothing; the timed-reminder backup ask still applies).
 
 ## Previous baseline (2026-10-15, fix/smart-reminder-list-done, with auto-clear date correction)
 

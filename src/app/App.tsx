@@ -26,9 +26,10 @@ import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
 import { shouldAutoOpenTutorial } from "./utils/tutorial-pages";
+import { getNlcTutorialDemo } from "./utils/tutorial-nlc-demo";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { ASK_STATE_ACCEPTED, askStateAfterNotNow, askStateOnLaunch, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
+import { ASK_STATE_ACCEPTED, askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
 import type { AskSource, AskTrigger } from "./notification-ask";
 import NotificationAskDialog from "./components/NotificationAskDialog";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
@@ -1329,10 +1330,8 @@ export default function App() {
     }, 400);
   }, [isRemindersEnabled, notificationsFlag, refreshNotifPermission]);
 
-  const handleNotifAskAllow = () => {
-    const ask = notifAsk;
-    setNotifAsk(null);
-    if (!ask) return;
+  // Allow from the in-app ask (dialog or the tutorial's Never miss a reminder page), then the iOS prompt
+  const allowNotifAsk = (ask: { source: AskSource; pref?: 'alerts' | 'badge' }) => {
     writeAskState(ASK_STATE_ACCEPTED);
     if (ask.source === 'automatic') {
       setNotifReminderAlerts(true);
@@ -1342,9 +1341,16 @@ export default function App() {
     } else if (ask.pref === 'badge') {
       setNotifAppBadge(true);
     }
-    void LocalNotifications.requestPermissions()
+    return LocalNotifications.requestPermissions()
       .then((permission) => setNotifPermission(permission.display))
       .catch(() => undefined);
+  };
+
+  const handleNotifAskAllow = () => {
+    const ask = notifAsk;
+    setNotifAsk(null);
+    if (!ask) return;
+    void allowNotifAsk(ask);
   };
 
   const handleNotifAskNotNow = () => {
@@ -1661,17 +1667,55 @@ export default function App() {
 
   const tutorialVariantsShownThisSessionRef = useRef<Set<TutorialVariant>>(new Set());
 
+  // Never miss a reminder page: eligibility is decided once per opening, with the existing tutorial ask rule,
+  // so the page list stays fixed after Allow. Closing on the page without Allow counts as Not now; closing
+  // before reaching it leaves the ask state unchanged for the timed-reminder ask.
+  const [tutorialNotifAskEligible, setTutorialNotifAskEligible] = useState(false);
+  const tutorialOnNotifAskPageRef = useRef(false);
+  const tutorialNotifAllowedRef = useRef(false);
+  const notifAskFlagsRef = useRef({ isRemindersEnabled, notificationsFlag });
+  notifAskFlagsRef.current = { isRemindersEnabled, notificationsFlag };
+
   const openTutorial = useCallback((variant: TutorialVariant) => {
     tutorialVariantsShownThisSessionRef.current.add(variant);
+    tutorialOnNotifAskPageRef.current = false;
+    tutorialNotifAllowedRef.current = false;
+    setTutorialNotifAskEligible(false);
+    const flags = notifAskFlagsRef.current;
+    if (variant === 'reminders' && flags.isRemindersEnabled && flags.notificationsFlag) {
+      void refreshNotifPermission().then((permission) => {
+        setTutorialNotifAskEligible(shouldAskAutomatically(readAskState(), 'tutorial', permission));
+      });
+    }
     setTutorialVariant(variant);
     setIsTutorialOpen(true);
-  }, []);
+  }, [refreshNotifPermission]);
 
   const closeTutorial = useCallback(() => {
     markTutorialSeen(tutorialVariant);
     setIsTutorialOpen(false);
-    if (tutorialVariant === 'reminders') maybeAskForNotifications('tutorial');
-  }, [tutorialVariant, maybeAskForNotifications]);
+    if (tutorialVariant === 'reminders') {
+      const state = readAskState();
+      const next = askStateOnTutorialClose(state, tutorialOnNotifAskPageRef.current, tutorialNotifAllowedRef.current);
+      if (next !== state) writeAskState(next);
+    }
+    tutorialOnNotifAskPageRef.current = false;
+  }, [tutorialVariant]);
+
+  const handleTutorialNotifAllow = () => {
+    tutorialNotifAllowedRef.current = true;
+    return allowNotifAsk({ source: 'automatic' });
+  };
+
+  const handleTutorialNotifAskPageChange = useCallback((isOnPage: boolean) => {
+    tutorialOnNotifAskPageRef.current = isOnPage;
+  }, []);
+
+  const tutorialNlcDemo = useMemo(() => {
+    if (!isNlcActive) return null;
+    const demo = getNlcTutorialDemo(nlcRecognitionForInput);
+    return demo ? { demo, autoMode: nlcMode === 'auto' } : null;
+  }, [isNlcActive, nlcRecognitionForInput, nlcMode]);
 
   // Auto-launch tutorial on mount based on toggle states
   useEffect(() => {
@@ -5588,7 +5632,7 @@ export default function App() {
                   className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} />
               </motion.div>
             </motion.div>
           </>

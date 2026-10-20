@@ -34,7 +34,10 @@ import TutorialReminderFilters, {
   TutorialSettingsButton,
   UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS,
 } from '@/app/components/TutorialReminderFilters';
-import { getTutorialPageIds } from '@/app/utils/tutorial-pages';
+import OnboardingCreateReminderPhone, { OnboardingCreateReminderText, OnboardingTypeNaturallyText } from '@/app/components/OnboardingCreateReminderContent';
+import OnboardingNotificationAskPhone, { OnboardingNotificationAskAction, OnboardingNotificationAskText } from '@/app/components/OnboardingNotificationAskContent';
+import { getTutorialPageIds, TUTORIAL_PAGE_CREATE_REMINDER, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_PAGE_TYPE_NATURALLY } from '@/app/utils/tutorial-pages';
+import type { NlcTutorialDemo } from '@/app/utils/tutorial-nlc-demo';
 
 interface TutorialOnboardingContentProps {
   onComplete: () => void;
@@ -43,6 +46,14 @@ interface TutorialOnboardingContentProps {
   settingsMenuEnabled: boolean;
   smartRemindersEnabled: boolean;
   savedListsEnabled: boolean;
+  // Reminders tutorial: Create a reminder and Type it naturally pages
+  repeatsEnabled?: boolean;
+  nlcDemo?: { demo: NlcTutorialDemo; autoMode: boolean } | null;
+  // Reminders tutorial: Never miss a reminder page
+  notificationAskEligible?: boolean;
+  notificationPermission?: string | null;
+  onNotificationAllow?: () => Promise<unknown> | void;
+  onNotificationAskPageChange?: (isOnPage: boolean) => void;
 }
 
 const LIST_BLUE = "#4784F8";
@@ -1064,11 +1075,11 @@ function ListsTutorialPlaceholderPage({
           ) : currentPage === 1 ? (
             <p className="css-4hzbpn leading-[30px]">Move finished lists to done<br />and view completed lists</p>
           ) : currentPage === 2 ? (
-            <p className="css-4hzbpn leading-[30px]">Quickly add, update, and organise<br />your lists in one place.</p>
+            <p className="css-4hzbpn leading-[30px]">Quickly add, update, and organise<br />your lists in one place</p>
           ) : currentPage === 3 ? (
-            <p className="css-4hzbpn leading-[30px]">Link lists to reminders so you<br />never miss important tasks.</p>
+            <p className="css-4hzbpn leading-[30px]">Add a reminder that tracks<br />your list&apos;s progress</p>
           ) : (
-            <p className="css-4hzbpn leading-[30px]">Create lists from ready-made<br />templates to get started fast.</p>
+            <p className="css-4hzbpn leading-[30px]">Create lists from ready-made<br />templates to get started fast</p>
           )}
         </div>
       </div>
@@ -1473,16 +1484,36 @@ function ListsTutorialPlaceholderPage({
   );
 }
 
-export default function TutorialOnboardingContent({ onComplete, variant, isListsEnabled, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled }: TutorialOnboardingContentProps) {
+export default function TutorialOnboardingContent({
+  onComplete,
+  variant,
+  isListsEnabled,
+  settingsMenuEnabled,
+  smartRemindersEnabled,
+  savedListsEnabled,
+  repeatsEnabled = false,
+  nlcDemo = null,
+  notificationAskEligible = false,
+  notificationPermission = null,
+  onNotificationAllow,
+  onNotificationAskPageChange,
+}: TutorialOnboardingContentProps) {
   // currentStep is the position in the visible sequence; currentPage is the page id being shown
   const [currentStep, setCurrentStep] = useState(0);
+  const nlcDemoAvailable = nlcDemo != null;
   const pageIds = useMemo(
-    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled }),
-    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled],
+    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible }),
+    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible],
   );
   const totalPages = pageIds.length;
   const currentPage = pageIds[Math.min(currentStep, totalPages - 1)];
   const isListsTutorial = variant === 'lists';
+  const isNotificationAskPage = !isListsTutorial && currentPage === TUTORIAL_PAGE_NOTIFICATION_ASK;
+
+  useEffect(() => {
+    onNotificationAskPageChange?.(isNotificationAskPage);
+  }, [isNotificationAskPage, onNotificationAskPageChange]);
+
   const page2ActiveFilter = useOnboardingPage2ActiveFilter(!isListsTutorial && currentPage === 1, settingsMenuEnabled);
   const [listsTutorialActiveFilter, setListsTutorialActiveFilter] = useState<TutorialFilterKey | undefined>(undefined);
   const [listsPage2CycleKey, setListsPage2CycleKey] = useState(0);
@@ -1657,6 +1688,46 @@ export default function TutorialOnboardingContent({ onComplete, variant, isLists
           </div>
         )}
         
+        {!isListsTutorial && currentPage === TUTORIAL_PAGE_CREATE_REMINDER && (
+          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
+            <OnboardingCreateReminderText />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
+              <OnboardingCreateReminderPhone
+                mode={{ kind: "manual" }}
+                isListsEnabled={isListsEnabled}
+                settingsMenuEnabled={settingsMenuEnabled}
+                showRepeats={repeatsEnabled}
+              />
+            </div>
+          </div>
+        )}
+
+        {!isListsTutorial && currentPage === TUTORIAL_PAGE_TYPE_NATURALLY && nlcDemo && (
+          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
+            <OnboardingTypeNaturallyText autoMode={nlcDemo.autoMode} />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
+              <OnboardingCreateReminderPhone
+                mode={{ kind: "nlc", demo: nlcDemo.demo, autoMode: nlcDemo.autoMode }}
+                isListsEnabled={isListsEnabled}
+                settingsMenuEnabled={settingsMenuEnabled}
+                showRepeats={repeatsEnabled}
+              />
+            </div>
+          </div>
+        )}
+
+        {isNotificationAskPage && (
+          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
+            <OnboardingNotificationAskText />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} pb-[16px]`}>
+              <OnboardingNotificationAskPhone isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuEnabled} />
+            </div>
+            <div className="shrink-0 flex items-center justify-center h-[45px] mb-[16px]">
+              <OnboardingNotificationAskAction permission={notificationPermission} onAllow={() => onNotificationAllow?.()} />
+            </div>
+          </div>
+        )}
+
         {!isListsTutorial && currentPage === 1 && (
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
             <OnboardingPage2Text />

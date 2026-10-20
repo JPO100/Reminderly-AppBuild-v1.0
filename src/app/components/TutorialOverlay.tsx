@@ -1,4 +1,9 @@
+import type { ComponentProps } from "react";
 import TutorialOnboardingContent from "@/app/components/TutorialOnboardingContent";
+
+// Reminders tutorial extras (create reminder, NLC demo, notification ask), passed straight through
+type TutorialExtraProps = Pick<ComponentProps<typeof TutorialOnboardingContent>,
+  "repeatsEnabled" | "nlcDemo" | "notificationAskEligible" | "notificationPermission" | "onNotificationAllow" | "onNotificationAskPageChange">;
 
 export default function TutorialOverlay({
   onClose,
@@ -8,7 +13,8 @@ export default function TutorialOverlay({
   settingsMenuEnabled,
   smartRemindersEnabled,
   savedListsEnabled,
-}: {
+  ...extraProps
+}: TutorialExtraProps & {
   onClose: () => void;
   isEnabled: boolean;
   variant: 'reminders' | 'lists';
@@ -25,7 +31,7 @@ export default function TutorialOverlay({
           <div className="flex flex-col gap-[40px] w-full flex-1 min-h-0">
             {/* Tutorial body - empty scroll container */}
             <div className="flex-1 min-h-0 overflow-y-auto w-full">
-              <TutorialOnboardingContent onComplete={onClose} variant={variant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuEnabled} smartRemindersEnabled={smartRemindersEnabled} savedListsEnabled={savedListsEnabled} />
+              <TutorialOnboardingContent onComplete={onClose} variant={variant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuEnabled} smartRemindersEnabled={smartRemindersEnabled} savedListsEnabled={savedListsEnabled} {...extraProps} />
             </div>
           </div>
       </div>

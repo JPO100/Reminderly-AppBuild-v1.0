@@ -2,7 +2,7 @@ import type { Check } from './check-system';
 import type { Reminder } from '../reminder-utils';
 import { computeBadgeCount, getNextTimeRefreshBoundary, getTodayProgress } from '../reminder-utils';
 import { MIDNIGHT_BADGE_FIRST_ID, buildScheduledNotifications } from '../notifications';
-import { askStateAfterNotNow, askStateOnLaunch, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from '../notification-ask';
+import { askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from '../notification-ask';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -406,6 +406,18 @@ export function getNotificationChecks(): Check[] {
         for (const state of [null, 'not-now-1', 'not-now-2', 'odd']) {
           assert(askStateAfterNotNow(state, 'settings') === state, `Settings Not now should keep ${state}`);
         }
+      },
+    },
+    {
+      id: 'notif-ask-tutorial-close',
+      name: 'Onboarding ask page: closing on the page without Allow is Not now; closing earlier or after Allow changes nothing',
+      run: () => {
+        assert(askStateOnTutorialClose(null, true, false) === 'not-now-1', 'Closing on the page without Allow should be the first Not now');
+        assert(askStateOnTutorialClose(null, false, false) === null, 'Closing before the page should leave the state unasked');
+        assert(askStateOnTutorialClose('accepted', true, true) === 'accepted', 'Closing after Allow should keep accepted');
+        assert(askStateOnTutorialClose(null, true, true) === null, 'Allow writes its own state; close should not change it');
+        assert(shouldAskAutomatically(askStateOnTutorialClose(null, false, false), 'timed-reminder', 'prompt'), 'Skipping the page should keep the timed-reminder ask');
+        assert(shouldAskAutomatically(askStateOnTutorialClose(null, true, false), 'timed-reminder', 'prompt'), 'Not now on the page should still allow the timed-reminder backup ask');
       },
     },
     {

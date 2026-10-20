@@ -40,6 +40,8 @@ Render path:
 | `TutorialReminderFilters` | Filter pills, including the Done/Deleted state |
 | `TutorialStaticReminderList` | Default reminder mini-list data and rendering |
 | `OnboardingPage1Content` ... `OnboardingPage6Content` | Reminders pages 0-5 (content only) |
+| `OnboardingCreateReminderContent` | Reminders pages 6 (Create a reminder) and 7 (Type it naturally): phone, mock New reminder sheet and animation |
+| `OnboardingNotificationAskContent` | Reminders page 8 (Never miss a reminder): phone with alert banner, Allow alerts action and result |
 
 `OnboardingPage7Content`, `OnboardingPage8Content` and `OnboardingPage9Content` are not part of the active flow. `src/imports/tutorial-onboarding-content.tsx` is an unused earlier version.
 
@@ -49,9 +51,9 @@ Render path:
 
 `getTutorialPageIds(config)` (`src/app/utils/tutorial-pages.ts`) chooses the visible pages from the current feature state. Page ids are fixed, so each page keeps its content; dots, Back, Next and Restart follow the visible sequence. Mock-ups mirror the live configuration (no tab bar when Lists is off).
 
-### Reminders (5 or 6 pages)
+### Reminders (6 to 9 pages)
 
-Pages 0-4 are signed off and locked.
+Pages 0-5 are signed off and locked. Visible order: 0, 6, 7 (NLC demo available), 1, 2, 3, 4, 5 (settings menu on), 8 (notification ask eligible). Pages 6-8 added on feature/onboarding-gaps (docs/plans/onboarding-gaps.md).
 
 | Page | Title | Content |
 |------|-------|---------|
@@ -61,6 +63,9 @@ Pages 0-4 are signed off and locked.
 | 3 | Mark reminders as 'done' | Completes every reminder except the Sometime one; resets with fade-ins |
 | 4 | See what you've done | Starts with only "Organise family photo"; the logo tick throbs and the view switches to Done reminders (scaled Done, Deleted and Clear all pills, white logo tick, no three-dot buttons) showing the page 3 reminders; 2000ms pauses between states |
 | 5 | Re-run this tutorial | Only with the settings menu on. Subtitle "You can re-run this tutorial from / the settings menu". Static mini-list, no animation |
+| 6 | Create a reminder | Always. New reminder button throbs, mock sheet slides up, "Book a haircut" typed (80ms per character), Date (Tomorrow) and Time (3pm) toggles tapped, tick throbs, row inserted with highlight and the mini list scrolls to show it; 2000ms pause, then repeats |
+| 7 | Type it naturally | Only when NLC is active (flag and user setting) and `getNlcTutorialDemo` recognises a demo phrase with the user's recognition settings. Time recognition on: "Take the bins out tonight" (Date Today, Time 9pm); time off, date on: "Take the bins out tomorrow" (Date Tomorrow). Auto mode applies as typed; click mode shows a tap on the blue phrase. Subtitle follows the mode |
+| 8 | Never miss a reminder | Last page, only when the Reminders and Notifications flags are on and `shouldAskAutomatically(state, 'tutorial', permission)` passes when the tutorial opens (fixed for that opening). Mock alert banner; "Allow alerts" only while iOS is undecided, then "Alerts are on" or "You can turn alerts on later in Settings". Navigation unchanged |
 
 Attention throb (page 2): three opacity pulses, `duration 2.3`, `delay 0.4`, `times [0, 0.109, 0.217, 0.391, 0.5, 0.609, 0.783, 0.891, 1]`, `easeInOut`. Page 4's first logo throb becomes visible after the shared 400ms delay.
 
@@ -78,6 +83,8 @@ Scaled Done/Deleted pills (page 4): 31.5px high, 9.751px text, 11.144px side pad
 | 3 | Create smart reminders | Smart reminders on | Three-dot throb, list settings, smart reminder on, switch to Reminders, smart reminder sheet with tick throb (62px), reminder inserted |
 | 4 | Use list templates | Templates on | Templates button throb, panel with six templates, "Weekly food shop" opened (8 items), "Olive oil" typed and added, menu throb, template settings |
 
+Subtitles have no trailing full stop. Page 3 subtitle: "Add a reminder that tracks / your list's progress".
+
 ## Navigation
 
 - Page dots, centred for the visible count.
@@ -89,5 +96,5 @@ Below 570px height the container switches from 808px to auto height, dots are hi
 ## Files
 
 - `src/app/components/TutorialOverlay.tsx`, `TutorialOnboardingContent.tsx`, `TutorialPhoneShell.tsx`, `TutorialPhoneHeader.tsx`, `TutorialMainTabBar.tsx`, `TutorialReminderFilters.tsx`, `TutorialStaticReminderList.tsx`, `tutorialTokens.ts`
-- `src/app/components/OnboardingPage1Content.tsx` to `OnboardingPage6Content.tsx`
-- `src/app/utils/tutorial-pages.ts`
+- `src/app/components/OnboardingPage1Content.tsx` to `OnboardingPage6Content.tsx`, `OnboardingCreateReminderContent.tsx`, `OnboardingNotificationAskContent.tsx`
+- `src/app/utils/tutorial-pages.ts`, `src/app/utils/tutorial-nlc-demo.ts`

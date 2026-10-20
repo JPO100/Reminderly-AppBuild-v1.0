@@ -53,7 +53,7 @@ export function TutorialRemindersFilterRow({ settingsMenuEnabled, activeKey }: {
         items={SETTINGS_MENU_TUTORIAL_FILTER_ITEMS}
         activeKey={activeKey}
         trailing={<TutorialSettingsButton />}
-        groupGapClassName="gap-[7.18px]"
+        groupGapClassName="gap-[5.744px]"
       />
     );
   }
@@ -94,7 +94,7 @@ function TutorialReminderFilterPill({
 
   return (
     <div
-      className={`content-stretch flex items-center justify-center px-[11.144px] py-[10.448px] relative rounded-[69.652px] shrink-0 h-[31.5px] ${isGhost ? "bg-[rgba(255,255,255,0.15)]" : isActive ? "bg-white" : "bg-transparent"}`}
+      className={`content-stretch flex items-center justify-center px-[9.751px] py-[10.448px] relative rounded-[69.652px] shrink-0 h-[31.5px] ${isGhost ? "bg-[rgba(255,255,255,0.15)]" : isActive ? "bg-white" : "bg-transparent"}`}
       style={{ boxShadow: `inset 0 0 0 ${isGhost ? "1px" : isActive ? "1.5px" : "1px"} ${isGhost ? "#FFFFFF" : color}` }}
     >
       <div

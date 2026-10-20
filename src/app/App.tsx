@@ -15,7 +15,7 @@ import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
-import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, stepCalendarMonth, toDateKey } from "./reminder-utils";
+import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
 import { syncWidget } from "./utils/widget";
 import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
 import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
@@ -1013,7 +1013,7 @@ export default function App() {
   // Sounds availability flag (Dev tools); the user's choices live in utils/sounds
   const [soundsFlag, setSoundsFlag] = useStoredSetting('reminderly-ff-sounds');
   const [lockScreenWidgetFlag, setLockScreenWidgetFlag] = useStoredSetting('reminderly-ff-lock-screen-widget');
-  // Calendar view: availability flag (Dev tools > Reminders) and the user's Show calendar setting. Both default off
+  // Calendar view: availability flag (Dev tools > Reminders) and the user's saved calendar view (header button). Both default off
   const [calendarFlag, setCalendarFlag] = useStoredSetting('reminderly-ff-calendar');
   const [calendarPref, setCalendarPref] = useStoredSetting('reminderly-pref-calendar');
   // Calendar day selected by the user; null shows today (the default view)
@@ -1028,17 +1028,17 @@ export default function App() {
   const [isListsEnabled, setIsListsEnabled] = useStoredSetting('reminderly-ff-lists');
   const [isRemindersEnabled, setIsRemindersEnabled] = useStoredSetting('reminderly-ff-reminders');
   // Calendar view needs a screen at least CALENDAR_MIN_VIEWPORT_HEIGHT tall (room for two reminder rows
-  // below a 6-row month). Shorter screens keep the existing Reminders view and hide Show calendar.
+  // below a 6-row month). Shorter screens keep the existing Reminders view and hide the calendar button.
   const [isCalendarScreenTallEnough, setIsCalendarScreenTallEnough] = useState(() => window.innerHeight >= CALENDAR_MIN_VIEWPORT_HEIGHT);
   useEffect(() => {
     const update = () => setIsCalendarScreenTallEnough(window.innerHeight >= CALENDAR_MIN_VIEWPORT_HEIGHT);
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
   }, []);
-  // Calendar view is shown when Reminders, the flag and Show calendar are all on and the screen is tall enough
+  // Calendar view is shown when Reminders, the flag and the saved calendar view are all on and the screen is tall enough
   const isCalendarEnabled = isRemindersEnabled && calendarFlag && calendarPref;
   const isCalendarActive = isCalendarEnabled && isCalendarScreenTallEnough;
-  // Every time the calendar is turned back on (Show calendar or the Dev tools flag): current month,
+  // Every time the calendar is turned back on (header button or the Dev tools flag): current month,
   // today selected, no filter
   const wasCalendarEnabledRef = useRef(isCalendarEnabled);
   useEffect(() => {
@@ -1049,6 +1049,10 @@ export default function App() {
     }
     wasCalendarEnabledRef.current = isCalendarEnabled;
   }, [isCalendarEnabled]);
+  // Calendar header button: shown when the calendar can be. The calendar runs unfiltered, so the list
+  // view's filter is kept aside when switching to the calendar and restored when switching back
+  const isCalendarAvailable = isRemindersEnabled && calendarFlag && isCalendarScreenTallEnough;
+  const listViewFilterRef = useRef<ReminderCategory | "all">("all");
   const [notificationsFlag, setNotificationsFlag] = useStoredSetting('reminderly-ff-notifications');
   const [repeatRemindersFlag, setRepeatRemindersFlag] = useStoredSetting('reminderly-ff-repeat-reminders');
   const [oneMinuteIncrementsFlag, setOneMinuteIncrementsFlag] = useStoredSetting('reminderly-ff-one-minute-increments');
@@ -3621,7 +3625,7 @@ export default function App() {
           <>
           {viewMode === 'lists-done' && (
             <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
-              <div className="flex items-center gap-[12px]">
+              <div className="flex items-center gap-[8px]">
                 <button
                   onClick={() => setViewMode('list')}
                   className="hidden relative shrink-0 self-center cursor-pointer"
@@ -3642,7 +3646,7 @@ export default function App() {
                     doneDeletedFilter === 'done'
                       ? "bg-white"
                       : "text-[#404040]"
-                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                  } content-stretch flex items-center justify-center px-[14px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                   style={getListArchiveFilterPillStyle('done', doneDeletedFilter)}
                 >
                   <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -3655,7 +3659,7 @@ export default function App() {
                     doneDeletedFilter === 'deleted'
                       ? "bg-white"
                       : "text-[#898989]"
-                  } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                  } content-stretch flex items-center justify-center px-[14px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                   style={getListArchiveFilterPillStyle('deleted', doneDeletedFilter)}
                 >
                   <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -3674,7 +3678,7 @@ export default function App() {
                     : clearListStep === 0
                     ? "text-[#4784F8]"
                     : "bg-[#4784F8] text-white"
-                } content-stretch flex items-center justify-center h-[45px] w-[95px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784F8]"}`}
+                } content-stretch flex items-center justify-center h-[45px] w-[88px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784F8]"}`}
                 style={isClearAllDisabled ? { color: '#CCCCCC', borderColor: '#CCCCCC' } : undefined}
               >
                 <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -3823,7 +3827,7 @@ export default function App() {
               <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
                 List templates
               </div>
-              <div className="flex items-center gap-[10px]">
+              <div className="flex items-center gap-[8px]">
                 <button
                   type="button"
                   onClick={() => setSavedListsPanelOpen(false)}
@@ -3996,7 +4000,7 @@ export default function App() {
                     isActive
                       ? "bg-white"
                       : "text-[#4784F8]"
-                  } content-stretch flex items-center justify-center ${savedListsFeatureEnabled ? "px-[13px] min-[390px]:px-[16px]" : !settingsMenuFeatureEnabled ? "px-[16px]" : "px-[11px] min-[375px]:px-[13px] min-[390px]:px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                  } content-stretch flex items-center justify-center px-[14px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
                     filter === "started" && savedListsFeatureEnabled && settingsMenuFeatureEnabled ? "max-[360px]:hidden" : ""
                   }`}
                   style={getListFilterPillStyle(filter, activeListFilter)}
@@ -4007,12 +4011,12 @@ export default function App() {
                 </button>
                 );
               });
-              // Settings menu or List templates on: visible filters grouped left with 10px gaps, action buttons grouped right with 10px gaps
+              // Settings menu or List templates on: visible filters grouped left with 8px gaps, action buttons grouped right with 8px gaps
               if (settingsMenuFeatureEnabled || savedListsFeatureEnabled) {
                 return (
-                  <div className="filters-menu flex items-center justify-between gap-[10px] relative shrink-0 w-full">
-                    <div className="flex items-center gap-[10px]">{filterPills}</div>
-                    <div className="flex items-center gap-[10px]">
+                  <div className="filters-menu flex items-center justify-between gap-[8px] relative shrink-0 w-full">
+                    <div className="flex items-center gap-[8px]">{filterPills}</div>
+                    <div className="flex items-center gap-[8px]">
                       {savedListsFeatureEnabled && templatesButton}
                       {settingsMenuFeatureEnabled && listsSettingsButton}
                     </div>
@@ -4184,7 +4188,7 @@ export default function App() {
             className="flex items-center justify-between w-full"
           >
             {/* Done/deleted view filters */}
-            <div className="flex items-center gap-[12px]">
+            <div className="flex items-center gap-[8px]">
               <button
                 onClick={() => setViewMode("list")}
                 className="hidden relative shrink-0 self-center cursor-pointer"
@@ -4207,7 +4211,7 @@ export default function App() {
                   doneDeletedFilter === 'done'
                     ? "bg-white"
                     : "text-[#404040]"
-                } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                } content-stretch flex items-center justify-center px-[14px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                 style={getArchiveFilterPillStyle('done', doneDeletedFilter)}
               >
                 <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -4222,7 +4226,7 @@ export default function App() {
                   doneDeletedFilter === 'deleted'
                     ? "bg-white"
                     : "text-[#898989]"
-                } content-stretch flex items-center justify-center px-[16px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
+                } content-stretch flex items-center justify-center px-[14px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer`}
                 style={getArchiveFilterPillStyle('deleted', doneDeletedFilter)}
               >
                 <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -4241,7 +4245,7 @@ export default function App() {
                   : clearListStep === 0
                   ? "text-[#4784f8]"
                   : "bg-[#4784f8] text-white"
-              } content-stretch flex items-center justify-center h-[45px] w-[95px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784f8]"}`}
+              } content-stretch flex items-center justify-center h-[45px] w-[88px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784f8]"}`}
               style={isClearAllDisabled ? { color: '#CCCCCC', borderColor: '#CCCCCC' } : undefined}
             >
               <div className="font-['Lato',sans-serif] font-bold text-[14px] whitespace-nowrap">
@@ -4264,7 +4268,7 @@ export default function App() {
                   isActive
                     ? "bg-white"
                     : "text-[#4784f8]"
-                } content-stretch flex items-center justify-center ${settingsMenuFeatureEnabled ? "px-[13px] min-[375px]:px-[16px]" : "px-[16px]"} h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
+                } content-stretch flex items-center justify-center px-[13px] min-[390px]:px-[14px] h-[45px] relative rounded-[100px] shrink-0 cursor-pointer ${
                   filter === "sometime" ? "hidden min-[390px]:flex" : ""
                 }`}
                 style={getReminderFilterPillStyle(filter, activeFilter)}
@@ -4275,9 +4279,53 @@ export default function App() {
               </button>
               );
             });
-            // Settings menu on: filters grouped left with 10px gaps, Settings button pushed right by justify-between
-            return settingsMenuFeatureEnabled ? <div className="flex items-center gap-[10px]">{filterPills}</div> : filterPills;
+            // Calendar view: the month title takes the place of the filter pills
+            if (calendarElement) {
+              return (
+                <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
+                  {formatCalendarMonthTitle(calendarMonth.year, calendarMonth.month)}
+                </div>
+              );
+            }
+            // Header buttons on: filters grouped left with 8px gaps, buttons pushed right by justify-between
+            return settingsMenuFeatureEnabled || isCalendarAvailable ? <div className="flex items-center gap-[8px]">{filterPills}</div> : filterPills;
             })()}
+            {(settingsMenuFeatureEnabled || isCalendarAvailable) && (
+            <div className="flex items-center gap-[8px]">
+            {isCalendarAvailable && (calendarElement ? (
+              <button
+                type="button"
+                onClick={() => { setCalendarPref(false); setActiveFilter(listViewFilterRef.current); }}
+                aria-label="Show list"
+                className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+              >
+                <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                  <circle cx="14.75" cy="15.5" r="1.5" fill="white"/>
+                  <path d="M30.875 14.625C31.3582 14.625 31.75 15.0168 31.75 15.5C31.75 15.9832 31.3582 16.375 30.875 16.375H19.875C19.3918 16.375 19 15.9832 19 15.5C19 15.0168 19.3918 14.625 19.875 14.625H30.875Z" fill="white"/>
+                  <circle cx="14.75" cy="22.5" r="1.5" fill="white"/>
+                  <path d="M30.875 21.625C31.3582 21.625 31.75 22.0168 31.75 22.5C31.75 22.9832 31.3582 23.375 30.875 23.375H19.875C19.3918 23.375 19 22.9832 19 22.5C19 22.0168 19.3918 21.625 19.875 21.625H30.875Z" fill="white"/>
+                  <circle cx="14.75" cy="29.5" r="1.5" fill="white"/>
+                  <path d="M30.875 28.625C31.3582 28.625 31.75 29.0168 31.75 29.5C31.75 29.9832 31.3582 30.375 30.875 30.375H19.875C19.3918 30.375 19 29.9832 19 29.5C19 29.0168 19.3918 28.625 19.875 28.625H30.875Z" fill="white"/>
+                </svg>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => { listViewFilterRef.current = activeFilter; setCalendarPref(true); }}
+                aria-label="Show calendar"
+                className="flex items-center justify-center shrink-0 cursor-pointer p-0 m-0 border-none bg-transparent size-[45px]"
+              >
+                <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                  <path d="M28.5 12.5V14.5M16.5 12.5V14.5" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M22.4955 23.5H22.5045M22.4955 27.5H22.5045M26.491 23.5H26.5M18.5 23.5H18.509M18.5 27.5H18.509" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 18.5H31" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M13 22.7432C13 18.3859 13 16.2073 14.2521 14.8536C15.5042 13.5 17.5195 13.5 21.55 13.5H23.45C27.4805 13.5 29.4958 13.5 30.7479 14.8536C32 16.2073 32 18.3859 32 22.7432V23.2568C32 27.6141 32 29.7927 30.7479 31.1464C29.4958 32.5 27.4805 32.5 23.45 32.5H21.55C17.5195 32.5 15.5042 32.5 14.2521 31.1464C13 29.7927 13 27.6141 13 23.2568V22.7432Z" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M13.5 18.5H31.5" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            ))}
             {settingsMenuFeatureEnabled && (
               <button
                 type="button"
@@ -4292,6 +4340,8 @@ export default function App() {
                   <circle cx="29" cy="22.5" r="1.75" fill="white"/>
                 </svg>
               </button>
+            )}
+            </div>
             )}
             </>
           )}
@@ -5535,9 +5585,6 @@ export default function App() {
                     }
                     ({ alerts: setNotifReminderAlerts, sound: setNotifSound, badge: setNotifAppBadge, includeToday: setNotifIncludeTodayInBadge })[key](value);
                   }}
-                  calendarAvailable={isRemindersEnabled && calendarFlag && isCalendarScreenTallEnough}
-                  calendarOn={calendarPref}
-                  onCalendarChange={setCalendarPref}
                   datePresetsAvailable={isRemindersEnabled && datePresetsFlag}
                   datePresetsOn={datePresetsPref}
                   onDatePresetsChange={setDatePresetsPref}

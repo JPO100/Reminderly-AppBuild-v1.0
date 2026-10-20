@@ -134,7 +134,6 @@ With the settings menu on, a settings button in the Reminders or Lists header op
 
 Reminders settings:
 
-- Show calendar (toggle)
 - Use Siri shortcuts (toggle)
 - 1 minute time increments (toggle)
 - Notifications (page): Notifications, Sound (inactive while Notifications is off), App badge, Include today in badge (inactive while App badge is off); "Turn on in Settings" at the top when iOS permission is denied

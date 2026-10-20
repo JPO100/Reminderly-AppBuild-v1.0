@@ -203,9 +203,9 @@ function Page5DoneDeletedFilters() {
   return (
     <div className="relative shrink-0 w-full px-[14px] pt-[14px] pb-[8px]">
       <div className="flex items-center justify-between gap-[10px]">
-        <div className="flex items-center gap-[8px]">
+        <div className="flex items-center gap-[5.572px]">
           <div
-            className="bg-white content-stretch flex items-center justify-center px-[11.144px] h-[31.5px] relative rounded-[69.652px] shrink-0"
+            className="bg-white content-stretch flex items-center justify-center px-[9.751px] h-[31.5px] relative rounded-[69.652px] shrink-0"
             style={{ boxShadow: "inset 0 0 0 1.392px #4784F8", color: "#4784F8" }}
           >
             <div className="font-['Lato',sans-serif] font-bold text-[9.751px] whitespace-nowrap">
@@ -213,7 +213,7 @@ function Page5DoneDeletedFilters() {
             </div>
           </div>
           <div
-            className="content-stretch flex items-center justify-center px-[11.144px] h-[31.5px] relative rounded-[69.652px] shrink-0"
+            className="content-stretch flex items-center justify-center px-[9.751px] h-[31.5px] relative rounded-[69.652px] shrink-0"
             style={{ boxShadow: "inset 0 0 0 0.696px #898989", color: "#898989" }}
           >
             <div className="font-['Lato',sans-serif] font-bold text-[9.751px] whitespace-nowrap">
@@ -221,7 +221,7 @@ function Page5DoneDeletedFilters() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex items-center justify-center h-[31.5px] w-[66px] relative rounded-[69.652px] shrink-0 border border-solid border-[#4784F8] text-[#4784F8]">
+        <div className="content-stretch flex items-center justify-center h-[31.5px] w-[61.3px] relative rounded-[69.652px] shrink-0 border border-solid border-[#4784F8] text-[#4784F8]">
           <div className="font-['Lato',sans-serif] font-bold text-[9.751px] whitespace-nowrap">
             Clear all
           </div>
@@ -1100,7 +1100,7 @@ function ListsTutorialPlaceholderPage({
             <TutorialReminderFilters
               items={listFilterItems}
               trailing={savedListsEnabled || settingsMenuEnabled ? (
-                <div className="flex items-center gap-[7.18px]">
+                <div className="flex items-center gap-[5.744px]">
                   {savedListsEnabled && (
                     <div ref={currentPage === 4 ? setPage5TemplatesButtonElement : undefined} className="shrink-0">
                       <TemplatesTutorialButton />
@@ -1111,7 +1111,7 @@ function ListsTutorialPlaceholderPage({
               ) : undefined}
               layout="between"
               rowGapClassName="gap-[10px]"
-              groupGapClassName={savedListsEnabled || settingsMenuEnabled ? "gap-[7.18px]" : "gap-[8.615px]"}
+              groupGapClassName={savedListsEnabled || settingsMenuEnabled ? "gap-[5.744px]" : "gap-[8.615px]"}
               activeKey={currentPage === 0 ? displayActiveFilter : undefined}
             />
           )}

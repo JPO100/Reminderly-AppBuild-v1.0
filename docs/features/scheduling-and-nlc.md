@@ -34,7 +34,7 @@ NLC applies values through `applyToggleStateSilently`, which does not open drawe
 
 Inline month calendar in the New reminder overlay, opened from the Date row.
 
-- Month header (Lato Bold 17, `#1C2C42`) with previous and next arrows (`#0088FE`); Monday-first 7-column grid.
+- Month title in the Reminders header (Lato Bold 20, `#1C2C42`); Monday-first 7-column grid.
 - Tap a day to select it; the selected day is filled `#0088FE` with a white number. Past days are grey (`#D9D9D9`) and cannot be selected.
 - Returns a `Date`; stored as `yyyy-mm-dd`.
 
@@ -97,13 +97,13 @@ Uncompleting a repeating reminder removes the spawned next occurrence when exact
 
 A month calendar on the Reminders tab, between the filter row and the list. `src/app/components/RemindersCalendar.tsx`, helpers in `reminder-utils.ts`.
 
-Availability: Reminders module on, Dev tools > Reminders > Calendar (`reminderly-ff-calendar`) and Reminders settings > Show calendar (`reminderly-pref-calendar`), both default off. It also needs a screen at least 852pt tall (iPhone 15 Pro); below that the calendar and the Show calendar row are hidden and the saved setting is kept. Hidden in the done/deleted view. Turning it back on resets to the current month, today selected and no filter.
+Availability: Reminders module on and Dev tools > Reminders > Calendar (`reminderly-ff-calendar`, default off). It also needs a screen at least 852pt tall (iPhone 15 Pro); below that the calendar and its header button are hidden and the saved view is kept. Hidden in the done/deleted view. Switching: a 45px header button on the Reminders tab, between the filter pills and the settings button (calendar icon in list view, list icon in calendar view), following the List templates page pattern. In calendar view the month title (Lato Bold 20, #1C2C42) replaces the filter pills; there are no month arrows, and a horizontal swipe changes month. The last view is remembered across launches (`reminderly-pref-calendar`, default list view). Switching to the calendar resets it to the current month, today selected and no filter; the list view's filter is restored when switching back.
 
 ### Layout
 
 Filter row, month header, weekday row, date grid, 1px `#E4E4E4` divider, list heading, list, New reminder button. The calendar and heading stay fixed; only the list scrolls. The grid is Monday-first and uses 4, 5 or 6 rows as the month needs.
 
-- Month title Lato Bold 17; weekday names Lato Bold 13; dates Lato Bold 16 `#1C2C42`; past days `#D9D9D9`; arrows `#0088FE`.
+- Month title Lato Bold 20 (header); weekday names Lato Bold 13; dates Lato Bold 16 `#1C2C42`; past days `#D9D9D9`.
 - Today: filled 30px `#00AFEE` circle, white number, always.
 
 ### Dots
@@ -119,7 +119,7 @@ Filter row, month header, weekday row, date grid, 1px `#E4E4E4` divider, list he
 - With a filter active: the selection clears, days outside the filter's range and their dots turn `#D9D9D9`, the heading shows the filter name in its colour, and the list shows the filter's results. Tapping a greyed future day clears the filter and selects it.
 - Settings menu on: Later is the combined Later and Sometime filter. Sometime reminders appear in the list but have no dots. With the separate Sometime pill, all days are greyed.
 - An empty selected day shows "No reminders... take it easy!" (Lato Bold 17, `#BABABA`).
-- Navigation: arrows or a horizontal swipe on the calendar (not the list), with a slide between months, unlimited in both directions.
+- Navigation: a horizontal swipe on the calendar (not the list), with a slide between months, unlimited in both directions.
 - Midnight rollover moves today, greying and the default selection on the next time refresh tick.
 
 ### New reminder from the calendar

@@ -480,7 +480,7 @@ Settings foundation
 ✓ Resolver: unrecognised values read as off, haptics reads its master switch
 ✓ Resolver: testing-only keys never change any feature
 ✓ Lock screen widget: on by default, master flag turns it off and on, reminders unaffected
-✓ Calendar: flag and Show calendar both default off, active only when Reminders, flag and setting are on
+✓ Calendar: flag and calendar view both default off, active only when Reminders, flag and view are on
 
 ```
 
@@ -558,7 +558,7 @@ Settings foundation
   - Sounds (switches match haptics, defaults, resolver and flag): 3
   - Resolver: 7
   - Lock screen widget flag: 1
-  - Calendar flag and Show calendar: 1
+  - Calendar flag and calendar view: 1
 - **Total**: 354 checks across 10 suites
 
 ## Runner Integrity Check

@@ -1716,11 +1716,14 @@ export default function App() {
     tutorialOnNotifAskPageRef.current = isOnPage;
   }, []);
 
+  // Tutorial NLC page shows whenever NLC is available (Dev tools), whether or not the user has it on. With it on, the demo
+  // follows the user's recognition settings; otherwise (or if those recognise nothing) it uses dates and times
   const tutorialNlcDemo = useMemo(() => {
-    if (!isNlcActive) return null;
-    const demo = getNlcTutorialDemo(nlcRecognitionForInput);
+    if (!isNlcAvailable) return null;
+    const demo = (isNlcActive ? getNlcTutorialDemo(nlcRecognitionForInput) : null)
+      ?? getNlcTutorialDemo({ date: true, time: true, repeats: false });
     return demo ? { demo, autoMode: nlcMode === 'auto' } : null;
-  }, [isNlcActive, nlcRecognitionForInput, nlcMode]);
+  }, [isNlcAvailable, isNlcActive, nlcRecognitionForInput, nlcMode]);
 
   // Auto-launch tutorial on mount based on toggle states
   useEffect(() => {

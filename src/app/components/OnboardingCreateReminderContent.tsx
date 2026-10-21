@@ -1,6 +1,6 @@
 // Reminders tutorial pages "Create a reminder" and "Type it naturally" (docs/plans/onboarding-gaps.md, section 3).
-// Both animate the New reminder sheet inside the tutorial phone: manual mode sets the date and time with the
-// option rows; NLC mode types a phrase the live parser recognises, so the demo matches the user's settings.
+// Both animate the New reminder sheet inside the tutorial phone: manual mode highlights the in-situ New reminder button,
+// then turns on the Date and Time toggles (today at 7pm); NLC mode types a phrase the live parser recognises, so the demo matches the user's settings.
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -31,17 +31,25 @@ const INSERT_HIGHLIGHT_MS = 1000;
 const RECYCLE_DELAY = 2000;
 const NEW_REMINDER_ID = "tutorial-new-reminder";
 
-const MANUAL_TEXT = "Book a haircut";
-// Tutorial list dates are fixed (Monday 11 August 2025, as in TutorialStaticReminderList)
+const MANUAL_TEXT = "Take the bins out";
+// Tutorial list dates are fixed (Monday 11 August 2025, as in TutorialStaticReminderList); the reminder is set for
+// today at 7pm and inserted at the top of the list so it is easy to spot
 const MANUAL_REMINDER: TutorialReminder = {
   id: NEW_REMINDER_ID,
   title: MANUAL_TEXT,
-  category: "thisWeek",
-  circleColor: "#E466FD",
-  schedule: { kind: "scheduled", date: "2025-08-12", time: "15:00" },
+  category: "today",
+  circleColor: "#00AFEE",
+  schedule: { kind: "scheduled", date: "2025-08-11", time: "19:00" },
 };
-const MANUAL_DATE_LABEL = "Tomorrow";
-const MANUAL_TIME_LABEL = formatSelectedTime({ hour: 15, minute: 0 });
+const MANUAL_DATE_LABEL = "Today";
+const MANUAL_TIME_LABEL = formatSelectedTime({ hour: 19, minute: 0 });
+// Tick highlight: a ring with a clear gap around the 45px tick, so it reads against the blue button
+const TICK_RING_PADDING = 10;
+// Page 2 opens on the bottom of a full mini iPhone (the in-situ New reminder button), then pans up to the usual slice
+const FULL_PHONE_ASPECT = 2.05;
+const PAN_DURATION = 0.9;
+const FIRST_BUTTON_THROB_DELAY = 400;
+const SHEET_OPEN_AFTER_PAN = 200;
 
 type Phase =
   | "idle"
@@ -259,7 +267,7 @@ function TutorialNewReminderSheet({
 }
 
 // Scaled copy of the app's New reminder button (the other tutorial pages leave it out)
-function TutorialNewReminderButton({ buttonRef }: { buttonRef: (element: HTMLDivElement | null) => void }) {
+function TutorialNewReminderButton({ buttonRef }: { buttonRef?: (element: HTMLDivElement | null) => void }) {
   return (
     <div ref={buttonRef} className="bg-[#4784f8] content-stretch flex gap-[11.167px] h-[41.876px] items-center justify-center px-[20.938px] relative rounded-[69.794px] shrink-0 w-full">
       <div className="relative shrink-0 size-[10.469px]">
@@ -272,14 +280,15 @@ function TutorialNewReminderButton({ buttonRef }: { buttonRef: (element: HTMLDiv
   );
 }
 
-/** Insert position and row data for the reminder saved in NLC mode, using the tutorial's fixed dates. */
-function getNlcInsertedReminder(demo: NlcTutorialDemo): { reminder: TutorialReminder; afterId: string } {
+/** Insert position and row data for the reminder saved in NLC mode, using the tutorial's fixed dates.
+ * A timed reminder ("tonight", 9pm) goes to the top: the list's Today reminders are at 9:30pm and 10pm. */
+function getNlcInsertedReminder(demo: NlcTutorialDemo): { reminder: TutorialReminder; afterId: string | undefined } {
   const title = demo.text.slice(0, demo.token.start).trim();
   if (demo.time) {
     const time = `${String(demo.time.hour).padStart(2, "0")}:${String(demo.time.minute).padStart(2, "0")}`;
     return {
       reminder: { id: NEW_REMINDER_ID, title, category: "today", circleColor: "#00AFEE", schedule: { kind: "scheduled", date: "2025-08-11", time } },
-      afterId: "today-2",
+      afterId: undefined,
     };
   }
   return {
@@ -304,6 +313,7 @@ export default function OnboardingCreateReminderPhone({
   const [phase, setPhase] = useState<Phase>("idle");
   const [typedCount, setTypedCount] = useState(0);
   const [cycle, setCycle] = useState(0);
+  const [showPhoneBottom, setShowPhoneBottom] = useState(true);
   const isNlc = mode.kind === "nlc";
   const nlcDemo = mode.kind === "nlc" ? mode.demo : null;
   const autoMode = mode.kind === "nlc" ? mode.autoMode : true;
@@ -323,8 +333,12 @@ export default function OnboardingCreateReminderPhone({
     if (isNlc) {
       at(SHEET_OPEN_DELAY, () => setPhase("sheet-open"));
     } else {
-      at(0, () => setPhase("button-throb"));
-      at(TUTORIAL_ATTENTION_SEQUENCE_DELAY, () => setPhase("sheet-open"));
+      // Pan down to the phone's bottom (instant on the first cycle) and pulse the button, then pan up to the
+      // usual slice and open the sheet
+      setShowPhoneBottom(true);
+      at(cycle === 0 ? FIRST_BUTTON_THROB_DELAY : PAN_DURATION * 1000 + 300, () => setPhase("button-throb"));
+      at(TUTORIAL_ATTENTION_SEQUENCE_DELAY, () => setShowPhoneBottom(false));
+      at(PAN_DURATION * 1000 + SHEET_OPEN_AFTER_PAN, () => setPhase("sheet-open"));
     }
     at(TYPING_START_DELAY, () => setPhase("typing"));
     for (let i = 1; i <= fullText.length; i += 1) {
@@ -359,7 +373,8 @@ export default function OnboardingCreateReminderPhone({
   const tokenRange = nlcDemo && typedCount >= nlcDemo.token.end ? { start: nlcDemo.token.start, end: nlcDemo.token.end } : null;
   const dateLabel = reached("date-on") ? (nlcDemo ? formatSelectedDate(nlcDemo.date) : MANUAL_DATE_LABEL) : null;
   const timeLabel = reached("time-on") ? (nlcDemo ? formatSelectedTime(nlcDemo.time) : MANUAL_TIME_LABEL) : null;
-  const inserted = nlcDemo ? getNlcInsertedReminder(nlcDemo) : { reminder: MANUAL_REMINDER, afterId: "this-week" };
+  const inserted = nlcDemo ? getNlcInsertedReminder(nlcDemo) : { reminder: MANUAL_REMINDER, afterId: undefined };
+
   const [insertHighlighted, setInsertHighlighted] = useState(false);
 
   useEffect(() => {
@@ -387,11 +402,22 @@ export default function OnboardingCreateReminderPhone({
     setListOffset(overflow > 0 ? -overflow : 0);
   }, [isInserted, listViewport]);
 
+  // Full phone height for the pan: the slot shows the top slice, the extra height holds the bottom with the button
+  const [phoneSlot, setPhoneSlot] = useState<HTMLDivElement | null>(null);
+  const [phoneExtraHeight, setPhoneExtraHeight] = useState(0);
+  useLayoutEffect(() => {
+    if (isNlc || !phoneSlot) return;
+    const update = () => setPhoneExtraHeight(Math.max(0, Math.round(phoneSlot.clientWidth * FULL_PHONE_ASPECT - phoneSlot.clientHeight)));
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(phoneSlot);
+    return () => observer.disconnect();
+  }, [isNlc, phoneSlot]);
+
   // Throb targets
   const [bodyElement, setBodyElement] = useState<HTMLDivElement | null>(null);
   const [buttonElement, setButtonElement] = useState<HTMLDivElement | null>(null);
   const buttonRect = useRelativeRect(buttonElement, bodyElement, 1, phase);
-
   const [sheetContainer, setSheetContainer] = useState<HTMLDivElement | null>(null);
   const [tickElement, setTickElement] = useState<HTMLDivElement | null>(null);
   const [tokenElement, setTokenElement] = useState<HTMLSpanElement | null>(null);
@@ -441,22 +467,23 @@ export default function OnboardingCreateReminderPhone({
             {phase === "token-tap" && <ThrobRing key="token" rect={tokenRect} padding={6} radius={10} quick />}
             {phase === "date-tap" && <ThrobRing key="date" rect={dateToggleRect} padding={6} radius={21} quick />}
             {phase === "time-tap" && <ThrobRing key="time" rect={timeToggleRect} padding={6} radius={21} quick />}
-            {phase === "tick-throb" && <ThrobRing key="tick" rect={tickRect} padding={2.5} radius={25} strokeWidth={3 / scale} />}
+            {phase === "tick-throb" && <ThrobRing key="tick" rect={tickRect} padding={TICK_RING_PADDING} radius={99} strokeWidth={3 / scale} />}
           </div>
         </motion.div>
       )}
     </AnimatePresence>
   );
 
-  return (
+  const phone = (
     <TutorialPhoneShell
       activeMainTab="reminders"
       showMainTabBar={isListsEnabled}
       showHeaderMenu={false}
       overlay={overlay}
+      showBottomBezel={!isNlc}
       filterRow={<TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />}
     >
-    <div ref={setBodyElement} className="content-stretch flex flex-col flex-1 min-h-0 gap-[14px] items-center pt-[10px] px-[14px] pb-[14px] relative w-full">
+    <div ref={setBodyElement} className={`content-stretch flex flex-col flex-1 min-h-0 gap-[14px] items-center pt-[10px] px-[14px] relative w-full ${isNlc ? "pb-[14px]" : "pb-[22px]"}`}>
       <div ref={setListViewport} className="flex-[1_0_0] min-h-px min-w-px w-full relative overflow-hidden">
         <motion.div animate={{ y: listOffset }} transition={{ duration: 0.3, ease: "easeInOut" }}>
           <TutorialStaticReminderList
@@ -468,9 +495,25 @@ export default function OnboardingCreateReminderPhone({
           />
         </motion.div>
       </div>
-      <TutorialNewReminderButton buttonRef={setButtonElement} />
+      <TutorialNewReminderButton buttonRef={isNlc ? undefined : setButtonElement} />
       {phase === "button-throb" && <ThrobRing rect={buttonRect} padding={4} radius={30} />}
     </div>
     </TutorialPhoneShell>
+  );
+
+  if (isNlc) return phone;
+
+  return (
+    <div ref={setPhoneSlot} className="relative shrink-0 h-full w-full max-w-[308px] overflow-hidden">
+      <motion.div
+        className="w-full"
+        style={{ height: `calc(100% + ${phoneExtraHeight}px)` }}
+        initial={false}
+        animate={{ y: showPhoneBottom ? -phoneExtraHeight : 0 }}
+        transition={cycle === 0 && phase === "idle" ? { duration: 0 } : { duration: PAN_DURATION, ease: "easeInOut" }}
+      >
+        {phone}
+      </motion.div>
+    </div>
   );
 }

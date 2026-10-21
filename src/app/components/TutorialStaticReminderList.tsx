@@ -42,17 +42,17 @@ type TutorialList = {
 const STATIC_REMINDERS: readonly TutorialReminder[] = [
   {
     id: "today",
-    title: "Pick up milk",
+    title: "Water the plants",
     category: "today",
     circleColor: "#00AFEE",
-    schedule: { kind: "scheduled", date: "2025-08-11", time: "14:00" },
+    schedule: { kind: "scheduled", date: "2025-08-11", time: "21:30" },
   },
   {
     id: "today-2",
-    title: "Call the dentist",
+    title: "Lock the back door",
     category: "today",
     circleColor: "#00AFEE",
-    schedule: { kind: "scheduled", date: "2025-08-11", time: "16:30" },
+    schedule: { kind: "scheduled", date: "2025-08-11", time: "22:00" },
   },
   {
     id: "this-week",
@@ -71,7 +71,7 @@ const STATIC_REMINDERS: readonly TutorialReminder[] = [
   },
   {
     id: "later-2",
-    title: "Put the bins out",
+    title: "Yoga class",
     category: "later",
     circleColor: "#FDB146",
     schedule: { kind: "scheduled", date: "2025-09-18", time: "19:00" },
@@ -362,7 +362,7 @@ export default function TutorialStaticReminderList({
   onRowTargetElementChange?: (element: HTMLDivElement | null) => void;
   prependSmartReminder?: boolean;
   combineLaterSometime?: boolean;
-  // Create a reminder pages: a reminder saved in the mock sheet, faded in after insertedReminderAfterId
+  // Create a reminder pages: a reminder saved in the mock sheet, faded in after insertedReminderAfterId (at the top when not given)
   insertedReminder?: TutorialReminder | null;
   insertedReminderAfterId?: string;
   insertedReminderHighlighted?: boolean;
@@ -606,7 +606,9 @@ export default function TutorialStaticReminderList({
 
   const sourceVisibleIds = doneReminderIds ?? visibleIds;
   const reminderSource: readonly TutorialReminder[] = insertedReminder && doneReminderIds == null
-    ? STATIC_REMINDERS.flatMap((reminder) => reminder.id === insertedReminderAfterId ? [reminder, insertedReminder] : [reminder])
+    ? (insertedReminderAfterId == null
+      ? [insertedReminder, ...STATIC_REMINDERS]
+      : STATIC_REMINDERS.flatMap((reminder) => reminder.id === insertedReminderAfterId ? [reminder, insertedReminder] : [reminder]))
     : STATIC_REMINDERS;
   const reminderSourceIds = insertedReminder && doneReminderIds == null
     ? reminderSource.map((reminder) => reminder.id).filter((id) => id === insertedReminder.id || sourceVisibleIds.includes(id))

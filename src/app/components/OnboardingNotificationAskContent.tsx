@@ -29,7 +29,7 @@ export function OnboardingNotificationAskText() {
   );
 }
 
-// Mock iOS notification banner for the "Pick up milk" reminder in the tutorial list
+// Mock iOS notification banner for the "Water the plants" reminder in the tutorial list
 function TutorialAlertBanner() {
   return (
     <div className="mx-[10px] rounded-[14px] bg-white/95 px-[10px] py-[8px] flex gap-[8px] items-center" style={{ boxShadow: "0 4px 14px rgba(0, 0, 0, 0.18)" }}>
@@ -44,8 +44,8 @@ function TutorialAlertBanner() {
           <p className="text-[9px] font-bold tracking-[0.3px] text-[#6B6B6B]">REMINDERLY</p>
           <p className="text-[8px] text-[#939393]">now</p>
         </div>
-        <p className="text-[11px] font-bold text-[#1C2C42] leading-[14px] truncate">Pick up milk</p>
-        <p className="text-[10px] text-[#6B6B6B] leading-[13px] truncate">Today at 2:00 PM</p>
+        <p className="text-[11px] font-bold text-[#1C2C42] leading-[14px] truncate">Water the plants</p>
+        <p className="text-[10px] text-[#6B6B6B] leading-[13px] truncate">Today at 9:30 PM</p>
       </div>
     </div>
   );

@@ -59,7 +59,8 @@ function Page6Ring({ rect, size }: { rect: { x: number; y: number }; size: numbe
 }
 
 // Re-run page: highlight the Settings button, open Reminders settings, highlight the tutorial option, then stop.
-// Settings shows three rows so the tutorial option sits inside the phone frame.
+// Settings shows three rows in a card sized to them (as the live overlay at 393pt and up), so the tutorial option
+// sits inside the phone frame.
 export function OnboardingPage6Overlay() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Page6Phase>("none");
@@ -84,7 +85,7 @@ export function OnboardingPage6Overlay() {
       return;
     }
     const target = phase === "settings-throb"
-      ? root.parentElement?.querySelector('svg[width="32.308"]')
+      ? root.parentElement?.querySelector('svg[data-tutorial-settings-button]')
       : [...root.querySelectorAll("button")].find((button) => button.textContent === "Reminders tutorial")?.querySelector("svg");
     if (!target) return;
     const rootRect = root.getBoundingClientRect();
@@ -96,7 +97,7 @@ export function OnboardingPage6Overlay() {
     <div ref={rootRef} className="absolute inset-0 pointer-events-none">
       {(phase === "settings-overlay" || phase === "tutorial-throb") && (
         <TutorialMiniOverlayShell>
-          <div className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] outline-none" style={{ width: 340, height: 450, overflowY: "hidden" }}>
+          <div className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] outline-none" style={{ width: 340, overflowY: "hidden" }}>
             <RemindersSettingsContent
               onOpenTutorial={noop}
               notificationsAvailable

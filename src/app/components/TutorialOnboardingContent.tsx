@@ -221,7 +221,7 @@ function Page5DoneDeletedFilters() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex items-center justify-center h-[31.5px] w-[61.3px] relative rounded-[69.652px] shrink-0 border border-solid border-[#4784F8] text-[#4784F8]">
+        <div className="content-stretch flex items-center justify-center h-[31.5px] w-[61.3px] relative rounded-[69.652px] shrink-0 border border-solid border-[#4784F8] bg-[#4784F8] text-white">
           <div className="font-['Lato',sans-serif] font-bold text-[9.751px] whitespace-nowrap">
             Clear all
           </div>

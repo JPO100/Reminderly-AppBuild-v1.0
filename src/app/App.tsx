@@ -3799,7 +3799,7 @@ export default function App() {
                                       <p style={{ fontSize: '17px', fontWeight: 700, lineHeight: 1, overflow: 'visible', transform: 'translateY(-1px)' }}>{list.title}</p>
                                     </div>
                                     <div className={`flex items-center overflow-visible${isPendingRestore ? '' : ' line-through'}`} style={{ textDecorationColor: isPendingRestore ? '#BABABA' : listStatusColor }}>
-                                      <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingRestore ? '#BABABA' : listStatusColor }}>
+                                      <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: isPendingRestore ? '#BABABA' : listStatusColor }}>
                                         {isSavedList ? `${list.items.length} ${list.items.length === 1 ? 'item' : 'items'}` : formatListProgress(doneCount, list.items.length)}
                                       </p>
                                       {!isSavedList && isSmartRemindersEnabled && (list.smartReminders ?? false) && (
@@ -3900,7 +3900,7 @@ export default function App() {
                                   style={{ textDecorationColor: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}
                                   onClick={() => openSavedListEditor(list)}
                                 >
-                                  <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}>
+                                  <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: isPendingDeletedSavedList ? deletedSavedListColor : '#BABABA' }}>
                                     {list.items.length} {list.items.length === 1 ? 'item' : 'items'}
                                   </p>
                                 </div>
@@ -4108,7 +4108,7 @@ export default function App() {
                                     )}
                                   </div>
                                   <div className={`flex items-center overflow-visible cursor-pointer${isPendingAwayList ? ' line-through' : ''} min-w-0`} style={{ textDecorationColor: isPendingAwayList ? DELETED_GREY : '#BABABA' }} onClick={() => openListEditor(list)}>
-                                    <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingAwayList ? DELETED_GREY : '#BABABA', textDecorationColor: isPendingAwayList ? DELETED_GREY : '#BABABA' }}>
+                                    <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: isPendingAwayList ? DELETED_GREY : '#BABABA', textDecorationColor: isPendingAwayList ? DELETED_GREY : '#BABABA' }}>
                                       {formatListProgress(visibleCompletedCount, list.items.length)}
                                       {listAutoClear && !isPendingAwayList && isListClearingTonight(list, pinnedListsFeatureEnabled) ? '. Clears tonight' : null}
                                       {isSmartRemindersEnabled && (list.smartReminders ?? false) ? (
@@ -4444,7 +4444,7 @@ export default function App() {
                                       <p style={{ fontSize: '17px', fontWeight: 700, lineHeight: 1, overflow: 'visible', transform: 'translateY(-1px)' }}>{getDisplayTitle(item)}</p>
                                     </div>
                                       <div className={`flex items-center overflow-visible${isPendingRestore ? '' : ' line-through'}`} style={{ textDecorationColor: subtitleCol }}>
-                                        <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: subtitleCol }}>{(() => {
+                                        <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: subtitleCol }}>{(() => {
                                           if (isSmartReminder && item.linkedListId && item.schedule.kind === 'scheduled' && item.schedule.date) {
                                             const linkedList = createdLists.find((list) => list.id === item.linkedListId);
                                             if (linkedList) {
@@ -4605,7 +4605,7 @@ export default function App() {
                                   )}
                                 </div>
                                   <div className={`flex items-center overflow-visible${isPendingAway ? ' line-through' : ''}`} style={{ textDecorationColor: isPendingAway ? pendingColour : '#BABABA' }}>
-                                    <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, color: isPendingAway ? pendingColour : '#BABABA' }}>{(() => {
+                                    <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: isPendingAway ? pendingColour : '#BABABA' }}>{(() => {
                                       if (isSmartReminder && reminder.linkedListId && reminder.schedule.kind === 'scheduled' && reminder.schedule.date) {
                                         const linkedList = createdLists.find((list) => list.id === reminder.linkedListId);
                                         if (linkedList) {

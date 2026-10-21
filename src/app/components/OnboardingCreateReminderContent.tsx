@@ -94,10 +94,10 @@ export function OnboardingTypeNaturallyText({ autoMode }: { autoMode: boolean })
       </div>
       <div className={TUTORIAL_BODY_CLASSNAME}>
         <p className="css-4hzbpn leading-[30px]">
-          When Reminderly spots a time or date, it<br />
+          When active, a time or date you type turns<br />
           {autoMode
-            ? <>turns the text <span className="text-[#4784F8]">blue</span> and sets it for you</>
-            : <>turns the text <span className="text-[#4784F8]">blue</span> - just tap it to set it</>}
+            ? <><span className="text-[#4784F8]">blue</span> and is set for you</>
+            : <><span className="text-[#4784F8]">blue</span> - just tap it to set it</>}
         </p>
       </div>
     </div>

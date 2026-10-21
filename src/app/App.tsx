@@ -1716,6 +1716,21 @@ export default function App() {
     tutorialOnNotifAskPageRef.current = isOnPage;
   }, []);
 
+  // Re-run tutorial page: the Reminders settings rows as the live overlay shows them
+  const tutorialRemindersSettings = {
+    notificationsAvailable: isRemindersEnabled && notificationsFlag,
+    datePresetsAvailable: isRemindersEnabled && datePresetsFlag,
+    datePresetsOn: datePresetsPref,
+    soundsAvailable: soundsFlag,
+    nlcAvailable: isNlcAvailable,
+    hapticsAvailable: hapticsFlag,
+    oneMinuteAvailable: isOneMinuteAvailable,
+    oneMinuteOn: useOneMinuteTimeIncrements,
+    siriAvailable: isSiriRemindersAvailable,
+    siriOn: remindersSettingsSiriOn,
+    showInfoIcons,
+  };
+
   // Tutorial NLC page shows whenever NLC is available (Dev tools), whether or not the user has it on. With it on, the demo
   // follows the user's recognition settings; otherwise (or if those recognise nothing) it uses dates and times
   const tutorialNlcDemo = useMemo(() => {
@@ -5681,7 +5696,7 @@ export default function App() {
                   className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarAvailable} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarAvailable} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} remindersSettings={tutorialRemindersSettings} />
               </motion.div>
             </motion.div>
           </>

@@ -21,7 +21,7 @@ import OnboardingPage3Content, {
 } from '@/app/components/OnboardingPage3Content';
 import OnboardingPage4Content, { OnboardingPage4Text } from '@/app/components/OnboardingPage4Content';
 import OnboardingPage5Content, { OnboardingPage5Text, PAGE_5_HIGHLIGHT_SEQUENCE_DELAY, PAGE_5_INITIAL_PAUSE_DELAY, PAGE_5_STATE_PAUSE_DELAY } from '@/app/components/OnboardingPage5Content';
-import OnboardingPage6Content, { OnboardingPage6Overlay, OnboardingPage6Text } from '@/app/components/OnboardingPage6Content';
+import OnboardingPage6Content, { OnboardingPage6Overlay, OnboardingPage6Text, type TutorialRemindersSettings } from '@/app/components/OnboardingPage6Content';
 import { TUTORIAL_BODY_CLASSNAME, TUTORIAL_TITLE_CLASSNAME } from '@/app/components/tutorialTokens';
 import TutorialPhoneShell from '@/app/components/TutorialPhoneShell';
 import TutorialStaticReminderList, { TUTORIAL_PAGE_2_DONE_LIST_IDS, TUTORIAL_REMINDER_LIST_SCALE, TutorialRowMenuDots } from '@/app/components/TutorialStaticReminderList';
@@ -56,6 +56,8 @@ interface TutorialOnboardingContentProps {
   notificationPermission?: string | null;
   onNotificationAllow?: () => Promise<unknown> | void;
   onNotificationAskPageChange?: (isOnPage: boolean) => void;
+  // Reminders tutorial: Re-run this tutorial page shows the settings rows the app shows
+  remindersSettings?: TutorialRemindersSettings;
 }
 
 const LIST_BLUE = "#4784F8";
@@ -1502,6 +1504,7 @@ export default function TutorialOnboardingContent({
   notificationPermission = null,
   onNotificationAllow,
   onNotificationAskPageChange,
+  remindersSettings,
 }: TutorialOnboardingContentProps) {
   // currentStep is the position in the visible sequence; currentPage is the page id being shown
   const [currentStep, setCurrentStep] = useState(0);
@@ -1710,7 +1713,7 @@ export default function TutorialOnboardingContent({
 
         {!isListsTutorial && currentPage === TUTORIAL_PAGE_TYPE_NATURALLY && nlcDemo && (
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
-            <OnboardingTypeNaturallyText autoMode={nlcDemo.autoMode} />
+            <OnboardingTypeNaturallyText />
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
               <OnboardingCreateReminderPhone
                 mode={{ kind: "nlc", demo: nlcDemo.demo, autoMode: nlcDemo.autoMode }}
@@ -1828,7 +1831,7 @@ export default function TutorialOnboardingContent({
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
                 showHeaderMenu={false}
-                overlay={<OnboardingPage6Overlay />}
+                overlay={<OnboardingPage6Overlay settings={remindersSettings} />}
                 filterRow={
                   <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
                 }

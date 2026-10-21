@@ -46,10 +46,10 @@ export function TutorialMiniOverlayShell({
 
 export const CALL_DENTIST_TUTORIAL_REMINDER: Reminder = {
   id: "today",
-  originalText: "Pick up milk",
-  displayText: "Pick up milk",
+  originalText: "Water the plants",
+  displayText: "Water the plants",
   createdAt: 0,
-  schedule: { kind: "scheduled", date: "2025-08-11", time: "14:00" },
+  schedule: { kind: "scheduled", date: "2025-08-11", time: "21:30" },
   completedAt: null,
 };
 

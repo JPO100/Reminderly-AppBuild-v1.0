@@ -1091,6 +1091,8 @@ export default function App() {
   const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useStoredSetting('reminderly-ff-saved-lists');
   const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useStoredSetting('reminderly-ff-pinned-lists');
   const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useStoredSetting('reminderly-ff-settings-menu-v2');
+  // The calendar button sits beside the settings button, so it only shows while the settings menu is on
+  const isCalendarButtonShown = isCalendarAvailable && settingsMenuFeatureEnabled;
   const [showInfoIcons, setShowInfoIcons] = useStoredSetting('reminderly-ff-info-icons');
   const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useStoredSetting('reminderly-ff-siri-reminders');
   // Siri user preferences, one per settings panel
@@ -1716,11 +1718,29 @@ export default function App() {
     tutorialOnNotifAskPageRef.current = isOnPage;
   }, []);
 
+  // Re-run tutorial page: the Reminders settings rows as the live overlay shows them
+  const tutorialRemindersSettings = {
+    notificationsAvailable: isRemindersEnabled && notificationsFlag,
+    datePresetsAvailable: isRemindersEnabled && datePresetsFlag,
+    datePresetsOn: datePresetsPref,
+    soundsAvailable: soundsFlag,
+    nlcAvailable: isNlcAvailable,
+    hapticsAvailable: hapticsFlag,
+    oneMinuteAvailable: isOneMinuteAvailable,
+    oneMinuteOn: useOneMinuteTimeIncrements,
+    siriAvailable: isSiriRemindersAvailable,
+    siriOn: remindersSettingsSiriOn,
+    showInfoIcons,
+  };
+
+  // Tutorial NLC page shows whenever NLC is available (Dev tools), whether or not the user has it on. With it on, the demo
+  // follows the user's recognition settings; otherwise (or if those recognise nothing) it uses dates and times
   const tutorialNlcDemo = useMemo(() => {
-    if (!isNlcActive) return null;
-    const demo = getNlcTutorialDemo(nlcRecognitionForInput);
+    if (!isNlcAvailable) return null;
+    const demo = (isNlcActive ? getNlcTutorialDemo(nlcRecognitionForInput) : null)
+      ?? getNlcTutorialDemo({ date: true, time: true, repeats: false });
     return demo ? { demo, autoMode: nlcMode === 'auto' } : null;
-  }, [isNlcActive, nlcRecognitionForInput, nlcMode]);
+  }, [isNlcAvailable, isNlcActive, nlcRecognitionForInput, nlcMode]);
 
   // Auto-launch tutorial on mount based on toggle states
   useEffect(() => {
@@ -4287,11 +4307,11 @@ export default function App() {
               );
             }
             // Header buttons on: filters grouped left with 8px gaps, buttons pushed right by justify-between
-            return settingsMenuFeatureEnabled || isCalendarAvailable ? <div className="flex items-center gap-[8px]">{filterPills}</div> : filterPills;
+            return settingsMenuFeatureEnabled || isCalendarButtonShown ? <div className="flex items-center gap-[8px]">{filterPills}</div> : filterPills;
             })()}
-            {(settingsMenuFeatureEnabled || isCalendarAvailable) && (
+            {(settingsMenuFeatureEnabled || isCalendarButtonShown) && (
             <div className="flex items-center gap-[8px]">
-            {isCalendarAvailable && (calendarElement ? (
+            {isCalendarButtonShown && (calendarElement ? (
               <button
                 type="button"
                 onClick={() => { setCalendarPref(false); setActiveFilter(listViewFilterRef.current); }}
@@ -5678,7 +5698,9 @@ export default function App() {
                   className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarAvailable} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} />
+                <ShowInfoIconsContext.Provider value={showInfoIcons}>
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} remindersSettings={tutorialRemindersSettings} />
+                </ShowInfoIconsContext.Provider>
               </motion.div>
             </motion.div>
           </>

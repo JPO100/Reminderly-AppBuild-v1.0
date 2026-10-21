@@ -11,6 +11,7 @@ import RepeatsOverlay from "./components/RepeatsOverlay";
 import ReminderInfoOverlay from "./components/ReminderInfoOverlay";
 import TutorialOverlay from "./components/TutorialOverlay";
 import RemindersCalendar from "./components/RemindersCalendar";
+import { markCalendarSwipeHintShown, shouldShowCalendarSwipeHint } from "./utils/calendar-swipe-hint";
 import type { RepeatRule } from "./types/reminder";
 import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
@@ -3440,6 +3441,8 @@ export default function App() {
       }}
       onPrevMonth={() => changeCalendarMonth(-1)}
       onNextMonth={() => changeCalendarMonth(1)}
+      showSwipeHint={shouldShowCalendarSwipeHint()}
+      onSwipeHintShown={() => markCalendarSwipeHintShown()}
     />
   ) : null;
 

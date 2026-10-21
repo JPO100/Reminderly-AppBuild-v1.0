@@ -13,6 +13,7 @@ import {
 } from '../reminder-utils';
 import { canSubmitReminder, formatSelectedDate, getCalendarPrefill } from '../../imports/NewReminderOverlay';
 import type { Reminder } from '../reminder-utils';
+import { CALENDAR_SWIPE_HINT_EVERY_VISIT_KEY, CALENDAR_SWIPE_HINT_SHOWN_KEY, markCalendarSwipeHintShown, shouldShowCalendarSwipeHint } from '../utils/calendar-swipe-hint';
 
 // Tuesday 6 January 2026, 1pm local time (the mockup's today)
 const NOW = new Date(2026, 0, 6, 13, 0, 0);
@@ -209,5 +210,29 @@ describe('New reminder date from the calendar', () => {
     const base = { requiresScheduledReminder: true, isDateOn: true, selectedDate: prefill.date, isTimeOn: true, selectedTime: prefill.time };
     expect(canSubmitReminder({ ...base, text: '' })).toBe(false);
     expect(canSubmitReminder({ ...base, text: 'Pick up parcel' })).toBe(true);
+  });
+});
+
+describe('calendar swipe hint', () => {
+  const memoryStorage = (saved: Record<string, string> = {}) => ({
+    getItem: (key: string) => saved[key] ?? null,
+    setItem: (key: string, value: string) => { saved[key] = value; },
+  });
+
+  it('shows on the first visit and not after it has been shown', () => {
+    const storage = memoryStorage();
+    expect(shouldShowCalendarSwipeHint(storage)).toBe(true);
+    markCalendarSwipeHintShown(storage);
+    expect(shouldShowCalendarSwipeHint(storage)).toBe(false);
+  });
+
+  it('shows on every visit when the testing toggle is on', () => {
+    const storage = memoryStorage({ [CALENDAR_SWIPE_HINT_SHOWN_KEY]: 'true', [CALENDAR_SWIPE_HINT_EVERY_VISIT_KEY]: 'true' });
+    expect(shouldShowCalendarSwipeHint(storage)).toBe(true);
+  });
+
+  it('does not show when storage cannot be read', () => {
+    const storage = { getItem: () => { throw new Error('blocked'); }, setItem: () => {} };
+    expect(shouldShowCalendarSwipeHint(storage)).toBe(false);
   });
 });

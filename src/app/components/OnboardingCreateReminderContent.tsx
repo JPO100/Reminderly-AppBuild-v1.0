@@ -24,7 +24,6 @@ const SHEET_OPEN_DELAY = 1000;
 const TYPING_START_DELAY = 600;
 const TYPING_STEP_DELAY = 80;
 const STEP_PAUSE = 750;
-const NLC_AUTO_APPLY_DELAY = 900;
 const TOGGLE_TAP_DURATION = 0.8;
 const INSERT_DELAY = 500;
 const INSERT_HIGHLIGHT_MS = 1000;
@@ -148,6 +147,27 @@ function ThrobRing({ rect, padding, radius, strokeWidth = 3, quick = false }: { 
       transition={quick
         ? { duration: TOGGLE_TAP_DURATION, ease: "easeInOut" }
         : { duration: TUTORIAL_ATTENTION_THROB_DURATION, delay: TUTORIAL_ATTENTION_THROB_DELAY, times: TUTORIAL_ATTENTION_THROB_TIMES, ease: "easeInOut" }}
+    />
+  );
+}
+
+// Circular attention ring centred on a target (the recognised word), with the same pulses as ThrobRing
+function ThrobCircle({ rect, padding, strokeWidth }: { rect: Rect | null; padding: number; strokeWidth: number }) {
+  if (!rect) return null;
+  const size = Math.max(rect.width, rect.height) + padding * 2;
+  return (
+    <motion.div
+      className="absolute z-10 pointer-events-none rounded-full"
+      style={{
+        left: rect.left + rect.width / 2 - size / 2,
+        top: rect.top + rect.height / 2 - size / 2,
+        width: size,
+        height: size,
+        border: `${strokeWidth}px solid #4784F8`,
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0, 0, 1, 0, 0, 1, 0] }}
+      transition={{ duration: TUTORIAL_ATTENTION_THROB_DURATION, delay: TUTORIAL_ATTENTION_THROB_DELAY, times: TUTORIAL_ATTENTION_THROB_TIMES, ease: "easeInOut" }}
     />
   );
 }
@@ -316,7 +336,6 @@ export default function OnboardingCreateReminderPhone({
   const [showPhoneBottom, setShowPhoneBottom] = useState(true);
   const isNlc = mode.kind === "nlc";
   const nlcDemo = mode.kind === "nlc" ? mode.demo : null;
-  const autoMode = mode.kind === "nlc" ? mode.autoMode : true;
   const fullText = nlcDemo ? nlcDemo.text : MANUAL_TEXT;
 
   // Phase sequence; every timer is cleared when the page changes or the cycle restarts
@@ -345,10 +364,9 @@ export default function OnboardingCreateReminderPhone({
       at(TYPING_STEP_DELAY, () => setTypedCount(i));
     }
     if (nlcDemo) {
-      // The recognised word is highlighted, then Date and Time turn on one after the other. Tap mode waits for the
-      // highlight (the tap); Apply as you type sets them while it shows, as the app does
+      // The recognised word flashes first (in both modes), then Date and Time turn on one after the other
       at(STEP_PAUSE, () => setPhase("token-tap"));
-      at(autoMode ? NLC_AUTO_APPLY_DELAY : TUTORIAL_ATTENTION_SEQUENCE_DELAY, () => setPhase("date-on"));
+      at(TUTORIAL_ATTENTION_SEQUENCE_DELAY, () => setPhase("date-on"));
       if (nlcDemo.time) at(STEP_PAUSE, () => setPhase("time-on"));
     } else {
       at(STEP_PAUSE, () => setPhase("date-tap"));
@@ -362,7 +380,7 @@ export default function OnboardingCreateReminderPhone({
     at(INSERT_HIGHLIGHT_MS + RECYCLE_DELAY, () => setCycle((value) => value + 1));
 
     return () => timers.forEach((timer) => clearTimeout(timer));
-  }, [cycle, isNlc, nlcDemo, autoMode, fullText]);
+  }, [cycle, isNlc, nlcDemo, fullText]);
 
   const phaseOrder: Phase[] = ["idle", "button-throb", "sheet-open", "typing", "token-tap", "date-tap", "date-on", "time-tap", "time-on", "tick-throb", "closing", "inserted"];
   const reached = (target: Phase) => phaseOrder.indexOf(phase) >= phaseOrder.indexOf(target);
@@ -462,7 +480,7 @@ export default function OnboardingCreateReminderPhone({
               setDateToggleElement={setDateToggleElement}
               setTimeToggleElement={setTimeToggleElement}
             />
-            {isNlc && reached("token-tap") && !reached("tick-throb") && <ThrobRing key="token" rect={tokenRect} padding={6} radius={10} strokeWidth={3 / scale} />}
+            {phase === "token-tap" && <ThrobCircle key="token" rect={tokenRect} padding={12} strokeWidth={3 / scale} />}
             {phase === "date-tap" && <ThrobRing key="date" rect={dateToggleRect} padding={6} radius={21} quick />}
             {phase === "time-tap" && <ThrobRing key="time" rect={timeToggleRect} padding={6} radius={21} quick />}
             {phase === "tick-throb" && <ThrobRing key="tick" rect={tickRect} padding={TICK_RING_PADDING} radius={99} strokeWidth={3 / scale} />}

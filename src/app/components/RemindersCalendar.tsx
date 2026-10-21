@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { getCalendarDayCategory, getCalendarWeeks, isDateInFilterRange } from "../reminder-utils";
 import type { CalendarDotKind, ReminderCategory } from "../reminder-utils";
@@ -28,6 +28,8 @@ export default function RemindersCalendar({
   onSelectDay,
   onPrevMonth,
   onNextMonth,
+  showSwipeHint = false,
+  onSwipeHintShown,
 }: {
   year: number;
   month: number; // 0-based
@@ -42,6 +44,8 @@ export default function RemindersCalendar({
   onSelectDay?: (dateKey: string) => void;
   onPrevMonth?: () => void;
   onNextMonth?: () => void;
+  showSwipeHint?: boolean; // read once when the calendar opens
+  onSwipeHintShown?: () => void;
 }) {
   const weeks = getCalendarWeeks(year, month);
   // Slide the dates in from the side the user moved towards. No slide on first show.
@@ -54,13 +58,19 @@ export default function RemindersCalendar({
   }
   // Horizontal swipe on the calendar changes month: left for next, right for previous (no arrow buttons)
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  // Swipe hint: the dates nudge left then right once when the calendar opens. A touch stops it.
+  const [isHinting, setIsHinting] = useState(showSwipeHint);
+  useEffect(() => {
+    if (isHinting) onSwipeHintShown?.();
+    // Mount only: the hint is decided when the calendar opens
+  }, []);
 
   return (
     // The month title is in the Reminders header; the weekday row sits the parent column's 24px gap below it
     <div
       className="w-full shrink-0"
       data-name="reminders-calendar"
-      onTouchStart={(e) => { touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
+      onTouchStart={(e) => { touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; setIsHinting(false); }}
       onTouchEnd={(e) => {
         const start = touchStartRef.current;
         touchStartRef.current = null;
@@ -81,6 +91,12 @@ export default function RemindersCalendar({
       </div>
 
       {/* Dates */}
+      <motion.div
+        className="w-full"
+        animate={isHinting ? { x: [0, -32, 0, 24, 0] } : { x: 0 }}
+        transition={isHinting ? { duration: 1.4, times: [0, 0.3, 0.55, 0.8, 1], ease: "easeInOut", delay: 0.5 } : { duration: 0.15 }}
+        onAnimationComplete={() => setIsHinting(false)}
+      >
       <motion.div
         key={monthIndex}
         className="w-full mt-[4px]"
@@ -128,6 +144,7 @@ export default function RemindersCalendar({
             })}
           </div>
         ))}
+      </motion.div>
       </motion.div>
 
       {/* Divider between the calendar and the list */}

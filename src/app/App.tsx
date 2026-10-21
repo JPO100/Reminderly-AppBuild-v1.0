@@ -1091,6 +1091,8 @@ export default function App() {
   const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useStoredSetting('reminderly-ff-saved-lists');
   const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useStoredSetting('reminderly-ff-pinned-lists');
   const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useStoredSetting('reminderly-ff-settings-menu-v2');
+  // The calendar button sits beside the settings button, so it only shows while the settings menu is on
+  const isCalendarButtonShown = isCalendarAvailable && settingsMenuFeatureEnabled;
   const [showInfoIcons, setShowInfoIcons] = useStoredSetting('reminderly-ff-info-icons');
   const [siriShortcutsEnabled, setSiriShortcutsEnabled] = useStoredSetting('reminderly-ff-siri-reminders');
   // Siri user preferences, one per settings panel
@@ -4305,11 +4307,11 @@ export default function App() {
               );
             }
             // Header buttons on: filters grouped left with 8px gaps, buttons pushed right by justify-between
-            return settingsMenuFeatureEnabled || isCalendarAvailable ? <div className="flex items-center gap-[8px]">{filterPills}</div> : filterPills;
+            return settingsMenuFeatureEnabled || isCalendarButtonShown ? <div className="flex items-center gap-[8px]">{filterPills}</div> : filterPills;
             })()}
-            {(settingsMenuFeatureEnabled || isCalendarAvailable) && (
+            {(settingsMenuFeatureEnabled || isCalendarButtonShown) && (
             <div className="flex items-center gap-[8px]">
-            {isCalendarAvailable && (calendarElement ? (
+            {isCalendarButtonShown && (calendarElement ? (
               <button
                 type="button"
                 onClick={() => { setCalendarPref(false); setActiveFilter(listViewFilterRef.current); }}
@@ -5697,7 +5699,7 @@ export default function App() {
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarAvailable} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} remindersSettings={tutorialRemindersSettings} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} remindersSettings={tutorialRemindersSettings} />
                 </ShowInfoIconsContext.Provider>
               </motion.div>
             </motion.div>

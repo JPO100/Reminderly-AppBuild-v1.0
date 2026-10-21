@@ -7,5 +7,8 @@
     "Badge": {
       "persist": false
     }
+  },
+  "ios": {
+    "scrollEnabled": false
   }
 }

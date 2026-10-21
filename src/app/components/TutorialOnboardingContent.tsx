@@ -1710,7 +1710,7 @@ export default function TutorialOnboardingContent({
 
         {!isListsTutorial && currentPage === TUTORIAL_PAGE_TYPE_NATURALLY && nlcDemo && (
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
-            <OnboardingTypeNaturallyText autoMode={nlcDemo.autoMode} />
+            <OnboardingTypeNaturallyText />
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
               <OnboardingCreateReminderPhone
                 mode={{ kind: "nlc", demo: nlcDemo.demo, autoMode: nlcDemo.autoMode }}

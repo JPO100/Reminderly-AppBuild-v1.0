@@ -84,7 +84,8 @@ export function OnboardingCreateReminderText() {
   );
 }
 
-export function OnboardingTypeNaturallyText({ autoMode }: { autoMode: boolean }) {
+// Same copy whether or not Apply as you type is on (John, 2026-10-21)
+export function OnboardingTypeNaturallyText() {
   return (
     <div className="content-stretch flex flex-col gap-[27px] [@media(max-height:570px)]:gap-[10px] items-center relative shrink-0">
       <div className="content-stretch flex flex-col items-center relative shrink-0">
@@ -94,10 +95,8 @@ export function OnboardingTypeNaturallyText({ autoMode }: { autoMode: boolean })
       </div>
       <div className={TUTORIAL_BODY_CLASSNAME}>
         <p className="css-4hzbpn leading-[30px]">
-          When active, a time or date you type turns<br />
-          {autoMode
-            ? <><span className="text-[#4784F8]">blue</span> and is set for you</>
-            : <><span className="text-[#4784F8]">blue</span> - just tap it to set it</>}
+          If active, Reminderly can recognise a<br />
+          date or time and populate it for you
         </p>
       </div>
     </div>

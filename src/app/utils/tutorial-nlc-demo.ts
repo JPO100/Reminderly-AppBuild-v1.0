@@ -1,4 +1,4 @@
-// Tutorial "Type it naturally" demo (docs/plans/onboarding-gaps.md, section 3). Runs the live NLC parser with the
+// Tutorial "Natural Language Capture" demo (docs/plans/onboarding-gaps.md, section 3). Runs the live NLC parser with the
 // user's recognition settings, so the demo only shows what the New reminder editor would recognise.
 
 import { parseTokens, type NlcRecognitionConfig, type ParsedToken } from './nlc-parser';

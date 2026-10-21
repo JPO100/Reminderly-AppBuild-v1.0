@@ -1,4 +1,4 @@
-// Reminders tutorial pages "Create a reminder" and "Type it naturally" (docs/plans/onboarding-gaps.md, section 3).
+// Reminders tutorial pages "Create a reminder" and "Natural Language Capture" (docs/plans/onboarding-gaps.md, section 3).
 // Both animate the New reminder sheet inside the tutorial phone: manual mode highlights the in-situ New reminder button,
 // then turns on the Date and Time toggles (today at 9pm); NLC mode types a phrase the live parser recognises, so the demo matches the user's settings.
 
@@ -10,6 +10,7 @@ import buttonSvgPaths from "@/imports/svg-b2700o3wr8";
 import type { NlcTutorialDemo } from "../utils/tutorial-nlc-demo";
 import {
   TUTORIAL_ATTENTION_SEQUENCE_DELAY,
+  TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE,
   TUTORIAL_ATTENTION_THROB_DELAY,
   TUTORIAL_ATTENTION_THROB_DURATION,
   TUTORIAL_ATTENTION_THROB_TIMES,
@@ -88,7 +89,7 @@ export function OnboardingTypeNaturallyText({ autoMode }: { autoMode: boolean })
     <div className="content-stretch flex flex-col gap-[27px] [@media(max-height:570px)]:gap-[10px] items-center relative shrink-0">
       <div className="content-stretch flex flex-col items-center relative shrink-0">
         <div className={TUTORIAL_TITLE_CLASSNAME}>
-          <p className="css-ew64yg leading-[normal]">Type it naturally</p>
+          <p className="css-ew64yg leading-[normal]">Natural Language Capture</p>
         </div>
       </div>
       <div className={TUTORIAL_BODY_CLASSNAME}>
@@ -151,10 +152,9 @@ function ThrobRing({ rect, padding, radius, strokeWidth = 3, quick = false }: { 
   );
 }
 
-// Circular attention ring centred on a target (the recognised word), with the same pulses as ThrobRing
-function ThrobCircle({ rect, padding, strokeWidth }: { rect: Rect | null; padding: number; strokeWidth: number }) {
+// Circular attention ring of a fixed size centred on a target (the recognised word), with the same pulses as ThrobRing
+function ThrobCircle({ rect, size, strokeWidth }: { rect: Rect | null; size: number; strokeWidth: number }) {
   if (!rect) return null;
-  const size = Math.max(rect.width, rect.height) + padding * 2;
   return (
     <motion.div
       className="absolute z-10 pointer-events-none rounded-full"
@@ -364,10 +364,9 @@ export default function OnboardingCreateReminderPhone({
       at(TYPING_STEP_DELAY, () => setTypedCount(i));
     }
     if (nlcDemo) {
-      // The recognised word flashes first (in both modes), then Date and Time turn on one after the other
+      // The recognised word flashes first (in both modes), then Date and Time turn on together
       at(STEP_PAUSE, () => setPhase("token-tap"));
-      at(TUTORIAL_ATTENTION_SEQUENCE_DELAY, () => setPhase("date-on"));
-      if (nlcDemo.time) at(STEP_PAUSE, () => setPhase("time-on"));
+      at(TUTORIAL_ATTENTION_SEQUENCE_DELAY, () => setPhase(nlcDemo.time ? "time-on" : "date-on"));
     } else {
       at(STEP_PAUSE, () => setPhase("date-tap"));
       at(TOGGLE_TAP_DURATION * 1000, () => setPhase("date-on"));
@@ -480,7 +479,7 @@ export default function OnboardingCreateReminderPhone({
               setDateToggleElement={setDateToggleElement}
               setTimeToggleElement={setTimeToggleElement}
             />
-            {phase === "token-tap" && <ThrobCircle key="token" rect={tokenRect} padding={12} strokeWidth={3 / scale} />}
+            {phase === "token-tap" && <ThrobCircle key="token" rect={tokenRect} size={TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / scale} strokeWidth={3 / scale} />}
             {phase === "date-tap" && <ThrobRing key="date" rect={dateToggleRect} padding={6} radius={21} quick />}
             {phase === "time-tap" && <ThrobRing key="time" rect={timeToggleRect} padding={6} radius={21} quick />}
             {phase === "tick-throb" && <ThrobRing key="tick" rect={tickRect} padding={TICK_RING_PADDING} radius={99} strokeWidth={3 / scale} />}

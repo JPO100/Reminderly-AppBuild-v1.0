@@ -292,11 +292,13 @@ export default function OnboardingCreateReminderPhone({
   mode,
   isListsEnabled,
   settingsMenuEnabled,
+  calendarEnabled,
   showRepeats,
 }: {
   mode: CreateReminderMode;
   isListsEnabled: boolean;
   settingsMenuEnabled: boolean;
+  calendarEnabled: boolean;
   showRepeats: boolean;
 }) {
   const [phase, setPhase] = useState<Phase>("idle");
@@ -452,7 +454,7 @@ export default function OnboardingCreateReminderPhone({
       showMainTabBar={isListsEnabled}
       showHeaderMenu={false}
       overlay={overlay}
-      filterRow={<TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />}
+      filterRow={<TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />}
     >
     <div ref={setBodyElement} className="content-stretch flex flex-col flex-1 min-h-0 gap-[14px] items-center pt-[10px] px-[14px] pb-[14px] relative w-full">
       <div ref={setListViewport} className="flex-[1_0_0] min-h-px min-w-px w-full relative overflow-hidden">

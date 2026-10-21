@@ -54,9 +54,11 @@ function TutorialAlertBanner() {
 export default function OnboardingNotificationAskPhone({
   isListsEnabled,
   settingsMenuEnabled,
+  calendarEnabled,
 }: {
   isListsEnabled: boolean;
   settingsMenuEnabled: boolean;
+  calendarEnabled: boolean;
 }) {
   const [bannerVisible, setBannerVisible] = useState(false);
   const [cycle, setCycle] = useState(0);
@@ -77,7 +79,7 @@ export default function OnboardingNotificationAskPhone({
       activeMainTab="reminders"
       showMainTabBar={isListsEnabled}
       showHeaderMenu={false}
-      filterRow={<TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />}
+      filterRow={<TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />}
       overlay={
         <AnimatePresence>
           {bannerVisible && (

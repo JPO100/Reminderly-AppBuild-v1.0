@@ -46,14 +46,35 @@ export function TutorialSettingsButton() {
   );
 }
 
-export function TutorialRemindersFilterRow({ settingsMenuEnabled, activeKey }: { settingsMenuEnabled: boolean; activeKey?: TutorialFilterKey }) {
-  if (settingsMenuEnabled) {
+// Calendar button scaled to match TutorialSettingsButton (45px in the app)
+export function TutorialCalendarButton() {
+  return (
+    <svg className="block shrink-0" width="32.308" height="32.308" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="45" height="45" rx="22.5" fill="#4784F8" />
+      <path d="M28.5 12.5V14.5M16.5 12.5V14.5" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22.4955 23.5H22.5045M22.4955 27.5H22.5045M26.491 23.5H26.5M18.5 23.5H18.509M18.5 27.5H18.509" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M14 18.5H31" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13 22.7432C13 18.3859 13 16.2073 14.2521 14.8536C15.5042 13.5 17.5195 13.5 21.55 13.5H23.45C27.4805 13.5 29.4958 13.5 30.7479 14.8536C32 16.2073 32 18.3859 32 22.7432V23.2568C32 27.6141 32 29.7927 30.7479 31.1464C29.4958 32.5 27.4805 32.5 23.45 32.5H21.55C17.5195 32.5 15.5042 32.5 14.2521 31.1464C13 29.7927 13 27.6141 13 23.2568V22.7432Z" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13.5 18.5H31.5" stroke="white" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Mirrors the live Reminders filter row: pills grouped left, calendar then settings buttons on the right
+export function TutorialRemindersFilterRow({ settingsMenuEnabled, calendarEnabled = false, activeKey }: { settingsMenuEnabled: boolean; calendarEnabled?: boolean; activeKey?: TutorialFilterKey }) {
+  if (settingsMenuEnabled || calendarEnabled) {
     return (
       <TutorialReminderFilters
-        items={SETTINGS_MENU_TUTORIAL_FILTER_ITEMS}
+        items={settingsMenuEnabled ? SETTINGS_MENU_TUTORIAL_FILTER_ITEMS : UNGROUPED_TUTORIAL_FILTER_ITEMS}
         activeKey={activeKey}
-        trailing={<TutorialSettingsButton />}
+        trailing={
+          <div className="flex items-center gap-[5.744px]">
+            {calendarEnabled && <TutorialCalendarButton />}
+            {settingsMenuEnabled && <TutorialSettingsButton />}
+          </div>
+        }
         groupGapClassName="gap-[5.744px]"
+        showHiddenItems
       />
     );
   }

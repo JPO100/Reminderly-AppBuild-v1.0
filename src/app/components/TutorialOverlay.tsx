@@ -1,9 +1,9 @@
 import type { ComponentProps } from "react";
 import TutorialOnboardingContent from "@/app/components/TutorialOnboardingContent";
 
-// Reminders tutorial extras (create reminder, NLC demo, notification ask), passed straight through
+// Reminders tutorial extras (calendar button, create reminder, NLC demo, notification ask), passed straight through
 type TutorialExtraProps = Pick<ComponentProps<typeof TutorialOnboardingContent>,
-  "repeatsEnabled" | "nlcDemo" | "notificationAskEligible" | "notificationPermission" | "onNotificationAllow" | "onNotificationAskPageChange">;
+  "calendarEnabled" | "repeatsEnabled" | "nlcDemo" | "notificationAskEligible" | "notificationPermission" | "onNotificationAllow" | "onNotificationAskPageChange">;
 
 export default function TutorialOverlay({
   onClose,

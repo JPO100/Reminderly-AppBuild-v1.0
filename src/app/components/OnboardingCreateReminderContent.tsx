@@ -96,7 +96,7 @@ export function OnboardingTypeNaturallyText() {
       <div className={TUTORIAL_BODY_CLASSNAME}>
         <p className="css-4hzbpn leading-[30px]">
           If active, Reminderly can recognise a<br />
-          date or time and populate it for you
+          <span className="text-[#4784F8]">date</span> or <span className="text-[#4784F8]">time</span> and populate it for you
         </p>
       </div>
     </div>

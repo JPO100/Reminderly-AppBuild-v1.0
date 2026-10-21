@@ -1,6 +1,6 @@
 // Reminders tutorial pages "Create a reminder" and "Type it naturally" (docs/plans/onboarding-gaps.md, section 3).
 // Both animate the New reminder sheet inside the tutorial phone: manual mode highlights the in-situ New reminder button,
-// then turns on the Date and Time toggles (today at 7pm); NLC mode types a phrase the live parser recognises, so the demo matches the user's settings.
+// then turns on the Date and Time toggles (today at 9pm); NLC mode types a phrase the live parser recognises, so the demo matches the user's settings.
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useLayoutEffect, useState } from "react";
@@ -24,7 +24,7 @@ const SHEET_OPEN_DELAY = 1000;
 const TYPING_START_DELAY = 600;
 const TYPING_STEP_DELAY = 80;
 const STEP_PAUSE = 750;
-const NLC_ROW_GAP = 600;
+const NLC_AUTO_APPLY_DELAY = 900;
 const TOGGLE_TAP_DURATION = 0.8;
 const INSERT_DELAY = 500;
 const INSERT_HIGHLIGHT_MS = 1000;
@@ -33,16 +33,16 @@ const NEW_REMINDER_ID = "tutorial-new-reminder";
 
 const MANUAL_TEXT = "Take the bins out";
 // Tutorial list dates are fixed (Monday 11 August 2025, as in TutorialStaticReminderList); the reminder is set for
-// today at 7pm and inserted at the top of the list so it is easy to spot
+// today at 9pm (as "tonight" on the Type it naturally page) and inserted at the top of the list so it is easy to spot
 const MANUAL_REMINDER: TutorialReminder = {
   id: NEW_REMINDER_ID,
   title: MANUAL_TEXT,
   category: "today",
   circleColor: "#00AFEE",
-  schedule: { kind: "scheduled", date: "2025-08-11", time: "19:00" },
+  schedule: { kind: "scheduled", date: "2025-08-11", time: "21:00" },
 };
 const MANUAL_DATE_LABEL = "Today";
-const MANUAL_TIME_LABEL = formatSelectedTime({ hour: 19, minute: 0 });
+const MANUAL_TIME_LABEL = formatSelectedTime({ hour: 21, minute: 0 });
 // Tick highlight: a ring with a clear gap around the 45px tick, so it reads against the blue button
 const TICK_RING_PADDING = 10;
 // Page 2 opens on the bottom of a full mini iPhone (the in-situ New reminder button), then pans up to the usual slice
@@ -129,7 +129,7 @@ function useRelativeRect(target: HTMLElement | null, container: HTMLElement | nu
   return rect;
 }
 
-// Attention ring, same pulses as the other tutorial pages; quick is a single tap pulse for toggles and tokens
+// Attention ring, same pulses as the other tutorial pages; quick is a single tap pulse for toggles
 function ThrobRing({ rect, padding, radius, strokeWidth = 3, quick = false }: { rect: Rect | null; padding: number; radius: number; strokeWidth?: number; quick?: boolean }) {
   if (!rect) return null;
   return (
@@ -345,13 +345,11 @@ export default function OnboardingCreateReminderPhone({
       at(TYPING_STEP_DELAY, () => setTypedCount(i));
     }
     if (nlcDemo) {
-      if (!autoMode) {
-        at(STEP_PAUSE, () => setPhase("token-tap"));
-        at(TOGGLE_TAP_DURATION * 1000, () => setPhase("date-on"));
-      } else {
-        at(STEP_PAUSE, () => setPhase("date-on"));
-      }
-      if (nlcDemo.time) at(NLC_ROW_GAP, () => setPhase("time-on"));
+      // The recognised word is highlighted, then Date and Time turn on one after the other. Tap mode waits for the
+      // highlight (the tap); Apply as you type sets them while it shows, as the app does
+      at(STEP_PAUSE, () => setPhase("token-tap"));
+      at(autoMode ? NLC_AUTO_APPLY_DELAY : TUTORIAL_ATTENTION_SEQUENCE_DELAY, () => setPhase("date-on"));
+      if (nlcDemo.time) at(STEP_PAUSE, () => setPhase("time-on"));
     } else {
       at(STEP_PAUSE, () => setPhase("date-tap"));
       at(TOGGLE_TAP_DURATION * 1000, () => setPhase("date-on"));
@@ -464,7 +462,7 @@ export default function OnboardingCreateReminderPhone({
               setDateToggleElement={setDateToggleElement}
               setTimeToggleElement={setTimeToggleElement}
             />
-            {phase === "token-tap" && <ThrobRing key="token" rect={tokenRect} padding={6} radius={10} quick />}
+            {isNlc && reached("token-tap") && !reached("tick-throb") && <ThrobRing key="token" rect={tokenRect} padding={6} radius={10} strokeWidth={3 / scale} />}
             {phase === "date-tap" && <ThrobRing key="date" rect={dateToggleRect} padding={6} radius={21} quick />}
             {phase === "time-tap" && <ThrobRing key="time" rect={timeToggleRect} padding={6} radius={21} quick />}
             {phase === "tick-throb" && <ThrobRing key="tick" rect={tickRect} padding={TICK_RING_PADDING} radius={99} strokeWidth={3 / scale} />}
@@ -495,7 +493,7 @@ export default function OnboardingCreateReminderPhone({
           />
         </motion.div>
       </div>
-      <TutorialNewReminderButton buttonRef={isNlc ? undefined : setButtonElement} />
+      {!isNlc && <TutorialNewReminderButton buttonRef={setButtonElement} />}
       {phase === "button-throb" && <ThrobRing rect={buttonRect} padding={4} radius={30} />}
     </div>
     </TutorialPhoneShell>

@@ -46,6 +46,8 @@ interface TutorialOnboardingContentProps {
   settingsMenuEnabled: boolean;
   smartRemindersEnabled: boolean;
   savedListsEnabled: boolean;
+  // Live calendar header button availability, mirrored in the Reminders filter row
+  calendarEnabled?: boolean;
   // Reminders tutorial: Create a reminder and Type it naturally pages
   repeatsEnabled?: boolean;
   nlcDemo?: { demo: NlcTutorialDemo; autoMode: boolean } | null;
@@ -221,7 +223,7 @@ function Page5DoneDeletedFilters() {
             </div>
           </div>
         </div>
-        <div className="content-stretch flex items-center justify-center h-[31.5px] w-[61.3px] relative rounded-[69.652px] shrink-0 border border-solid border-[#4784F8] text-[#4784F8]">
+        <div className="content-stretch flex items-center justify-center h-[31.5px] w-[61.3px] relative rounded-[69.652px] shrink-0 border border-solid border-[#4784F8] bg-[#4784F8] text-white">
           <div className="font-['Lato',sans-serif] font-bold text-[9.751px] whitespace-nowrap">
             Clear all
           </div>
@@ -695,6 +697,7 @@ function SmartReminderSheetOverlay({ visible, showTickThrob, onExitComplete }: {
 function ListsTutorialPlaceholderPage({
   currentPage,
   settingsMenuEnabled,
+  calendarEnabled,
   savedListsEnabled,
   activeFilter,
   onActiveFilterChange,
@@ -706,6 +709,7 @@ function ListsTutorialPlaceholderPage({
 }: {
   currentPage: number;
   settingsMenuEnabled: boolean;
+  calendarEnabled: boolean;
   savedListsEnabled: boolean;
   activeFilter?: TutorialFilterKey;
   onActiveFilterChange?: (activeFilter: TutorialFilterKey | undefined) => void;
@@ -1095,7 +1099,7 @@ function ListsTutorialPlaceholderPage({
           filterRow={currentPage === 1 && page2ShowDoneLists ? (
             <Page5DoneDeletedFilters />
           ) : currentPage === 3 && page4ActiveTab === "reminders" ? (
-            <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
+            <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
           ) : page5ShowTemplatesPanel || page5ShowEditor ? null : (
             <TutorialReminderFilters
               items={listFilterItems}
@@ -1491,6 +1495,7 @@ export default function TutorialOnboardingContent({
   settingsMenuEnabled,
   smartRemindersEnabled,
   savedListsEnabled,
+  calendarEnabled = false,
   repeatsEnabled = false,
   nlcDemo = null,
   notificationAskEligible = false,
@@ -1679,7 +1684,7 @@ export default function TutorialOnboardingContent({
                 showMainTabBar={isListsEnabled}
                 showHeaderMenu={false}
                 filterRow={
-                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
                 }
               >
                 <OnboardingPage1Content combineLaterSometime={settingsMenuEnabled} />
@@ -1696,6 +1701,7 @@ export default function TutorialOnboardingContent({
                 mode={{ kind: "manual" }}
                 isListsEnabled={isListsEnabled}
                 settingsMenuEnabled={settingsMenuEnabled}
+                calendarEnabled={calendarEnabled}
                 showRepeats={repeatsEnabled}
               />
             </div>
@@ -1710,6 +1716,7 @@ export default function TutorialOnboardingContent({
                 mode={{ kind: "nlc", demo: nlcDemo.demo, autoMode: nlcDemo.autoMode }}
                 isListsEnabled={isListsEnabled}
                 settingsMenuEnabled={settingsMenuEnabled}
+                calendarEnabled={calendarEnabled}
                 showRepeats={repeatsEnabled}
               />
             </div>
@@ -1720,7 +1727,7 @@ export default function TutorialOnboardingContent({
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
             <OnboardingNotificationAskText />
             <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} pb-[16px]`}>
-              <OnboardingNotificationAskPhone isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuEnabled} />
+              <OnboardingNotificationAskPhone isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
             </div>
             <div className="shrink-0 flex items-center justify-center h-[45px] mb-[16px]">
               <OnboardingNotificationAskAction permission={notificationPermission} onAllow={() => onNotificationAllow?.()} />
@@ -1737,7 +1744,7 @@ export default function TutorialOnboardingContent({
                 showMainTabBar={isListsEnabled}
                 showHeaderMenu={false}
                 filterRow={
-                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} activeKey={page2ActiveFilter} />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} activeKey={page2ActiveFilter} />
                 }
               >
                 <OnboardingPage2Content activeFilter={page2ActiveFilter} combineLaterSometime={settingsMenuEnabled} />
@@ -1756,7 +1763,7 @@ export default function TutorialOnboardingContent({
                 showHeaderMenu={false}
                 overlay={page3ShowOverlay ? <TutorialReminderInfoOverlay reminder={CALL_DENTIST_TUTORIAL_REMINDER} /> : undefined}
                 filterRow={
-                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
                 }
               >
                 <OnboardingPage3Content onOverlayOpenChange={setPage3ShowOverlay} combineLaterSometime={settingsMenuEnabled} />
@@ -1774,7 +1781,7 @@ export default function TutorialOnboardingContent({
                 showMainTabBar={isListsEnabled}
                 showHeaderMenu={false}
                 filterRow={
-                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
                 }
               >
                 <OnboardingPage4Content combineLaterSometime={settingsMenuEnabled} />
@@ -1799,7 +1806,7 @@ export default function TutorialOnboardingContent({
                 filterRow={page5ShowDoneReminders ? (
                   <Page5DoneDeletedFilters />
                 ) : (
-                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
                 )}
               >
                 <OnboardingPage5Content
@@ -1823,7 +1830,7 @@ export default function TutorialOnboardingContent({
                 showHeaderMenu={false}
                 overlay={<OnboardingPage6Overlay />}
                 filterRow={
-                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
                 }
               >
                 <OnboardingPage6Content combineLaterSometime={settingsMenuEnabled} />
@@ -1836,6 +1843,7 @@ export default function TutorialOnboardingContent({
           <ListsTutorialPlaceholderPage
             currentPage={currentPage}
             settingsMenuEnabled={settingsMenuEnabled}
+            calendarEnabled={calendarEnabled}
             savedListsEnabled={savedListsEnabled}
             activeFilter={listsTutorialActiveFilter}
             onActiveFilterChange={setListsTutorialActiveFilter}

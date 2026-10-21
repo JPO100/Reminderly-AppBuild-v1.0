@@ -3675,8 +3675,6 @@ export default function App() {
                 className={`${
                   isClearAllDisabled
                     ? "text-[#CCCCCC]"
-                    : clearListStep === 0
-                    ? "text-[#4784F8]"
                     : "bg-[#4784F8] text-white"
                 } content-stretch flex items-center justify-center h-[45px] w-[88px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784F8]"}`}
                 style={isClearAllDisabled ? { color: '#CCCCCC', borderColor: '#CCCCCC' } : undefined}
@@ -4242,8 +4240,6 @@ export default function App() {
               className={`${
                 isClearAllDisabled
                   ? "text-[#CCCCCC]"
-                  : clearListStep === 0
-                  ? "text-[#4784f8]"
                   : "bg-[#4784f8] text-white"
               } content-stretch flex items-center justify-center h-[45px] w-[88px] relative rounded-[100px] shrink-0 border border-solid transition-colors ${isClearAllDisabled ? "cursor-default border-[#CCCCCC]" : "cursor-pointer border-[#4784f8]"}`}
               style={isClearAllDisabled ? { color: '#CCCCCC', borderColor: '#CCCCCC' } : undefined}
@@ -5679,7 +5675,7 @@ export default function App() {
                   className="absolute left-0 right-0 top-0 h-[24px] z-[2] touch-pan-y"
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarAvailable} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} />
               </motion.div>
             </motion.div>
           </>

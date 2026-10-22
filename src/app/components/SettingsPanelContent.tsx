@@ -85,12 +85,12 @@ function ScrollArea({ children }: { children: ReactNode }) {
 
 // Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
 // with Back returning to the page it was opened from. The card fits its height to the text.
-// The title has the info icon before it, in dark blue, 10px from the text.
+// The title has the info icon before it, in dark blue, 10px from the text, 1px below centre (John, 2026-10-22).
 function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
   return (
     <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
       <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
-        <InfoIcon color="#1C2C42" />
+        <span className="relative top-[1px] flex shrink-0"><InfoIcon color="#1C2C42" /></span>
         <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>
           {header}
         </p>

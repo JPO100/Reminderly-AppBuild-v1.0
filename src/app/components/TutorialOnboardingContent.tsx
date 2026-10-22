@@ -16,6 +16,8 @@ import OnboardingPage3Content, {
   TutorialListSettingsOverlay,
   TutorialListSettingsOverlayWithToggle,
   TutorialMiniOverlayShell,
+  TutorialOverlayCard,
+  TutorialOverlayTitle,
   TutorialReminderInfoOverlay,
   TutorialSmartReminderSheet,
 } from '@/app/components/OnboardingPage3Content';
@@ -1295,10 +1297,8 @@ function ListsTutorialPlaceholderPage({
               </AnimatePresence>
               {page5Phase === "settings-overlay" && (
                 <TutorialMiniOverlayShell>
-                  <div className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] outline-none">
-                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                      <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Weekly food shop</p>
-                    </div>
+                  <TutorialOverlayCard>
+                    <TutorialOverlayTitle>Weekly food shop</TutorialOverlayTitle>
                     <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
                       <div className="h-[50px] relative rounded-[100px] shrink-0 w-full" style={{ backgroundColor: '#4784F8' }}>
                         <div className="flex flex-row items-center justify-center size-full">
@@ -1319,7 +1319,7 @@ function ListsTutorialPlaceholderPage({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </TutorialOverlayCard>
                 </TutorialMiniOverlayShell>
               )}
               </>

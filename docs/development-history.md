@@ -13,7 +13,16 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of fix/siri-reliability (2026-10-22)
+Tip: merge of fix/settings-close-on-resume (2026-10-22)
+
+Merge - 2026-10-22: Siri Phase 2 and settings panel lifecycle fixes
+- ui/notifications-keyline (821bea3) into main (eaded41) as 327baf6, --no-ff, no conflicts. CTO approved (Type A)
+- fix/settings-close-on-background (4dd5e74) into main (327baf6) as 3cdf0e7, --no-ff, no conflicts. CTO approved (Type B)
+- feature/siri-phrases brought current with main in a7b53cf (conflict: development history entries only, both kept), then merged into main (3cdf0e7) as b980d34, --no-ff. CTO approved; John authorised. Siri Phase 2: four phrases, Siri shortcuts settings page, Siri off spoken refusal on iOS 26+ (fail closed), iOS 16.0 to 25 unchanged
+- Post-merge iPhone check found the settings panel still open after Home Screen and reopen (Siri reopen passed). Follow-up fix/settings-close-on-resume (f6d5047) into main (b980d34) as 1afe653, --no-ff, no conflicts. CTO approved (Type B)
+- Verification on main (1afe653): Vitest 270/270, Self Check 412/412 (Node run), type-check 0 errors, production build successful. Main deployed to the simulator (iPhone 17 Pro, iOS 26.3) and John's iPhone 15 Pro (iOS 27.0.1): build, signing, install and launch successful
+- Device verification (John, iPhone, iOS 27.0.1): Siri on, off, change while backgrounded, lock screen: pass. Settings panel closed after Home Screen and reopen, Siri reopen and hard close: pass. Simulator: fresh install refuses until the app is first opened (approved uninstall): pass
+- feature/siri-phrases, fix/settings-close-on-background and fix/settings-close-on-resume deleted locally and on origin. Siri Phase 2 complete. Next: Phase 3 (Siri onboarding/tutorial). Phase 4 (relative time expressions) stays a future enhancement
 
 Merge - 2026-10-22: Siri Phase 1, technical reliability
 - Merge commit of fix/siri-reliability (0cb25fd) into main (4f274c6) as ae3e94d, --no-ff, no conflicts. CTO approved (Type C); John authorised
@@ -82,7 +91,7 @@ Created: 2026-10-22
 Parent: main (b980d34)
 Purpose: Type B (app lifecycle). Follow-up to fix/settings-close-on-background: on John's iPhone (main b980d34) the settings panel still showed after going to the Home Screen and reopening, though the Siri reopen passed. Likely cause: on a device the web view is suspended before the 'pause' handler runs (the simulator and the Siri background launch give it time). Fix: the panels also close on the Capacitor 'resume' event, when the web view is running again. A hard close already starts with the panels closed
 Verification: Vitest 270/270, type-check 0 errors, build successful. John's iPhone (iOS 27.0.1): Home Screen and reopen, Siri reopen and hard close all show settings closed (2026-10-22)
-Status: Not merged
+Status: Merged into main (merge commit 1afe653, branch head f6d5047, 2026-10-22). Branch deleted after the merge
 
 ### feature/siri-phrases
 
@@ -90,7 +99,7 @@ Created: 2026-10-22
 Parent: ui/notifications-keyline (821bea3, merged into main as 327baf6 before this branch)
 Purpose: Siri Phase 2. (1) Phrases, Type B: four phrases accepted by John ("Add to / Remind me in / New reminder in / Add a reminder in Reminderly app"), all registered in AppShortcuts.swift and always active; a test keeps the settings list in step. (2) Settings, Type B: the "Use Siri shortcuts" toggle became a "Siri shortcuts" page: on/off, key line, "You can use any of these with Siri...", the phrases, "Then reply when Siri asks." (inactive while Siri is off). (3) Siri off spoken refusal, Type C ([plans/siri-off-refusal.md](./plans/siri-off-refusal.md)), superseding Phase 1 decision D1: on iOS 26+ the intent checks a fail-closed App Group value and says "Siri is turned off in Reminderly, so I can't add a reminder right now." without opening the app; when on, it continues in the foreground with no confirmation. iOS 16.0 to 25 keep the previous behaviour. Spike 1 (ForegroundContinuableIntent, iOS 16.4) was dropped because it added a "continue in the app" step
 Verification: see the merge record on main
-Status: Approved by John and the CTO for merge
+Status: Merged into main (merge commit b980d34, 2026-10-22). Branch deleted after the merge
 
 ### ui/notifications-keyline
 
@@ -105,7 +114,7 @@ Created: 2026-10-22
 Parent: main (327baf6)
 Purpose: Type B (app lifecycle). Found by John while testing Siri: the Reminders or Lists settings panel was still open when returning to the app. The open state is in memory only (not saved); iOS kept the app suspended, so it resumed as left. Fix: both panels close on the Capacitor App 'pause' event (app goes to the background). 'pause' rather than appStateChange, so Control Centre or a notification banner does not close them. The sub-page resets with the panel
 Verification: Vitest 265/265, type-check 0 errors, build successful. Simulator: Lists settings open, Home, return (same process): panel closed
-Status: Merged into main (merge commit 3cdf0e7, 2026-10-22)
+Status: Merged into main (merge commit 3cdf0e7, 2026-10-22). Branch deleted after the merge
 
 ### fix/siri-reliability
 

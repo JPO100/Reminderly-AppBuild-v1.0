@@ -18,10 +18,7 @@ import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
 import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
 import { syncWidget } from "./utils/widget";
-import { parseTokens, MONTH_NAME_TO_NUMBER } from "./utils/nlc-parser";
-import { computeAutoApplyResult, computeTokenClickResult } from "./utils/nlc-interaction";
-import { normaliseReminderText } from "./utils/normalise-text";
-import { repeatConfigToRule } from "./utils/repeat-conversion";
+import { buildSiriReminder } from "./utils/siri";
 import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMode } from "./reminder-utils";
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
@@ -34,7 +31,6 @@ import { ASK_STATE_ACCEPTED, askStateAfterNotNow, askStateOnLaunch, askStateOnTu
 import type { AskSource, AskTrigger } from "./notification-ask";
 import NotificationAskDialog from "./components/NotificationAskDialog";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
-import { keepRepeatRuleWhenOff } from "./settings/resolver";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
 import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
@@ -1831,77 +1827,11 @@ export default function App() {
 
       if (!isSiriRemindersActive) return;
 
-      const tokens = parseTokens(text);
-      const actions = computeAutoApplyResult(tokens, { date: false, time: false, repeats: false });
-
-      let selectedDate: Date | null = null;
-      let selectedTime: { hour: number; minute: number } | null = null;
-      let repeatConfig: import("./reminder-utils").RepeatConfig = null;
-
-      for (const action of actions) {
-        const result = computeTokenClickResult(action.token);
-        if (!result) continue;
-        if (result.dateValue) selectedDate = result.dateValue;
-        if (result.timeValue) selectedTime = result.timeValue;
-        if (result.repeatConfig) repeatConfig = result.repeatConfig;
-      }
-
-      const toYyyyMmDd = (d: Date) => {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${dd}`;
-      };
-      const toHhMm = (h: number, min: number) =>
-        `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
-
-      // Fallback: extract absolute month-name dates the NLC parser doesn't handle
-      if (!selectedDate) {
-        const mdMatch = text.match(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})(?:st|nd|rd|th)?(?!\s*(?:am|pm)\b)(?:\s+(\d{4}))?\b/i);
-        const dmMatch = !mdMatch ? text.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(?:of\s+)?(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)(?:\s+(\d{4}))?\b/i) : null;
-        const absMatch = mdMatch || dmMatch;
-        if (absMatch) {
-          const monthStr = mdMatch ? absMatch[1] : absMatch[2];
-          const dayStr = mdMatch ? absMatch[2] : absMatch[1];
-          const yearStr = absMatch[3];
-          const month = MONTH_NAME_TO_NUMBER[monthStr.toLowerCase()];
-          const day = parseInt(dayStr, 10);
-          if (month && day >= 1 && day <= 31) {
-            const year = yearStr ? parseInt(yearStr, 10) : new Date().getFullYear();
-            selectedDate = new Date(year, month - 1, day);
-          }
-        }
-      }
-
-      if (!selectedDate && selectedTime) {
-        selectedDate = new Date();
-      }
-
-      let schedule: import("./reminder-utils").ReminderSchedule;
-      if (selectedDate) {
-        schedule = {
-          kind: 'scheduled',
-          date: toYyyyMmDd(selectedDate),
-          ...(selectedTime ? { time: toHhMm(selectedTime.hour, selectedTime.minute) } : {}),
-        };
-      } else {
-        schedule = { kind: 'sometime' };
-      }
-
-      // Repeat reminders off: Siri never creates a repeat rule
-      const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
       const now = new Date();
-      const displayText = schedule.kind === 'scheduled'
-        ? normaliseReminderText(text, schedule, repeatRule, now, { skipDateInjection: true, skipTimeInjection: true })
-        : text;
-
       const reminder: Reminder = {
         id: crypto.randomUUID(),
-        originalText: text,
-        displayText,
-        createdAt: Date.now(),
-        schedule,
-        repeatRule,
+        createdAt: now.getTime(),
+        ...buildSiriReminder(text, now, isRepeatRemindersActive),
       };
       addReminder(reminder);
     };

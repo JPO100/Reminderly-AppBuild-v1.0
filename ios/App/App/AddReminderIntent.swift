@@ -11,7 +11,10 @@ struct AddReminderIntent: AppIntent {
     var text: String
 
     func perform() async throws -> some IntentResult {
-        let encoded = text.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? text
+        // Query separators must be encoded too, or "&" cuts the text short
+        var allowed = CharacterSet.urlQueryAllowed
+        allowed.remove(charactersIn: "&+=?#")
+        let encoded = text.addingPercentEncoding(withAllowedCharacters: allowed) ?? text
         if let url = URL(string: "reminderly://add?text=\(encoded)") {
             await UIApplication.shared.open(url)
         }

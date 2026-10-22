@@ -256,7 +256,7 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
         ))}
       </div>
       <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
-        Then when Siri replies, say your reminder.
+        Then when Siri replies,<br />say your reminder.
       </p>
     </>
   );

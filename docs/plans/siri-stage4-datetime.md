@@ -1,6 +1,6 @@
 # Siri Stage 4: date and time interpretation - plan
 
-Status: approved by Kai (2026-10-22) with decisions D1-D5 below. Implementation on `feature/siri-stage4-datetime` in three stages: 1 parser and explicit-time validation, 2 Siri integration and response handling, 3 regression, builds and device verification. Tests are added within each stage.
+Status: COMPLETE. Merged into main as 08cac2d (2026-10-22) on Kai's approval and John's confirmation, after John's spoken device tests passed and the D1 correction (stated date precedence) was verified. Implemented on `feature/siri-stage4-datetime` (39920ab, 8d8da83).
 
 Type D under Working Agreement v1.3. It is cross-component (the shared NLC parser used by in-app entry, the Siri intent in Swift and the bundled siri-core.js) and touches protected areas (date handling, time handling, notification scheduling input). Kai approves this plan before implementation and signs off before merge.
 

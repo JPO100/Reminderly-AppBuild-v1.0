@@ -19,23 +19,28 @@ export const TUTORIAL_ATTENTION_THROB_DELAY = 0.4;
 export const TUTORIAL_ATTENTION_THROB_TIMES = [0, 0.109, 0.217, 0.391, 0.5, 0.609, 0.783, 0.891, 1];
 export const TUTORIAL_ATTENTION_SEQUENCE_DELAY = 2750;
 export const TUTORIAL_ATTENTION_RECYCLE_DELAY = 2000;
+// The live overlay card is 340pt wide on a 393pt screen; appScale shows it as the phone scales the app (as on Re-run this tutorial)
+const TUTORIAL_OVERLAY_APP_WIDTH = 393;
+const TUTORIAL_OVERLAY_APP_SCALE = TUTORIAL_OVERLAY_PHONE_INTERIOR_WIDTH / TUTORIAL_OVERLAY_APP_WIDTH;
 
 export function TutorialMiniOverlayShell({
   children,
+  appScale = false,
 }: {
   children: ReactNode;
+  appScale?: boolean;
 }) {
   return (
     <div
-      className="absolute inset-0 z-[60] flex items-start justify-center bg-black/50"
-      style={{ paddingTop: TUTORIAL_OVERLAY_TOP_OFFSET }}
+      className={`absolute inset-0 z-[60] flex ${appScale ? "items-center" : "items-start"} justify-center bg-black/50`}
+      style={{ paddingTop: appScale ? undefined : TUTORIAL_OVERLAY_TOP_OFFSET }}
     >
       <div
-        className="pointer-events-none"
+        className={appScale ? "pointer-events-none shrink-0" : "pointer-events-none"}
         style={{
           width: TUTORIAL_OVERLAY_SOURCE_WIDTH,
-          transform: `scale(${TUTORIAL_OVERLAY_SCALE})`,
-          transformOrigin: TUTORIAL_OVERLAY_TRANSFORM_ORIGIN,
+          transform: `scale(${appScale ? TUTORIAL_OVERLAY_APP_SCALE : TUTORIAL_OVERLAY_SCALE})`,
+          transformOrigin: appScale ? "center" : TUTORIAL_OVERLAY_TRANSFORM_ORIGIN,
         }}
       >
         {children}
@@ -177,7 +182,7 @@ export function TutorialListSettingsOverlay() {
 export function TutorialListSettingsOverlayWithToggle({ smartToggleActive }: { smartToggleActive: boolean }) {
   const smartIconColor = "#1C2C42";
   return (
-    <TutorialMiniOverlayShell>
+    <TutorialMiniOverlayShell appScale>
       <div className="bg-white relative flex flex-col gap-[33px] items-center justify-start pt-[35px] pb-[35px] px-[32px] rounded-[32px] outline-none">
         <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic overflow-hidden relative shrink-0 text-[#1C2C42] text-[20px] text-ellipsis text-center w-full whitespace-nowrap">
           <p className="leading-[normal] overflow-hidden" style={{ fontWeight: 700 }}>Work tasks</p>

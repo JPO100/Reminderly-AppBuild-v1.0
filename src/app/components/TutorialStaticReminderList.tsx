@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatTime12h } from "../utils/normalise-text";
 import { TUTORIAL_FILTER_RECYCLE_DELAY, TUTORIAL_FILTER_STEP_DELAY, type TutorialFilterKey } from "./TutorialReminderFilters";
 import { CompletedCircleIcon } from "./icons/ReminderStateIcons";
+import { TUTORIAL_ATTENTION_SEQUENCE_DELAY, TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE, TUTORIAL_ATTENTION_THROB_DELAY, TUTORIAL_ATTENTION_THROB_DURATION, TUTORIAL_ATTENTION_THROB_TIMES } from "./OnboardingPage3Content";
 
 export const TUTORIAL_REMINDER_LIST_SCALE = 0.696;
 const TUTORIAL_NOW = new Date(2025, 7, 11, 12, 0, 0, 0);
@@ -15,6 +16,7 @@ const TUTORIAL_RECYCLE_DELAY = 2000;
 const COMPLETION_DELAY = 350;
 const DONE_SEQUENCE_INITIAL_DELAY = 1000;
 const DONE_SEQUENCE_REMOVAL_GAP = 500;
+const DONE_PRESS_RING_CLIP_MARGIN = 10;
 // Done colours from the app: lists DONE_LIST_COLOUR, reminders with Lists on
 const DONE_LIST_COLOUR = "#404040";
 const DONE_REMINDER_COLOUR = "#3F3F3F";
@@ -244,6 +246,7 @@ function TutorialStaticReminderRow({
   menuButtonRef,
   alignMenuWithSettingsButton = false,
   doneColor = DONE_REMINDER_COLOUR,
+  showPressRing = false,
 }: {
   titleColor?: string;
   title: string;
@@ -257,6 +260,7 @@ function TutorialStaticReminderRow({
   menuButtonRef?: ((node: HTMLDivElement | null) => void) | null;
   alignMenuWithSettingsButton?: boolean;
   doneColor?: string;
+  showPressRing?: boolean;
 }) {
   const isPendingAway = isDone || isPendingDone;
   const effectiveTitleColor = isPendingAway ? doneColor : titleColor;
@@ -277,6 +281,25 @@ function TutorialStaticReminderRow({
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 25 25">
                   <circle cx="12.5" cy="12.5" fill="white" r="11.5" stroke={circleColor} strokeWidth="2" />
                 </svg>
+              )}
+              {showPressRing && (
+                // Standard small-control ring, drawn at its on-screen size inside the scaled list
+                <motion.div
+                  className="absolute z-10 pointer-events-none"
+                  style={{
+                    left: 12.5 - TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / TUTORIAL_REMINDER_LIST_SCALE / 2,
+                    top: 12.5 - TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / TUTORIAL_REMINDER_LIST_SCALE / 2,
+                    width: TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / TUTORIAL_REMINDER_LIST_SCALE,
+                    height: TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / TUTORIAL_REMINDER_LIST_SCALE,
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 1, 0, 0, 1, 0, 0, 1, 0] }}
+                  transition={{ duration: TUTORIAL_ATTENTION_THROB_DURATION, delay: TUTORIAL_ATTENTION_THROB_DELAY, times: TUTORIAL_ATTENTION_THROB_TIMES, ease: "easeInOut" }}
+                >
+                  <svg className="block size-full" viewBox="0 0 50 50" fill="none">
+                    <circle cx="25" cy="25" r="23.5" stroke="#4784F8" strokeWidth="3" />
+                  </svg>
+                </motion.div>
               )}
             </div>
             <div
@@ -380,6 +403,7 @@ export default function TutorialStaticReminderList({
   const [reinsertedId, setReinsertedId] = useState<string | null>(null);
   const [insertHighlightId, setInsertHighlightId] = useState<string | null>(null);
   const [pendingDoneIds, setPendingDoneIds] = useState<Set<string>>(new Set());
+  const [donePressRingId, setDonePressRingId] = useState<string | null>(null);
   const [page3ResetFadeIds, setPage3ResetFadeIds] = useState<Set<string>>(new Set());
   const [suppressPage3ResetAnimation, setSuppressPage3ResetAnimation] = useState(false);
   const timeoutsRef = useRef<number[]>([]);
@@ -506,6 +530,7 @@ export default function TutorialStaticReminderList({
   useEffect(() => {
     if (!page3DoneSequence) {
       setPendingDoneIds(new Set());
+      setDonePressRingId(null);
       setPage3ResetFadeIds(new Set());
       setSuppressPage3ResetAnimation(false);
       return;
@@ -517,6 +542,7 @@ export default function TutorialStaticReminderList({
 
     setVisibleIds(resetIds);
     setPendingDoneIds(new Set());
+    setDonePressRingId(null);
     setPage3ResetFadeIds(new Set());
     setSuppressPage3ResetAnimation(false);
 
@@ -553,6 +579,13 @@ export default function TutorialStaticReminderList({
         setVisibleIds(resetIds);
       }
 
+      // Ring the first tick circle as the press, then tick it; the rest follow without a ring
+      const pressRingTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        setDonePressRingId(sequenceIds[0]);
+      }, DONE_SEQUENCE_INITIAL_DELAY);
+      timers.push(pressRingTimer);
+
       sequenceIds.forEach((id, index) => {
         const startTimer = window.setTimeout(() => {
           if (cancelled) {
@@ -561,6 +594,7 @@ export default function TutorialStaticReminderList({
 
           if (index === 0) {
             setSuppressPage3ResetAnimation(false);
+            setDonePressRingId(null);
           }
 
           setPendingDoneIds((prev) => {
@@ -582,7 +616,7 @@ export default function TutorialStaticReminderList({
           }, COMPLETION_DELAY);
 
           timers.push(commitTimer);
-        }, DONE_SEQUENCE_INITIAL_DELAY + index * (COMPLETION_DELAY + DONE_SEQUENCE_REMOVAL_GAP));
+        }, DONE_SEQUENCE_INITIAL_DELAY + TUTORIAL_ATTENTION_SEQUENCE_DELAY + index * (COMPLETION_DELAY + DONE_SEQUENCE_REMOVAL_GAP));
 
         timers.push(startTimer);
       });
@@ -593,7 +627,7 @@ export default function TutorialStaticReminderList({
         } else {
           onPage3DoneSequenceComplete?.();
         }
-      }, DONE_SEQUENCE_INITIAL_DELAY + (sequenceIds.length - 1) * (COMPLETION_DELAY + DONE_SEQUENCE_REMOVAL_GAP) + COMPLETION_DELAY + TUTORIAL_RECYCLE_DELAY);
+      }, DONE_SEQUENCE_INITIAL_DELAY + TUTORIAL_ATTENTION_SEQUENCE_DELAY + (sequenceIds.length - 1) * (COMPLETION_DELAY + DONE_SEQUENCE_REMOVAL_GAP) + COMPLETION_DELAY + TUTORIAL_RECYCLE_DELAY);
       timers.push(recycleTimer);
     };
 
@@ -643,7 +677,11 @@ export default function TutorialStaticReminderList({
     : `tutorial-${doneReminderIds != null ? "done-reminders" : page1BuildSequence ? "page1-sequence" : activeFilter ?? "all"}`;
 
   return (
-    <div className="flex flex-[1_0_0] min-h-px w-full items-start justify-center overflow-hidden">
+    <div
+      className="flex flex-[1_0_0] min-h-px w-full items-start justify-center overflow-hidden"
+      // Done sequence: grow the clip box without moving the rows so the first tick's press ring is not cut off
+      style={page3DoneSequence ? { padding: DONE_PRESS_RING_CLIP_MARGIN, margin: -DONE_PRESS_RING_CLIP_MARGIN, boxSizing: "content-box" } : undefined}
+    >
       <div
         className="shrink-0"
         style={{
@@ -703,6 +741,7 @@ export default function TutorialStaticReminderList({
                     menuButtonRef={item.id === menuTargetReminderId ? onMenuTargetElementChange ?? null : null}
                     alignMenuWithSettingsButton={combineLaterSometime}
                     doneColor={mode === "lists" ? DONE_LIST_COLOUR : DONE_REMINDER_COLOUR}
+                    showPressRing={donePressRingId === item.id}
                   />
                 </div>
               );
@@ -743,6 +782,7 @@ export default function TutorialStaticReminderList({
                     menuButtonRef={item.id === menuTargetReminderId ? onMenuTargetElementChange ?? null : null}
                     alignMenuWithSettingsButton={combineLaterSometime}
                     doneColor={mode === "lists" ? DONE_LIST_COLOUR : DONE_REMINDER_COLOUR}
+                    showPressRing={donePressRingId === item.id}
                   />
                 </motion.div>
               );

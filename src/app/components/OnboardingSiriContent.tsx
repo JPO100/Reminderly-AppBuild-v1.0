@@ -41,6 +41,8 @@ const PHASE_STARTS: [Phase, number][] = [
 const INSERT_HIGHLIGHT_MS = 1000;
 const CYCLE_MS = 7500 + INSERT_HIGHLIGHT_MS + 2000;
 const PHASE_ORDER = PHASE_STARTS.map(([phase]) => phase);
+// Height to width of a full iPhone screen; the app opens to this full screen, which runs on below the slice
+const FULL_SCREEN_ASPECT = 2.17;
 
 export function OnboardingSiriText() {
   return (
@@ -233,7 +235,7 @@ export default function OnboardingSiriPhone({
   const [highlighted, setHighlighted] = useState(false);
   const layerRef = useRef<HTMLDivElement>(null);
   const [iconElement, setIconElement] = useState<HTMLDivElement | null>(null);
-  const [iconRect, setIconRect] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const [iconRect, setIconRect] = useState<{ left: number; top: number; width: number; height: number; screenWidth: number } | null>(null);
 
   useEffect(() => {
     const timers = PHASE_STARTS.map(([next, at]) => window.setTimeout(() => setPhase(next), at));
@@ -258,6 +260,7 @@ export default function OnboardingSiriPhone({
       top: (iconBox.top - layerBox.top) / scale,
       width: iconBox.width / scale,
       height: iconBox.height / scale,
+      screenWidth: layer.offsetWidth,
     });
   }, [iconElement, cycle]);
 
@@ -274,11 +277,12 @@ export default function OnboardingSiriPhone({
         <div ref={layerRef} className="absolute inset-0 z-50 pointer-events-none overflow-hidden">
           {onHomeScreen && <HomeScreen iconRef={setIconElement} />}
           {phase === "launch" && iconRect && (
-            // Reminderly opens from its icon: the app's blue grows to fill the screen
+            // Reminderly opens from its icon: the app's blue grows to the full iPhone screen, most of which is below the
+            // slice, so its lower part and bottom corners run out of view
             <motion.div
               className="absolute z-40 bg-[#4784F8]"
               initial={{ left: iconRect.left, top: iconRect.top, width: iconRect.width, height: iconRect.height, borderRadius: 12 }}
-              animate={{ left: 0, top: 0, width: "100%", height: "100%", borderRadius: 26 }}
+              animate={{ left: 0, top: 0, width: iconRect.screenWidth, height: iconRect.screenWidth * FULL_SCREEN_ASPECT, borderRadius: 26 }}
               transition={{ duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
             />
           )}

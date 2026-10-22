@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { TUTORIAL_BODY_CLASSNAME, TUTORIAL_TITLE_CLASSNAME } from "./tutorialTokens";
 import TutorialStaticReminderList from "./TutorialStaticReminderList";
 import {
+  TUTORIAL_ATTENTION_RECYCLE_DELAY,
   TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE,
   TUTORIAL_ATTENTION_THROB_DELAY,
   TUTORIAL_ATTENTION_THROB_DURATION,
@@ -82,8 +83,10 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
   const [phase, setPhase] = useState<Page6Phase>("none");
   const [ringCentre, setRingCentre] = useState<{ x: number; y: number } | null>(null);
   const [cardMaxHeight, setCardMaxHeight] = useState<number | undefined>(undefined);
+  const [cycle, setCycle] = useState(0);
 
   useEffect(() => {
+    setPhase("none");
     const t1 = PAGE_6_PAUSE_MS;
     const t2 = t1 + PAGE_6_THROB_TOTAL_MS + PAGE_6_PAUSE_MS;
     const t3 = t2 + PAGE_6_PAUSE_MS;
@@ -93,9 +96,11 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
       window.setTimeout(() => setPhase("settings-overlay"), t2),
       window.setTimeout(() => setPhase("settings-scroll"), t3),
       window.setTimeout(() => setPhase("tutorial-throb"), t4),
+      // Hold the end state, then close the overlay and run again, as the other cycling pages do
+      window.setTimeout(() => setCycle((value) => value + 1), t4 + PAGE_6_THROB_TOTAL_MS + TUTORIAL_ATTENTION_RECYCLE_DELAY),
     ];
     return () => timers.forEach((timer) => clearTimeout(timer));
-  }, []);
+  }, [cycle]);
 
   // Card height in unscaled points: the visible phone less a margin top and bottom
   useLayoutEffect(() => {

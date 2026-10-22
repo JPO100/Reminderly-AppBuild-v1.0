@@ -181,6 +181,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-22 | Badge overnight repair validated: John's overnight testing on the iPhone 15 Pro (final main) shows the badge working as expected. Two-midnight validation closed |
 | 2026-10-20 | Consolidation: known issue 8 fix merged (a368cad) and badge overnight repair merged (edcdc18). Badge two-midnight iPhone validation outstanding |
 | 2026-10-20 | Known issue 8 fixed on fix/list-item-edit-background-save (not merged): open list item edit saved when the app stops being active |
 | 2026-10-20 | List editor lock after editing fixed and merged to main (ac17400). Known issue 8 remains open |

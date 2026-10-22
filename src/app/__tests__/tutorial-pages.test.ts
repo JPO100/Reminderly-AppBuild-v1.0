@@ -55,9 +55,14 @@ describe('getTutorialPageIds - lists tutorial', () => {
     expect(getTutorialPageIds(config({ variant: 'lists', smartRemindersEnabled: true, savedListsEnabled: true }))).toEqual([0, 1, 2, 3, 4]);
   });
 
+  it('adds the re-run tutorial page last when the settings menu is on', () => {
+    expect(getTutorialPageIds(config({ variant: 'lists', settingsMenuEnabled: true }))).toEqual([0, 1, 2, 5]);
+    expect(getTutorialPageIds(config({ variant: 'lists', settingsMenuEnabled: true, smartRemindersEnabled: true, savedListsEnabled: true }))).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
   it('never includes placeholder pages or reminders-only pages', () => {
     const pages = getTutorialPageIds(config({ variant: 'lists', settingsMenuEnabled: true, smartRemindersEnabled: true, savedListsEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true }));
-    expect(pages.every((page) => page <= 4)).toBe(true);
+    expect(pages.every((page) => page <= 5)).toBe(true);
   });
 });
 

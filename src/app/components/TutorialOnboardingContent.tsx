@@ -16,12 +16,14 @@ import OnboardingPage3Content, {
   TutorialListSettingsOverlay,
   TutorialListSettingsOverlayWithToggle,
   TutorialMiniOverlayShell,
+  TutorialOverlayCard,
+  TutorialOverlayTitle,
   TutorialReminderInfoOverlay,
   TutorialSmartReminderSheet,
 } from '@/app/components/OnboardingPage3Content';
 import OnboardingPage4Content, { OnboardingPage4Text } from '@/app/components/OnboardingPage4Content';
 import OnboardingPage5Content, { OnboardingPage5Text, PAGE_5_HIGHLIGHT_SEQUENCE_DELAY, PAGE_5_INITIAL_PAUSE_DELAY, PAGE_5_STATE_PAUSE_DELAY } from '@/app/components/OnboardingPage5Content';
-import OnboardingPage6Content, { OnboardingPage6Overlay, OnboardingPage6Text, type TutorialRemindersSettings } from '@/app/components/OnboardingPage6Content';
+import OnboardingPage6Content, { OnboardingPage6Overlay, OnboardingPage6Text, type TutorialListsSettings, type TutorialRemindersSettings } from '@/app/components/OnboardingPage6Content';
 import { TUTORIAL_BODY_CLASSNAME, TUTORIAL_TITLE_CLASSNAME } from '@/app/components/tutorialTokens';
 import TutorialPhoneShell from '@/app/components/TutorialPhoneShell';
 import TutorialStaticReminderList, { TUTORIAL_PAGE_2_DONE_LIST_IDS, TUTORIAL_REMINDER_LIST_SCALE, TutorialRowMenuDots } from '@/app/components/TutorialStaticReminderList';
@@ -58,6 +60,8 @@ interface TutorialOnboardingContentProps {
   onNotificationAskPageChange?: (isOnPage: boolean) => void;
   // Reminders tutorial: Re-run this tutorial page shows the settings rows the app shows
   remindersSettings?: TutorialRemindersSettings;
+  // Lists tutorial: Re-run this tutorial page shows the Lists settings rows the app shows
+  listsSettings?: TutorialListsSettings;
 }
 
 const LIST_BLUE = "#4784F8";
@@ -830,13 +834,18 @@ function ListsTutorialPlaceholderPage({
     }
 
     const updateRect = () => {
-      const parent = page3TargetElement.offsetParent;
+      // Measure against the container the ring is drawn in
+      const parent = page3TargetElement.closest("[data-tutorial-ring-host]");
       if (!(parent instanceof HTMLElement)) {
         setPage3TargetRect(null);
         return;
       }
 
-      const targetRect = page3TargetElement.getBoundingClientRect();
+      // Ring sits over the list name text, not the whole row
+      const title = page3TargetElement.querySelector("[data-tutorial-row-title]");
+      const range = document.createRange();
+      if (title) range.selectNodeContents(title);
+      const targetRect = title ? range.getBoundingClientRect() : page3TargetElement.getBoundingClientRect();
       const parentRect = parent.getBoundingClientRect();
       setPage3TargetRect({
         left: targetRect.left - parentRect.left,
@@ -1102,7 +1111,25 @@ function ListsTutorialPlaceholderPage({
             <Page5DoneDeletedFilters />
           ) : currentPage === 3 && page4ActiveTab === "reminders" ? (
             <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
-          ) : page5ShowTemplatesPanel || page5ShowEditor ? null : (
+          ) : page5ShowTemplatesPanel ? (
+            // List templates header in the filter row slot, so its buttons keep the Lists row positions (as in the app)
+            <TutorialReminderFilters
+              items={[]}
+              leading={<div className="font-['Lato',sans-serif] font-bold text-[14.359px] text-[#1C2C42] whitespace-nowrap">List templates</div>}
+              trailing={
+                <div className="flex items-center gap-[5.744px]">
+                  <svg className="block shrink-0" width="32.308" height="32.308" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                    <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                  {settingsMenuEnabled && <TutorialSettingsButton />}
+                </div>
+              }
+              layout="between"
+              rowGapClassName="gap-[10px]"
+              groupGapClassName="gap-[5.744px]"
+            />
+          ) : (
             <TutorialReminderFilters
               items={listFilterItems}
               trailing={savedListsEnabled || settingsMenuEnabled ? (
@@ -1270,10 +1297,8 @@ function ListsTutorialPlaceholderPage({
               </AnimatePresence>
               {page5Phase === "settings-overlay" && (
                 <TutorialMiniOverlayShell>
-                  <div className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] outline-none">
-                    <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                      <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Weekly food shop</p>
-                    </div>
+                  <TutorialOverlayCard>
+                    <TutorialOverlayTitle>Weekly food shop</TutorialOverlayTitle>
                     <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
                       <div className="h-[50px] relative rounded-[100px] shrink-0 w-full" style={{ backgroundColor: '#4784F8' }}>
                         <div className="flex flex-row items-center justify-center size-full">
@@ -1294,14 +1319,14 @@ function ListsTutorialPlaceholderPage({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </TutorialOverlayCard>
                 </TutorialMiniOverlayShell>
               )}
               </>
             ) : undefined
           }
         >
-          <div ref={currentPage === 4 ? setPage5ChildrenElement : undefined} className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
+          <div ref={currentPage === 4 ? setPage5ChildrenElement : undefined} data-tutorial-ring-host className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
             <TutorialStaticReminderList
               key={currentPage === 3 && (smartFlowPhase === "sheet-throb" || smartFlowPhase === "sheet-closing" || smartFlowPhase === "insert-delay" || smartFlowPhase === "reminder-visible") ? "lists-page-4-reminders" : currentPage === 1 ? `lists-page-2-${page2CycleKey}` : "lists-static"}
               mode={currentPage === 3 && (smartFlowPhase === "sheet-throb" || smartFlowPhase === "sheet-closing" || smartFlowPhase === "insert-delay" || smartFlowPhase === "reminder-visible") ? "reminders" : "lists"}
@@ -1354,7 +1379,7 @@ function ListsTutorialPlaceholderPage({
                   }}
                 >
                   {/* Mirrors production App.tsx line 3445: padding parent */}
-                  <div className="bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative rounded-tl-[15px] rounded-tr-[15px] w-full h-full min-h-[350px]">
+                  <div className="bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[14.368px] relative w-full h-full min-h-[350px]">
                     {/* Mirrors production App.tsx line 3647: active lists wrapper */}
                     <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0">
                       {/* Mirrors production App.tsx line 3749: list content area */}
@@ -1363,26 +1388,6 @@ function ListsTutorialPlaceholderPage({
                         <div className="absolute inset-0 bg-white" style={{ zIndex: 2 }}>
                           {/* Mirrors production App.tsx line 3938: templates inner column */}
                           <div className="relative flex flex-col gap-[24px] w-full h-full min-h-0 pt-[0px]">
-                            {/* Mirrors production App.tsx List templates page header (45px, x button) */}
-                            <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
-                              <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
-                                List templates
-                              </div>
-                              <div className="flex items-center gap-[10px]">
-                                <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                  <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                                  <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                                </svg>
-                                {settingsMenuEnabled && (
-                                  <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                                    <circle cx="16" cy="22.5" r="1.75" fill="white"/>
-                                    <circle cx="22.5" cy="22.5" r="1.75" fill="white"/>
-                                    <circle cx="29" cy="22.5" r="1.75" fill="white"/>
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
                             {/* Mirrors production App.tsx line 3954: inner scroll container */}
                             <div className="relative w-full max-w-[768px] flex-1 min-h-0">
                               <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'hidden', height: '100%' }}>
@@ -1505,6 +1510,7 @@ export default function TutorialOnboardingContent({
   onNotificationAllow,
   onNotificationAskPageChange,
   remindersSettings,
+  listsSettings,
 }: TutorialOnboardingContentProps) {
   // currentStep is the position in the visible sequence; currentPage is the page id being shown
   const [currentStep, setCurrentStep] = useState(0);
@@ -1842,7 +1848,38 @@ export default function TutorialOnboardingContent({
           </div>
         )}
         
-        {isListsTutorial && (
+        {isListsTutorial && settingsMenuEnabled && currentPage === 5 && (
+          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
+            <OnboardingPage6Text />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
+              <TutorialPhoneShell
+                activeMainTab="lists"
+                showHeaderMenu={false}
+                overlay={<OnboardingPage6Overlay variant="lists" listsSettings={listsSettings} />}
+                filterRow={
+                  <TutorialReminderFilters
+                    items={savedListsEnabled ? SAVED_LISTS_TUTORIAL_FILTER_ITEMS : UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS}
+                    trailing={
+                      <div className="flex items-center gap-[5.744px]">
+                        {savedListsEnabled && <TemplatesTutorialButton />}
+                        <TutorialSettingsButton />
+                      </div>
+                    }
+                    layout="between"
+                    rowGapClassName="gap-[10px]"
+                    groupGapClassName="gap-[5.744px]"
+                  />
+                }
+              >
+                <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
+                  <TutorialStaticReminderList mode="lists" combineLaterSometime={settingsMenuEnabled} />
+                </div>
+              </TutorialPhoneShell>
+            </div>
+          </div>
+        )}
+
+        {isListsTutorial && currentPage !== 5 && (
           <ListsTutorialPlaceholderPage
             currentPage={currentPage}
             settingsMenuEnabled={settingsMenuEnabled}

@@ -9,7 +9,7 @@ import {
   TUTORIAL_ATTENTION_THROB_TIMES,
   TUTORIAL_OVERLAY_PHONE_INTERIOR_WIDTH,
 } from "./OnboardingPage3Content";
-import { RemindersSettingsContent } from "./SettingsPanelContent";
+import { ListsSettingsContent, RemindersSettingsContent } from "./SettingsPanelContent";
 import { ShowInfoIconsContext } from "./DevToolsOverlay";
 
 export function OnboardingPage6Text() {
@@ -42,6 +42,10 @@ export type TutorialRemindersSettings = Pick<ComponentProps<typeof RemindersSett
   "notificationsAvailable" | "datePresetsAvailable" | "datePresetsOn" | "soundsAvailable" | "nlcAvailable" | "hapticsAvailable"
   | "oneMinuteAvailable" | "oneMinuteOn" | "siriAvailable" | "siriOn"> & { showInfoIcons: boolean };
 
+// Lists settings rows as the live overlay shows them
+export type TutorialListsSettings = Pick<ComponentProps<typeof ListsSettingsContent>,
+  "soundsAvailable" | "hapticsAvailable" | "templatesAvailable" | "siriAvailable" | "siriOn" | "sortAzOn" | "autoClearOn"> & { showInfoIcons: boolean };
+
 const PAGE_6_PAUSE_MS = 750;
 const PAGE_6_THROB_TOTAL_MS = (TUTORIAL_ATTENTION_THROB_DELAY + TUTORIAL_ATTENTION_THROB_DURATION) * 1000;
 const PAGE_6_SCROLL_MS = 900;
@@ -69,10 +73,10 @@ function Page6Ring({ rect, size }: { rect: { x: number; y: number }; size: numbe
   );
 }
 
-// Re-run page: highlight the Settings button, open Reminders settings with the rows the app shows, scroll them to the
-// bottom, highlight the tutorial option, then stop. The card is the live overlay scaled to the phone, centred, its
+// Re-run page: highlight the Settings button, open Reminders (or Lists) settings with the rows the app shows, scroll them
+// to the bottom, highlight the tutorial option, then stop. The card is the live overlay scaled to the phone, centred, its
 // height capped to the phone so the rows scroll as they do on shorter screens.
-export function OnboardingPage6Overlay({ settings }: { settings?: TutorialRemindersSettings }) {
+export function OnboardingPage6Overlay({ variant = "reminders", settings, listsSettings }: { variant?: "reminders" | "lists"; settings?: TutorialRemindersSettings; listsSettings?: TutorialListsSettings }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Page6Phase>("none");
@@ -118,12 +122,12 @@ export function OnboardingPage6Overlay({ settings }: { settings?: TutorialRemind
     }
     const target = phase === "settings-throb"
       ? root.parentElement?.querySelector('svg[data-tutorial-settings-button]')
-      : [...root.querySelectorAll("button")].find((button) => button.textContent === "Reminders tutorial")?.querySelector("svg");
+      : [...root.querySelectorAll("button")].find((button) => button.textContent === (variant === "lists" ? "Lists tutorial" : "Reminders tutorial"))?.querySelector("svg");
     if (!target) return;
     const rootRect = root.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
     setRingCentre({ x: targetRect.left - rootRect.left + targetRect.width / 2, y: targetRect.top - rootRect.top + targetRect.height / 2 });
-  }, [phase]);
+  }, [phase, variant]);
 
   const overlayOpen = phase === "settings-overlay" || phase === "settings-scroll" || phase === "tutorial-throb";
 
@@ -136,6 +140,23 @@ export function OnboardingPage6Overlay({ settings }: { settings?: TutorialRemind
             className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] outline-none shrink-0"
             style={{ width: 340, maxHeight: cardMaxHeight, overflowY: "hidden", transform: `scale(${PAGE_6_CARD_SCALE})`, transformOrigin: "center" }}
           >
+            {variant === "lists" ? (
+            <ShowInfoIconsContext.Provider value={listsSettings?.showInfoIcons ?? true}>
+              <ListsSettingsContent
+                onOpenTutorial={noop}
+                soundsAvailable={listsSettings?.soundsAvailable ?? true}
+                hapticsAvailable={listsSettings?.hapticsAvailable ?? false}
+                templatesAvailable={listsSettings?.templatesAvailable ?? false}
+                siriAvailable={listsSettings?.siriAvailable ?? false}
+                siriOn={listsSettings?.siriOn ?? false}
+                onSiriChange={noop}
+                sortAzOn={listsSettings?.sortAzOn ?? false}
+                onSortAzChange={noop}
+                autoClearOn={listsSettings?.autoClearOn ?? false}
+                onAutoClearChange={noop}
+              />
+            </ShowInfoIconsContext.Provider>
+            ) : (
             <ShowInfoIconsContext.Provider value={settings?.showInfoIcons ?? true}>
               <RemindersSettingsContent
                 onOpenTutorial={noop}
@@ -160,6 +181,7 @@ export function OnboardingPage6Overlay({ settings }: { settings?: TutorialRemind
                 onSiriChange={noop}
               />
             </ShowInfoIconsContext.Provider>
+            )}
           </div>
         </div>
       )}

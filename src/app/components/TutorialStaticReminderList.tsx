@@ -288,6 +288,7 @@ function TutorialStaticReminderRow({
                 style={{ color: effectiveTitleColor, textDecorationColor: effectiveTitleColor, height: "17px", maxWidth: "100%", minWidth: 0 }}
               >
                 <p
+                  data-tutorial-row-title
                   style={{
                     display: "block",
                     width: "100%",

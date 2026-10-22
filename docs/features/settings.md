@@ -153,7 +153,7 @@ With the settings menu off there is no settings entry point. The legacy settings
 
 ## Known UI issues
 
-- Time increments info text (recorded 2026-10-12, not yet fixed): the info pop-ups for "1 minute time increments" in Reminders settings (`SettingsPanelContent.tsx`) and Dev tools (`DevToolsOverlay.tsx`) say the time picker uses 5-minute steps when the setting is off. The picker actually uses 15-minute steps (00, 15, 30, 45; `TimePicker.tsx`). The Dev tools text also refers to a removed "Testing tools > User preferences" page.
+- None. The time increments info text (recorded 2026-10-12) was fixed on 2026-10-22: Reminders settings and Dev tools now say 15 minute steps, and Dev tools points to Reminders settings > 1 minute time steps.
 
 ## Files
 

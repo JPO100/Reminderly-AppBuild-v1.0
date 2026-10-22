@@ -103,7 +103,7 @@ describe('Siri phrases', () => {
       .map((m) => `${m[1]}Reminderly${m[2]}`);
     const listBlock = read('../components/SettingsPanelContent.tsx').match(/SIRI_PHRASES = \[([\s\S]*?)\];/)![1];
     const listed = [...listBlock.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-    expect(swift).toHaveLength(4);
+    expect(swift).toHaveLength(1);
     expect(listed).toEqual(swift);
   });
 });

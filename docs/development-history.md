@@ -76,6 +76,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### fix/siri-single-phrase
+
+Created: 2026-10-22
+Parent: main (1afe653)
+Purpose: Type B. John's iPhone testing: each of the three added phrases ("Remind me in / New reminder in / Add a reminder in Reminderly app") made Siri ask "Do you want to use Reminderly or Notes?" every time; "Add to Reminderly app" worked every time. Likely cause: "remind" and "reminder" also match Siri's built-in reminder and note handling. John chose to keep only the original phrase. AppShortcuts.swift and SIRI_PHRASES now hold one phrase; the settings page reads "Say this to Siri...", the phrase, "Then reply when Siri asks."
+Verification: see the Siri Phase 2 merge record
+Status: Not merged
+
 ### fix/settings-close-on-resume
 
 Created: 2026-10-22

@@ -1,6 +1,6 @@
 # Siri locked-device creation - plan
 
-Status: stage 1 complete (`feature/siri-locked-stage1`). Stage 2 complete (`feature/siri-locked-stage2`). Stage 3 complete on `feature/siri-locked-stage3` (from stage 2), awaiting CTO review. Stage 4 (device testing) not started.
+Status: stage 1 complete (`feature/siri-locked-stage1`). Stage 2 complete (`feature/siri-locked-stage2`). Stage 3 complete (`feature/siri-locked-stage3`). Stage 4 device testing passed (2026-10-22). Awaiting CTO merge approval.
 
 Type E under Working Agreement v1.3. Replaces the Option C proposal ([siri-option-c-proposal.md](./siri-option-c-proposal.md)) after the closed Option A spike ([siri-background-spike.md](./siri-background-spike.md)).
 
@@ -64,3 +64,23 @@ Files: `ios/App/App/AddReminderIntent.swift` (rewritten), `ios/App/App/siri-core
 - Vitest 296/296, Self Check 412/412, type-check 0 errors, production and native builds with no warnings.
 
 Material risks for stage 4: notification parity with the plugin (sync must find nothing to change; taps, Done and Move to tomorrow); badge values with the 64 limit and midnights; locked data protection (the App Group and the pending list while data-locked); Siri retry behaviour; the existing badge-correction patch re-adds pending requests with their original interval, so their fire times may shift (existing behaviour, outside this work).
+
+## 6. Stage 4 results (2026-10-22, John's iPhone 15 Pro, iOS 27.0.1, build 1fbf80b)
+
+| # | Test | Result |
+|---|---|---|
+| 1 | Locked for more than 15 seconds, Reminderly not running | Pass: "That's done", no unlock, alert on time, badge up by one |
+| 2 | CarPlay, iPhone locked | Pass |
+| 3 | Unlocked, Reminderly in the background | Pass: the app did not open; imported once with the highlight at the right time |
+| 4 | Two Siri requests in a row while locked | Pass: both once |
+| 5 | Tap a Siri alert | Pass: opens on the reminder |
+| 6 | Done and Move to tomorrow on Siri alerts | Pass: badge drops; reminder done or moved |
+| 7 | Badge unchanged when the app opens | Pass (the app's sync found nothing to change) |
+| 8 | Siri off | Pass: immediate refusal, nothing added |
+| 9 | In-app add, edit, complete and delete with alerts | Pass |
+
+Device data afterwards: the pending list empty, no duplicate reminder ids (63 reminders), Siri reminders saved with the spoken times.
+
+Observations:
+- On the iPhone, Siri's response stays on screen until tapped; CarPlay closes it. John checked Apple's Reminders app: the same. iOS 27 behaviour, no change.
+- "Call Mum at 1626" and "Call Mum at 4:24" (no am or pm) became Sometime reminders: existing natural language behaviour, part of the separate natural-language work.

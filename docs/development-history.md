@@ -92,8 +92,8 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 Created: 2026-10-22
 Parent: feature/siri-locked-stage2 (1acc2bf)
 Purpose: Siri locked-device creation, stage 3 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). The Siri intent creates the reminder in the background, also when locked, without opening Reminderly: JavaScriptCore parse with the bundled siri-core.js, App Group pending list with read-back, plugin-identical notification and exact badge adjustment (Swift port of siri-badge.ts), widget snapshot, "That's done". Concurrent Siri retries share one run
-Verification: see the stage 3 evidence in the plan; device testing is stage 4
-Status: Not merged. Awaiting CTO review
+Verification: see the stage 3 evidence in the plan. Stage 4 on John's iPhone (iOS 27.0.1): all 9 tests passed, including locked, CarPlay, alert actions and badge parity (plan, section 6)
+Status: Not merged. Awaiting CTO merge approval
 
 ### feature/siri-locked-stage2
 

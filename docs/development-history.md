@@ -76,6 +76,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### fix/settings-close-on-resume
+
+Created: 2026-10-22
+Parent: main (b980d34)
+Purpose: Type B (app lifecycle). Follow-up to fix/settings-close-on-background: on John's iPhone (main b980d34) the settings panel still showed after going to the Home Screen and reopening, though the Siri reopen passed. Likely cause: on a device the web view is suspended before the 'pause' handler runs (the simulator and the Siri background launch give it time). Fix: the panels also close on the Capacitor 'resume' event, when the web view is running again. A hard close already starts with the panels closed
+Verification: Vitest 270/270, type-check 0 errors, build successful. iPhone: John to confirm
+Status: Not merged
+
 ### feature/siri-phrases
 
 Created: 2026-10-22

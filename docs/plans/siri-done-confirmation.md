@@ -8,13 +8,14 @@ Type C under Working Agreement v1.3 (native intent behaviour, reminder creation)
 
 - 2026-10-22, John: Siri should say "Done" after adding a reminder, mainly for CarPlay, where Reminderly is not seen.
 - 2026-10-22, CTO: conditionally approved. "Done" must mean the reminder is saved, not that the intent ran or the URL was handed over. Establish whether CarPlay creates the reminder; if it does not, no misleading confirmation and a separate background-creation proposal.
+- 2026-10-22, John: wording changed to "That's done" (friendlier).
 - 2026-10-22, John: implement now and test in CarPlay. The design below cannot say "Done" for an unsaved reminder, so the CarPlay test itself establishes the behaviour.
 
 ## 1. Design
 
 | # | Area | Change |
 |---|---|---|
-| 1 | AddReminderIntent.swift | A one-off request id per request, added to `reminderly://add?text=...&id=...`. After the handoff the intent polls the App Group key `siriAddedConfirmation` every 200ms for up to 5 seconds. Matching id: Siri says "Done". Otherwise Siri says "I couldn't confirm your reminder was added. Please check Reminderly." (`SiriNotConfirmedError`) |
+| 1 | AddReminderIntent.swift | A one-off request id per request, added to `reminderly://add?text=...&id=...`. After the handoff the intent polls the App Group key `siriAddedConfirmation` every 200ms for up to 5 seconds. Matching id: Siri says "That's done". Otherwise Siri says "I couldn't confirm your reminder was added. Please check Reminderly." (`SiriNotConfirmedError`) |
 | 2 | AppDelegate.swift | Passes the id (letters, digits and hyphens only) to the web app as `reminderly.pendingSiriId` with the text |
 | 3 | App.tsx | Holds the id with the new reminder's id. After the reminders are saved to `localStorage`, confirms only when the saved data includes the reminder (`isReminderSaved`, utils/siri.ts) |
 | 4 | WidgetBridgePlugin.swift, utils/widget.ts | `confirmSiriAdd({ id })` writes the id to `siriAddedConfirmation` in the App Group |

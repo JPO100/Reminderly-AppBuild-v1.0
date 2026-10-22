@@ -91,7 +91,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 
 Created: 2026-10-22
 Parent: main (c990dcd)
-Purpose: Type C. Siri says "Done" after adding a reminder (John, mainly for CarPlay), only once the app confirms the reminder is saved (CTO condition). One-off request id in the Siri URL; the app writes it to the App Group after the saved reminders include the reminder; the intent waits up to 5 seconds, then says "Done" or that it could not confirm. Plan: [plans/siri-done-confirmation.md](./plans/siri-done-confirmation.md)
+Purpose: Type C. Siri says "Done" after adding a reminder (John, mainly for CarPlay), only once the app confirms the reminder is saved (CTO condition). One-off request id in the Siri URL; the app writes it to the App Group after the saved reminders include the reminder; the intent waits up to 5 seconds, then says "That's done" (John's wording) or that it could not confirm. Plan: [plans/siri-done-confirmation.md](./plans/siri-done-confirmation.md)
 Verification: Vitest 274/274, Self Check 412/412, type-check 0 errors, build successful. CarPlay and iPhone: John to test
 Status: Not merged
 

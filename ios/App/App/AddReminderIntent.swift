@@ -5,7 +5,7 @@ import UIKit
 // iOS 26+: the intent starts in the background, refuses when Siri is off in Reminderly,
 // otherwise asks for the text and continues in the foreground without a confirmation.
 // iOS 16.0 to 25: unchanged behaviour. The app opens first and ignores the request when Siri is off.
-// Spoken "Done" (docs/plans/siri-done-confirmation.md): only once the app confirms the reminder is saved.
+// Spoken "That's done" (docs/plans/siri-done-confirmation.md): only once the app confirms the reminder is saved.
 @available(iOS 16.0, *)
 struct AddReminderIntent: AppIntent {
     static var title: LocalizedStringResource = "Add to Reminderly"
@@ -50,7 +50,7 @@ struct AddReminderIntent: AppIntent {
         await UIApplication.shared.open(url)
 
         guard await Self.waitForConfirmation(of: requestId) else { throw SiriNotConfirmedError() }
-        return .result(dialog: "Done")
+        return .result(dialog: "That's done")
     }
 
     // Polls the App Group until the app confirms this request, or the timeout passes

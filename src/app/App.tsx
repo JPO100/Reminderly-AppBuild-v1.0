@@ -1733,6 +1733,18 @@ export default function App() {
     showInfoIcons,
   };
 
+  // Lists re-run tutorial page: the Lists settings rows as the live overlay shows them
+  const tutorialListsSettings = {
+    soundsAvailable: soundsFlag,
+    hapticsAvailable: hapticsFlag,
+    templatesAvailable: savedListsFeatureEnabled,
+    siriAvailable: isSiriListsAvailable,
+    siriOn: listsSettingsSiriOn,
+    sortAzOn: listSortAz,
+    autoClearOn: listAutoClear,
+    showInfoIcons,
+  };
+
   // Tutorial NLC page shows whenever NLC is available (Dev tools), whether or not the user has it on. With it on, the demo
   // follows the user's recognition settings; otherwise (or if those recognise nothing) it uses dates and times
   const tutorialNlcDemo = useMemo(() => {
@@ -5699,7 +5711,7 @@ export default function App() {
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} remindersSettings={tutorialRemindersSettings} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} />
                 </ShowInfoIconsContext.Provider>
               </motion.div>
             </motion.div>

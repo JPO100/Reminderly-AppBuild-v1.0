@@ -21,7 +21,7 @@ import OnboardingPage3Content, {
 } from '@/app/components/OnboardingPage3Content';
 import OnboardingPage4Content, { OnboardingPage4Text } from '@/app/components/OnboardingPage4Content';
 import OnboardingPage5Content, { OnboardingPage5Text, PAGE_5_HIGHLIGHT_SEQUENCE_DELAY, PAGE_5_INITIAL_PAUSE_DELAY, PAGE_5_STATE_PAUSE_DELAY } from '@/app/components/OnboardingPage5Content';
-import OnboardingPage6Content, { OnboardingPage6Overlay, OnboardingPage6Text, type TutorialRemindersSettings } from '@/app/components/OnboardingPage6Content';
+import OnboardingPage6Content, { OnboardingPage6Overlay, OnboardingPage6Text, type TutorialListsSettings, type TutorialRemindersSettings } from '@/app/components/OnboardingPage6Content';
 import { TUTORIAL_BODY_CLASSNAME, TUTORIAL_TITLE_CLASSNAME } from '@/app/components/tutorialTokens';
 import TutorialPhoneShell from '@/app/components/TutorialPhoneShell';
 import TutorialStaticReminderList, { TUTORIAL_PAGE_2_DONE_LIST_IDS, TUTORIAL_REMINDER_LIST_SCALE, TutorialRowMenuDots } from '@/app/components/TutorialStaticReminderList';
@@ -58,6 +58,8 @@ interface TutorialOnboardingContentProps {
   onNotificationAskPageChange?: (isOnPage: boolean) => void;
   // Reminders tutorial: Re-run this tutorial page shows the settings rows the app shows
   remindersSettings?: TutorialRemindersSettings;
+  // Lists tutorial: Re-run this tutorial page shows the Lists settings rows the app shows
+  listsSettings?: TutorialListsSettings;
 }
 
 const LIST_BLUE = "#4784F8";
@@ -830,13 +832,18 @@ function ListsTutorialPlaceholderPage({
     }
 
     const updateRect = () => {
-      const parent = page3TargetElement.offsetParent;
+      // Measure against the container the ring is drawn in
+      const parent = page3TargetElement.closest("[data-tutorial-ring-host]");
       if (!(parent instanceof HTMLElement)) {
         setPage3TargetRect(null);
         return;
       }
 
-      const targetRect = page3TargetElement.getBoundingClientRect();
+      // Ring sits over the list name text, not the whole row
+      const title = page3TargetElement.querySelector("[data-tutorial-row-title]");
+      const range = document.createRange();
+      if (title) range.selectNodeContents(title);
+      const targetRect = title ? range.getBoundingClientRect() : page3TargetElement.getBoundingClientRect();
       const parentRect = parent.getBoundingClientRect();
       setPage3TargetRect({
         left: targetRect.left - parentRect.left,
@@ -1301,7 +1308,7 @@ function ListsTutorialPlaceholderPage({
             ) : undefined
           }
         >
-          <div ref={currentPage === 4 ? setPage5ChildrenElement : undefined} className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
+          <div ref={currentPage === 4 ? setPage5ChildrenElement : undefined} data-tutorial-ring-host className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
             <TutorialStaticReminderList
               key={currentPage === 3 && (smartFlowPhase === "sheet-throb" || smartFlowPhase === "sheet-closing" || smartFlowPhase === "insert-delay" || smartFlowPhase === "reminder-visible") ? "lists-page-4-reminders" : currentPage === 1 ? `lists-page-2-${page2CycleKey}` : "lists-static"}
               mode={currentPage === 3 && (smartFlowPhase === "sheet-throb" || smartFlowPhase === "sheet-closing" || smartFlowPhase === "insert-delay" || smartFlowPhase === "reminder-visible") ? "reminders" : "lists"}
@@ -1505,6 +1512,7 @@ export default function TutorialOnboardingContent({
   onNotificationAllow,
   onNotificationAskPageChange,
   remindersSettings,
+  listsSettings,
 }: TutorialOnboardingContentProps) {
   // currentStep is the position in the visible sequence; currentPage is the page id being shown
   const [currentStep, setCurrentStep] = useState(0);
@@ -1842,7 +1850,38 @@ export default function TutorialOnboardingContent({
           </div>
         )}
         
-        {isListsTutorial && (
+        {isListsTutorial && settingsMenuEnabled && currentPage === 5 && (
+          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
+            <OnboardingPage6Text />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
+              <TutorialPhoneShell
+                activeMainTab="lists"
+                showHeaderMenu={false}
+                overlay={<OnboardingPage6Overlay variant="lists" listsSettings={listsSettings} />}
+                filterRow={
+                  <TutorialReminderFilters
+                    items={savedListsEnabled ? SAVED_LISTS_TUTORIAL_FILTER_ITEMS : UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS}
+                    trailing={
+                      <div className="flex items-center gap-[5.744px]">
+                        {savedListsEnabled && <TemplatesTutorialButton />}
+                        <TutorialSettingsButton />
+                      </div>
+                    }
+                    layout="between"
+                    rowGapClassName="gap-[10px]"
+                    groupGapClassName="gap-[5.744px]"
+                  />
+                }
+              >
+                <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
+                  <TutorialStaticReminderList mode="lists" combineLaterSometime={settingsMenuEnabled} />
+                </div>
+              </TutorialPhoneShell>
+            </div>
+          </div>
+        )}
+
+        {isListsTutorial && currentPage !== 5 && (
           <ListsTutorialPlaceholderPage
             currentPage={currentPage}
             settingsMenuEnabled={settingsMenuEnabled}

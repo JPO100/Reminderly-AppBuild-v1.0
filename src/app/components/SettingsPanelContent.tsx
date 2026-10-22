@@ -119,7 +119,8 @@ function PanelShell({ title, subPage, onBack, subContent, children }: { title: s
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
       <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight } : undefined}>
         <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
-        {content && <ScrollArea>{content}</ScrollArea>}
+        {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
+        {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>
   );

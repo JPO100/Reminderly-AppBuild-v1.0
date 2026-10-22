@@ -13,7 +13,12 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of feature/onboarding-gaps (2026-10-20)
+Tip: merge of fix/siri-reliability (2026-10-22)
+
+Merge - 2026-10-22: Siri Phase 1, technical reliability
+- Merge commit of fix/siri-reliability (0cb25fd) into main (4f274c6) as ae3e94d, --no-ff, no conflicts. CTO approved (Type C); John authorised
+- Verification on main: Vitest 265/265, Self Check 412/412 (Node run), type-check 0 errors, production build successful. Main deployed to the simulator (iPhone 17 Pro) and John's iPhone 15 Pro: build, signing, install and launch successful
+- fix/siri-reliability deleted locally and on origin. Next: Siri Phase 2 (invocation phrases). Phase 4 (relative time expressions) stays recorded as a future enhancement
 
 Merge - 2026-10-20: Final consolidation (onboarding gaps)
 - feature/onboarding-gaps brought up to date with main in 63ffefa (conflicts: notification-checks imports, BASELINE and development history records, generated index.html; resolved with no behaviour change), then merged into main (071efb9) as 71ff2a5, --no-ff, no conflicts. CTO approved; John confirmed
@@ -78,7 +83,7 @@ Parent: main (4f274c6)
 Purpose: Siri Phase 1, technical reliability ([plans/siri-phase-1.md](./plans/siri-phase-1.md)). Type C. The intent encodes "&+=?#" so "&" no longer cuts the text short. A time with no date at or before the current minute moves to tomorrow. A month-name date with no year that has passed moves to next year. The Siri settings info text is corrected. The Siri parsing moved from App.tsx to utils/siri.ts for tests. Siri still acts only when the flag, the preference and the Reminders module are all on; otherwise the request is ignored (John, D1)
 Verification: Vitest 265/265 (16 new Siri tests), Self Check 412/412 (Node run), type-check clean, production build successful, simulator and iPhone builds installed and launched. John's iPhone Siri tests passed (cold launch, background, lock screen, Siri off, several variations), 2026-10-22. Phase 1 accepted from functional testing
 Follow-up: relative time expressions ("Call mum in an hour" creates a Sometime reminder) recorded as a feature gap for Siri Phase 4, not a Phase 1 defect. Sequence: Phase 2 Siri phrases, Phase 3 Siri onboarding, Phase 4 relative time expressions
-Status: Awaiting CTO merge approval. Not merged
+Status: Merged into main (merge commit ae3e94d, branch head 0cb25fd, 2026-10-22). Branch deleted after the merge
 
 ### fix/list-item-edit-background-save
 

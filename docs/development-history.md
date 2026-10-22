@@ -87,6 +87,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/siri-locked-stage2
+
+Created: 2026-10-22
+Parent: feature/siri-locked-stage1 (62bb816)
+Purpose: Siri locked-device creation, stage 2 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). No user-visible change. The app publishes the Siri context (effective notification settings, repeat flag, badge timeline) to the App Group and imports reminders from the App Group pending list by id on launch and return to the foreground, removing each once saved. Bridge: setSiriContext, getSiriPending, removeSiriPending
+Verification: see the stage 2 evidence in the plan
+Status: Not merged. Awaiting CTO review
+
 ### feature/siri-locked-stage1
 
 Created: 2026-10-22

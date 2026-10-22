@@ -1,6 +1,6 @@
 # Siri locked-device creation - plan
 
-Status: stage 1 complete on `feature/siri-locked-stage1`, awaiting CTO review. Stages 2 to 4 not started.
+Status: stage 1 complete (`feature/siri-locked-stage1`). Stage 2 complete on `feature/siri-locked-stage2` (from stage 1), awaiting CTO review. Stages 3 and 4 not started.
 
 Type E under Working Agreement v1.3. Replaces the Option C proposal ([siri-option-c-proposal.md](./siri-option-c-proposal.md)) after the closed Option A spike ([siri-background-spike.md](./siri-background-spike.md)).
 
@@ -42,3 +42,14 @@ Files: `src/app/utils/siri-badge.ts`, `src/app/siri-core.ts`, `vite.siri-core.co
   - the dates cross the 25 October 2026 clock change
 - Mutation check: four deliberate faults in the specification (no badge increment, wrong boundary, limit off by one, strict time boundary) each fail the tests.
 - Siri core bundle: 23.6 KB, no `window`, `document` or `localStorage`. Run in an empty Node sandbox (as JavaScriptCore will run it), it equals the app's `buildSiriReminder` for 18 phrases x 4 times (afternoon, morning, New Year's Eve, the night before the clock change) x repeats on and off. A run with the sandbox on the real clock fails, so the comparison is real.
+
+## 4. Stage 2 evidence (2026-10-22)
+
+Files: `src/app/utils/siri-pending.ts` (`buildSiriContext`, `isSiriReminder`, `planSiriImport`), `src/app/utils/widget.ts` (`syncSiriContext`, `getSiriPending`, `removeSiriPending`), `ios/App/App/WidgetBridgePlugin.swift` (`setSiriContext`, `getSiriPending`, `removeSiriPending`), `src/app/App.tsx` (publish and import), tests `siri-pending.test.ts` and `widget.test.ts`.
+
+- App Group keys: `siriContext` (JSON: effective alerts and badge, sound, include today, repeat flag, badge timeline) and `siriPendingReminders` (JSON strings, written by the intent in stage 3). The pending list is read and changed on the main thread only.
+- Effective settings: alerts and badge are off when Reminders or Notifications is off, matching the app, which then schedules nothing. The timeline is empty while the badge is off.
+- Import: on launch and on return to the foreground. Adds by reminder id only (not through `addReminders`, which skips reminders whose text matches an existing one), with the usual insert highlight. Removes an entry only once the saved reminders include it, or when it is malformed and carries an id. Reminders the user has since completed or deleted are never re-added.
+- Tests: 13 for context, validation and the import plan (once, twice, a stop between save and removal, the same id twice, the same text with different ids, empty, malformed and unreadable entries); 5 for the bridge wrappers (context sent once per change and again after a failure, strings only, failure and non-iOS, removal by id).
+- Simulator end to end: four entries put in the pending list with the app not running (two "Call Mum at 6pm" reminders with different ids, one of them listed twice, and one malformed). After launch each reminder was saved exactly once and the pending list was empty. Then a saved reminder put back in the list (a stop before removal): removed on relaunch, still saved once. The context was published.
+- Vitest 295/295, Self Check 412/412, type-check 0 errors, production build, Siri core bundle unchanged (23.57 kB), native build.

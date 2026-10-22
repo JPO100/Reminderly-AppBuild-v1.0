@@ -76,6 +76,22 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/siri-phrases
+
+Created: 2026-10-22
+Parent: ui/notifications-keyline (821bea3), stacked so one device build carries both
+Purpose: Siri Phase 2, invocation phrases. Type B. John accepted four phrases: "Add to Reminderly app" (existing), "Remind me in Reminderly app", "New reminder in Reminderly app", "Add a reminder in Reminderly app", all registered in AppShortcuts.swift and always active (iOS cannot switch individual phrases per user). Reminders settings: "Use Siri shortcuts" toggle replaced by a "Siri shortcuts" page with the on/off, a key line and the phrases as a list to read (inactive while Siri is off). Tutorial page 6 shows the new row through the shared component. A test keeps the settings list in step with AppShortcuts.swift
+Verification: Vitest 266/266, Self Check 412/412, type-check 0 errors, preview check of the page at phone width (all phrases fit on one line), simulator and iPhone builds installed and launched. Phrase recognition on the iPhone: John to test
+Status: Awaiting John's testing, then CTO merge approval. Not merged
+
+### ui/notifications-keyline
+
+Created: 2026-10-22
+Parent: main (eaded41)
+Purpose: Type A. Notifications settings page: key line between the alerts group (Notifications, Sound) and the badge group (App badge, Include today in badge)
+Verification: preview check at phone width; included in the feature/siri-phrases device build
+Status: Not merged. Included in feature/siri-phrases (merging that branch brings it in)
+
 ### fix/siri-reliability
 
 Created: 2026-10-22

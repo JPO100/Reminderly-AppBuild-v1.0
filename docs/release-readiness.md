@@ -181,6 +181,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-22 | Siri Phase 2 complete: reduced to the single phrase "Add to Reminderly app" (617b75a), as the other phrases made Siri ask "Reminderly or Notes?" |
 | 2026-10-22 | Siri Phase 2 merged to main (b980d34): four phrases, Siri shortcuts settings page, spoken refusal when Siri is off (iOS 26+). Settings panels close when the app leaves and returns (3cdf0e7, 1afe653). Known issue 2 (Siri release defaults) unchanged |
 | 2026-10-22 | Siri Phase 1 merged to main (ae3e94d). Known issue 2 (Siri release defaults) unchanged |
 | 2026-10-22 | Siri Phase 1 (technical reliability) complete on fix/siri-reliability (not merged): "&" no longer truncates text, past times and past month-name dates no longer created overdue, settings info text corrected. John's iPhone Siri tests passed. Release defaults for Siri (known issue 2) unchanged |

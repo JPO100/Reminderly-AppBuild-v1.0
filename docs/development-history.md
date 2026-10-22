@@ -13,7 +13,7 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of fix/settings-close-on-resume (2026-10-22)
+Tip: merge of fix/siri-single-phrase (2026-10-22)
 
 Merge - 2026-10-22: Siri Phase 2 and settings panel lifecycle fixes
 - ui/notifications-keyline (821bea3) into main (eaded41) as 327baf6, --no-ff, no conflicts. CTO approved (Type A)
@@ -22,7 +22,9 @@ Merge - 2026-10-22: Siri Phase 2 and settings panel lifecycle fixes
 - Post-merge iPhone check found the settings panel still open after Home Screen and reopen (Siri reopen passed). Follow-up fix/settings-close-on-resume (f6d5047) into main (b980d34) as 1afe653, --no-ff, no conflicts. CTO approved (Type B)
 - Verification on main (1afe653): Vitest 270/270, Self Check 412/412 (Node run), type-check 0 errors, production build successful. Main deployed to the simulator (iPhone 17 Pro, iOS 26.3) and John's iPhone 15 Pro (iOS 27.0.1): build, signing, install and launch successful
 - Device verification (John, iPhone, iOS 27.0.1): Siri on, off, change while backgrounded, lock screen: pass. Settings panel closed after Home Screen and reopen, Siri reopen and hard close: pass. Simulator: fresh install refuses until the app is first opened (approved uninstall): pass
-- feature/siri-phrases, fix/settings-close-on-background and fix/settings-close-on-resume deleted locally and on origin. Siri Phase 2 complete. Next: Phase 3 (Siri onboarding/tutorial). Phase 4 (relative time expressions) stays a future enhancement
+- Before the record was merged, John found that the three added phrases (with "remind" or "reminder") made Siri ask "Reminderly or Notes?" every time. fix/siri-single-phrase (5ad634b) into main (1afe653) as 617b75a, --no-ff, no conflicts. CTO approved (Type B). Only "Add to Reminderly app" remains; the Siri page reads "To add a reminder with Siri just say...", "Hey Siri..." and the phrase (bold), "...then when Siri replies, say your reminder."
+- Verification on main (617b75a): Vitest 270/270, Self Check 412/412 (Node run), type-check 0 errors, production build successful. Main deployed to the simulator and John's iPhone: build, signing, install and launch successful. John's iPhone check of the single phrase and Siri page passed
+- feature/siri-phrases, fix/settings-close-on-background, fix/settings-close-on-resume and fix/siri-single-phrase deleted locally and on origin. Siri Phase 2 COMPLETE. Next: Phase 3 (Siri onboarding/tutorial). Phase 4 (relative time expressions) stays a future enhancement
 
 Merge - 2026-10-22: Siri Phase 1, technical reliability
 - Merge commit of fix/siri-reliability (0cb25fd) into main (4f274c6) as ae3e94d, --no-ff, no conflicts. CTO approved (Type C); John authorised
@@ -91,7 +93,7 @@ Created: 2026-10-22
 Parent: main (1afe653)
 Purpose: Type B. John's iPhone testing: each of the three added phrases ("Remind me in / New reminder in / Add a reminder in Reminderly app") made Siri ask "Do you want to use Reminderly or Notes?" every time; "Add to Reminderly app" worked every time. Likely cause: "remind" and "reminder" also match Siri's built-in reminder and note handling. John chose to keep only the original phrase. AppShortcuts.swift and SIRI_PHRASES now hold one phrase; the settings page reads "To add a reminder with Siri just say...", "“Hey Siri...”" and the phrase (bold), "...then when Siri replies, say your reminder."
 Verification: Vitest 270/270, Self Check 412/412, type-check 0 errors, build successful. John's iPhone (iOS 27.0.1, 006c5d3): "Add to Reminderly app" works with no app choice, removed phrases no longer offer Reminderly, Siri page approved (2026-10-22)
-Status: Not merged
+Status: Merged into main (merge commit 617b75a, branch head 5ad634b, 2026-10-22). Branch deleted after the merge
 
 ### fix/settings-close-on-resume
 

@@ -382,7 +382,7 @@ var ReminderlySiri = (function(exports) {
     date.setHours(0, 0, 0, 0);
     return { date, time: { hour: at.getHours(), minute: at.getMinutes() } };
   }
-  function parseTimeTokenValue(tokenText, now = /* @__PURE__ */ new Date()) {
+  function parseTimeTokenValue(tokenText, now = /* @__PURE__ */ new Date(), dateGiven = false) {
     const lower = tokenText.toLowerCase().trim().replace(/\u2019/g, "'");
     const relative = parseRelativeTimeValue(lower, now);
     if (relative) return relative.time;
@@ -390,7 +390,7 @@ var ReminderlySiri = (function(exports) {
     if (wordAmPm) {
       const word = spokenNumber(wordAmPm[1]);
       if (word === null) return null;
-      return parseTimeTokenValue(`${word}${wordAmPm[2]}`, now);
+      return parseTimeTokenValue(`${word}${wordAmPm[2]}`, now, dateGiven);
     }
     const spoken = /^(?:(half|quarter)\s+(past|to)\s+(\S+)|(\S+)\s+o'?\s?clock)(?:\s*(am|pm))?$/.exec(lower);
     if (spoken) {
@@ -405,6 +405,7 @@ var ReminderlySiri = (function(exports) {
         hour = (hour + 11) % 12;
       }
       if (spoken[5]) return { hour: spoken[5] === "pm" ? hour + 12 : hour, minute };
+      if (dateGiven) return { hour: hour >= 7 ? hour : hour + 12, minute };
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
       const am = hour * 60 + minute;
       const pm = am + 12 * 60;
@@ -501,7 +502,7 @@ var ReminderlySiri = (function(exports) {
     }
     return null;
   }
-  function computeTokenClickResult(token, now = /* @__PURE__ */ new Date()) {
+  function computeTokenClickResult(token, now = /* @__PURE__ */ new Date(), dateGiven = false) {
     switch (token.category) {
       case "date": {
         const date = parseDateTokenValue(token.text, now);
@@ -523,7 +524,7 @@ var ReminderlySiri = (function(exports) {
             repeatConfig: null
           };
         }
-        const time = parseTimeTokenValue(token.text, now);
+        const time = parseTimeTokenValue(token.text, now, dateGiven);
         if (!time) return null;
         if (isCompoundTimeToken(token.text)) {
           const today = new Date(now);
@@ -734,8 +735,9 @@ var ReminderlySiri = (function(exports) {
     let selectedDate = null;
     let selectedTime = null;
     let repeatConfig = null;
+    const dateGiven = actions.some((a) => a.category !== "time");
     for (const action of actions) {
-      const result = computeTokenClickResult(action.token, now);
+      const result = computeTokenClickResult(action.token, now, dateGiven);
       if (!result) continue;
       if (result.dateValue) selectedDate = result.dateValue;
       if (result.timeValue) selectedTime = result.timeValue;

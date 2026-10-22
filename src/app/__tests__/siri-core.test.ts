@@ -41,6 +41,7 @@ const PHRASES = [
   'Call Mum in 10 minutes', 'Call Mum in an hour', 'Call Mum in two hours', 'Call Mum in 2 days',
   "Call Mum at 4 o'clock", 'Call Mum at half past four', 'Call Mum at four pm', 'Call Mum the day after tomorrow',
   'Call Mum Friday evening', 'Call Mum at 4:10pm', 'Call Mum at 16:10',
+  "Call Mum tomorrow at 4 o'clock", "Call Mum tomorrow at 9 o'clock",
 ];
 const NOWS = [
   new Date(2026, 9, 22, 15, 0), // Thursday afternoon

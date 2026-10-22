@@ -41,7 +41,7 @@ The in-app editor gains the new tokens (highlight, tap and auto-apply) through #
 
 Decisions (approved by Kai):
 
-- D1: hours without am/pm ("4 o'clock", "half past four") resolve to the next occurrence of that clock time after now (4pm said at 10am; 4am tomorrow said at 5pm).
+- D1: hours without am/pm ("4 o'clock", "half past four") resolve to the next occurrence of that clock time after now (4pm said at 10am; 4am tomorrow said at 5pm). Correction (John and Kai, 2026-10-22, before merge): a stated date (or repeat) takes precedence, so with a date, 7 to 11 are am and 12 to 6 are pm ("tomorrow at 4 o'clock" is tomorrow 4pm at any time; "tomorrow at 9 o'clock" is tomorrow 9am). Without a date the next occurrence stays.
 - D2: relative durations round to the nearest quarter, midpoint up; a result at or before now moves to the next quarter.
 - D3: Siri-only title cleaning, removing the applied date and time token spans (and a directly preceding at/on/in), then the existing normalisation. In-app titles unchanged.
 - D4: "in N days" sets the date only.

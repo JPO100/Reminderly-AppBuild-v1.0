@@ -135,6 +135,23 @@ describe('Siri spoken dates and times', () => {
       .toEqual({ kind: 'scheduled', date: '2026-10-23', time: '04:00' });
   });
 
+  // A stated date takes precedence over the next occurrence (D1 correction)
+  it.each([
+    ['Call mum tomorrow at 4 o\'clock', 10, '2026-10-23', '16:00'],
+    ['Call mum tomorrow at 4 o\'clock', 17, '2026-10-23', '16:00'],
+    ['Call mum tomorrow at 9 o\'clock', 10, '2026-10-23', '09:00'],
+    ['Call mum tomorrow at 9 o\'clock', 22, '2026-10-23', '09:00'],
+    ['Call mum next Friday at half past four', 18, '2026-10-30', '16:30'],
+    ['Call mum tomorrow at 12 o\'clock', 13, '2026-10-23', '12:00'],
+  ])('%s said at %i:00 is %s %s', (text, hour, date, time) => {
+    expect(fields(text, new Date(2026, 9, 22, hour, 0)).schedule).toEqual({ kind: 'scheduled', date, time });
+  });
+
+  it('without a date the spoken hour keeps the next occurrence', () => {
+    expect(fields('Call mum at 4 o\'clock', new Date(2026, 9, 22, 10, 0)).schedule)
+      .toEqual({ kind: 'scheduled', date: '2026-10-22', time: '16:00' });
+  });
+
   it.each([
     ['Call mum Friday evening', 'Call mum', '18:00'],
     ['Call mum this evening', 'Call mum', '18:00'],

@@ -252,7 +252,7 @@ export function parseRelativeTimeValue(tokenText: string, now: Date): { date: Da
 }
 
 /** Parse a time token's text into { hour, minute } */
-export function parseTimeTokenValue(tokenText: string, now: Date = new Date()): { hour: number; minute: number } | null {
+export function parseTimeTokenValue(tokenText: string, now: Date = new Date(), dateGiven = false): { hour: number; minute: number } | null {
   const lower = tokenText.toLowerCase().trim().replace(/\u2019/g, "'");
 
   const relative = parseRelativeTimeValue(lower, now);
@@ -263,7 +263,7 @@ export function parseTimeTokenValue(tokenText: string, now: Date = new Date()): 
   if (wordAmPm) {
     const word = spokenNumber(wordAmPm[1]);
     if (word === null) return null;
-    return parseTimeTokenValue(`${word}${wordAmPm[2]}`, now);
+    return parseTimeTokenValue(`${word}${wordAmPm[2]}`, now, dateGiven);
   }
 
   // Spoken clock: "4 o'clock", "half past four", "quarter past 4", "quarter to five" (optionally am/pm)
@@ -277,6 +277,8 @@ export function parseTimeTokenValue(tokenText: string, now: Date = new Date()): 
     else if (spoken[1] === 'quarter' && spoken[2] === 'past') minute = 15;
     else if (spoken[1] === 'quarter') { minute = 45; hour = (hour + 11) % 12; }
     if (spoken[5]) return { hour: spoken[5] === 'pm' ? hour + 12 : hour, minute };
+    // No am/pm with a stated date: the date wins over the next occurrence, so 7 to 11 are am and 12 to 6 are pm
+    if (dateGiven) return { hour: hour >= 7 ? hour : hour + 12, minute };
     // No am/pm: the next occurrence of that clock time after now
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
     const am = hour * 60 + minute;
@@ -441,7 +443,7 @@ export function computeEligibleTokens(
  * Compound time tokens (this morning, tonight, etc.) return togglesOn: ['time', 'date']
  * with dateValue=today, mirroring repeats-implies-date.
  */
-export function computeTokenClickResult(token: ParsedToken, now: Date = new Date()): TokenClickResult | null {
+export function computeTokenClickResult(token: ParsedToken, now: Date = new Date(), dateGiven = false): TokenClickResult | null {
   switch (token.category) {
     case 'date': {
       const date = parseDateTokenValue(token.text, now);
@@ -465,7 +467,7 @@ export function computeTokenClickResult(token: ParsedToken, now: Date = new Date
         };
       }
 
-      const time = parseTimeTokenValue(token.text, now);
+      const time = parseTimeTokenValue(token.text, now, dateGiven);
       if (!time) return null;
 
       // Compound tokens (this morning, tonight, etc.) imply date = today

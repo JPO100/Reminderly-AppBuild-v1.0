@@ -45,8 +45,10 @@ export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActi
   let selectedTime: { hour: number; minute: number } | null = null;
   let repeatConfig: RepeatConfig = null;
 
+  // A stated date (or repeat) takes precedence over the next occurrence for a spoken hour without am/pm
+  const dateGiven = actions.some(a => a.category !== 'time');
   for (const action of actions) {
-    const result = computeTokenClickResult(action.token, now);
+    const result = computeTokenClickResult(action.token, now, dateGiven);
     if (!result) continue;
     if (result.dateValue) selectedDate = result.dateValue;
     if (result.timeValue) selectedTime = result.timeValue;

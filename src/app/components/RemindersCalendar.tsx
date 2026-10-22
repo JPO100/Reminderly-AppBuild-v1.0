@@ -148,10 +148,10 @@ export default function RemindersCalendar({
       </motion.div>
 
       {/* Divider between the calendar and the list */}
-      <div className="w-full h-px mt-[11px]" style={{ backgroundColor: "#E4E4E4" }} />
+      <div className="w-full h-px mt-[20px]" style={{ backgroundColor: "#E4E4E4" }} />
 
       {/* List heading, fixed above the scrolling list */}
-      <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] whitespace-nowrap" style={{ color: headingColour, marginTop: 16.75, marginBottom: -2.75 }}>
+      <p className="font-['Lato',sans-serif] font-bold leading-[normal] text-[17px] whitespace-nowrap" style={{ color: headingColour, marginTop: 20, marginBottom: -2.75 }}>
         {heading}
       </p>
     </div>

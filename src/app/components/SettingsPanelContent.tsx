@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ToggleRow, MenuRow, KeyLine } from "./DevToolsOverlay";
+import { ToggleRow, MenuRow, KeyLine, InfoPageContext, ShowInfoIconsContext, InfoIcon } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
 import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics";
@@ -33,40 +33,64 @@ function PanelHeader({ title, onBack }: { title: string; onBack?: () => void }) 
 
 // The settings cards' 40px bottom padding. Rows that scroll can run into it, up to the card's edge.
 const SCROLL_PEEK = 40;
+// On sub-pages that scroll, the cut row's middle sits this far above the card's edge (John, 2026-10-22).
+const SUB_PAGE_GLIMPSE_GAP = 24;
+
+type ScrollFit = { cut: number | null; pad: number; grow: number };
 
 // Rows with 30px between them. When they do not fit they scroll, and the area's bottom edge moves so it cuts through the
 // middle of a row (not a divider): the lowest row whose middle falls within the card's bottom padding (clipped by the card), or, when none
 // does, the row above it (the area ends higher). Half a row always shows, as a hard edge. Space after the last row lets it
 // scroll clear, ending 40px above the card's edge as usual. Rows that fit are unchanged.
-function ScrollArea({ children }: { children: ReactNode }) {
+// With onGrow (sub-pages), the card instead grows or shrinks by up to 30px so the cut row's middle is always
+// SUB_PAGE_GLIMPSE_GAP above the card's edge, whatever the main page's height. baseHeight is the area's height on the
+// main page; measuring from it, not the rendered height, keeps the growth from feeding back into itself.
+function ScrollArea({ children, onGrow, baseHeight }: { children: ReactNode; onGrow?: (grow: number) => void; baseHeight?: number }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
-  // How far the bottom edge moves down (negative: up). null while the rows fit.
-  const [cut, setCut] = useState<number | null>(null);
-  const cutRef = useRef<number | null>(null);
+  // cut: how far the bottom edge moves down (negative: up), null while the rows fit. pad: space after the last row.
+  // grow: how much taller the card is made (negative: shorter); the area already grows with the card, so its margin
+  // covers only the rest of the cut.
+  const [fit, setFit] = useState<ScrollFit>({ cut: null, pad: 0, grow: 0 });
+  const fitRef = useRef<ScrollFit>(fit);
+  const onGrowRef = useRef(onGrow);
+  onGrowRef.current = onGrow;
+  const baseHeightRef = useRef(baseHeight);
+  baseHeightRef.current = baseHeight;
   useLayoutEffect(() => {
     const scroll = scrollRef.current;
     const rows = rowsRef.current;
     if (!scroll || !rows) return;
     const measure = () => {
-      const current = cutRef.current ?? 0;
-      // Sizes as they would be without the cut, so the result never depends on itself
-      const visible = scroll.clientHeight - current;
-      const content = rows.offsetHeight - Math.max(current, 0);
-      let next: number | null = null;
+      const current = fitRef.current;
+      // Sizes as they would be without the cut and growth, so the result never depends on itself
+      const visible = baseHeightRef.current ?? scroll.clientHeight - (current.cut ?? 0) - current.grow;
+      const content = rows.offsetHeight - current.pad;
+      let next: ScrollFit = { cut: null, pad: 0, grow: 0 };
       if (content > visible + 1) {
-        next = 0;
-        for (const row of Array.from(rows.children) as HTMLElement[]) {
-          if (row.offsetHeight < 10) continue; // dividers
-          const middle = row.offsetTop + row.offsetHeight / 2 - visible;
-          if (middle > SCROLL_PEEK) break;
-          next = Math.round(middle);
+        const middles = (Array.from(rows.children) as HTMLElement[])
+          .filter((row) => row.offsetHeight >= 10) // not dividers
+          .map((row) => Math.round(row.offsetTop + row.offsetHeight / 2 - visible));
+        if (onGrowRef.current && baseHeightRef.current !== undefined) {
+          // The row whose middle needs the least growth to sit the gap above the card's edge
+          const target = SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP;
+          const middle = middles.reduce((best, m) => (Math.abs(m - target) < Math.abs(best - target) ? m : best), middles[0]);
+          next = { cut: middle, pad: target, grow: middle - target };
+        } else {
+          let cut = 0;
+          for (const middle of middles) {
+            if (middle > SCROLL_PEEK) break;
+            cut = middle;
+          }
+          next = { cut, pad: Math.max(cut, 0), grow: 0 };
         }
       }
-      if (next !== cutRef.current) {
-        cutRef.current = next;
-        setCut(next);
+      if (next.cut !== current.cut || next.pad !== current.pad || next.grow !== current.grow) {
+        fitRef.current = next;
+        setFit(next);
       }
+      // Reported every time, so a growth kept from an earlier visit is always replaced
+      onGrowRef.current?.(next.grow);
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -75,34 +99,71 @@ function ScrollArea({ children }: { children: ReactNode }) {
     return () => observer.disconnect();
   }, []);
   return (
-    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={cut !== null ? { marginBottom: -cut } : undefined}>
-      <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={cut !== null && cut > 0 ? { paddingBottom: cut } : undefined}>
+    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={fit.cut !== null ? { marginBottom: fit.grow - fit.cut } : undefined}>
+      <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={fit.pad > 0 ? { paddingBottom: fit.pad } : undefined}>
         {children}
       </div>
     </div>
   );
 }
 
+// Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
+// with Back returning to the page it was opened from. The card fits its height to the text.
+// The title has the info icon before it, in dark blue, 10px from the text, 1px below centre (John, 2026-10-22).
+function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
+  return (
+    <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
+      <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
+        <span className="relative top-[1px] flex shrink-0"><InfoIcon color="#1C2C42" /></span>
+        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>
+          {header}
+        </p>
+      </div>
+      <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>
+      <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
+        <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
+      </button>
+    </div>
+  );
+}
+
 // Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
-// Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged.
+// Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged; a sub-page that
+// scrolls grows or shrinks by up to 30px so its bottom glimpse matches on every panel.
+// Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
 function PanelShell({ title, subPage, onBack, subContent, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
-  const content = subPage ? subContent : children;
+  const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
+  // The scroll area's height on the main page (below the title and its 40px gap); sub-pages measure from it
+  const [mainAreaHeight, setMainAreaHeight] = useState<number | undefined>(undefined);
+  const [info, setInfo] = useState<{ header: string; title: string } | null>(null);
+  // Growth reported by the sub-page's scroll area, kept per page so another page's growth never applies
+  const [growth, setGrowth] = useState<{ page: string; grow: number } | null>(null);
+  const grow = subPage && growth?.page === subPage ? growth.grow : 0;
   useLayoutEffect(() => {
-    if (subPage === null && rootRef.current) setMainHeight(rootRef.current.offsetHeight);
+    const root = rootRef.current;
+    if (subPage === null && info === null && root) {
+      setMainHeight(root.offsetHeight);
+      const header = root.firstElementChild as HTMLElement | null;
+      if (header) setMainAreaHeight(root.offsetHeight - header.offsetHeight - 40);
+    }
   });
+  if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
-    <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight } : undefined}>
-      <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
-      {content && <ScrollArea>{content}</ScrollArea>}
-    </div>
+    <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
+      <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight + grow } : undefined}>
+        <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
+        {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
+        {content && <ScrollArea key={subPage ?? ""} baseHeight={subPage ? mainAreaHeight : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
+      </div>
+    </InfoPageContext.Provider>
   );
 }
 
 export type NlcPrefs = { on: boolean; date: boolean; time: boolean; repeats: boolean; autoParsing: boolean };
 
-// Natural Language Capture sub-page, laid out like Haptic feedback and Sounds: the on/off, a key line, then the options,
+// Natural Language Capture sub-page: the on/off, a key line, then the options,
 // always listed and inactive (#D9D9D9, not tappable) while NLC is off, keeping their saved choices; repeats only while
 // repeat reminders are available.
 function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean }) {
@@ -113,12 +174,12 @@ function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; o
       <ToggleRow label="Recognise dates" isOn={prefs.date} disabled={!prefs.on} onToggle={() => onChange('date', !prefs.date)} infoTitle="Recognises dates such as 'tomorrow' or 'next Friday'." />
       <ToggleRow label="Recognise times" isOn={prefs.time} disabled={!prefs.on} onToggle={() => onChange('time', !prefs.time)} infoTitle="Recognises times such as 'at 3pm' or 'in the morning'." />
       {repeatsAvailable && <ToggleRow label="Recognise repeats" isOn={prefs.repeats} disabled={!prefs.on} onToggle={() => onChange('repeats', !prefs.repeats)} infoTitle="Recognises repeats such as 'every Monday' or 'daily'." />}
-      <ToggleRow label="Apply as you type" isOn={prefs.autoParsing} disabled={!prefs.on} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="When on, recognised dates, times and repeats are applied as you type. When off, tap a highlighted word to apply it." />
+      <ToggleRow label="Set dates as you type" isOn={prefs.autoParsing} disabled={!prefs.on} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="When on, recognised dates, times and repeats are applied as you type. When off, tap a highlighted word to apply it." />
     </>
   );
 }
 
-// Haptic feedback sub-page: the panel's own on/off plus its groups, always listed (template groups only while templates are available).
+// Haptic feedback group (Sounds and haptics sub-page): the panel's own on/off plus its groups, always listed (template groups only while templates are available).
 // Hidden groups keep their saved choices and play no part in the on/off below.
 // Off turns every group off; back on restores the previous choices (all on if none were on).
 // While off, the groups are inactive (#D9D9D9, not tappable), as with Notifications sound; on but a group off keeps the usual grey.
@@ -149,7 +210,6 @@ function HapticSettings({ panel, templatesAvailable = false }: { panel: HapticPa
   return (
     <>
       <ToggleRow label="Haptic feedback" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every vibration below off in one go. Turning it back on restores your previous choices." />
-      <KeyLine />
       {groups.map(({ label, info, actions }) => (
         <ToggleRow key={label} label={label} isOn={groupOn(actions)} disabled={!config[masterKey]} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
       ))}
@@ -157,7 +217,7 @@ function HapticSettings({ panel, templatesAvailable = false }: { panel: HapticPa
   );
 }
 
-// Sounds sub-page: same behaviour as Haptic feedback, with its own saved choices.
+// Sounds group (Sounds and haptics sub-page): same behaviour as Haptic feedback, with its own saved choices.
 function SoundSettings({ panel, templatesAvailable = false }: { panel: HapticPanel; templatesAvailable?: boolean }) {
   const [config, setConfig] = useState<SoundsConfig>(getSoundsConfig);
   const groups = SOUND_GROUPS[panel].filter((group) => templatesAvailable || !group.templates);
@@ -185,10 +245,21 @@ function SoundSettings({ panel, templatesAvailable = false }: { panel: HapticPan
   return (
     <>
       <ToggleRow label="Sounds" isOn={config[masterKey]} onToggle={() => setMaster(!config[masterKey])} infoTitle="Turns every click below off in one go. Turning it back on restores your previous choices." />
-      <KeyLine />
       {groups.map(({ label, info, actions }) => (
         <ToggleRow key={label} label={label} isOn={groupOn(actions)} disabled={!config[masterKey]} onToggle={() => setGroup(actions, !groupOn(actions))} infoTitle={info} />
       ))}
+    </>
+  );
+}
+
+// Sounds and haptics sub-page: the Sounds group then the Haptic feedback group, each led by its own on/off with no key line
+// under it, and a key line between the two groups. Each group shows only while its feature is available. Rows scroll when they do not fit.
+function SoundsAndHapticsSettings({ panel, templatesAvailable = false, soundsAvailable, hapticsAvailable }: { panel: HapticPanel; templatesAvailable?: boolean; soundsAvailable: boolean; hapticsAvailable: boolean }) {
+  return (
+    <>
+      {soundsAvailable && <SoundSettings panel={panel} templatesAvailable={templatesAvailable} />}
+      {soundsAvailable && hapticsAvailable && <KeyLine />}
+      {hapticsAvailable && <HapticSettings panel={panel} templatesAvailable={templatesAvailable} />}
     </>
   );
 }
@@ -202,12 +273,12 @@ export type NotifPrefs = { alerts: boolean; sound: boolean; badge: boolean; incl
 function NotificationSettings({ prefs, isDenied, onChange }: { prefs: NotifPrefs; isDenied: boolean; onChange: (key: keyof NotifPrefs, value: boolean) => void }) {
   return (
     <>
-      {isDenied && <MenuRow label="Turn on in Settings" onClick={() => { window.location.href = "app-settings:"; }} infoTitle="Notifications are turned off for Reminderly in iOS Settings. Open Settings to allow them. Your choices below are kept." />}
+      {isDenied && <MenuRow label="Allow in iOS Settings" onClick={() => { window.location.href = "app-settings:"; }} infoTitle="Notifications are turned off for Reminderly in iOS Settings. Open Settings to allow them. Your choices below are kept." />}
       <ToggleRow label="Notifications" isOn={prefs.alerts} onToggle={() => onChange("alerts", !prefs.alerts)} infoTitle="Alerts you when a reminder with a time is due." />
-      <ToggleRow label="Sound" isOn={prefs.sound} disabled={!prefs.alerts} onToggle={() => onChange("sound", !prefs.sound)} infoTitle="Plays your iPhone's alert sound with each reminder alert. You can change the sound in iOS Settings, Sounds & Haptics." />
+      <ToggleRow label="Alert sound" isOn={prefs.sound} disabled={!prefs.alerts} onToggle={() => onChange("sound", !prefs.sound)} infoTitle="Plays your iPhone's alert sound with each reminder alert. You can change the sound in iOS Settings, Sounds & Haptics." />
       <KeyLine />
-      <ToggleRow label="App badge" isOn={prefs.badge} onToggle={() => onChange("badge", !prefs.badge)} infoTitle="Shows the number of overdue reminders on the Reminderly app icon." />
-      <ToggleRow label="Include today in badge" isOn={prefs.includeToday} disabled={!prefs.badge} onToggle={() => onChange("includeToday", !prefs.includeToday)} infoTitle="Also counts reminders due today in the app icon badge." />
+      <ToggleRow label="Overdue badge" isOn={prefs.badge} onToggle={() => onChange("badge", !prefs.badge)} infoTitle="Shows the number of overdue reminders on the Reminderly app icon." />
+      <ToggleRow label="Include due today" isOn={prefs.includeToday} disabled={!prefs.badge} onToggle={() => onChange("includeToday", !prefs.includeToday)} infoTitle="Also counts reminders due today in the app icon badge." />
     </>
   );
 }
@@ -234,7 +305,7 @@ export const SIRI_PHRASES = [
   "Add to Reminderly app",
 ];
 
-// Siri shortcuts sub-page, laid out like Haptic feedback: the on/off, a key line, then the phrase Siri recognises and how to go on,
+// Siri shortcuts sub-page, laid out like Natural Language Capture: the on/off, a key line, then the phrase Siri recognises and how to go on,
 // inactive (#D9D9D9) while Siri is off.
 function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   return (
@@ -256,7 +327,6 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
     </>
   );
 }
-const SOUNDS_INFO = "Choose when Reminderly plays a soft click, such as when you complete or delete an item.";
 
 export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailable, notifPrefs, notifPermissionDenied, onNotifChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; notifPermissionDenied: boolean; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
@@ -266,15 +336,14 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       title="Reminders settings"
       subPage={subPage}
       onBack={() => setSubPage(null)}
-      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : subPage === "Sounds" ? <SoundSettings panel="reminders" /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
+      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
-      {datePresetsAvailable && <ToggleRow label="Show date presets" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
-      {oneMinuteAvailable && <ToggleRow label="1 minute time increments" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 5 minute steps." />}
+      {datePresetsAvailable && <ToggleRow label="Quick date buttons" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
+      {oneMinuteAvailable && <ToggleRow label="1 minute time steps" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 5 minute steps." />}
       {siriAvailable && <MenuRow label="Siri shortcuts" onClick={() => setSubPage("Siri shortcuts")} infoTitle="Turn Siri on or off and see what to say to add a reminder with your voice." />}
       {notificationsAvailable && <MenuRow label="Notifications" onClick={() => setSubPage("Notifications")} infoTitle="Choose how Reminderly alerts you when reminders are due, with or without sound, and whether the app icon shows a badge." />}
       {nlcAvailable && <MenuRow label="Natural Language Capture" onClick={() => setSubPage("Natural Language Capture")} infoTitle="Reminderly can pick out dates, times and repeats as you type, such as 'tomorrow at 3pm' or 'every Monday'. Choose what is recognised and how it works." />}
-      {hapticsAvailable && <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you complete or delete a reminder." />}
-      {soundsAvailable && <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />}
+      {(soundsAvailable || hapticsAvailable) && <MenuRow label="Sounds and haptics" onClick={() => setSubPage("Sounds and haptics")} infoTitle="Choose when Reminderly plays a soft click or your iPhone gives a small vibration, such as when you complete or delete a reminder." />}
       {onOpenTutorial && <TutorialRow label="Reminders tutorial" onClick={onOpenTutorial} />}
     </PanelShell>
   );
@@ -284,12 +353,11 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
   const [subPage, setSubPage] = useState<string | null>(null);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Haptic feedback" ? <HapticSettings panel="lists" templatesAvailable={templatesAvailable} /> : subPage === "Sounds" ? <SoundSettings panel="lists" templatesAvailable={templatesAvailable} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
       <ToggleRow label="Sort items A to Z" isOn={sortAzOn} onToggle={() => onSortAzChange(!sortAzOn)} infoTitle="Sorts the items in every list alphabetically. When off, items appear in the order you added them, most recent at the top." />
-      <ToggleRow label="Clear done lists nightly" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
-      {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
-      {hapticsAvailable && <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you check off a list item or delete a list." />}
-      {soundsAvailable && <MenuRow label="Sounds" onClick={() => setSubPage("Sounds")} infoTitle={SOUNDS_INFO} />}
+      <ToggleRow label="Ticked lists to Done" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
+      {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
+      {(soundsAvailable || hapticsAvailable) && <MenuRow label="Sounds and haptics" onClick={() => setSubPage("Sounds and haptics")} infoTitle="Choose when Reminderly plays a soft click or your iPhone gives a small vibration, such as when you check off a list item or delete a list." />}
       {onOpenTutorial && <TutorialRow label="Lists tutorial" onClick={onOpenTutorial} />}
     </PanelShell>
   );

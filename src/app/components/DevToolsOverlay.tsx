@@ -176,7 +176,7 @@ export function DevMenuRow({ label, onClick, disabled, infoHeader, infoTitle }: 
   );
 }
 
-function InfoIcon({ color = '#939393' }: { color?: string }) {
+export function InfoIcon({ color = '#939393' }: { color?: string }) {
   return (
     <svg width="16.5" height="16.5" viewBox="0 0 17 17" fill="none" className="shrink-0">
       <path d="M7.6875 6.75C7.84307 6.75 8.03551 6.7485 8.19922 6.77051C8.36125 6.79232 8.5773 6.84631 8.77441 7.00488L8.8584 7.0791L8.93262 7.16309C9.09119 7.36019 9.14517 7.57625 9.16699 7.73828C9.189 7.90198 9.1875 8.09443 9.1875 8.25V12C9.1875 12.4142 8.85171 12.75 8.4375 12.75C8.02329 12.75 7.6875 12.4142 7.6875 12V8.25C7.27329 8.25 6.9375 7.91421 6.9375 7.5C6.93751 7.08579 7.27329 6.75 7.6875 6.75Z" fill={color}/>
@@ -216,16 +216,21 @@ export function DevToolsInfoOverlay({ visible, onClose, header, title }: { visib
 // "Show info icons" toggle (default off), provided around those panels in App. All infoTitle copy is kept.
 export const ShowInfoIconsContext = createContext(true);
 
+// The settings panels provide this so an info icon opens its description as a page in the same card, not a second overlay.
+// Without it (Dev tools), the icon opens the info overlay.
+export const InfoPageContext = createContext<((header: string, title: string) => void) | null>(null);
+
 export function InfoIconWithOverlay({ color, header, title }: { color?: string; header: string; title: string }) {
   const [showInfo, setShowInfo] = useState(false);
   const showInfoIcons = useContext(ShowInfoIconsContext);
+  const openInfoPage = useContext(InfoPageContext);
   if (!showInfoIcons) return null;
   return (
     <>
-      <span onClick={(e) => { e.stopPropagation(); setShowInfo(true); }} className="shrink-0 cursor-pointer">
+      <span onClick={(e) => { e.stopPropagation(); if (openInfoPage) openInfoPage(header, title); else setShowInfo(true); }} className="shrink-0 cursor-pointer">
         <InfoIcon color={color} />
       </span>
-      <DevToolsInfoOverlay visible={showInfo} onClose={() => setShowInfo(false)} header={header} title={title} />
+      {!openInfoPage && <DevToolsInfoOverlay visible={showInfo} onClose={() => setShowInfo(false)} header={header} title={title} />}
     </>
   );
 }
@@ -233,14 +238,14 @@ export function InfoIconWithOverlay({ color, header, title }: { color?: string; 
 export function ToggleRow({ label, isOn, onToggle, disabled, infoHeader, infoTitle }: { label: string; isOn: boolean; onToggle: () => void; disabled?: boolean; infoHeader?: string; infoTitle?: string }) {
   return (
     <div className="flex h-[30px] items-center justify-between w-full">
-      <div className="flex items-center gap-[16px]">
+      <div className="flex items-center gap-[15px]">
         <p
           className="font-['Lato:Bold',sans-serif] leading-[23px] not-italic text-[17px] whitespace-nowrap"
           style={{ color: disabled ? '#D9D9D9' : '#1C2C42' }}
         >
           {label}
         </p>
-        <InfoIconWithOverlay color={disabled ? '#D9D9D9' : undefined} header={infoHeader || label} title={infoTitle || ''} />
+        <InfoIconWithOverlay color={disabled ? '#D9D9D9' : '#BABABA'} header={infoHeader || label} title={infoTitle || ''} />
       </div>
       <button
         onClick={() => { if (!disabled) onToggle(); }}
@@ -264,12 +269,12 @@ export function MenuRow({ label, onClick, disabled, infoHeader, infoTitle }: { l
       className="flex h-[30px] items-center justify-between w-full pr-[15px]"
       style={{ cursor: disabled ? 'default' : 'pointer' }}
     >
-      <div className="flex items-center gap-[16px]">
+      <div className="flex items-center gap-[15px]">
         <p className="font-['Lato:Bold',sans-serif] leading-[normal] text-[17px] whitespace-nowrap"
            style={{ color: disabled ? '#D9D9D9' : '#1C2C42' }}>
           {label}
         </p>
-        <InfoIconWithOverlay color={disabled ? '#D9D9D9' : undefined} header={infoHeader || label} title={infoTitle || ''} />
+        <InfoIconWithOverlay color={disabled ? '#D9D9D9' : '#BABABA'} header={infoHeader || label} title={infoTitle || ''} />
       </div>
       <svg width="7" height="13" viewBox="0 0 7 13" fill="none" className="shrink-0">
         <path d="M1.92753 0.349745C1.50716 -0.116582 0.82549 -0.116582 0.405113 0.349745C-0.0151913 0.816064 -0.0152062 1.57198 0.405113 2.03828L4.38238 6.45L0.315234 10.9617C-0.10508 11.428 -0.105076 12.1839 0.315234 12.6503C0.735611 13.1166 1.41728 13.1166 1.83766 12.6503L6.4969 7.48173C6.5635 7.43513 6.62678 7.37992 6.68481 7.31555C7.10508 6.84926 7.10505 6.09333 6.68481 5.62701L1.92753 0.349745Z" fill={disabled ? '#D9D9D9' : '#939393'} />

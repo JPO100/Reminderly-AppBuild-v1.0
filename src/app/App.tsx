@@ -4062,7 +4062,7 @@ export default function App() {
             })()}
             <div className="relative w-full max-w-[768px] flex-1 min-h-0">
               {/* Scrollable lists container */}
-              <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto', height: '100%' }}>
+              <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto', height: '100%' }}>
                 <div className="flex flex-col gap-[23px] w-full" style={{ position: 'relative', zIndex: 1 }}>
                   {/* Dynamic list cards */}
                   <AnimatePresence key={`lists-${activeListFilter}`}>
@@ -4393,7 +4393,7 @@ export default function App() {
           )}
         </AnimatePresence>
         {/* Scrollable area */}
-        <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full max-w-[768px] rounded-[10px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full max-w-[768px]" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {(() => {
             const displayReminders = hideOverdue ? reminders.filter(r => !isOverdue(r, now)) : reminders;
             // Done / deleted view — derived from completedAt or deletedAt on reminders

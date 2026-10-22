@@ -12,7 +12,7 @@ Implemented:
 - Tap to open the reminder.
 - Reminders module off, or Notifications flag off: all Reminderly notifications cleared, badge cleared.
 - Phase 4 ([../plans/notifications-phase-4.md](../plans/notifications-phase-4.md)):
-  - User settings in Reminders settings > Notifications: Notifications (alerts), Sound, App badge, Include today in badge ([settings.md](./settings.md)).
+  - User settings in Reminders settings > Notifications: Notifications (alerts), Alert sound, Overdue badge, Include due today ([settings.md](./settings.md)).
   - Alerts and badge independent, including silent badge-only notifications.
   - Sound on or off, using the iOS default sound (sound name `default`). Off by default for all users.
   - In-app permission ask instead of an automatic iOS prompt (see Permission below).
@@ -103,7 +103,7 @@ The app never triggers the iOS prompt by itself. Permission is read from iOS on 
 - Allow: alerts and badge preferences on (sound unchanged), then the iOS prompt. Not now: asked once more on the next timed reminder, then not again.
 - Turning Notifications or App badge on in settings while iOS has not decided shows the in-app ask first; Allow turns on only that preference. Not now from settings changes nothing.
 - Existing installs with permission already granted are marked accepted on launch and never asked.
-- Denied: preferences are kept, and Reminders settings > Notifications shows "Turn on in Settings", which opens Reminderly's iOS Settings page.
+- Denied: preferences are kept, and Reminders settings > Notifications shows "Allow in iOS Settings", which opens Reminderly's iOS Settings page.
 - Ask state key `reminderly-notif-ask-state`: missing, `not-now-1`, `not-now-2` or `accepted`. Any other value suppresses automatic asks.
 
 `clearReminderNotifications` cancels all pending and removes all delivered Reminderly notifications. It needs no permission.

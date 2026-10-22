@@ -4,11 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const setSnapshot = vi.fn(() => Promise.resolve());
 const clearSnapshot = vi.fn(() => Promise.resolve());
 const setSiriActive = vi.fn((_options: { active: boolean }) => Promise.resolve());
+const confirmSiriAdd = vi.fn((_options: { id: string }) => Promise.resolve());
 let platform = 'ios';
 
 vi.mock('@capacitor/core', () => ({
   Capacitor: { getPlatform: () => platform },
-  registerPlugin: () => ({ setSnapshot, clearSnapshot, setSiriActive }),
+  registerPlugin: () => ({ setSnapshot, clearSnapshot, setSiriActive, confirmSiriAdd }),
 }));
 
 const snapshot = { date: '2026-10-12', outstanding: 2, done: 1, dueTomorrow: 0 };
@@ -97,5 +98,28 @@ describe('syncSiriActive', () => {
     const { syncSiriActive } = await loadWidget();
     syncSiriActive(true);
     expect(setSiriActive).not.toHaveBeenCalled();
+  });
+});
+
+// The Siri intent says "Done" only after this confirmation reaches native
+describe('confirmSiriAdd', () => {
+  beforeEach(() => {
+    confirmSiriAdd.mockClear();
+    platform = 'ios';
+  });
+
+  it('sends the request code', async () => {
+    const widget = await loadWidget();
+    widget.confirmSiriAdd('req-1');
+    expect(confirmSiriAdd).toHaveBeenCalledWith({ id: 'req-1' });
+  });
+
+  it('sends nothing for an empty code or outside iOS', async () => {
+    let widget = await loadWidget();
+    widget.confirmSiriAdd('');
+    platform = 'web';
+    widget = await loadWidget();
+    widget.confirmSiriAdd('req-1');
+    expect(confirmSiriAdd).not.toHaveBeenCalled();
   });
 });

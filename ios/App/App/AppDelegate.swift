@@ -31,7 +31,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIWindowSceneDelegate {
             .replacingOccurrences(of: "'", with: "\\'")
             .replacingOccurrences(of: "\n", with: "\\n")
 
-        let js = "localStorage.setItem('reminderly.pendingSiriText','\(escaped)');window.dispatchEvent(new CustomEvent('reminderly:siri-add'));"
+        // The Siri request's one-off code (letters, digits and hyphens only), confirmed back once the reminder is saved
+        let requestId = (components.queryItems?.first(where: { $0.name == "id" })?.value ?? "")
+            .filter { $0.isLetter || $0.isNumber || $0 == "-" }
+
+        let js = "localStorage.setItem('reminderly.pendingSiriId','\(requestId)');localStorage.setItem('reminderly.pendingSiriText','\(escaped)');window.dispatchEvent(new CustomEvent('reminderly:siri-add'));"
 
         if let windowScene = scene as? UIWindowScene,
            let vc = windowScene.windows.first?.rootViewController as? CAPBridgeViewController {

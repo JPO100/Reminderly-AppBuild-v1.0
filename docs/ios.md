@@ -44,6 +44,7 @@ Implemented for reminders. Siri for lists is not built.
 5. `App.tsx` reads and removes the pending text on the event and on mount. If Siri for reminders is not active (Reminders module on, `reminderly-ff-siri-reminders` and the user's Siri preference on), the text is discarded. This in-app gate stays as a second layer behind the native check.
 6. `utils/siri.ts` parses the text with the NLC parser in auto-apply mode, with a fallback for month-name dates ("March 5", "5th of March"). A month-name date with no year that has already passed means next year. A time with no date means today, or tomorrow once that time has passed. No date means Sometime. A repeat rule is created only when repeat reminders are active.
 7. The reminder is added through the normal `addReminder` path, so it is persisted, notified and highlighted like any other.
+8. Spoken "Done" ([plans/siri-done-confirmation.md](./plans/siri-done-confirmation.md)): the intent adds a one-off `id` to the URL. Once the saved reminders include the new reminder, the app writes the id to `siriAddedConfirmation` in the App Group (`WidgetBridge.confirmSiriAdd`). The intent waits up to 5 seconds for it: then Siri says "That's done", otherwise "I couldn't confirm your reminder was added. Please check Reminderly."
 
 Any app or link that opens `reminderly://add?text=...` creates a reminder the same way.
 

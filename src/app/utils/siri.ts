@@ -91,3 +91,14 @@ export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActi
 
   return { originalText: text, displayText, schedule, repeatRule };
 }
+
+/** True when the saved reminders (the raw stored JSON) include the reminder with this id. */
+export function isReminderSaved(storedReminders: string | null, reminderId: string): boolean {
+  if (!storedReminders) return false;
+  try {
+    const parsed: unknown = JSON.parse(storedReminders);
+    return Array.isArray(parsed) && parsed.some((item) => (item as { id?: unknown })?.id === reminderId);
+  } catch {
+    return false;
+  }
+}

@@ -1,8 +1,9 @@
 // Reminders tutorial page "Add reminders with Siri" (Siri Phase 3). Shown while Siri for reminders is available,
 // whatever the user's Siri setting. The phone top slice plays the Siri journey, modelled on Siri in iOS 27: a home
 // screen, the dark Siri orb dropping from the Dynamic Island with its multicolour waveform, Siri's question in the
-// dark panel, then Reminderly opening from its icon and the new reminder arriving at the top of the list.
-// Home screen icons are simple generic drawings, not Apple artwork.
+// dark panel, with the Siri glow around the screen edge while Siri is active, then Reminderly opening from its icon
+// and the new reminder arriving at the top of the list. Home screen icons are simple generic drawings, not Apple
+// artwork. The edge glow recreates the iOS Siri glow in code and is the one deliberate gradient in Reminderly (John).
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
@@ -22,6 +23,8 @@ const SIRI_REMINDER: TutorialReminder = {
 const SIRI_QUESTION = "What would you like to be reminded about?";
 const SPOKEN_REPLY = "Call Mum at 6pm today";
 const SIRI_COLOURS = ["#8D9FFF", "#BC82F3", "#FF6778", "#FFBA71", "#6FD3F8"];
+const SIRI_GLOW_COLOURS = "#BC82F3, #F5B9EA, #8D9FFF, #AA6EEE, #FF6778, #FFBA71, #C686FF, #BC82F3";
+const SIRI_GLOW_TURN_SECONDS = 4;
 
 type Phase = "home" | "listening" | "question" | "reply" | "closing" | "launch" | "app" | "inserted";
 // Time each phase starts, from the start of a cycle
@@ -87,7 +90,48 @@ function StatusBar() {
   );
 }
 
-// Multicolour waveform bars, the one place Siri's colours remain in iOS 27
+// A band of rotating colour along the screen edges. The ring mask keeps only the edge band; the blur on the
+// wrapper softens it inwards, as on iOS. The screen's own rounded clip trims the outer edge. The phone is a top
+// slice, so the band runs on below the cut and only the top and sides show.
+function SiriEdgeGlowBand({ band, blur, opacity }: { band: number; blur: number; opacity: number }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none" style={{ filter: blur ? `blur(${blur}px)` : undefined, opacity }}>
+      <div
+        className="absolute left-0 right-0 top-0 bottom-[-60px] overflow-hidden rounded-tl-[26px] rounded-tr-[26px]"
+        style={{
+          padding: band,
+          WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+          WebkitMaskComposite: "xor",
+          maskComposite: "exclude",
+        }}
+      >
+        <motion.div
+          className="absolute left-[-50%] top-[-50%] h-[200%] w-[200%]"
+          style={{ background: `conic-gradient(from 0deg, ${SIRI_GLOW_COLOURS})` }}
+          animate={{ rotate: 360 }}
+          transition={{ duration: SIRI_GLOW_TURN_SECONDS, ease: "linear", repeat: Infinity }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SiriEdgeGlow() {
+  return (
+    <motion.div
+      className="absolute inset-0 z-[25] pointer-events-none"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <SiriEdgeGlowBand band={14} blur={12} opacity={0.9} />
+      <SiriEdgeGlowBand band={4} blur={2} opacity={1} />
+    </motion.div>
+  );
+}
+
+// Multicolour waveform bars
 function SiriWaveform({ active, height = 16 }: { active: boolean; height?: number }) {
   return (
     <div className="flex items-center gap-[3px]" style={{ height }}>
@@ -108,9 +152,11 @@ function SiriWaveform({ active, height = 16 }: { active: boolean; height?: numbe
 function SiriLayer({ phase }: { phase: Phase }) {
   const showOrb = phase === "listening";
   const showPanel = phase === "question" || phase === "reply";
+  const siriActive = showOrb || showPanel;
   return (
     <>
       <div className="absolute left-1/2 top-[9px] h-[22px] w-[78px] -translate-x-1/2 rounded-[11px] bg-black z-20" />
+      <AnimatePresence>{siriActive && <SiriEdgeGlow key="glow" />}</AnimatePresence>
       <AnimatePresence>
         {showOrb && (
           <motion.div

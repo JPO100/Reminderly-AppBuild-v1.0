@@ -921,13 +921,15 @@ export default function App() {
   const [isRemindersSettingsPanelOpen, setIsRemindersSettingsPanelOpen] = useState(false);
   const [isListsSettingsPanelOpen, setIsListsSettingsPanelOpen] = useState(false);
 
-  // Settings panels close when the app goes to the background, so they are not still open on return
+  // Settings panels close when the app goes to the background, so they are not still open on return.
+  // Also on return to the foreground: on a device the web view can be suspended before 'pause' runs.
   useEffect(() => {
-    const listener = CapacitorApp.addListener('pause', () => {
+    const closeSettingsPanels = () => {
       setIsRemindersSettingsPanelOpen(false);
       setIsListsSettingsPanelOpen(false);
-    });
-    return () => { void listener.then((handle) => handle.remove()); };
+    };
+    const listeners = [CapacitorApp.addListener('pause', closeSettingsPanels), CapacitorApp.addListener('resume', closeSettingsPanels)];
+    return () => { for (const listener of listeners) void listener.then((handle) => handle.remove()); };
   }, []);
   const [viewportHeight, setViewportHeight] = useState(typeof window !== "undefined" ? window.innerHeight : 0);
   const clickCountRef = useRef(0);

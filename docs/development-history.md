@@ -13,7 +13,13 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of feature/siri-locked-stage3 (2026-10-22)
+Tip: merge of feature/siri-onboarding (2026-10-22)
+
+Merge - 2026-10-22: Siri tutorial page
+- feature/siri-onboarding (87951d2) into main (2c0444d) as 9067897, --no-ff, no conflicts. The branch had been brought up to date with main in 35ac5d2 (development history entries only, both kept). CTO approved; John signed off, including the Siri phrase in Reminderly blue (#4784F8)
+- Reminders tutorial page "Add reminders with Siri" (page id 9), third after Create a reminder, shown while Siri for reminders is available: home screen, iOS 27 Siri orb and panel with the edge glow, Reminderly opening, "Call Mum" inserted at the top
+- Verification on main (9067897): Vitest 298/298, Self Check 412/412 (Node run), type-check 0 errors, production build successful. Main deployed to the simulator (iPhone 17 Pro, iOS 26.3) and John's iPhone 15 Pro (iOS 27.0.1): build, signing, install and launch successful
+- feature/siri-onboarding deleted locally and on origin. It had been missing from John's devices because it was unmerged while later builds came from main; the deploy note now states plainly when a seen feature is excluded
 
 Merge - 2026-10-22: Siri Phase 3, locked-device creation
 - feature/siri-locked-stage3 (fc19ca7, containing stages 1 and 2) into main (c990dcd) as 2c0444d, --no-ff, no conflicts. CTO approved (Type E); John signed off Siri Phase 3
@@ -102,7 +108,7 @@ Created: 2026-10-22
 Parent: main (c990dcd)
 Purpose: Siri Phase 3, Type B. Reminders tutorial page "Add reminders with Siri" (page id 9), third, straight after Create a reminder. Shown while Siri for reminders is available (Siri flag and Reminders module on), whatever the user's Siri setting (John). Standard title, description and phone top slice. The phone plays the Siri journey, modelled on Siri in iOS 27 (no screen-edge glow; dark orb from the Dynamic Island, multicolour waveform, dark response panel): home screen with generic icons, Siri asks "What would you like to be reminded about?", the reply "Call Mum at 6pm today", Reminderly opens from its icon and "Call Mum" (today 6pm) is inserted at the top of the list. At John's request the Siri screen-edge glow (rotating colour band, blurred inwards) shows while Siri is active, as an agreed exception to the no-gradients rule. No native changes. Built as a draft for John's review at his request; the CTO's scope approval is needed before merge
 Verification: see the Phase 3 completion report
-Status: Not merged. Brought up to date with main (2c0444d) on 2026-10-22; awaiting CTO merge approval
+Status: Merged into main (merge commit 9067897, branch head 87951d2, 2026-10-22). Branch deleted after the merge
 
 ### feature/siri-locked-stage3
 

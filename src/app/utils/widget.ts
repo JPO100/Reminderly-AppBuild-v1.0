@@ -26,7 +26,10 @@ export function syncWidget(snapshot: TodayProgress | null) {
   });
 }
 
-/** Siri for reminders on or off, for the Siri intent to read before it accepts a request. */
+/**
+ * Siri for reminders on or off, for the Siri intent to read before it accepts a request.
+ * Writes every time it is called (no skip for an unchanged value), so the foreground re-write always lands.
+ */
 export function syncSiriActive(active: boolean) {
   if (Capacitor.getPlatform() !== 'ios') return;
   WidgetBridge.setSiriActive({ active }).catch(() => {});

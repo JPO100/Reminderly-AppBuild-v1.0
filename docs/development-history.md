@@ -79,10 +79,10 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 ### feature/siri-phrases
 
 Created: 2026-10-22
-Parent: ui/notifications-keyline (821bea3), stacked so one device build carries both
-Purpose: Siri Phase 2, invocation phrases. Type B. John accepted four phrases: "Add to Reminderly app" (existing), "Remind me in Reminderly app", "New reminder in Reminderly app", "Add a reminder in Reminderly app", all registered in AppShortcuts.swift and always active (iOS cannot switch individual phrases per user). Reminders settings: "Use Siri shortcuts" toggle replaced by a "Siri shortcuts" page with the on/off, a key line and the phrases as a list to read (inactive while Siri is off). Tutorial page 6 shows the new row through the shared component. A test keeps the settings list in step with AppShortcuts.swift
-Verification: Vitest 266/266, Self Check 412/412, type-check 0 errors, preview check of the page at phone width (all phrases fit on one line), simulator and iPhone builds installed and launched. Phrase recognition on the iPhone: John to test
-Status: Awaiting John's testing, then CTO merge approval. Not merged
+Parent: ui/notifications-keyline (821bea3, merged into main as 327baf6 before this branch)
+Purpose: Siri Phase 2. (1) Phrases, Type B: four phrases accepted by John ("Add to / Remind me in / New reminder in / Add a reminder in Reminderly app"), all registered in AppShortcuts.swift and always active; a test keeps the settings list in step. (2) Settings, Type B: the "Use Siri shortcuts" toggle became a "Siri shortcuts" page: on/off, key line, "You can use any of these with Siri...", the phrases, "Then reply when Siri asks." (inactive while Siri is off). (3) Siri off spoken refusal, Type C ([plans/siri-off-refusal.md](./plans/siri-off-refusal.md)), superseding Phase 1 decision D1: on iOS 26+ the intent checks a fail-closed App Group value and says "Siri is turned off in Reminderly, so I can't add a reminder right now." without opening the app; when on, it continues in the foreground with no confirmation. iOS 16.0 to 25 keep the previous behaviour. Spike 1 (ForegroundContinuableIntent, iOS 16.4) was dropped because it added a "continue in the app" step
+Verification: see the merge record on main
+Status: Approved by John and the CTO for merge
 
 ### ui/notifications-keyline
 

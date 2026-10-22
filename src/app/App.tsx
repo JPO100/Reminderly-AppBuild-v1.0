@@ -1816,9 +1816,14 @@ export default function App() {
     }, NEW_REMINDER_INSERT_DELAY);
   }, [maybeAskForNotifications]);
 
-  // Tells the Siri intent whether to accept requests (docs/plans/siri-off-refusal.md)
+  // Tells the Siri intent whether to accept requests (docs/plans/siri-off-refusal.md): on launch, on every change,
+  // and again each time the app returns to the foreground in case an earlier write failed
   useEffect(() => {
     syncSiriActive(isSiriRemindersActive);
+    const listener = CapacitorApp.addListener('appStateChange', (state) => {
+      if (state.isActive) syncSiriActive(isSiriRemindersActive);
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
   }, [isSiriRemindersActive]);
 
   useEffect(() => {

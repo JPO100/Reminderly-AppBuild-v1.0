@@ -93,7 +93,31 @@ Created: 2026-10-22
 Parent: main (c990dcd)
 Purpose: Siri Phase 3, Type B. Reminders tutorial page "Add reminders with Siri" (page id 9), third, straight after Create a reminder. Shown while Siri for reminders is available (Siri flag and Reminders module on), whatever the user's Siri setting (John). Standard title, description and phone top slice. The phone plays the Siri journey, modelled on Siri in iOS 27 (no screen-edge glow; dark orb from the Dynamic Island, multicolour waveform, dark response panel): home screen with generic icons, Siri asks "What would you like to be reminded about?", the reply "Call Mum at 6pm today", Reminderly opens from its icon and "Call Mum" (today 6pm) is inserted at the top of the list. At John's request the Siri screen-edge glow (rotating colour band, blurred inwards) shows while Siri is active, as an agreed exception to the no-gradients rule. No native changes. Built as a draft for John's review at his request; the CTO's scope approval is needed before merge
 Verification: see the Phase 3 completion report
-Status: Not merged
+Status: Not merged. Brought up to date with main (2c0444d) on 2026-10-22; awaiting CTO merge approval
+
+### feature/siri-locked-stage3
+
+Created: 2026-10-22
+Parent: feature/siri-locked-stage2 (1acc2bf)
+Purpose: Siri locked-device creation, stage 3 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). The Siri intent creates the reminder in the background, also when locked, without opening Reminderly: JavaScriptCore parse with the bundled siri-core.js, App Group pending list with read-back, plugin-identical notification and exact badge adjustment (Swift port of siri-badge.ts), widget snapshot, "That's done". Concurrent Siri retries share one run
+Verification: see the stage 3 evidence in the plan. Stage 4 on John's iPhone (iOS 27.0.1): all 9 tests passed, including locked, CarPlay, alert actions and badge parity (plan, section 6)
+Status: Not merged. Awaiting CTO merge approval
+
+### feature/siri-locked-stage2
+
+Created: 2026-10-22
+Parent: feature/siri-locked-stage1 (62bb816)
+Purpose: Siri locked-device creation, stage 2 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). No user-visible change. The app publishes the Siri context (effective notification settings, repeat flag, badge timeline) to the App Group and imports reminders from the App Group pending list by id on launch and return to the foreground, removing each once saved. Bridge: setSiriContext, getSiriPending, removeSiriPending
+Verification: see the stage 2 evidence in the plan
+Status: Not merged. Awaiting CTO review
+
+### feature/siri-locked-stage1
+
+Created: 2026-10-22
+Parent: main (c990dcd)
+Purpose: Siri locked-device creation, stage 1 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). No behaviour change. Badge specification `addReminderToScheduled` and badge timeline (src/app/utils/siri-badge.ts), property-tested against `buildScheduledNotifications`; Siri core bundle exporting only `buildSiriReminder` (`npm run build:siri-core`), parity-tested in a no-DOM sandbox. `notifications.ts` exports its payload type and signature and moves the id hash into `notificationIdForReminder`, with no behaviour change
+Verification: see the stage 1 evidence in the plan
+Status: Not merged. Awaiting CTO review
 
 ### fix/siri-single-phrase
 

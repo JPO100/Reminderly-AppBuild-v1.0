@@ -7,6 +7,9 @@ const WidgetBridge = registerPlugin<{
   setSnapshot(snapshot: TodayProgress): Promise<void>;
   clearSnapshot(): Promise<void>;
   setSiriActive(options: { active: boolean }): Promise<void>;
+  setSiriContext(options: { json: string }): Promise<void>;
+  getSiriPending(): Promise<{ items: string[] }>;
+  removeSiriPending(options: { ids: string[] }): Promise<void>;
 }>('WidgetBridge');
 
 let lastSent = '';
@@ -33,4 +36,34 @@ export function syncWidget(snapshot: TodayProgress | null) {
 export function syncSiriActive(active: boolean) {
   if (Capacitor.getPlatform() !== 'ios') return;
   WidgetBridge.setSiriActive({ active }).catch(() => {});
+}
+
+let lastSiriContext = '';
+
+/** The Siri context (siri-pending.ts) for the Siri intent; sent only when it changes. */
+export function syncSiriContext(context: unknown) {
+  if (Capacitor.getPlatform() !== 'ios') return;
+  const json = JSON.stringify(context);
+  if (json === lastSiriContext) return;
+  lastSiriContext = json;
+  WidgetBridge.setSiriContext({ json }).catch(() => {
+    lastSiriContext = '';
+  });
+}
+
+/** Reminders the Siri intent saved while Reminderly was not running (JSON strings); none outside iOS or on failure. */
+export async function getSiriPending(): Promise<string[]> {
+  if (Capacitor.getPlatform() !== 'ios') return [];
+  try {
+    const { items } = await WidgetBridge.getSiriPending();
+    return Array.isArray(items) ? items.filter((item): item is string => typeof item === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Removes imported (saved) or malformed entries from the Siri pending list, by reminder id. */
+export function removeSiriPending(ids: string[]) {
+  if (Capacitor.getPlatform() !== 'ios' || ids.length === 0) return;
+  WidgetBridge.removeSiriPending({ ids }).catch(() => {});
 }

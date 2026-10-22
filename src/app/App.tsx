@@ -920,6 +920,15 @@ export default function App() {
   const [tutorialVariant, setTutorialVariant] = useState<TutorialVariant>('reminders');
   const [isRemindersSettingsPanelOpen, setIsRemindersSettingsPanelOpen] = useState(false);
   const [isListsSettingsPanelOpen, setIsListsSettingsPanelOpen] = useState(false);
+
+  // Settings panels close when the app goes to the background, so they are not still open on return
+  useEffect(() => {
+    const listener = CapacitorApp.addListener('pause', () => {
+      setIsRemindersSettingsPanelOpen(false);
+      setIsListsSettingsPanelOpen(false);
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, []);
   const [viewportHeight, setViewportHeight] = useState(typeof window !== "undefined" ? window.innerHeight : 0);
   const clickCountRef = useRef(0);
   const clickTimerRef = useRef<number | null>(null);

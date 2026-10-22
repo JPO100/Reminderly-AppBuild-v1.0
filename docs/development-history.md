@@ -76,6 +76,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### fix/settings-close-on-background
+
+Created: 2026-10-22
+Parent: main (327baf6)
+Purpose: Type B (app lifecycle). Found by John while testing Siri: the Reminders or Lists settings panel was still open when returning to the app. The open state is in memory only (not saved); iOS kept the app suspended, so it resumed as left. Fix: both panels close on the Capacitor App 'pause' event (app goes to the background). 'pause' rather than appStateChange, so Control Centre or a notification banner does not close them. The sub-page resets with the panel
+Verification: Vitest 265/265, type-check 0 errors, build successful. Simulator: Lists settings open, Home, return (same process): panel closed
+Status: Not merged
+
 ### fix/siri-reliability
 
 Created: 2026-10-22

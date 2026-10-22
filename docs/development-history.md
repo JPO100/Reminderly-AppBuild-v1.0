@@ -90,7 +90,14 @@ Created: 2026-10-22
 Parent: main (eaded41)
 Purpose: Type A. Notifications settings page: key line between the alerts group (Notifications, Sound) and the badge group (App badge, Include today in badge)
 Verification: preview check at phone width; included in the feature/siri-phrases device build
-Status: Not merged. Included in feature/siri-phrases (merging that branch brings it in)
+Status: Merged into main (merge commit 327baf6, 2026-10-22). Branch deleted after the merge
+### fix/settings-close-on-background
+
+Created: 2026-10-22
+Parent: main (327baf6)
+Purpose: Type B (app lifecycle). Found by John while testing Siri: the Reminders or Lists settings panel was still open when returning to the app. The open state is in memory only (not saved); iOS kept the app suspended, so it resumed as left. Fix: both panels close on the Capacitor App 'pause' event (app goes to the background). 'pause' rather than appStateChange, so Control Centre or a notification banner does not close them. The sub-page resets with the panel
+Verification: Vitest 265/265, type-check 0 errors, build successful. Simulator: Lists settings open, Home, return (same process): panel closed
+Status: Merged into main (merge commit 3cdf0e7, 2026-10-22)
 
 ### fix/siri-reliability
 

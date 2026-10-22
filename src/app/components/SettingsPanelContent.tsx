@@ -33,40 +33,64 @@ function PanelHeader({ title, onBack }: { title: string; onBack?: () => void }) 
 
 // The settings cards' 40px bottom padding. Rows that scroll can run into it, up to the card's edge.
 const SCROLL_PEEK = 40;
+// On sub-pages that scroll, the cut row's middle sits this far above the card's edge (John, 2026-10-22).
+const SUB_PAGE_GLIMPSE_GAP = 24;
+
+type ScrollFit = { cut: number | null; pad: number; grow: number };
 
 // Rows with 30px between them. When they do not fit they scroll, and the area's bottom edge moves so it cuts through the
 // middle of a row (not a divider): the lowest row whose middle falls within the card's bottom padding (clipped by the card), or, when none
 // does, the row above it (the area ends higher). Half a row always shows, as a hard edge. Space after the last row lets it
 // scroll clear, ending 40px above the card's edge as usual. Rows that fit are unchanged.
-function ScrollArea({ children }: { children: ReactNode }) {
+// With onGrow (sub-pages), the card instead grows or shrinks by up to 30px so the cut row's middle is always
+// SUB_PAGE_GLIMPSE_GAP above the card's edge, whatever the main page's height. baseHeight is the area's height on the
+// main page; measuring from it, not the rendered height, keeps the growth from feeding back into itself.
+function ScrollArea({ children, onGrow, baseHeight }: { children: ReactNode; onGrow?: (grow: number) => void; baseHeight?: number }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
-  // How far the bottom edge moves down (negative: up). null while the rows fit.
-  const [cut, setCut] = useState<number | null>(null);
-  const cutRef = useRef<number | null>(null);
+  // cut: how far the bottom edge moves down (negative: up), null while the rows fit. pad: space after the last row.
+  // grow: how much taller the card is made (negative: shorter); the area already grows with the card, so its margin
+  // covers only the rest of the cut.
+  const [fit, setFit] = useState<ScrollFit>({ cut: null, pad: 0, grow: 0 });
+  const fitRef = useRef<ScrollFit>(fit);
+  const onGrowRef = useRef(onGrow);
+  onGrowRef.current = onGrow;
+  const baseHeightRef = useRef(baseHeight);
+  baseHeightRef.current = baseHeight;
   useLayoutEffect(() => {
     const scroll = scrollRef.current;
     const rows = rowsRef.current;
     if (!scroll || !rows) return;
     const measure = () => {
-      const current = cutRef.current ?? 0;
-      // Sizes as they would be without the cut, so the result never depends on itself
-      const visible = scroll.clientHeight - current;
-      const content = rows.offsetHeight - Math.max(current, 0);
-      let next: number | null = null;
+      const current = fitRef.current;
+      // Sizes as they would be without the cut and growth, so the result never depends on itself
+      const visible = baseHeightRef.current ?? scroll.clientHeight - (current.cut ?? 0) - current.grow;
+      const content = rows.offsetHeight - current.pad;
+      let next: ScrollFit = { cut: null, pad: 0, grow: 0 };
       if (content > visible + 1) {
-        next = 0;
-        for (const row of Array.from(rows.children) as HTMLElement[]) {
-          if (row.offsetHeight < 10) continue; // dividers
-          const middle = row.offsetTop + row.offsetHeight / 2 - visible;
-          if (middle > SCROLL_PEEK) break;
-          next = Math.round(middle);
+        const middles = (Array.from(rows.children) as HTMLElement[])
+          .filter((row) => row.offsetHeight >= 10) // not dividers
+          .map((row) => Math.round(row.offsetTop + row.offsetHeight / 2 - visible));
+        if (onGrowRef.current && baseHeightRef.current !== undefined) {
+          // The row whose middle needs the least growth to sit the gap above the card's edge
+          const target = SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP;
+          const middle = middles.reduce((best, m) => (Math.abs(m - target) < Math.abs(best - target) ? m : best), middles[0]);
+          next = { cut: middle, pad: target, grow: middle - target };
+        } else {
+          let cut = 0;
+          for (const middle of middles) {
+            if (middle > SCROLL_PEEK) break;
+            cut = middle;
+          }
+          next = { cut, pad: Math.max(cut, 0), grow: 0 };
         }
       }
-      if (next !== cutRef.current) {
-        cutRef.current = next;
-        setCut(next);
+      if (next.cut !== current.cut || next.pad !== current.pad || next.grow !== current.grow) {
+        fitRef.current = next;
+        setFit(next);
       }
+      // Reported every time, so a growth kept from an earlier visit is always replaced
+      onGrowRef.current?.(next.grow);
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -75,8 +99,8 @@ function ScrollArea({ children }: { children: ReactNode }) {
     return () => observer.disconnect();
   }, []);
   return (
-    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={cut !== null ? { marginBottom: -cut } : undefined}>
-      <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={cut !== null && cut > 0 ? { paddingBottom: cut } : undefined}>
+    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={fit.cut !== null ? { marginBottom: fit.grow - fit.cut } : undefined}>
+      <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={fit.pad > 0 ? { paddingBottom: fit.pad } : undefined}>
         {children}
       </div>
     </div>
@@ -104,23 +128,34 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
 }
 
 // Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
-// Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged.
+// Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged; a sub-page that
+// scrolls grows or shrinks by up to 30px so its bottom glimpse matches on every panel.
 // Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
 function PanelShell({ title, subPage, onBack, subContent, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
+  // The scroll area's height on the main page (below the title and its 40px gap); sub-pages measure from it
+  const [mainAreaHeight, setMainAreaHeight] = useState<number | undefined>(undefined);
   const [info, setInfo] = useState<{ header: string; title: string } | null>(null);
+  // Growth reported by the sub-page's scroll area, kept per page so another page's growth never applies
+  const [growth, setGrowth] = useState<{ page: string; grow: number } | null>(null);
+  const grow = subPage && growth?.page === subPage ? growth.grow : 0;
   useLayoutEffect(() => {
-    if (subPage === null && info === null && rootRef.current) setMainHeight(rootRef.current.offsetHeight);
+    const root = rootRef.current;
+    if (subPage === null && info === null && root) {
+      setMainHeight(root.offsetHeight);
+      const header = root.firstElementChild as HTMLElement | null;
+      if (header) setMainAreaHeight(root.offsetHeight - header.offsetHeight - 40);
+    }
   });
   if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
-      <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight } : undefined}>
+      <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight + grow } : undefined}>
         <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
         {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
-        {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
+        {content && <ScrollArea key={subPage ?? ""} baseHeight={subPage ? mainAreaHeight : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>
   );

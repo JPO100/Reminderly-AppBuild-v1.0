@@ -5457,13 +5457,13 @@ export default function App() {
       <AnimatePresence>
         {isDevToolsOpen && (
           <>
-            {/* Click-outside to close */}
+            {/* Click-outside to close (pointer up, not click: on iOS taps in the blue area above the panel arrive as touches but never become clicks) */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              onClick={() => setIsDevToolsOpen(false)}
+              onPointerUp={() => setIsDevToolsOpen(false)}
               className="fixed inset-0 z-40"
             />
             

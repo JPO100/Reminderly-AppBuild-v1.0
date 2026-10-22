@@ -7,7 +7,7 @@ Type C under Working Agreement v1.3 (native intent behaviour, app lifecycle). Pa
 ## 0. Decision record
 
 - 2026-10-22, John: with Siri off, the current behaviour (Siri accepts the phrase, Reminderly opens, nothing happens) is not acceptable. Siri should refuse.
-- 2026-10-22, John: reply wording option A: "Siri is turned off in Reminderly. You can turn it on in Reminderly settings."
+- 2026-10-22, John: reply wording: "Siri is turned off in Reminderly, so I can't add a reminder right now." (replaces option A, chosen earlier the same day)
 
 ## 1. Constraint
 
@@ -19,7 +19,7 @@ App Shortcuts phrases are fixed at build time and cannot be unregistered at runt
 |---|---|---|
 | 1 | Web, App.tsx | Write the combined Siri state (`isSiriRemindersActive`: flag, preference, Reminders module) to native on launch and on every change. Gating logic unchanged |
 | 2 | WidgetBridgePlugin.swift | New method `setSiriActive({ active })`: stores a bool in the App Group (`group.com.reminderly.app`), key `siriRemindersActive` |
-| 3 | AddReminderIntent.swift | `openAppWhenRun` false; `text` optional. `perform()` reads the state first. Off: return the option A dialog, no app launch, no text prompt. On: request the text if missing, continue in the foreground, then the existing `reminderly://add` handoff |
+| 3 | AddReminderIntent.swift | `openAppWhenRun` false; `text` optional. `perform()` reads the state first. Off: return the agreed dialog (section 0), no app launch, no text prompt. On: request the text if missing, continue in the foreground, then the existing `reminderly://add` handoff |
 | 4 | Missing value (fresh install, app never opened) | Fall back to the release default for Siri |
 
 ## 3. Native and dependency review

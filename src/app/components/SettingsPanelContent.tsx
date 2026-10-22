@@ -242,7 +242,7 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
       <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />
       <KeyLine />
       <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
-        To add a reminder with Siri just say...
+        To add a reminder with Siri just say
       </p>
       <p className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
         “Hey Siri...”
@@ -253,7 +253,7 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
         </p>
       ))}
       <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
-        ...then when Siri replies, say your reminder.
+        then when Siri replies, say your reminder.
       </p>
     </>
   );

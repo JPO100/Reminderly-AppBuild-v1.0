@@ -81,7 +81,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 Created: 2026-10-22
 Parent: main (1afe653)
 Purpose: Type B. John's iPhone testing: each of the three added phrases ("Remind me in / New reminder in / Add a reminder in Reminderly app") made Siri ask "Do you want to use Reminderly or Notes?" every time; "Add to Reminderly app" worked every time. Likely cause: "remind" and "reminder" also match Siri's built-in reminder and note handling. John chose to keep only the original phrase. AppShortcuts.swift and SIRI_PHRASES now hold one phrase; the settings page reads "To add a reminder with Siri just say...", "“Hey Siri...”" and the phrase (bold), "...then when Siri replies, say your reminder."
-Verification: see the Siri Phase 2 merge record
+Verification: Vitest 270/270, Self Check 412/412, type-check 0 errors, build successful. John's iPhone (iOS 27.0.1, 006c5d3): "Add to Reminderly app" works with no app choice, removed phrases no longer offer Reminderly, Siri page approved (2026-10-22)
 Status: Not merged
 
 ### fix/settings-close-on-resume

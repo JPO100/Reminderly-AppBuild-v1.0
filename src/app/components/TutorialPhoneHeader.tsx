@@ -226,7 +226,7 @@ export default function TutorialPhoneHeader({
   backgroundColor,
   showMenuIcon = true,
   variant = "default",
-  indicatorColor = "#4784F8",
+  indicatorColor = "#1C2C42",
   tickDone = false,
   tickFlash = false,
   showDone = false,
@@ -234,7 +234,8 @@ export default function TutorialPhoneHeader({
   logoTickDone = false,
 }: TutorialPhoneHeaderProps) {
   const resolvedBackgroundColor = backgroundColor ?? (activeMainTab === "lists" ? "#4784F8" : "#4784f8");
-  const defaultSensorColor = activeMainTab === "lists" ? "#000000" : "#4784F8";
+  // Dynamic Island and camera: dark blue on the Reminders header (a colour rename once made it the header's own blue, hiding it)
+  const defaultSensorColor = activeMainTab === "lists" ? "#000000" : "#1C2C42";
 
   if (variant === "page8") {
     return (

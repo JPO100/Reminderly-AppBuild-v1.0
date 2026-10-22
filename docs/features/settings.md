@@ -134,8 +134,8 @@ With the settings menu on, a settings button in the Reminders or Lists header op
 
 Reminders settings:
 
-- Siri shortcuts (page): Siri shortcuts on/off, a key line, "You can use any of these with Siri...", then the phrases Siri recognises ("Add to Reminderly app", "Remind me in Reminderly app", "New reminder in Reminderly app", "Add a reminder in Reminderly app"), then "Then reply when Siri asks.", inactive while Siri is off. All phrases always work; the list is for reading, not a choice. Phrases are registered in `AppShortcuts.swift` and listed in `SIRI_PHRASES`; a test keeps them in step
 - 1 minute time increments (toggle)
+- Siri shortcuts (page): Siri shortcuts on/off, a key line, "You can use any of these with Siri...", then the phrases Siri recognises ("Add to Reminderly app", "Remind me in Reminderly app", "New reminder in Reminderly app", "Add a reminder in Reminderly app"), then "Then reply when Siri asks.", inactive while Siri is off. All phrases always work; the list is for reading, not a choice. Phrases are registered in `AppShortcuts.swift` and listed in `SIRI_PHRASES`; a test keeps them in step
 - Notifications (page): Notifications, Sound (inactive while Notifications is off), a key line, App badge, Include today in badge (inactive while App badge is off); "Turn on in Settings" at the top when iOS permission is denied
 - Natural Language Capture (page): on/off, Recognise dates, times, repeats (repeats only while repeat reminders are active), Apply as you type
 - Haptic feedback (page), Sounds (page)

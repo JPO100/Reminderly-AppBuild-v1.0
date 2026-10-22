@@ -20,6 +20,8 @@ export const TUTORIAL_ATTENTION_RECYCLE_DELAY = 2000;
 // (as on Re-run this tutorial)
 const TUTORIAL_OVERLAY_APP_WIDTH = 393;
 const TUTORIAL_OVERLAY_APP_SCALE = TUTORIAL_OVERLAY_PHONE_INTERIOR_WIDTH / TUTORIAL_OVERLAY_APP_WIDTH;
+// Toggle press ring: drawn at the 50px on-screen size of the large ring so it encloses the scaled 56px toggle
+const TUTORIAL_OVERLAY_TOGGLE_HIGHLIGHT_CIRCLE_SIZE = 50 / TUTORIAL_OVERLAY_APP_SCALE;
 
 export function TutorialMiniOverlayShell({
   children,
@@ -69,7 +71,7 @@ export function TutorialOverlayTitle({ children, className = "" }: { children: R
   );
 }
 
-function TutorialOverlayToggleRow({ title, subtitle, active, icon }: { title: string; subtitle: string; active: boolean; icon: ReactNode }) {
+function TutorialOverlayToggleRow({ title, subtitle, active, icon, highlight = false }: { title: string; subtitle: string; active: boolean; icon: ReactNode; highlight?: boolean }) {
   // Matches the live smart reminder row (toggle standard): dark blue title, medium grey subtitle
   const textColor = "#1C2C42";
   const toggleBg = active ? "#4784F8" : "#BABABA";
@@ -90,6 +92,24 @@ function TutorialOverlayToggleRow({ title, subtitle, active, icon }: { title: st
             <circle cx="11.25" cy="11.25" fill="white" r="11.25" />
           </svg>
         </div>
+        {highlight && (
+          <motion.div
+            className="absolute z-10 pointer-events-none"
+            style={{
+              left: 28 - TUTORIAL_OVERLAY_TOGGLE_HIGHLIGHT_CIRCLE_SIZE / 2,
+              top: 15 - TUTORIAL_OVERLAY_TOGGLE_HIGHLIGHT_CIRCLE_SIZE / 2,
+              width: TUTORIAL_OVERLAY_TOGGLE_HIGHLIGHT_CIRCLE_SIZE,
+              height: TUTORIAL_OVERLAY_TOGGLE_HIGHLIGHT_CIRCLE_SIZE,
+            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0, 0, 1, 0, 0, 1, 0] }}
+            transition={{ duration: TUTORIAL_ATTENTION_THROB_DURATION, delay: TUTORIAL_ATTENTION_THROB_DELAY, times: TUTORIAL_ATTENTION_THROB_TIMES, ease: "easeInOut" }}
+          >
+            <svg width={TUTORIAL_OVERLAY_TOGGLE_HIGHLIGHT_CIRCLE_SIZE} height={TUTORIAL_OVERLAY_TOGGLE_HIGHLIGHT_CIRCLE_SIZE} viewBox="0 0 50 50" fill="none">
+              <circle cx="25" cy="25" r="23.5" stroke="#4784F8" strokeWidth="3" />
+            </svg>
+          </motion.div>
+        )}
       </div>
     </div>
   );
@@ -164,7 +184,7 @@ export function TutorialListSettingsOverlay() {
   );
 }
 
-export function TutorialListSettingsOverlayWithToggle({ smartToggleActive }: { smartToggleActive: boolean }) {
+export function TutorialListSettingsOverlayWithToggle({ smartToggleActive, showToggleHighlight = false }: { smartToggleActive: boolean; showToggleHighlight?: boolean }) {
   const smartIconColor = "#1C2C42";
   return (
     <TutorialMiniOverlayShell>
@@ -175,6 +195,7 @@ export function TutorialListSettingsOverlayWithToggle({ smartToggleActive }: { s
             title="Set smart reminder"
             subtitle="No completion date set"
             active={smartToggleActive}
+            highlight={showToggleHighlight}
             icon={
               <div className="h-[21.5px] relative self-start shrink-0 w-[19.5px] top-[1px]">
                 <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 19.5002 21.5002">

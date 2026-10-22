@@ -87,6 +87,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/siri-locked-stage1
+
+Created: 2026-10-22
+Parent: main (c990dcd)
+Purpose: Siri locked-device creation, stage 1 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). No behaviour change. Badge specification `addReminderToScheduled` and badge timeline (src/app/utils/siri-badge.ts), property-tested against `buildScheduledNotifications`; Siri core bundle exporting only `buildSiriReminder` (`npm run build:siri-core`), parity-tested in a no-DOM sandbox. `notifications.ts` exports its payload type and signature and moves the id hash into `notificationIdForReminder`, with no behaviour change
+Verification: see the stage 1 evidence in the plan
+Status: Not merged. Awaiting CTO review
+
 ### fix/siri-single-phrase
 
 Created: 2026-10-22

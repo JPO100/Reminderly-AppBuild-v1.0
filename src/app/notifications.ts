@@ -6,7 +6,7 @@ export const PENDING_NOTIFICATION_REMINDER_ID_KEY = "reminderly.pendingNotificat
 export const PENDING_NOTIFICATION_ACTION_KEY = "reminderly.pendingNotificationAction";
 export const NOTIFICATION_TAP_EVENT = "reminderly:notification-tap";
 
-type ScheduledNotificationPayload = {
+export type ScheduledNotificationPayload = {
     id: number;
     title: string;
     body: string;
@@ -45,7 +45,7 @@ function toNotificationAtIso(value: unknown): string | null {
     return null;
 }
 
-function getNotificationSignature(notification: {
+export function getNotificationSignature(notification: {
     id?: number;
     title?: string;
     body?: string;
@@ -72,6 +72,14 @@ const MAX_SCHEDULED_NOTIFICATIONS = 64;
 const MIDNIGHT_BADGE_DAYS = 7;
 // Ids 2147483641-2147483647 are the midnight badge notifications. Reminder ids are hashed below this.
 export const MIDNIGHT_BADGE_FIRST_ID = 2147483641;
+
+// A reminder's notification id: a hash of its id, below the midnight badge range
+export function notificationIdForReminder(reminderId: string): number {
+    return Array.from(reminderId).reduce(
+        (acc, char) => ((acc * 31) + char.charCodeAt(0)) % MIDNIGHT_BADGE_FIRST_ID,
+        1
+    );
+}
 
 // Silent badge-only notifications at the next 7 local midnights, so the badge follows day changes
 // while the app is suspended. All 7 are scheduled, including counts of 0.
@@ -129,10 +137,7 @@ export function buildScheduledNotifications(
             const [hour, minute] = reminder.schedule.time!.split(":").map(Number);
             const at = new Date(year, month - 1, day, hour, minute, 0, 0);
 
-            const notificationId = Array.from(reminder.id).reduce(
-                (acc, char) => ((acc * 31) + char.charCodeAt(0)) % MIDNIGHT_BADGE_FIRST_ID,
-                1
-            );
+            const notificationId = notificationIdForReminder(reminder.id);
 
             const badge = notifAppBadge
                 ? computeBadgeCount(reminders, notifIncludeTodayInBadge, new Date(at.getTime() + 1))

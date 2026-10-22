@@ -4,3 +4,4 @@ dist
 .vite
 coverage
 ReminderlyV300.xcworkspace/
+dist-siri-core

@@ -237,7 +237,7 @@ export const SIRI_PHRASES = [
   "Add a reminder in Reminderly app",
 ];
 
-// Siri shortcuts sub-page, laid out like Haptic feedback: the on/off, a key line, then the phrases Siri recognises,
+// Siri shortcuts sub-page, laid out like Haptic feedback: the on/off, a key line, then the phrases Siri recognises and how to go on,
 // inactive (#D9D9D9) while Siri is off. The phrases are a list to read, not a choice.
 function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   return (
@@ -252,6 +252,9 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
           {`\u201C${phrase}\u201D`}
         </p>
       ))}
+      <p className="font-['Lato:SemiBold',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
+        Then reply when Siri asks.
+      </p>
     </>
   );
 }

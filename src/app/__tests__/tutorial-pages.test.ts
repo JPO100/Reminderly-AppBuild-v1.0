@@ -24,6 +24,16 @@ describe('getTutorialPageIds - reminders tutorial', () => {
     expect(getTutorialPageIds(config({ nlcDemoAvailable: true }))).toEqual([0, 6, 7, 1, 2, 3, 4]);
   });
 
+  it('adds the Siri page third, straight after create a reminder, only when Siri is available', () => {
+    expect(getTutorialPageIds(config({ siriAvailable: true }))).toEqual([0, 6, 9, 1, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ siriAvailable: true, nlcDemoAvailable: true }))).toEqual([0, 6, 9, 7, 1, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ siriAvailable: false }))).toEqual([0, 6, 1, 2, 3, 4]);
+  });
+
+  it('never adds the Siri page to the lists tutorial', () => {
+    expect(getTutorialPageIds(config({ variant: 'lists', siriAvailable: true }))).toEqual([0, 1, 2]);
+  });
+
   it('adds the notification ask as the last page only when eligible', () => {
     expect(getTutorialPageIds(config({ notificationAskEligible: true }))).toEqual([0, 6, 1, 2, 3, 4, 8]);
     expect(getTutorialPageIds(config({ settingsMenuEnabled: true, notificationAskEligible: true }))).toEqual([0, 6, 1, 2, 3, 4, 5, 8]);

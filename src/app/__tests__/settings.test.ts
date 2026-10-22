@@ -58,14 +58,12 @@ describe('dev tools controls', () => {
   const controls = [
     // Feature flags
     'Reminders', 'Enable reminders', 'Repeat reminders', '1 minute time increments', 'Calendar',
-    'Lists', 'Enable lists', 'Smart reminders', 'List templates', 'Pinned lists',
+    'Lists', 'Enable lists', 'Smart reminders', 'List templates', 'Use template set in clean state', 'Pinned lists',
     'Natural Language Capture', 'Enable Natural Language Capture',
     'Notifications',
     'Siri shortcuts', 'Siri for reminders',
     'Onboarding', 'Enable onboarding', 'Show tutorial on first launch',
     'System', 'Haptics', 'Sounds', 'Lock screen widget', 'Settings menu', 'Show info icons',
-    // Config
-    'Config tools', 'Use template set in clean state',
     // Testing tools
     'Testing tools', 'Self checks', 'Dummy reminders', 'Dummy lists', 'Show tutorial on every app start',
     // Access and diagnostics

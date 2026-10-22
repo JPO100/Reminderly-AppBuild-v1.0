@@ -71,7 +71,6 @@ export default function DevTools({
   onNavigateTesting,
   onNavigateSystem,
   onNavigateSiri,
-  onNavigateConfig,
   onNavigateDevToolsPassword,
   enableReminders,
   onEnableRemindersChange,
@@ -92,7 +91,6 @@ export default function DevTools({
   onNavigateTesting: () => void;
   onNavigateSystem: () => void;
   onNavigateSiri: () => void;
-  onNavigateConfig: () => void;
   onNavigateDevToolsPassword: () => void;
   enableReminders: boolean;
   onEnableRemindersChange: (value: boolean) => void;
@@ -135,9 +133,6 @@ export default function DevTools({
           <DevNavToggleRow label="Onboarding" isOn={enableOnboarding} onToggle={() => setPendingToggle({ feature: 'onboarding', target: !enableOnboarding })} onClick={onNavigateOnboarding} />
           <DevNavToggleRow label="Siri shortcuts" isOn={enableSiri} onToggle={() => onEnableSiriChange(!enableSiri)} onClick={onNavigateSiri} />
           <DevMenuRow label="System" onClick={onNavigateSystem} />
-        </DevCard>
-        <DevCard title="Config">
-          <DevMenuRow label="Config tools" onClick={onNavigateConfig} />
         </DevCard>
         <DevCard title="Testing">
           <DevMenuRow label="Testing tools" onClick={onNavigateTesting} />

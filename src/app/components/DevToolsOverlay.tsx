@@ -18,6 +18,7 @@ import { getNotificationChecks } from "../dev/notification-checks";
 import { getSettingsChecks } from "../dev/settings-checks";
 import { getAttachmentChecks } from "../dev/attachment-checks";
 import type { Check } from "../dev/check-system";
+import { DEFAULT_TEMPLATE_SEED } from "../utils/default-templates";
 import type { GeneratedDummyListsPayload, GeneratedList } from "../utils/dummy-list-generator";
 import DevToolsHome, { LastModuleNotice } from "../../imports/DevTools";
 import DummyRemindersPage from "../../imports/DummyReminders";
@@ -33,7 +34,7 @@ import passwordResetSvgPaths from "../../imports/svg-p8ebad7jx7";
 
 const DEV_TOOLS_PASSWORD = '123';
 
-type DevToolsPage = 'home' | 'dummy-reminders' | 'dummy-lists' | 'dev-tools-password' | 'system' | 'natural-language' | 'onboarding' | 'testing' | 'reminders' | 'lists' | 'siri' | 'config' | 'testing-tools';
+type DevToolsPage = 'home' | 'dummy-reminders' | 'dummy-lists' | 'dev-tools-password' | 'system' | 'natural-language' | 'onboarding' | 'testing' | 'reminders' | 'lists' | 'siri' | 'testing-tools';
 
 // Dev tools look: #F7F7F7 page with 20px side and 24px top margins, a 45px header, and white cards
 // (6px corners) 24px apart. Card rows are 60px with 20px side padding and a full-width 1px #F7F7F7 line between rows.
@@ -818,6 +819,7 @@ function ListsAreaPage({ onBack, onClose, enableReminders, isListsEnabled, onLis
         <DevCard title="Features">
         <DevToggleRow label="Smart reminders" isOn={smartRemindersEnabled} onToggle={() => onSmartRemindersEnabledChange(!smartRemindersEnabled)} disabled={!isListsEnabled} infoTitle="Allows reminders to be linked to a list, turning them into smart reminders that track list item progress. Smart reminders display a completion count (e.g. '3 of 5 items'). Requires Enable lists to be on." />
         <DevToggleRow label="List templates" isOn={savedListsEnabled} onToggle={() => onSavedListsEnabledChange(!savedListsEnabled)} disabled={!isListsEnabled} infoTitle="Enables saved list templates that users can create and reuse. Templates appear in the list creation flow and can be pre-populated with default items. Also unlocks the 'Use default template set' setting below. Requires Enable lists to be on." />
+        <DevToggleRow label="Use template set in clean state" isOn={useDefaultTemplatesInCleanState} onToggle={() => onUseDefaultTemplatesInCleanStateChange(!useDefaultTemplatesInCleanState)} disabled={!isListsEnabled || !savedListsEnabled} infoTitle={`When all lists are cleared, the app automatically restores the default set of list templates instead of showing an empty state. Only applies when list templates are enabled. Requires both Lists and List templates to be on.\n\nDefault templates:\n${DEFAULT_TEMPLATE_SEED.map((template) => template.title).join('\n')}`} />
         <DevToggleRow label="Pinned lists" isOn={pinnedListsEnabled} onToggle={() => onPinnedListsEnabledChange(!pinnedListsEnabled)} disabled={!isListsEnabled} infoTitle="Allows users to pin frequently used lists for quick access. Pinned lists appear in a dedicated section above other lists in the lists view. Requires Enable lists to be on." />
         </DevCard>
       </PageShell>
@@ -1060,7 +1062,6 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
         onNavigateTesting={() => setPage('testing-tools')}
         onNavigateSystem={() => setPage('system')}
         onNavigateSiri={() => setPage('siri')}
-        onNavigateConfig={() => setPage('config')}
         onNavigateDevToolsPassword={() => setPage('dev-tools-password')}
         enableReminders={enableReminders}
         onEnableRemindersChange={changeRemindersFlag}
@@ -1115,14 +1116,6 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
       <PageShell title="Siri shortcuts" onBack={() => setPage('home')} onClose={onClose}>
         <DevCard>
         <DevToggleRow label="Siri for reminders" isOn={siriShortcutsEnabled} onToggle={() => onSiriShortcutsEnabledChange(!siriShortcutsEnabled)} infoTitle="Controls whether Reminderly acts on the 'Add to Reminderly' Siri shortcut. When off, the shortcut still appears in iOS but the request is ignored." />
-        </DevCard>
-      </PageShell>
-    );
-  } else if (page === 'config') {
-    content = (
-      <PageShell title="Config tools" onBack={() => setPage('home')} onClose={onClose}>
-        <DevCard title="Lists">
-        <DevToggleRow label="Use template set in clean state" isOn={useDefaultTemplatesInCleanState} onToggle={() => onUseDefaultTemplatesInCleanStateChange(!useDefaultTemplatesInCleanState)} disabled={!isListsEnabled || !savedListsEnabled} infoTitle="When all lists are cleared, the app automatically restores the default set of list templates instead of showing an empty state. Only applies when list templates are enabled. Requires both Lists and List templates to be on." />
         </DevCard>
       </PageShell>
     );

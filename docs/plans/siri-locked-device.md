@@ -1,6 +1,6 @@
 # Siri locked-device creation - plan
 
-Status: stage 1 complete (`feature/siri-locked-stage1`). Stage 2 complete (`feature/siri-locked-stage2`). Stage 3 complete (`feature/siri-locked-stage3`). Stage 4 device testing passed (2026-10-22). Awaiting CTO merge approval.
+Status: stage 1 complete (`feature/siri-locked-stage1`). Stage 2 complete (`feature/siri-locked-stage2`). Stage 3 complete (`feature/siri-locked-stage3`). Stage 4 device testing passed (2026-10-22). Merged into main (2c0444d, 2026-10-22). Siri Phase 3 signed off by John.
 
 Type E under Working Agreement v1.3. Replaces the Option C proposal ([siri-option-c-proposal.md](./siri-option-c-proposal.md)) after the closed Option A spike ([siri-background-spike.md](./siri-background-spike.md)).
 

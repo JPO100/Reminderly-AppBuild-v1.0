@@ -13,7 +13,16 @@ The codebase originated from a Figma Make build and was extended with a Capacito
 Created: 2026-04-03
 Purpose: Primary development branch
 Status: Active
-Tip: merge of fix/siri-single-phrase (2026-10-22)
+Tip: merge of feature/siri-locked-stage3 (2026-10-22)
+
+Merge - 2026-10-22: Siri Phase 3, locked-device creation
+- feature/siri-locked-stage3 (fc19ca7, containing stages 1 and 2) into main (c990dcd) as 2c0444d, --no-ff, no conflicts. CTO approved (Type E); John signed off Siri Phase 3
+- Siri now creates reminders in the background with the iPhone locked, unlocked and in CarPlay, without opening Reminderly: JavaScriptCore parse with the bundled siri-core.js, App Group pending list imported by id, notification identical to the Capacitor plugin's, exact badge adjustment, widget, "That's done". Plan: [plans/siri-locked-device.md](./plans/siri-locked-device.md)
+- Verification on main (2c0444d): Vitest 296/296, Self Check 412/412 (Node run), type-check 0 errors, production build successful. Main deployed to the simulator (iPhone 17 Pro, iOS 26.3) and John's iPhone 15 Pro (iOS 27.0.1): build, signing, install and launch successful. Stage 4 device tests: 9/9 passed
+- Deleted locally and on origin: feature/siri-locked-stage1, -stage2, -stage3 (merged) and feature/siri-done-confirmation (superseded, never merged; its spoken confirmation is part of this work)
+- Kept: spike/siri-background-webview (Option A findings, CTO decision), feature/siri-onboarding (separate, awaiting its own merge), docs/siri-option-c-proposal (superseded proposal)
+- Separate follow-ups: natural-language time handling (for example times without am or pm); the existing badge-correction patch re-adds pending notifications with their original interval
+
 
 Merge - 2026-10-22: Siri Phase 2 and settings panel lifecycle fixes
 - ui/notifications-keyline (821bea3) into main (eaded41) as 327baf6, --no-ff, no conflicts. CTO approved (Type A)
@@ -93,7 +102,7 @@ Created: 2026-10-22
 Parent: feature/siri-locked-stage2 (1acc2bf)
 Purpose: Siri locked-device creation, stage 3 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). The Siri intent creates the reminder in the background, also when locked, without opening Reminderly: JavaScriptCore parse with the bundled siri-core.js, App Group pending list with read-back, plugin-identical notification and exact badge adjustment (Swift port of siri-badge.ts), widget snapshot, "That's done". Concurrent Siri retries share one run
 Verification: see the stage 3 evidence in the plan. Stage 4 on John's iPhone (iOS 27.0.1): all 9 tests passed, including locked, CarPlay, alert actions and badge parity (plan, section 6)
-Status: Not merged. Awaiting CTO merge approval
+Status: Merged into main (merge commit 2c0444d, 2026-10-22). Branch deleted after the merge
 
 ### feature/siri-locked-stage2
 
@@ -101,7 +110,7 @@ Created: 2026-10-22
 Parent: feature/siri-locked-stage1 (62bb816)
 Purpose: Siri locked-device creation, stage 2 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). No user-visible change. The app publishes the Siri context (effective notification settings, repeat flag, badge timeline) to the App Group and imports reminders from the App Group pending list by id on launch and return to the foreground, removing each once saved. Bridge: setSiriContext, getSiriPending, removeSiriPending
 Verification: see the stage 2 evidence in the plan
-Status: Not merged. Awaiting CTO review
+Status: Merged into main (merge commit 2c0444d, 2026-10-22). Branch deleted after the merge
 
 ### feature/siri-locked-stage1
 
@@ -109,7 +118,7 @@ Created: 2026-10-22
 Parent: main (c990dcd)
 Purpose: Siri locked-device creation, stage 1 of 4 (Type E, [plans/siri-locked-device.md](./plans/siri-locked-device.md)). No behaviour change. Badge specification `addReminderToScheduled` and badge timeline (src/app/utils/siri-badge.ts), property-tested against `buildScheduledNotifications`; Siri core bundle exporting only `buildSiriReminder` (`npm run build:siri-core`), parity-tested in a no-DOM sandbox. `notifications.ts` exports its payload type and signature and moves the id hash into `notificationIdForReminder`, with no behaviour change
 Verification: see the stage 1 evidence in the plan
-Status: Not merged. Awaiting CTO review
+Status: Merged into main (merge commit 2c0444d, 2026-10-22). Branch deleted after the merge
 
 ### fix/siri-single-phrase
 

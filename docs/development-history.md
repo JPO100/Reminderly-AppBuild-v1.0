@@ -91,7 +91,7 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 
 Created: 2026-10-22
 Parent: main (c990dcd)
-Purpose: Siri Phase 3, Type B. Reminders tutorial page "Add reminders with Siri" (page id 9), third, straight after Create a reminder. Shown while Siri for reminders is available (Siri flag and Reminders module on), whatever the user's Siri setting (John). Standard title, description and phone top slice; the phone shows a Siri edge glow recreated in code (rotating conic gradient band, masked to the edges and blurred), as an agreed exception to the no-gradients rule. No native changes. Built as a draft for John's review at his request; the CTO's scope approval is needed before merge
+Purpose: Siri Phase 3, Type B. Reminders tutorial page "Add reminders with Siri" (page id 9), third, straight after Create a reminder. Shown while Siri for reminders is available (Siri flag and Reminders module on), whatever the user's Siri setting (John). Standard title, description and phone top slice. The phone plays the Siri journey, modelled on Siri in iOS 27 (no screen-edge glow; dark orb from the Dynamic Island, multicolour waveform, dark response panel): home screen with generic icons, Siri asks "What would you like to be reminded about?", the reply "Call Mum at 6pm today", Reminderly opens from its icon and "Call Mum" (today 6pm) is inserted at the top of the list. No gradients: the Siri colours are solid waveform bars. No native changes. Built as a draft for John's review at his request; the CTO's scope approval is needed before merge
 Verification: see the Phase 3 completion report
 Status: Not merged
 

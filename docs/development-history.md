@@ -87,6 +87,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/siri-onboarding
+
+Created: 2026-10-22
+Parent: main (c990dcd)
+Purpose: Siri Phase 3, Type B. Reminders tutorial page "Add reminders with Siri" (page id 9), third, straight after Create a reminder. Shown while Siri for reminders is available (Siri flag and Reminders module on), whatever the user's Siri setting (John). Standard title, description and phone top slice; the phone shows a Siri edge glow recreated in code (rotating conic gradient band, masked to the edges and blurred), as an agreed exception to the no-gradients rule. No native changes. Built as a draft for John's review at his request; the CTO's scope approval is needed before merge
+Verification: see the Phase 3 completion report
+Status: Not merged
+
 ### fix/siri-single-phrase
 
 Created: 2026-10-22

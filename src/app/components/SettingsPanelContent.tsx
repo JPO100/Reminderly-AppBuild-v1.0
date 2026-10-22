@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ToggleRow, MenuRow, KeyLine, InfoPageContext } from "./DevToolsOverlay";
+import { ToggleRow, MenuRow, KeyLine, InfoPageContext, ShowInfoIconsContext } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
 import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics";
@@ -99,8 +99,9 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
 
 // Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
 // Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged.
+// Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
 function PanelShell({ title, subPage, onBack, subContent, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
-  const content = subPage ? subContent : children;
+  const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
   const [info, setInfo] = useState<{ header: string; title: string } | null>(null);

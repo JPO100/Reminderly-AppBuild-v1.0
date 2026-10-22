@@ -1,6 +1,6 @@
 # Siri off: spoken refusal - plan
 
-Status: implemented on `feature/siri-phrases` (spike 2 design). Spike 2 passed on John's iPhone (iOS 27.0.1) on 2026-10-22. Approved by John and the CTO for merge.
+Status: implemented on `feature/siri-phrases` (spike 2 design). Spike 2 passed on John's iPhone (iOS 27.0.1) on 2026-10-22. Merged into main (b980d34, 2026-10-22).
 
 Type C under Working Agreement v1.3 (native intent behaviour, app lifecycle). Part of Siri Phase 2. Supersedes Phase 1 decision D1 (requests ignored silently when Siri is off).
 

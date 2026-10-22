@@ -229,31 +229,31 @@ function TutorialRow({ label, onClick }: { label: string; onClick: () => void })
 
 const SIRI_INFO = "Lets you add reminders by voice with Siri and the Shortcuts app. When off, Reminderly does not add reminders from Siri.";
 
-// The phrases registered in ios/App/App/AppShortcuts.swift; keep both in step. All of them always work.
+// The phrases registered in ios/App/App/AppShortcuts.swift; keep both in step.
 export const SIRI_PHRASES = [
   "Add to Reminderly app",
-  "Remind me in Reminderly app",
-  "New reminder in Reminderly app",
-  "Add a reminder in Reminderly app",
 ];
 
-// Siri shortcuts sub-page, laid out like Haptic feedback: the on/off, a key line, then the phrases Siri recognises and how to go on,
-// inactive (#D9D9D9) while Siri is off. The phrases are a list to read, not a choice.
+// Siri shortcuts sub-page, laid out like Haptic feedback: the on/off, a key line, then the phrase Siri recognises and how to go on,
+// inactive (#D9D9D9) while Siri is off.
 function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   return (
     <>
       <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />
       <KeyLine />
-      <p className="font-['Lato:SemiBold',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
-        You can use any of these with Siri...
+      <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
+        To add a reminder with Siri just say...
+      </p>
+      <p className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
+        “Hey Siri...”
       </p>
       {SIRI_PHRASES.map((phrase) => (
         <p key={phrase} className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
           {`\u201C${phrase}\u201D`}
         </p>
       ))}
-      <p className="font-['Lato:SemiBold',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
-        Then reply when Siri asks.
+      <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
+        ...then when Siri replies, say your reminder.
       </p>
     </>
   );

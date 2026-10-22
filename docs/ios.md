@@ -35,7 +35,7 @@ Capacitor plugins registered: App, Haptics, LocalNotifications (patched), Badge 
 
 Implemented for reminders. Siri for lists is not built.
 
-1. `AppShortcuts.swift` exposes four phrases, all always active: "Add to Reminderly app", "Remind me in Reminderly app", "New reminder in Reminderly app" and "Add a reminder in Reminderly app" (`AddReminderIntent`, iOS 16+). Reminders settings > Siri shortcuts lists them.
+1. `AppShortcuts.swift` exposes one phrase, "Add to Reminderly app" (`AddReminderIntent`, iOS 16+). Reminders settings > Siri shortcuts shows it. Phrases containing "remind" or "reminder" make Siri ask whether to use Reminderly or Notes, so they are not used.
 2. iOS 26 and later: the intent starts in the background (`supportedModes` background plus `.foreground(.dynamic)`) and reads `siriRemindersActive` from the App Group. Only a stored `true` is accepted (fails closed); otherwise Siri says "Siri is turned off in Reminderly, so I can't add a reminder right now." and the app does not open. When on, Siri asks "What would you like to be reminded about?", then `continueInForeground(alwaysConfirm: false)` brings the app forward with no confirmation step.
    iOS 16.0 to 25 (limitation): `openAppWhenRun` opens the app first and there is no native refusal. When Siri is off, the app ignores the request (step 5).
    The app writes `siriRemindersActive` (`WidgetBridge.setSiriActive`, `utils/widget.ts`) on launch, on every change to the Siri flag, preference or Reminders module, and each time it returns to the foreground. Until the app has run once after install, Siri refuses.

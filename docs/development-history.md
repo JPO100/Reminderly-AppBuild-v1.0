@@ -87,6 +87,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/siri-done-confirmation
+
+Created: 2026-10-22
+Parent: main (c990dcd)
+Purpose: Type C. Siri says "Done" after adding a reminder (John, mainly for CarPlay), only once the app confirms the reminder is saved (CTO condition). One-off request id in the Siri URL; the app writes it to the App Group after the saved reminders include the reminder; the intent waits up to 5 seconds, then says "Done" or that it could not confirm. Plan: [plans/siri-done-confirmation.md](./plans/siri-done-confirmation.md)
+Verification: Vitest 274/274, Self Check 412/412, type-check 0 errors, build successful. CarPlay and iPhone: John to test
+Status: Not merged
+
 ### fix/siri-single-phrase
 
 Created: 2026-10-22

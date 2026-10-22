@@ -17,8 +17,8 @@ import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
 import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
-import { syncWidget, syncSiriActive } from "./utils/widget";
-import { buildSiriReminder } from "./utils/siri";
+import { syncWidget, syncSiriActive, confirmSiriAdd } from "./utils/widget";
+import { buildSiriReminder, isReminderSaved } from "./utils/siri";
 import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMode } from "./reminder-utils";
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
@@ -1270,6 +1270,19 @@ export default function App() {
     }
   }, [reminders]);
 
+  // Siri add waiting for its reminder to be saved (docs/plans/siri-done-confirmation.md). Runs after the save above,
+  // and confirms only when the saved reminders include it, so Siri says "Done" only for a saved reminder.
+  const pendingSiriConfirmRef = useRef<{ requestId: string; reminderId: string } | null>(null);
+  useEffect(() => {
+    const pending = pendingSiriConfirmRef.current;
+    if (!pending) return;
+    let stored: string | null = null;
+    try { stored = localStorage.getItem(STORAGE_KEY); } catch { return; }
+    if (!isReminderSaved(stored, pending.reminderId)) return;
+    pendingSiriConfirmRef.current = null;
+    confirmSiriAdd(pending.requestId);
+  }, [reminders]);
+
   // iOS notification permission, read on launch and each time the app returns to the foreground.
   // Permission never changes a preference (docs/plans/notifications-phase-4.md, sections 6 and 7).
   const [notifPermission, setNotifPermission] = useState<string | null>(null);
@@ -1839,12 +1852,15 @@ export default function App() {
 
   useEffect(() => {
     const PENDING_SIRI_TEXT_KEY = 'reminderly.pendingSiriText';
+    const PENDING_SIRI_ID_KEY = 'reminderly.pendingSiriId';
     const SIRI_ADD_EVENT = 'reminderly:siri-add';
 
     const handleSiriAdd = () => {
       const text = localStorage.getItem(PENDING_SIRI_TEXT_KEY);
       if (!text) return;
       localStorage.removeItem(PENDING_SIRI_TEXT_KEY);
+      const requestId = localStorage.getItem(PENDING_SIRI_ID_KEY) ?? '';
+      localStorage.removeItem(PENDING_SIRI_ID_KEY);
 
       if (!isSiriRemindersActive) return;
 
@@ -1854,6 +1870,7 @@ export default function App() {
         createdAt: now.getTime(),
         ...buildSiriReminder(text, now, isRepeatRemindersActive),
       };
+      if (requestId) pendingSiriConfirmRef.current = { requestId, reminderId: reminder.id };
       addReminder(reminder);
     };
 

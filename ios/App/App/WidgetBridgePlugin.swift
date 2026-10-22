@@ -9,7 +9,8 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "setSnapshot", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearSnapshot", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "setSiriActive", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "setSiriActive", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "confirmSiriAdd", returnType: CAPPluginReturnPromise)
     ]
 
     @objc func setSnapshot(_ call: CAPPluginCall) {
@@ -41,6 +42,17 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         defaults.set(call.getBool("active") ?? false, forKey: "siriRemindersActive")
+        call.resolve()
+    }
+
+    // A Siri request's reminder is saved: AddReminderIntent waits for this code before saying "Done"
+    @objc func confirmSiriAdd(_ call: CAPPluginCall) {
+        guard let id = call.getString("id"), !id.isEmpty,
+              let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+            call.reject("No request id or App Group unavailable")
+            return
+        }
+        defaults.set(id, forKey: "siriAddedConfirmation")
         call.resolve()
     }
 }

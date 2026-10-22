@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { buildSiriReminder } from '../utils/siri';
+import { buildSiriReminder, isReminderSaved } from '../utils/siri';
 
 // Thursday 22 October 2026, 3:00pm local
 const now = new Date(2026, 9, 22, 15, 0);
@@ -105,5 +105,21 @@ describe('Siri phrases', () => {
     const listed = [...listBlock.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
     expect(swift).toHaveLength(1);
     expect(listed).toEqual(swift);
+  });
+});
+
+// Siri says "Done" only when the saved reminders include the new one
+describe('isReminderSaved', () => {
+  const saved = JSON.stringify([{ id: 'a', originalText: 'Buy milk' }, { id: 'b', originalText: 'Call Mum' }]);
+
+  it('is true when the saved reminders include the id', () => {
+    expect(isReminderSaved(saved, 'b')).toBe(true);
+  });
+
+  it('is false when the id is missing, nothing is saved or the data is unreadable', () => {
+    expect(isReminderSaved(saved, 'c')).toBe(false);
+    expect(isReminderSaved(null, 'a')).toBe(false);
+    expect(isReminderSaved('not json', 'a')).toBe(false);
+    expect(isReminderSaved(JSON.stringify({ id: 'a' }), 'a')).toBe(false);
   });
 });

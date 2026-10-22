@@ -7,6 +7,7 @@ const WidgetBridge = registerPlugin<{
   setSnapshot(snapshot: TodayProgress): Promise<void>;
   clearSnapshot(): Promise<void>;
   setSiriActive(options: { active: boolean }): Promise<void>;
+  confirmSiriAdd(options: { id: string }): Promise<void>;
 }>('WidgetBridge');
 
 let lastSent = '';
@@ -33,4 +34,10 @@ export function syncWidget(snapshot: TodayProgress | null) {
 export function syncSiriActive(active: boolean) {
   if (Capacitor.getPlatform() !== 'ios') return;
   WidgetBridge.setSiriActive({ active }).catch(() => {});
+}
+
+/** A Siri request's reminder is saved: the Siri intent waits for this before saying "Done". */
+export function confirmSiriAdd(id: string) {
+  if (Capacitor.getPlatform() !== 'ios' || !id) return;
+  WidgetBridge.confirmSiriAdd({ id }).catch(() => {});
 }

@@ -18,6 +18,7 @@ import { getNotificationChecks } from "../dev/notification-checks";
 import { getSettingsChecks } from "../dev/settings-checks";
 import { getAttachmentChecks } from "../dev/attachment-checks";
 import type { Check } from "../dev/check-system";
+import { DEFAULT_TEMPLATE_SEED } from "../utils/default-templates";
 import type { GeneratedDummyListsPayload, GeneratedList } from "../utils/dummy-list-generator";
 import DevToolsHome, { LastModuleNotice } from "../../imports/DevTools";
 import DummyRemindersPage from "../../imports/DummyReminders";
@@ -1122,7 +1123,7 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
     content = (
       <PageShell title="Config tools" onBack={() => setPage('home')} onClose={onClose}>
         <DevCard title="Lists">
-        <DevToggleRow label="Use template set in clean state" isOn={useDefaultTemplatesInCleanState} onToggle={() => onUseDefaultTemplatesInCleanStateChange(!useDefaultTemplatesInCleanState)} disabled={!isListsEnabled || !savedListsEnabled} infoTitle="When all lists are cleared, the app automatically restores the default set of list templates instead of showing an empty state. Only applies when list templates are enabled. Requires both Lists and List templates to be on." />
+        <DevToggleRow label="Use template set in clean state" isOn={useDefaultTemplatesInCleanState} onToggle={() => onUseDefaultTemplatesInCleanStateChange(!useDefaultTemplatesInCleanState)} disabled={!isListsEnabled || !savedListsEnabled} infoTitle={`When all lists are cleared, the app automatically restores the default set of list templates instead of showing an empty state. Only applies when list templates are enabled. Requires both Lists and List templates to be on.\n\nDefault templates:\n${DEFAULT_TEMPLATE_SEED.map((template) => template.title).join('\n')}`} />
         </DevCard>
       </PageShell>
     );

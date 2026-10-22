@@ -36,16 +36,15 @@ Capacitor plugins registered: App, Haptics, LocalNotifications (patched), Badge 
 Implemented for reminders. Siri for lists is not built.
 
 1. `AppShortcuts.swift` exposes one phrase, "Add to Reminderly app" (`AddReminderIntent`, iOS 16+). Reminders settings > Siri shortcuts shows it. Phrases containing "remind" or "reminder" make Siri ask whether to use Reminderly or Notes, so they are not used.
-2. iOS 26 and later: the intent starts in the background (`supportedModes` background plus `.foreground(.dynamic)`) and reads `siriRemindersActive` from the App Group. Only a stored `true` is accepted (fails closed); otherwise Siri says "Siri is turned off in Reminderly, so I can't add a reminder right now." and the app does not open. When on, Siri asks "What would you like to be reminded about?", then `continueInForeground(alwaysConfirm: false)` brings the app forward with no confirmation step.
-   iOS 16.0 to 25 (limitation): `openAppWhenRun` opens the app first and there is no native refusal. When Siri is off, the app ignores the request (step 5).
-   The app writes `siriRemindersActive` (`WidgetBridge.setSiriActive`, `utils/widget.ts`) on launch, on every change to the Siri flag, preference or Reminders module, and each time it returns to the foreground. Until the app has run once after install, Siri refuses.
-3. The intent opens `reminderly://add?text=<percent-encoded text>`. Query separators (`&+=?#`) are encoded too, so they stay part of the text.
-4. `AppDelegate.scene(_:openURLContexts:)` checks the scheme and host, escapes the text, and runs JavaScript in the WebView that sets `localStorage['reminderly.pendingSiriText']` and dispatches `reminderly:siri-add`.
-5. `App.tsx` reads and removes the pending text on the event and on mount. If Siri for reminders is not active (Reminders module on, `reminderly-ff-siri-reminders` and the user's Siri preference on), the text is discarded. This in-app gate stays as a second layer behind the native check.
-6. `utils/siri.ts` parses the text with the NLC parser in auto-apply mode, with a fallback for month-name dates ("March 5", "5th of March"). A month-name date with no year that has already passed means next year. A time with no date means today, or tomorrow once that time has passed. No date means Sometime. A repeat rule is created only when repeat reminders are active.
-7. The reminder is added through the normal `addReminder` path, so it is persisted, notified and highlighted like any other.
+2. The intent runs in the background on every iOS version, also with the iPhone locked, and never opens Reminderly ([plans/siri-locked-device.md](./plans/siri-locked-device.md)). `openAppWhenRun` false, `authenticationPolicy` `.alwaysAllowed`, `supportedModes` `[.background]` on iOS 26+.
+3. Siri off: only a stored `siriRemindersActive` `true` is accepted (fails closed); otherwise Siri says "Siri is turned off in Reminderly, so I can't add a reminder right now." The app writes it on launch, on every change and on return to the foreground (`WidgetBridge.setSiriActive`).
+4. Siri asks "What would you like to be reminded about?". The answer is parsed by `buildSiriReminder` (`utils/siri.ts`: NLC auto-apply, month-name fallback, past times move to tomorrow, past month-name dates to next year, no date means Sometime, repeats only when active), run in JavaScriptCore from `ios/App/App/siri-core.js` (built by `npm run build:siri-core`; a test fails if the bundled copy is out of date).
+5. The intent adds an id and `createdAt`, appends the reminder to the App Group pending list (`siriPendingReminders`) and reads it back.
+6. If notification permission is granted and alerts or badge are on (from `siriContext`, published by the app), it schedules the reminder's notification exactly as the Capacitor plugin would and adjusts the badges per `src/app/utils/siri-badge.ts`, ported to Swift: +1 on pending notifications firing once the reminder counts, the 64 limit, and the icon badge now. It also updates the lock screen widget snapshot for today.
+7. Siri says "That's done". Any failure: "I couldn't confirm your reminder was added. Please check Reminderly." A run that starts while another is in progress (Siri retrying) shares that run's result.
+8. When Reminderly next launches or returns to the foreground, it imports pending reminders by id, saves them, and removes them from the list (`utils/siri-pending.ts`). Its normal notification sync then finds the Siri notification identical.
 
-Any app or link that opens `reminderly://add?text=...` creates a reminder the same way.
+`reminderly://add?text=...` from any app or link still creates a reminder through `AppDelegate.scene(_:openURLContexts:)` and the `reminderly:siri-add` handler in `App.tsx` (gated on Siri for reminders being active).
 
 ## Local notifications
 

@@ -17,7 +17,8 @@ import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
 import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
-import { syncWidget, syncSiriActive } from "./utils/widget";
+import { syncWidget, syncSiriActive, syncSiriContext, getSiriPending, removeSiriPending } from "./utils/widget";
+import { buildSiriContext, planSiriImport } from "./utils/siri-pending";
 import { buildSiriReminder } from "./utils/siri";
 import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMode } from "./reminder-utils";
 import { formatTime12h } from "./utils/normalise-text";
@@ -1826,6 +1827,67 @@ export default function App() {
       }, INSERT_HIGHLIGHT_MS);
     }, NEW_REMINDER_INSERT_DELAY);
   }, [maybeAskForNotifications]);
+
+  // Siri locked-device creation (docs/plans/siri-locked-device.md): what the Siri intent needs to add a reminder and
+  // its notification without the app, published to the App Group whenever it changes
+  useEffect(() => {
+    syncSiriContext(buildSiriContext(
+      reminders,
+      isRemindersEnabled && notificationsFlag,
+      { alerts: notifReminderAlerts, sound: notifSound, badge: notifAppBadge, includeToday: notifIncludeTodayInBadge },
+      isRepeatRemindersActive,
+    ));
+  }, [reminders, isRemindersEnabled, notificationsFlag, notifReminderAlerts, notifSound, notifAppBadge, notifIncludeTodayInBadge, isRepeatRemindersActive]);
+
+  // Reminders the Siri intent saved while Reminderly was not running: added by id on launch and on return to the
+  // foreground (never by text, never twice), then removed from the pending list once the saved reminders include them
+  const siriImportedIdsRef = useRef<string[]>([]);
+  const readSavedReminderIds = (): Set<string> => {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
+      return new Set(Array.isArray(saved) ? saved.map((item) => (item as { id?: unknown })?.id).filter((id): id is string => typeof id === 'string') : []);
+    } catch {
+      return new Set();
+    }
+  };
+  const importSiriPending = useCallback(async () => {
+    const pending = await getSiriPending();
+    if (pending.length === 0) return;
+    const { add, remove } = planSiriImport(pending, readSavedReminderIds());
+    removeSiriPending(remove);
+    if (add.length === 0) return;
+    siriImportedIdsRef.current = [...siriImportedIdsRef.current, ...add.map((reminder) => reminder.id)];
+    setReminders((prev) => {
+      const ids = new Set(prev.map((reminder) => reminder.id));
+      const fresh = add.filter((reminder) => !ids.has(reminder.id));
+      return fresh.length > 0 ? [...prev, ...fresh] : prev;
+    });
+    const lastId = add[add.length - 1].id;
+    setReinsertedId(lastId);
+    setInsertHighlightId(lastId);
+    if (insertHighlightTimerRef.current !== null) clearTimeout(insertHighlightTimerRef.current);
+    insertHighlightTimerRef.current = window.setTimeout(() => {
+      insertHighlightTimerRef.current = null;
+      setInsertHighlightId(null);
+    }, INSERT_HIGHLIGHT_MS);
+  }, []);
+  useEffect(() => {
+    void importSiriPending();
+    const listener = CapacitorApp.addListener('appStateChange', (state) => {
+      if (state.isActive) void importSiriPending();
+    });
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, [importSiriPending]);
+  // Runs after the reminders are saved (the save effect is declared earlier)
+  useEffect(() => {
+    const imported = siriImportedIdsRef.current;
+    if (imported.length === 0) return;
+    const saved = readSavedReminderIds();
+    const done = imported.filter((id) => saved.has(id));
+    if (done.length === 0) return;
+    siriImportedIdsRef.current = imported.filter((id) => !saved.has(id));
+    removeSiriPending(done);
+  }, [reminders]);
 
   // Tells the Siri intent whether to accept requests (docs/plans/siri-off-refusal.md): on launch, on every change,
   // and again each time the app returns to the foreground in case an earlier write failed

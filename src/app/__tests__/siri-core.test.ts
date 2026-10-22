@@ -1,4 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import fs from 'fs';
 import vm from 'vm';
 import path from 'path';
 import { build } from 'vite';
@@ -9,6 +10,7 @@ import { buildSiriReminder } from '../utils/siri';
 type SiriCore = { buildSiriReminder: typeof buildSiriReminder };
 let sandbox: Record<string, unknown>;
 let core: SiriCore;
+let builtCode = '';
 
 beforeAll(async () => {
   const output = await build({
@@ -17,6 +19,7 @@ beforeAll(async () => {
     build: { write: false },
   });
   const chunk = (Array.isArray(output) ? output[0] : output as { output: { code?: string }[] }).output[0] as { code: string };
+  builtCode = chunk.code;
   sandbox = {};
   vm.runInNewContext(chunk.code, sandbox);
   core = sandbox.ReminderlySiri as SiriCore;
@@ -44,6 +47,11 @@ const NOWS = [
 ];
 
 describe('Siri core bundle', () => {
+  it('the copy bundled into the iOS app is up to date (run npm run build:siri-core)', () => {
+    const bundled = fs.readFileSync(path.resolve(__dirname, '../../../ios/App/App/siri-core.js'), 'utf8');
+    expect(bundled).toBe(builtCode);
+  });
+
   it('exposes only buildSiriReminder', () => {
     expect(Object.keys(core)).toEqual(['buildSiriReminder']);
   });

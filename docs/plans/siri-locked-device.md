@@ -1,6 +1,6 @@
 # Siri locked-device creation - plan
 
-Status: stage 1 complete (`feature/siri-locked-stage1`). Stage 2 complete on `feature/siri-locked-stage2` (from stage 1), awaiting CTO review. Stages 3 and 4 not started.
+Status: stage 1 complete (`feature/siri-locked-stage1`). Stage 2 complete (`feature/siri-locked-stage2`). Stage 3 complete on `feature/siri-locked-stage3` (from stage 2), awaiting CTO review. Stage 4 (device testing) not started.
 
 Type E under Working Agreement v1.3. Replaces the Option C proposal ([siri-option-c-proposal.md](./siri-option-c-proposal.md)) after the closed Option A spike ([siri-background-spike.md](./siri-background-spike.md)).
 
@@ -53,3 +53,14 @@ Files: `src/app/utils/siri-pending.ts` (`buildSiriContext`, `isSiriReminder`, `p
 - Tests: 13 for context, validation and the import plan (once, twice, a stop between save and removal, the same id twice, the same text with different ids, empty, malformed and unreadable entries); 5 for the bridge wrappers (context sent once per change and again after a failure, strings only, failure and non-iOS, removal by id).
 - Simulator end to end: four entries put in the pending list with the app not running (two "Call Mum at 6pm" reminders with different ids, one of them listed twice, and one malformed). After launch each reminder was saved exactly once and the pending list was empty. Then a saved reminder put back in the list (a stop before removal): removed on relaunch, still saved once. The context was published.
 - Vitest 295/295, Self Check 412/412, type-check 0 errors, production build, Siri core bundle unchanged (23.57 kB), native build.
+
+## 5. Stage 3 evidence (2026-10-22)
+
+Files: `ios/App/App/AddReminderIntent.swift` (rewritten), `ios/App/App/siri-core.js` (bundled resource, added to the App target), `vite.siri-core.config.ts` (builds into the app), `src/app/__tests__/siri-core.test.ts` (staleness test).
+
+- Intent: background on all versions, `alwaysAllowed`; no foregrounding, no URL hand-over. Siri off check for every version (previously iOS 26+ only). Concurrent runs coalesced (one in flight, others share its result). Steps: context, JavaScriptCore parse, pending append and read-back, notification and badge, context timeline update, widget, "That's done".
+- Notifications: permission as the plugin maps it (authorized, provisional, ephemeral). New request: identifier from `notificationId(for:)` (the `notificationIdForReminder` hash), `cap_extra` and `cap_schedule` user info, localized title and body, badge, category "reminder-actions" (empty when silent), sound "default" when on, time-interval trigger. Pending requests whose badge changes are re-added with their original fire time (interval measured from now). 64 limit: reminder notifications sorted by time, the new one after equal times; midnights in the remaining slots; the rest removed.
+- Simulator end to end (Siri on in the app's own settings): "Add Reminder" from the Shortcuts app with Reminderly not open, "Call Mum at 6pm" typed: Siri showed "That's done"; Reminderly stayed in the background; the pending entry was "Call Mum", today 18:00 (parsed by siri-core.js); opening Reminderly imported it once and emptied the list. Siri off: the refusal, no prompt. Notifications and badges not exercised on the simulator (no permission, notifications off); stage 4.
+- Vitest 296/296, Self Check 412/412, type-check 0 errors, production and native builds with no warnings.
+
+Material risks for stage 4: notification parity with the plugin (sync must find nothing to change; taps, Done and Move to tomorrow); badge values with the 64 limit and midnights; locked data protection (the App Group and the pending list while data-locked); Siri retry behaviour; the existing badge-correction patch re-adds pending requests with their original interval, so their fire times may shift (existing behaviour, outside this work).

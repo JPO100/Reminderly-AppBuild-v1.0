@@ -1850,12 +1850,24 @@ export default function App() {
       return new Set();
     }
   };
+  // Whether the Lists tab is showing with the Reminders tab available, read by the Siri import
+  const isListsTabShownRef = useRef(false);
+  isListsTabShownRef.current = shownMainTab === 'lists' && isRemindersEnabled && isListsEnabled;
   const importSiriPending = useCallback(async () => {
     const pending = await getSiriPending();
     if (pending.length === 0) return;
     const { add, remove } = planSiriImport(pending, readSavedReminderIds());
     removeSiriPending(remove);
     if (add.length === 0) return;
+    // A Siri reminder shows on the Reminders tab: switch to it as tapping the tab does
+    if (isListsTabShownRef.current) {
+      setViewMode((mode) => mode === 'lists-done' ? 'list' : mode);
+      setActiveFilter('all');
+      setActiveListFilter('all');
+      setSavedListsPanelOpen(false);
+      setRestoreSavedListsPanelAfterOverlayClose(false);
+      setActiveMainTab('reminders');
+    }
     siriImportedIdsRef.current = [...siriImportedIdsRef.current, ...add.map((reminder) => reminder.id)];
     setReminders((prev) => {
       const ids = new Set(prev.map((reminder) => reminder.id));

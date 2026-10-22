@@ -181,6 +181,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-22 | Siri Phase 1 merged to main (ae3e94d). Known issue 2 (Siri release defaults) unchanged |
 | 2026-10-22 | Siri Phase 1 (technical reliability) complete on fix/siri-reliability (not merged): "&" no longer truncates text, past times and past month-name dates no longer created overdue, settings info text corrected. John's iPhone Siri tests passed. Release defaults for Siri (known issue 2) unchanged |
 | 2026-10-22 | Badge overnight repair validated: John's overnight testing on the iPhone 15 Pro (final main) shows the badge working as expected. Two-midnight validation closed |
 | 2026-10-20 | Consolidation: known issue 8 fix merged (a368cad) and badge overnight repair merged (edcdc18). Badge two-midnight iPhone validation outstanding |

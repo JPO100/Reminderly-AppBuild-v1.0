@@ -7,7 +7,8 @@ import WidgetKit
 // Siri locked-device creation (docs/plans/siri-locked-device.md). The intent runs in the background on every iOS
 // version, also with the iPhone locked, and never opens Reminderly:
 // 1. refuses when Siri is off in Reminderly (fails closed, docs/plans/siri-off-refusal.md)
-// 2. builds the reminder with Reminderly's own parsing (siri-core.js in JavaScriptCore)
+// 2. builds the reminder with Reminderly's own parsing (siri-core.js in JavaScriptCore); an explicit time off the
+//    quarter hour is refused with a spoken explanation and nothing is saved
 // 3. saves it to the App Group pending list and reads it back; the app imports it by id when it next runs
 // 4. schedules its notification exactly as the Capacitor plugin would, with badges per src/app/utils/siri-badge.ts
 // 5. updates the lock screen widget, then says "That's done"
@@ -124,6 +125,10 @@ enum SiriCore {
         let json = js.evaluateScript("JSON.stringify(ReminderlySiri.buildSiriReminder(siriText, new Date(\(millis)), siriRepeats))")?.toString()
         guard !failed, let json,
               let object = try? JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any] else { throw SiriNotConfirmedError() }
+        // An explicit time off the quarter hour: nothing is saved or scheduled, Siri explains instead
+        if let unsupported = object["unsupportedTime"] as? [String: Any] {
+            throw SiriUnsupportedTimeError(earlier: unsupported["earlier"] as? String ?? "", later: unsupported["later"] as? String ?? "")
+        }
         return object
     }
 }
@@ -278,6 +283,16 @@ enum SiriWidget {
 struct SiriOffError: Error, CustomLocalizedStringResourceConvertible {
     var localizedStringResource: LocalizedStringResource {
         "Siri is turned off in Reminderly, so I can't add a reminder right now."
+    }
+}
+
+// An explicit time Reminderly can't use (Siri Stage 4, docs/plans/siri-stage4-datetime.md); no reminder was created
+@available(iOS 16.0, *)
+struct SiriUnsupportedTimeError: Error, CustomLocalizedStringResourceConvertible {
+    let earlier: String
+    let later: String
+    var localizedStringResource: LocalizedStringResource {
+        "Reminderly currently supports reminders in 15-minute increments. Try \(earlier) or \(later)."
     }
 }
 

@@ -4,6 +4,7 @@ import { keepRepeatRuleWhenOff } from "../app/settings/resolver";
 import {
   parseDateTokenValue,
   parseTimeTokenValue,
+  parseRelativeTimeValue,
   parseRepeatsTokenValue,
   computeEligibleTokens,
   computeInvalidation,
@@ -962,13 +963,22 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
         break;
       }
       case 'time': {
-        const time = parseTimeTokenValue(token.text);
+        // Relative times ("in an hour") set their own date, which can be tomorrow
+        const relative = parseRelativeTimeValue(token.text, new Date());
+        if (relative) {
+          applyToggleStateSilently('date', true);
+          setSelectedDate(relative.date);
+          applyToggleStateSilently('time', true);
+          setSelectedTime(relative.time);
+          break;
+        }
+        const hasExplicitDateToken = parsedTokens.some(t => t.category === 'date');
+        const time = parseTimeTokenValue(token.text, new Date(), hasExplicitDateToken);
         if (time) {
           // Compound tokens (this morning, tonight, etc.) and standalone time tokens
           // can imply date = today — BUT only when no explicit date token exists in
           // the parsed text. Explicit date tokens (tomorrow, next Monday, etc.) take
           // precedence; time-of-day must never override them.
-          const hasExplicitDateToken = parsedTokens.some(t => t.category === 'date');
           if (!hasExplicitDateToken && (isCompoundTimeToken(token.text) || !isDateOnRef.current)) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);

@@ -13,7 +13,7 @@
  */
 
 import type { ParsedToken, TokenCategory, NlcRecognitionConfig } from './nlc-parser';
-import { MONTH_NAME_TO_NUMBER } from './nlc-parser';
+import { MONTH_NAME_TO_NUMBER, spokenNumber } from './nlc-parser';
 import type { RepeatConfig } from '../reminder-utils';
 
 // ============================================================================
@@ -117,12 +117,29 @@ export function getNextDayOccurrence(from: Date, dayIndices: number[]): Date {
 }
 
 /** Parse a date token's text into a Date value */
-export function parseDateTokenValue(tokenText: string): Date | null {
+export function parseDateTokenValue(tokenText: string, now: Date = new Date()): Date | null {
   const lower = tokenText.toLowerCase().trim();
-  const today = new Date();
+  const today = new Date(now);
   today.setHours(0, 0, 0, 0);
 
   if (lower === 'today') return today;
+
+  // "(the) day after tomorrow"
+  if (/^(?:the\s+)?day\s+after\s+tomorrow$/.test(lower)) {
+    const d = new Date(today);
+    d.setDate(d.getDate() + 2);
+    return d;
+  }
+
+  // "in 2 days": date only
+  const inDays = /^in\s+(\S+)\s+days?$/.exec(lower);
+  if (inDays) {
+    const days = spokenNumber(inDays[1]);
+    if (days === null) return null;
+    const d = new Date(today);
+    d.setDate(d.getDate() + days);
+    return d;
+  }
 
   if (lower === 'tomorrow') {
     const d = new Date(today);
@@ -206,9 +223,69 @@ export function parseDateTokenValue(tokenText: string): Date | null {
   return result;
 }
 
+const QUARTER_MS = 15 * 60 * 1000;
+
+/**
+ * Round a relative time to the nearest quarter hour (midpoint up). A result at or before now
+ * moves to the next quarter, so the reminder is always in the future.
+ */
+export function roundToQuarterHour(target: Date, now: Date): Date {
+  const rounded = new Date(target);
+  const minutes = rounded.getMinutes() + rounded.getSeconds() / 60 + rounded.getMilliseconds() / 60000;
+  const quarter = Math.floor(minutes / 15);
+  rounded.setMinutes(quarter * 15 + (minutes - quarter * 15 >= 7.5 ? 15 : 0), 0, 0);
+  while (rounded.getTime() <= now.getTime()) rounded.setTime(rounded.getTime() + QUARTER_MS);
+  return rounded;
+}
+
+/** "in 10 minutes", "in an hour": the rounded date and time from now, or null for any other token */
+export function parseRelativeTimeValue(tokenText: string, now: Date): { date: Date; time: { hour: number; minute: number } } | null {
+  const match = /^in\s+(\S+)\s+(minutes?|mins?|hours?|hrs?)$/i.exec(tokenText.trim().replace(/\s+/g, ' '));
+  if (!match) return null;
+  const amount = spokenNumber(match[1]);
+  if (amount === null) return null;
+  const unitMs = match[2].toLowerCase().startsWith('h') ? 60 * 60 * 1000 : 60 * 1000;
+  const at = roundToQuarterHour(new Date(now.getTime() + amount * unitMs), now);
+  const date = new Date(at);
+  date.setHours(0, 0, 0, 0);
+  return { date, time: { hour: at.getHours(), minute: at.getMinutes() } };
+}
+
 /** Parse a time token's text into { hour, minute } */
-export function parseTimeTokenValue(tokenText: string): { hour: number; minute: number } | null {
-  const lower = tokenText.toLowerCase().trim();
+export function parseTimeTokenValue(tokenText: string, now: Date = new Date(), dateGiven = false): { hour: number; minute: number } | null {
+  const lower = tokenText.toLowerCase().trim().replace(/\u2019/g, "'");
+
+  const relative = parseRelativeTimeValue(lower, now);
+  if (relative) return relative.time;
+
+  // Number word with am/pm: "four pm"
+  const wordAmPm = /^([a-z]+)\s*(am|pm)$/.exec(lower);
+  if (wordAmPm) {
+    const word = spokenNumber(wordAmPm[1]);
+    if (word === null) return null;
+    return parseTimeTokenValue(`${word}${wordAmPm[2]}`, now, dateGiven);
+  }
+
+  // Spoken clock: "4 o'clock", "half past four", "quarter past 4", "quarter to five" (optionally am/pm)
+  const spoken = /^(?:(half|quarter)\s+(past|to)\s+(\S+)|(\S+)\s+o'?\s?clock)(?:\s*(am|pm))?$/.exec(lower);
+  if (spoken) {
+    const named = spokenNumber(spoken[3] ?? spoken[4]);
+    if (named === null) return null;
+    let hour = named % 12;
+    let minute = 0;
+    if (spoken[1] === 'half') minute = 30;
+    else if (spoken[1] === 'quarter' && spoken[2] === 'past') minute = 15;
+    else if (spoken[1] === 'quarter') { minute = 45; hour = (hour + 11) % 12; }
+    if (spoken[5]) return { hour: spoken[5] === 'pm' ? hour + 12 : hour, minute };
+    // No am/pm with a stated date: the date wins over the next occurrence, so 7 to 11 are am and 12 to 6 are pm
+    if (dateGiven) return { hour: hour >= 7 ? hour : hour + 12, minute };
+    // No am/pm: the next occurrence of that clock time after now
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const am = hour * 60 + minute;
+    const pm = am + 12 * 60;
+    const next = [am, pm].find(m => m > nowMinutes) ?? am;
+    return { hour: Math.floor(next / 60), minute: next % 60 };
+  }
 
   // 12-hour: "7pm", "7:30pm", "7 pm"
   const match12 = /^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/.exec(lower);
@@ -366,10 +443,10 @@ export function computeEligibleTokens(
  * Compound time tokens (this morning, tonight, etc.) return togglesOn: ['time', 'date']
  * with dateValue=today, mirroring repeats-implies-date.
  */
-export function computeTokenClickResult(token: ParsedToken): TokenClickResult | null {
+export function computeTokenClickResult(token: ParsedToken, now: Date = new Date(), dateGiven = false): TokenClickResult | null {
   switch (token.category) {
     case 'date': {
-      const date = parseDateTokenValue(token.text);
+      const date = parseDateTokenValue(token.text, now);
       if (!date) return null;
       return {
         togglesOn: ['date'],
@@ -379,12 +456,23 @@ export function computeTokenClickResult(token: ParsedToken): TokenClickResult | 
       };
     }
     case 'time': {
-      const time = parseTimeTokenValue(token.text);
+      // Relative times ("in an hour") set the date as well, which can be tomorrow
+      const relative = parseRelativeTimeValue(token.text, now);
+      if (relative) {
+        return {
+          togglesOn: ['time', 'date'],
+          dateValue: relative.date,
+          timeValue: relative.time,
+          repeatConfig: null,
+        };
+      }
+
+      const time = parseTimeTokenValue(token.text, now, dateGiven);
       if (!time) return null;
 
       // Compound tokens (this morning, tonight, etc.) imply date = today
       if (isCompoundTimeToken(token.text)) {
-        const today = new Date();
+        const today = new Date(now);
         today.setHours(0, 0, 0, 0);
         return {
           togglesOn: ['time', 'date'],

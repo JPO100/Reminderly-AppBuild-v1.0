@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { buildSiriReminder } from '../utils/siri';
+import { buildSiriReminder, isSiriUnsupportedTime } from '../utils/siri';
 
 // Thursday 22 October 2026, 3:00pm local
 const now = new Date(2026, 9, 22, 15, 0);
@@ -91,6 +91,102 @@ describe('Siri reminder parsing', () => {
       expect(build('Take pills every day', now, true).repeatRule).not.toBeNull();
       expect(build('Take pills every day', now, false).repeatRule).toBeNull();
     });
+  });
+});
+
+// Siri Stage 4 (docs/plans/siri-stage4-datetime.md)
+describe('Siri spoken dates and times', () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  // Thursday 22 October 2026, 10:07am
+  const at = new Date(2026, 9, 22, 10, 7);
+  const fields = (text: string, when: Date = at) => {
+    const result = build(text, when);
+    if (isSiriUnsupportedTime(result)) throw new Error(`refused: ${text}`);
+    return result;
+  };
+
+  it.each([
+    ['Call mum in 10 minutes', { kind: 'scheduled', date: '2026-10-22', time: '10:15' }],
+    ['Call mum in 30 mins', { kind: 'scheduled', date: '2026-10-22', time: '10:30' }],
+    ['Call mum in an hour', { kind: 'scheduled', date: '2026-10-22', time: '11:00' }],
+    ['Call mum in 2 hours', { kind: 'scheduled', date: '2026-10-22', time: '12:00' }],
+    ['Call mum in two hours', { kind: 'scheduled', date: '2026-10-22', time: '12:00' }],
+    ['Call mum in 2 days', { kind: 'scheduled', date: '2026-10-24' }],
+    ['Call mum at 4 o\'clock', { kind: 'scheduled', date: '2026-10-22', time: '16:00' }],
+    ['Call mum at four pm', { kind: 'scheduled', date: '2026-10-22', time: '16:00' }],
+    ['Call mum at half past four', { kind: 'scheduled', date: '2026-10-22', time: '16:30' }],
+    ['Call mum the day after tomorrow', { kind: 'scheduled', date: '2026-10-24' }],
+  ])('%s', (text, schedule) => {
+    const result = fields(text);
+    expect(result.schedule).toEqual(schedule);
+    expect(result.displayText).toBe('Call mum');
+    expect(result.originalText).toBe(text);
+  });
+
+  it('a relative time late at night lands tomorrow', () => {
+    expect(fields('Call mum in an hour', new Date(2026, 9, 22, 23, 30)).schedule)
+      .toEqual({ kind: 'scheduled', date: '2026-10-23', time: '00:30' });
+  });
+
+  it('a spoken hour already passed today is its next occurrence', () => {
+    expect(fields('Call mum at 4 o\'clock', new Date(2026, 9, 22, 17, 0)).schedule)
+      .toEqual({ kind: 'scheduled', date: '2026-10-23', time: '04:00' });
+  });
+
+  // A stated date takes precedence over the next occurrence (D1 correction)
+  it.each([
+    ['Call mum tomorrow at 4 o\'clock', 10, '2026-10-23', '16:00'],
+    ['Call mum tomorrow at 4 o\'clock', 17, '2026-10-23', '16:00'],
+    ['Call mum tomorrow at 9 o\'clock', 10, '2026-10-23', '09:00'],
+    ['Call mum tomorrow at 9 o\'clock', 22, '2026-10-23', '09:00'],
+    ['Call mum next Friday at half past four', 18, '2026-10-30', '16:30'],
+    ['Call mum tomorrow at 12 o\'clock', 13, '2026-10-23', '12:00'],
+  ])('%s said at %i:00 is %s %s', (text, hour, date, time) => {
+    expect(fields(text, new Date(2026, 9, 22, hour, 0)).schedule).toEqual({ kind: 'scheduled', date, time });
+  });
+
+  it('without a date the spoken hour keeps the next occurrence', () => {
+    expect(fields('Call mum at 4 o\'clock', new Date(2026, 9, 22, 10, 0)).schedule)
+      .toEqual({ kind: 'scheduled', date: '2026-10-22', time: '16:00' });
+  });
+
+  it.each([
+    ['Call mum Friday evening', 'Call mum', '18:00'],
+    ['Call mum this evening', 'Call mum', '18:00'],
+    ['Call mum at noon', 'Call mum', '12:00'],
+    ['Call mum at lunchtime', 'Call mum', '12:00'],
+    ['Call mum at 16:00', 'Call mum', '16:00'],
+    ['Call mum on Friday', 'Call mum', undefined],
+    ['Call mum tomorrow at 4pm', 'Call mum', '16:00'],
+    ['Call mum next Friday at 2pm', 'Call mum', '14:00'],
+    ['Call mum tomorrow morning', 'Call mum', '07:00'],
+  ])('title for "%s" is "%s"', (text, title, time) => {
+    const result = fields(text);
+    expect(result.displayText).toBe(title);
+    expect(result.schedule.kind === 'scheduled' ? result.schedule.time : null).toBe(time);
+  });
+
+  it('repeat words stay in the title, as before', () => {
+    const result = fields('Call mum every Monday at 9am');
+    expect(result.displayText).toBe('Call mum every Monday');
+    expect(result.schedule).toEqual({ kind: 'scheduled', date: '2026-10-26', time: '09:00' });
+  });
+
+  it.each([
+    ['Call mum at 4:10pm', '4:00', '4:15'],
+    ['Call mum at 4:50 pm', '4:45', '5:00'],
+    ['Call mum at 11:50pm', '11:45', '12:00'],
+    ['Call mum at 16:10', '16:00', '16:15'],
+    ['Call mum every Monday at 9:10am', '9:00', '9:15'],
+  ])('%s is refused with %s or %s and no reminder', (text, earlier, later) => {
+    expect(build(text, at)).toEqual({ unsupportedTime: { earlier, later } });
+  });
+
+  it('unsupported phrases are still Sometime without a time', () => {
+    expect(fields('Call mum next week').schedule).toEqual({ kind: 'sometime' });
+    expect(fields('Call mum at 4').schedule).toEqual({ kind: 'sometime' });
   });
 });
 

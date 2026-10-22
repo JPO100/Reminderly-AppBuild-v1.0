@@ -29,6 +29,62 @@ var ReminderlySiri = (function(exports) {
     december: 12
   };
   const MONTH_NAMES = "(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)";
+  const NUMBER_WORD_TO_NUMBER = {
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10,
+    eleven: 11,
+    twelve: 12
+  };
+  const NUMBER_WORDS = "(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)";
+  function spokenNumber(value) {
+    const lower = value.toLowerCase();
+    if (lower === "a" || lower === "an") return 1;
+    if (/^\d+$/.test(lower)) return parseInt(lower, 10);
+    return NUMBER_WORD_TO_NUMBER[lower] ?? null;
+  }
+  const RELATIVE_AMOUNT = `(\\d{1,2}|${NUMBER_WORDS}|an?)`;
+  const RELATIVE_TIME_REGEX = new RegExp(`\\bin\\s+${RELATIVE_AMOUNT}\\s+(minutes?|mins?|hours?|hrs?)\\b`, "gi");
+  const RELATIVE_DAYS_REGEX = new RegExp(`\\bin\\s+${RELATIVE_AMOUNT}\\s+days?\\b`, "gi");
+  const CLOCK_HOUR = `(\\d{1,2}|${NUMBER_WORDS})`;
+  const SPOKEN_CLOCK_REGEX = new RegExp(
+    `\\b(?:(half|quarter)\\s+(past|to)\\s+${CLOCK_HOUR}|${CLOCK_HOUR}\\s+o['’]?\\s?clock)(?:\\s*(am|pm)\\b)?`,
+    "gi"
+  );
+  const WORD_AM_PM_REGEX = new RegExp(`\\b${NUMBER_WORDS}\\s*(?:am|pm)\\b`, "gi");
+  function isRelativeAmount(value) {
+    const amount = spokenNumber(value);
+    return amount !== null && amount >= 1 && amount <= 99;
+  }
+  function findUnsupportedClockTime(text) {
+    const patterns = [
+      { regex: /\b(\d{1,2}):(\d{2})\s*(am|pm)\b/gi, is24Hour: false },
+      { regex: /\b([01]?\d|2[0-3]):([0-5]\d)\b/g, is24Hour: true }
+    ];
+    for (const { regex, is24Hour } of patterns) {
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        let hour = parseInt(match[1], 10);
+        const minute = parseInt(match[2], 10);
+        if (!is24Hour && (hour < 1 || hour > 12)) continue;
+        if (minute > 59 || [0, 15, 30, 45].includes(minute)) continue;
+        if (!is24Hour) {
+          const period = match[3].toLowerCase();
+          if (period === "pm" && hour !== 12) hour += 12;
+          if (period === "am" && hour === 12) hour = 0;
+        }
+        return { text: match[0], hour, minute, is24Hour };
+      }
+    }
+    return null;
+  }
   function isValidMonthDay(month, day, year) {
     if (day < 1) return false;
     const d = new Date(year, month - 1, day);
@@ -77,6 +133,8 @@ var ReminderlySiri = (function(exports) {
     else {
       collect(/\b(?:today|tomorrow)\b/gi, "date");
       collect(new RegExp(`\\bnext\\s+${WEEKDAY}\\b`, "gi"), "date");
+      collect(/\b(?:the\s+)?day\s+after\s+tomorrow\b/gi, "date");
+      collect(RELATIVE_DAYS_REGEX, "date", (match) => isRelativeAmount(match[1]));
       collect(new RegExp(`\\b${WEEKDAY}\\b`, "gi"), "date");
       collect(
         new RegExp(`\\b(${MONTH_NAMES})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(\\d{4}))?\\b`, "gi"),
@@ -137,6 +195,12 @@ var ReminderlySiri = (function(exports) {
           return true;
         }
       );
+      collect(RELATIVE_TIME_REGEX, "time", (match) => isRelativeAmount(match[1]));
+      collect(SPOKEN_CLOCK_REGEX, "time", (match) => {
+        const hour = spokenNumber(match[3] ?? match[4]);
+        return hour !== null && hour >= 1 && hour <= 12;
+      });
+      collect(WORD_AM_PM_REGEX, "time");
       collectTimeOfDay(/\bthis\s+(?:morning|afternoon|evening)\b/gi);
       collectTimeOfDay(/\btonight\b/gi);
       collectTimeOfDay(/\b(?:morning|lunchtime|noon|afternoon|evening|night)\b/gi);
@@ -211,11 +275,24 @@ var ReminderlySiri = (function(exports) {
     }
     return new Date(from);
   }
-  function parseDateTokenValue(tokenText) {
+  function parseDateTokenValue(tokenText, now = /* @__PURE__ */ new Date()) {
     const lower = tokenText.toLowerCase().trim();
-    const today = /* @__PURE__ */ new Date();
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
     if (lower === "today") return today;
+    if (/^(?:the\s+)?day\s+after\s+tomorrow$/.test(lower)) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + 2);
+      return d;
+    }
+    const inDays = /^in\s+(\S+)\s+days?$/.exec(lower);
+    if (inDays) {
+      const days = spokenNumber(inDays[1]);
+      if (days === null) return null;
+      const d = new Date(today);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
     if (lower === "tomorrow") {
       const d = new Date(today);
       d.setDate(d.getDate() + 1);
@@ -285,8 +362,56 @@ var ReminderlySiri = (function(exports) {
     result.setDate(today.getDate() + daysAhead);
     return result;
   }
-  function parseTimeTokenValue(tokenText) {
-    const lower = tokenText.toLowerCase().trim();
+  const QUARTER_MS = 15 * 60 * 1e3;
+  function roundToQuarterHour(target, now) {
+    const rounded = new Date(target);
+    const minutes = rounded.getMinutes() + rounded.getSeconds() / 60 + rounded.getMilliseconds() / 6e4;
+    const quarter = Math.floor(minutes / 15);
+    rounded.setMinutes(quarter * 15 + (minutes - quarter * 15 >= 7.5 ? 15 : 0), 0, 0);
+    while (rounded.getTime() <= now.getTime()) rounded.setTime(rounded.getTime() + QUARTER_MS);
+    return rounded;
+  }
+  function parseRelativeTimeValue(tokenText, now) {
+    const match = /^in\s+(\S+)\s+(minutes?|mins?|hours?|hrs?)$/i.exec(tokenText.trim().replace(/\s+/g, " "));
+    if (!match) return null;
+    const amount = spokenNumber(match[1]);
+    if (amount === null) return null;
+    const unitMs = match[2].toLowerCase().startsWith("h") ? 60 * 60 * 1e3 : 60 * 1e3;
+    const at = roundToQuarterHour(new Date(now.getTime() + amount * unitMs), now);
+    const date = new Date(at);
+    date.setHours(0, 0, 0, 0);
+    return { date, time: { hour: at.getHours(), minute: at.getMinutes() } };
+  }
+  function parseTimeTokenValue(tokenText, now = /* @__PURE__ */ new Date(), dateGiven = false) {
+    const lower = tokenText.toLowerCase().trim().replace(/\u2019/g, "'");
+    const relative = parseRelativeTimeValue(lower, now);
+    if (relative) return relative.time;
+    const wordAmPm = /^([a-z]+)\s*(am|pm)$/.exec(lower);
+    if (wordAmPm) {
+      const word = spokenNumber(wordAmPm[1]);
+      if (word === null) return null;
+      return parseTimeTokenValue(`${word}${wordAmPm[2]}`, now, dateGiven);
+    }
+    const spoken = /^(?:(half|quarter)\s+(past|to)\s+(\S+)|(\S+)\s+o'?\s?clock)(?:\s*(am|pm))?$/.exec(lower);
+    if (spoken) {
+      const named = spokenNumber(spoken[3] ?? spoken[4]);
+      if (named === null) return null;
+      let hour = named % 12;
+      let minute = 0;
+      if (spoken[1] === "half") minute = 30;
+      else if (spoken[1] === "quarter" && spoken[2] === "past") minute = 15;
+      else if (spoken[1] === "quarter") {
+        minute = 45;
+        hour = (hour + 11) % 12;
+      }
+      if (spoken[5]) return { hour: spoken[5] === "pm" ? hour + 12 : hour, minute };
+      if (dateGiven) return { hour: hour >= 7 ? hour : hour + 12, minute };
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      const am = hour * 60 + minute;
+      const pm = am + 12 * 60;
+      const next = [am, pm].find((m) => m > nowMinutes) ?? am;
+      return { hour: Math.floor(next / 60), minute: next % 60 };
+    }
     const match12 = /^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/.exec(lower);
     if (match12) {
       let hour = parseInt(match12[1], 10);
@@ -377,10 +502,10 @@ var ReminderlySiri = (function(exports) {
     }
     return null;
   }
-  function computeTokenClickResult(token) {
+  function computeTokenClickResult(token, now = /* @__PURE__ */ new Date(), dateGiven = false) {
     switch (token.category) {
       case "date": {
-        const date = parseDateTokenValue(token.text);
+        const date = parseDateTokenValue(token.text, now);
         if (!date) return null;
         return {
           togglesOn: ["date"],
@@ -390,10 +515,19 @@ var ReminderlySiri = (function(exports) {
         };
       }
       case "time": {
-        const time = parseTimeTokenValue(token.text);
+        const relative = parseRelativeTimeValue(token.text, now);
+        if (relative) {
+          return {
+            togglesOn: ["time", "date"],
+            dateValue: relative.date,
+            timeValue: relative.time,
+            repeatConfig: null
+          };
+        }
+        const time = parseTimeTokenValue(token.text, now, dateGiven);
         if (!time) return null;
         if (isCompoundTimeToken(token.text)) {
-          const today = /* @__PURE__ */ new Date();
+          const today = new Date(now);
           today.setHours(0, 0, 0, 0);
           return {
             togglesOn: ["time", "date"],
@@ -583,14 +717,27 @@ var ReminderlySiri = (function(exports) {
   function keepRepeatRuleWhenOff(repeatsActive, existingRule, requestedRule) {
     return repeatsActive ? requestedRule : existingRule ?? null;
   }
+  function quarterSuggestions(hour, minute, is24Hour) {
+    const format = (totalMinutes) => {
+      const h = Math.floor(totalMinutes / 60) % 24;
+      const m = String(totalMinutes % 60).padStart(2, "0");
+      if (is24Hour) return `${h === 0 ? "00" : h}:${m}`;
+      return `${h % 12 === 0 ? 12 : h % 12}:${m}`;
+    };
+    const earlier = hour * 60 + Math.floor(minute / 15) * 15;
+    return { earlier: format(earlier), later: format(earlier + 15) };
+  }
   function buildSiriReminder(text, now, isRepeatRemindersActive) {
+    const unsupported = findUnsupportedClockTime(text);
+    if (unsupported) return { unsupportedTime: quarterSuggestions(unsupported.hour, unsupported.minute, unsupported.is24Hour) };
     const tokens = parseTokens(text);
     const actions = computeAutoApplyResult(tokens);
     let selectedDate = null;
     let selectedTime = null;
     let repeatConfig = null;
+    const dateGiven = actions.some((a) => a.category !== "time");
     for (const action of actions) {
-      const result = computeTokenClickResult(action.token);
+      const result = computeTokenClickResult(action.token, now, dateGiven);
       if (!result) continue;
       if (result.dateValue) selectedDate = result.dateValue;
       if (result.timeValue) selectedTime = result.timeValue;
@@ -641,7 +788,14 @@ var ReminderlySiri = (function(exports) {
       schedule = { kind: "sometime" };
     }
     const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
-    const displayText = schedule.kind === "scheduled" ? normaliseReminderText(text, schedule, repeatRule, now) : text;
+    let titleText = text;
+    const appliedSpans = actions.filter((a) => a.category !== "repeats").map((a) => a.token).sort((a, b) => b.start - a.start);
+    for (const token of appliedSpans) {
+      const before = titleText.slice(0, token.start).replace(/\b(?:at|on|in)\s+$/i, "");
+      titleText = `${before} ${titleText.slice(token.end)}`;
+    }
+    titleText = titleText.replace(/\s{2,}/g, " ").trim();
+    const displayText = schedule.kind === "scheduled" ? normaliseReminderText(titleText, schedule, repeatRule, now) : text;
     return { originalText: text, displayText, schedule, repeatRule };
   }
   exports.buildSiriReminder = buildSiriReminder;

@@ -6,7 +6,7 @@
  */
 
 import type { Reminder, ReminderSchedule, RepeatConfig } from '../reminder-utils';
-import { parseTokens, MONTH_NAME_TO_NUMBER } from './nlc-parser';
+import { parseTokens, findUnsupportedClockTime, MONTH_NAME_TO_NUMBER } from './nlc-parser';
 import { computeAutoApplyResult, computeTokenClickResult } from './nlc-interaction';
 import { normaliseReminderText } from './normalise-text';
 import { repeatConfigToRule } from './repeat-conversion';
@@ -14,7 +14,30 @@ import { keepRepeatRuleWhenOff } from '../settings/resolver';
 
 export type SiriReminderFields = Pick<Reminder, 'originalText' | 'displayText' | 'schedule' | 'repeatRule'>;
 
-export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActive: boolean): SiriReminderFields {
+/** An explicit time off the quarter hour: no reminder is created and Siri suggests the quarters either side. */
+export type SiriUnsupportedTime = { unsupportedTime: { earlier: string; later: string } };
+
+export function isSiriUnsupportedTime(result: SiriReminderFields | SiriUnsupportedTime): result is SiriUnsupportedTime {
+  return 'unsupportedTime' in result;
+}
+
+// The quarters either side of an unsupported time, in the clock it was said in: "4:00"/"4:15" or "16:00"/"16:15"
+function quarterSuggestions(hour: number, minute: number, is24Hour: boolean): { earlier: string; later: string } {
+  const format = (totalMinutes: number) => {
+    const h = Math.floor(totalMinutes / 60) % 24;
+    const m = String(totalMinutes % 60).padStart(2, '0');
+    if (is24Hour) return `${h === 0 ? '00' : h}:${m}`;
+    return `${h % 12 === 0 ? 12 : h % 12}:${m}`;
+  };
+  const earlier = hour * 60 + Math.floor(minute / 15) * 15;
+  return { earlier: format(earlier), later: format(earlier + 15) };
+}
+
+export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActive: boolean): SiriReminderFields | SiriUnsupportedTime {
+  // Explicit times must be on the quarter hour; Siri never rounds them or saves them as Sometime
+  const unsupported = findUnsupportedClockTime(text);
+  if (unsupported) return { unsupportedTime: quarterSuggestions(unsupported.hour, unsupported.minute, unsupported.is24Hour) };
+
   const tokens = parseTokens(text);
   const actions = computeAutoApplyResult(tokens, { date: false, time: false, repeats: false });
 
@@ -22,8 +45,10 @@ export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActi
   let selectedTime: { hour: number; minute: number } | null = null;
   let repeatConfig: RepeatConfig = null;
 
+  // A stated date (or repeat) takes precedence over the next occurrence for a spoken hour without am/pm
+  const dateGiven = actions.some(a => a.category !== 'time');
   for (const action of actions) {
-    const result = computeTokenClickResult(action.token);
+    const result = computeTokenClickResult(action.token, now, dateGiven);
     if (!result) continue;
     if (result.dateValue) selectedDate = result.dateValue;
     if (result.timeValue) selectedTime = result.timeValue;
@@ -85,8 +110,17 @@ export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActi
 
   // Repeat reminders off: Siri never creates a repeat rule
   const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
+  // Title: remove the date and time words that were applied (with a preceding "at", "on" or "in"), then the
+  // existing normalisation. Repeat words stay, as before.
+  let titleText = text;
+  const appliedSpans = actions.filter(a => a.category !== 'repeats').map(a => a.token).sort((a, b) => b.start - a.start);
+  for (const token of appliedSpans) {
+    const before = titleText.slice(0, token.start).replace(/\b(?:at|on|in)\s+$/i, '');
+    titleText = `${before} ${titleText.slice(token.end)}`;
+  }
+  titleText = titleText.replace(/\s{2,}/g, ' ').trim();
   const displayText = schedule.kind === 'scheduled'
-    ? normaliseReminderText(text, schedule, repeatRule, now, { skipDateInjection: true, skipTimeInjection: true })
+    ? normaliseReminderText(titleText, schedule, repeatRule, now, { skipDateInjection: true, skipTimeInjection: true })
     : text;
 
   return { originalText: text, displayText, schedule, repeatRule };

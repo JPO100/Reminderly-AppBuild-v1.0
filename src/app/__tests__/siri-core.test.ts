@@ -38,6 +38,10 @@ const PHRASES = [
   'Take the bins out tonight', 'Dentist March 5', 'Dentist 5th of March', 'Dentist October 22', 'Dentist March 5 2026',
   'Dentist January 2', 'Pay rent next Monday', 'Take pills every day', 'Team meeting every Monday at 10am',
   'Buy milk & eggs', 'Buy milk', 'Call Dave at 3pm on Friday', 'Book flights in two weeks',
+  'Call Mum in 10 minutes', 'Call Mum in an hour', 'Call Mum in two hours', 'Call Mum in 2 days',
+  "Call Mum at 4 o'clock", 'Call Mum at half past four', 'Call Mum at four pm', 'Call Mum the day after tomorrow',
+  'Call Mum Friday evening', 'Call Mum at 4:10pm', 'Call Mum at 16:10',
+  "Call Mum tomorrow at 4 o'clock", "Call Mum tomorrow at 9 o'clock",
 ];
 const NOWS = [
   new Date(2026, 9, 22, 15, 0), // Thursday afternoon

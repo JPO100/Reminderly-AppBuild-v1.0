@@ -255,6 +255,7 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
   const [showMenuDotsHighlight, setShowMenuDotsHighlight] = useState(false);
   const [showSettingsOverlay, setShowSettingsOverlay] = useState(false);
   const [smartToggleActive, setSmartToggleActive] = useState(false);
+  const [showSmartToggleHighlight, setShowSmartToggleHighlight] = useState(false);
   const [reinsertedItemId, setReinsertedItemId] = useState<string | null>(null);
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
   const completedCount = items.filter((item) => item.completed).length;
@@ -268,6 +269,7 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
       setShowMenuDotsHighlight(false);
       setShowSettingsOverlay(false);
       setSmartToggleActive(false);
+      setShowSmartToggleHighlight(false);
       setReinsertedItemId(null);
       setHighlightedItemId(null);
       onSmartFlowPhaseChange?.("none");
@@ -283,6 +285,7 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
     setShowMenuDotsHighlight(false);
     setShowSettingsOverlay(false);
     setSmartToggleActive(false);
+    setShowSmartToggleHighlight(false);
     setReinsertedItemId(null);
     setHighlightedItemId(null);
     onSmartFlowPhaseChange?.("none");
@@ -296,7 +299,9 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
       const t1 = SMART_REMINDER_PRE_DOTS_PAUSE;
       const t2 = t1 + TUTORIAL_ATTENTION_THROB_DURATION * 1000 + SMART_REMINDER_POST_DOTS_PAUSE;
       const t3 = t2 + SMART_REMINDER_POST_SETTINGS_PAUSE;
-      const t4 = t3 + SMART_REMINDER_POST_TOGGLE_PAUSE;
+      // Throb the toggle as the press, then switch it on
+      const t3Active = t3 + TUTORIAL_ATTENTION_SEQUENCE_DELAY;
+      const t4 = t3Active + SMART_REMINDER_POST_TOGGLE_PAUSE;
 
       const menuHighlightTimer = window.setTimeout(() => {
         if (cancelled) return;
@@ -312,11 +317,18 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
       }, t2);
       timers.push(settingsOverlayTimer);
 
+      const smartToggleHighlightTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        setShowSmartToggleHighlight(true);
+      }, t3);
+      timers.push(smartToggleHighlightTimer);
+
       const smartToggleActivateTimer = window.setTimeout(() => {
         if (cancelled) return;
+        setShowSmartToggleHighlight(false);
         setSmartToggleActive(true);
         onSmartFlowPhaseChange?.("toggle-active");
-      }, t3);
+      }, t3Active);
       timers.push(smartToggleActivateTimer);
 
       const closeTimer = window.setTimeout(() => {
@@ -605,7 +617,7 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
             </motion.div>
           </motion.div>
           {showSettingsOverlay && (mode === "settings" ? (
-            <TutorialListSettingsOverlayWithToggle smartToggleActive={smartToggleActive} />
+            <TutorialListSettingsOverlayWithToggle smartToggleActive={smartToggleActive} showToggleHighlight={showSmartToggleHighlight} />
           ) : (
             <TutorialListSettingsOverlay />
           ))}

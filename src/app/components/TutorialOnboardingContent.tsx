@@ -1109,7 +1109,25 @@ function ListsTutorialPlaceholderPage({
             <Page5DoneDeletedFilters />
           ) : currentPage === 3 && page4ActiveTab === "reminders" ? (
             <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
-          ) : page5ShowTemplatesPanel || page5ShowEditor ? null : (
+          ) : page5ShowTemplatesPanel ? (
+            // List templates header in the filter row slot, so its buttons keep the Lists row positions (as in the app)
+            <TutorialReminderFilters
+              items={[]}
+              leading={<div className="font-['Lato',sans-serif] font-bold text-[14.359px] text-[#1C2C42] whitespace-nowrap">List templates</div>}
+              trailing={
+                <div className="flex items-center gap-[5.744px]">
+                  <svg className="block shrink-0" width="32.308" height="32.308" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                    <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                  {settingsMenuEnabled && <TutorialSettingsButton />}
+                </div>
+              }
+              layout="between"
+              rowGapClassName="gap-[10px]"
+              groupGapClassName="gap-[5.744px]"
+            />
+          ) : (
             <TutorialReminderFilters
               items={listFilterItems}
               trailing={savedListsEnabled || settingsMenuEnabled ? (
@@ -1361,7 +1379,7 @@ function ListsTutorialPlaceholderPage({
                   }}
                 >
                   {/* Mirrors production App.tsx line 3445: padding parent */}
-                  <div className="bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[24px] relative rounded-tl-[15px] rounded-tr-[15px] w-full h-full min-h-[350px]">
+                  <div className="bg-white content-stretch flex flex-col gap-[24px] items-center px-[20px] pt-[14.368px] relative w-full h-full min-h-[350px]">
                     {/* Mirrors production App.tsx line 3647: active lists wrapper */}
                     <div className="relative flex flex-col gap-[24px] w-full flex-1 min-h-0">
                       {/* Mirrors production App.tsx line 3749: list content area */}
@@ -1370,26 +1388,6 @@ function ListsTutorialPlaceholderPage({
                         <div className="absolute inset-0 bg-white" style={{ zIndex: 2 }}>
                           {/* Mirrors production App.tsx line 3938: templates inner column */}
                           <div className="relative flex flex-col gap-[24px] w-full h-full min-h-0 pt-[0px]">
-                            {/* Mirrors production App.tsx List templates page header (45px, x button) */}
-                            <div className="filters-menu flex items-center justify-between relative shrink-0 w-full h-[45px]">
-                              <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
-                                List templates
-                              </div>
-                              <div className="flex items-center gap-[10px]">
-                                <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                  <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                                  <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                                </svg>
-                                {settingsMenuEnabled && (
-                                  <svg className="block shrink-0" width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                                    <circle cx="16" cy="22.5" r="1.75" fill="white"/>
-                                    <circle cx="22.5" cy="22.5" r="1.75" fill="white"/>
-                                    <circle cx="29" cy="22.5" r="1.75" fill="white"/>
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
                             {/* Mirrors production App.tsx line 3954: inner scroll container */}
                             <div className="relative w-full max-w-[768px] flex-1 min-h-0">
                               <div className="content-stretch flex flex-col items-center justify-start overflow-x-clip w-full" style={{ position: 'relative', flex: 1, minHeight: 0, overflowY: 'hidden', height: '100%' }}>

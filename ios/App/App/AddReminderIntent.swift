@@ -11,7 +11,7 @@ import WidgetKit
 //    quarter hour is refused with a spoken explanation and nothing is saved
 // 3. saves it to the App Group pending list and reads it back; the app imports it by id when it next runs
 // 4. schedules its notification exactly as the Capacitor plugin would, with badges per src/app/utils/siri-badge.ts
-// 5. updates the lock screen widget, then says "That's done"
+// 5. updates the lock screen widget, then says "Okay, that's added"
 @available(iOS 16.0, *)
 struct AddReminderIntent: AppIntent {
     static var title: LocalizedStringResource = "Add to Reminderly"
@@ -35,7 +35,7 @@ struct AddReminderIntent: AppIntent {
         guard !reminderText.isEmpty else { throw SiriNotConfirmedError() }
 
         try await SiriReminderCreator.create(text: reminderText)
-        return .result(dialog: "That's done")
+        return .result(dialog: "Okay, that's added")
     }
 }
 
@@ -296,7 +296,7 @@ struct SiriUnsupportedTimeError: Error, CustomLocalizedStringResourceConvertible
     }
 }
 
-// The reminder was not saved, so Siri must not say "That's done"
+// The reminder was not saved, so Siri must not say "Okay, that's added"
 @available(iOS 16.0, *)
 struct SiriNotConfirmedError: Error, CustomLocalizedStringResourceConvertible {
     var localizedStringResource: LocalizedStringResource {

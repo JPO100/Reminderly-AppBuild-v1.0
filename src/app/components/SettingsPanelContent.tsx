@@ -244,19 +244,14 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
       <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
         To add a reminder with Siri just say
       </p>
-      {/* The spoken phrase as one block: "Hey Siri..." directly above the phrases, no row gap between them */}
-      <div className="flex flex-col w-full">
-        <p className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
-          “Hey Siri...”
+      {/* "Hey Siri..." runs straight into each registered phrase, which carries on in lower case */}
+      {SIRI_PHRASES.map((phrase) => (
+        <p key={phrase} className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
+          {`\u201CHey Siri... ${phrase.charAt(0).toLowerCase()}${phrase.slice(1)}\u201D`}
         </p>
-        {SIRI_PHRASES.map((phrase) => (
-          <p key={phrase} className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
-            {`\u201C${phrase}\u201D`}
-          </p>
-        ))}
-      </div>
+      ))}
       <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
-        Then when Siri replies,<br />say your reminder.
+        Then when Siri replies, say your reminder.
       </p>
     </>
   );

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ToggleRow, MenuRow, KeyLine, InfoPageContext, ShowInfoIconsContext } from "./DevToolsOverlay";
+import { ToggleRow, MenuRow, KeyLine, InfoPageContext, ShowInfoIconsContext, InfoIcon } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
 import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics";
@@ -85,10 +85,16 @@ function ScrollArea({ children }: { children: ReactNode }) {
 
 // Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
 // with Back returning to the page it was opened from. The card fits its height to the text.
+// The title has the info icon before it, in dark blue, 10px from the text.
 function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
   return (
     <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
-      <PanelHeader title={header} />
+      <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
+        <InfoIcon color="#1C2C42" />
+        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>
+          {header}
+        </p>
+      </div>
       <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>
       <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
         <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>

@@ -176,7 +176,7 @@ export function DevMenuRow({ label, onClick, disabled, infoHeader, infoTitle }: 
   );
 }
 
-function InfoIcon({ color = '#939393' }: { color?: string }) {
+export function InfoIcon({ color = '#939393' }: { color?: string }) {
   return (
     <svg width="16.5" height="16.5" viewBox="0 0 17 17" fill="none" className="shrink-0">
       <path d="M7.6875 6.75C7.84307 6.75 8.03551 6.7485 8.19922 6.77051C8.36125 6.79232 8.5773 6.84631 8.77441 7.00488L8.8584 7.0791L8.93262 7.16309C9.09119 7.36019 9.14517 7.57625 9.16699 7.73828C9.189 7.90198 9.1875 8.09443 9.1875 8.25V12C9.1875 12.4142 8.85171 12.75 8.4375 12.75C8.02329 12.75 7.6875 12.4142 7.6875 12V8.25C7.27329 8.25 6.9375 7.91421 6.9375 7.5C6.93751 7.08579 7.27329 6.75 7.6875 6.75Z" fill={color}/>

@@ -6,6 +6,7 @@ import type { TodayProgress } from '../reminder-utils';
 const WidgetBridge = registerPlugin<{
   setSnapshot(snapshot: TodayProgress): Promise<void>;
   clearSnapshot(): Promise<void>;
+  setSiriActive(options: { active: boolean }): Promise<void>;
 }>('WidgetBridge');
 
 let lastSent = '';
@@ -23,4 +24,13 @@ export function syncWidget(snapshot: TodayProgress | null) {
   call.catch(() => {
     lastSent = '';
   });
+}
+
+/**
+ * Siri for reminders on or off, for the Siri intent to read before it accepts a request.
+ * Writes every time it is called (no skip for an unchanged value), so the foreground re-write always lands.
+ */
+export function syncSiriActive(active: boolean) {
+  if (Capacitor.getPlatform() !== 'ios') return;
+  WidgetBridge.setSiriActive({ active }).catch(() => {});
 }

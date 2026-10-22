@@ -76,13 +76,28 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### feature/siri-phrases
+
+Created: 2026-10-22
+Parent: ui/notifications-keyline (821bea3, merged into main as 327baf6 before this branch)
+Purpose: Siri Phase 2. (1) Phrases, Type B: four phrases accepted by John ("Add to / Remind me in / New reminder in / Add a reminder in Reminderly app"), all registered in AppShortcuts.swift and always active; a test keeps the settings list in step. (2) Settings, Type B: the "Use Siri shortcuts" toggle became a "Siri shortcuts" page: on/off, key line, "You can use any of these with Siri...", the phrases, "Then reply when Siri asks." (inactive while Siri is off). (3) Siri off spoken refusal, Type C ([plans/siri-off-refusal.md](./plans/siri-off-refusal.md)), superseding Phase 1 decision D1: on iOS 26+ the intent checks a fail-closed App Group value and says "Siri is turned off in Reminderly, so I can't add a reminder right now." without opening the app; when on, it continues in the foreground with no confirmation. iOS 16.0 to 25 keep the previous behaviour. Spike 1 (ForegroundContinuableIntent, iOS 16.4) was dropped because it added a "continue in the app" step
+Verification: see the merge record on main
+Status: Approved by John and the CTO for merge
+
+### ui/notifications-keyline
+
+Created: 2026-10-22
+Parent: main (eaded41)
+Purpose: Type A. Notifications settings page: key line between the alerts group (Notifications, Sound) and the badge group (App badge, Include today in badge)
+Verification: preview check at phone width; included in the feature/siri-phrases device build
+Status: Merged into main (merge commit 327baf6, 2026-10-22). Branch deleted after the merge
 ### fix/settings-close-on-background
 
 Created: 2026-10-22
 Parent: main (327baf6)
 Purpose: Type B (app lifecycle). Found by John while testing Siri: the Reminders or Lists settings panel was still open when returning to the app. The open state is in memory only (not saved); iOS kept the app suspended, so it resumed as left. Fix: both panels close on the Capacitor App 'pause' event (app goes to the background). 'pause' rather than appStateChange, so Control Centre or a notification banner does not close them. The sub-page resets with the panel
 Verification: Vitest 265/265, type-check 0 errors, build successful. Simulator: Lists settings open, Home, return (same process): panel closed
-Status: Not merged
+Status: Merged into main (merge commit 3cdf0e7, 2026-10-22)
 
 ### fix/siri-reliability
 

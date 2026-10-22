@@ -8,7 +8,8 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "WidgetBridge"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "setSnapshot", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "clearSnapshot", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "clearSnapshot", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setSiriActive", returnType: CAPPluginReturnPromise)
     ]
 
     @objc func setSnapshot(_ call: CAPPluginCall) {
@@ -30,6 +31,16 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func clearSnapshot(_ call: CAPPluginCall) {
         UserDefaults(suiteName: "group.com.reminderly.app")?.removeObject(forKey: "todayProgress")
         WidgetCenter.shared.reloadAllTimelines()
+        call.resolve()
+    }
+
+    // Siri for reminders on or off, read by AddReminderIntent (docs/plans/siri-off-refusal.md)
+    @objc func setSiriActive(_ call: CAPPluginCall) {
+        guard let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+            call.reject("App Group unavailable")
+            return
+        }
+        defaults.set(call.getBool("active") ?? false, forKey: "siriRemindersActive")
         call.resolve()
     }
 }

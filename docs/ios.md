@@ -35,12 +35,15 @@ Capacitor plugins registered: App, Haptics, LocalNotifications (patched), Badge 
 
 Implemented for reminders. Siri for lists is not built.
 
-1. `AppShortcuts.swift` exposes the phrase "Add to Reminderly app" (`AddReminderIntent`, iOS 16+). Siri asks "What would you like to be reminded about?".
-2. The intent opens `reminderly://add?text=<percent-encoded text>` and brings the app to the foreground. Query separators (`&+=?#`) are encoded too, so they stay part of the text.
-3. `AppDelegate.scene(_:openURLContexts:)` checks the scheme and host, escapes the text, and runs JavaScript in the WebView that sets `localStorage['reminderly.pendingSiriText']` and dispatches `reminderly:siri-add`.
-4. `App.tsx` reads and removes the pending text on the event and on mount. If Siri for reminders is not active (Reminders module on, `reminderly-ff-siri-reminders` and the user's Siri preference on), the text is discarded.
-5. `utils/siri.ts` parses the text with the NLC parser in auto-apply mode, with a fallback for month-name dates ("March 5", "5th of March"). A month-name date with no year that has already passed means next year. A time with no date means today, or tomorrow once that time has passed. No date means Sometime. A repeat rule is created only when repeat reminders are active.
-6. The reminder is added through the normal `addReminder` path, so it is persisted, notified and highlighted like any other.
+1. `AppShortcuts.swift` exposes four phrases, all always active: "Add to Reminderly app", "Remind me in Reminderly app", "New reminder in Reminderly app" and "Add a reminder in Reminderly app" (`AddReminderIntent`, iOS 16+). Reminders settings > Siri shortcuts lists them.
+2. iOS 26 and later: the intent starts in the background (`supportedModes` background plus `.foreground(.dynamic)`) and reads `siriRemindersActive` from the App Group. Only a stored `true` is accepted (fails closed); otherwise Siri says "Siri is turned off in Reminderly, so I can't add a reminder right now." and the app does not open. When on, Siri asks "What would you like to be reminded about?", then `continueInForeground(alwaysConfirm: false)` brings the app forward with no confirmation step.
+   iOS 16.0 to 25 (limitation): `openAppWhenRun` opens the app first and there is no native refusal. When Siri is off, the app ignores the request (step 5).
+   The app writes `siriRemindersActive` (`WidgetBridge.setSiriActive`, `utils/widget.ts`) on launch, on every change to the Siri flag, preference or Reminders module, and each time it returns to the foreground. Until the app has run once after install, Siri refuses.
+3. The intent opens `reminderly://add?text=<percent-encoded text>`. Query separators (`&+=?#`) are encoded too, so they stay part of the text.
+4. `AppDelegate.scene(_:openURLContexts:)` checks the scheme and host, escapes the text, and runs JavaScript in the WebView that sets `localStorage['reminderly.pendingSiriText']` and dispatches `reminderly:siri-add`.
+5. `App.tsx` reads and removes the pending text on the event and on mount. If Siri for reminders is not active (Reminders module on, `reminderly-ff-siri-reminders` and the user's Siri preference on), the text is discarded. This in-app gate stays as a second layer behind the native check.
+6. `utils/siri.ts` parses the text with the NLC parser in auto-apply mode, with a fallback for month-name dates ("March 5", "5th of March"). A month-name date with no year that has already passed means next year. A time with no date means today, or tomorrow once that time has passed. No date means Sometime. A repeat rule is created only when repeat reminders are active.
+7. The reminder is added through the normal `addReminder` path, so it is persisted, notified and highlighted like any other.
 
 Any app or link that opens `reminderly://add?text=...` creates a reminder the same way.
 

@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import fs from 'fs';
+import path from 'path';
 import { buildSiriReminder } from '../utils/siri';
 
 // Thursday 22 October 2026, 3:00pm local
@@ -89,5 +91,19 @@ describe('Siri reminder parsing', () => {
       expect(build('Take pills every day', now, true).repeatRule).not.toBeNull();
       expect(build('Take pills every day', now, false).repeatRule).toBeNull();
     });
+  });
+});
+
+// Settings lists the phrases registered with iOS, so the two lists must match
+describe('Siri phrases', () => {
+  const read = (file: string) => fs.readFileSync(path.resolve(__dirname, file), 'utf8');
+
+  it('settings lists exactly the phrases registered in AppShortcuts.swift', () => {
+    const swift = [...read('../../../ios/App/App/AppShortcuts.swift').matchAll(/"([^"]*)\\\(\.applicationName\)([^"]*)"/g)]
+      .map((m) => `${m[1]}Reminderly${m[2]}`);
+    const listBlock = read('../components/SettingsPanelContent.tsx').match(/SIRI_PHRASES = \[([\s\S]*?)\];/)![1];
+    const listed = [...listBlock.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+    expect(swift).toHaveLength(4);
+    expect(listed).toEqual(swift);
   });
 });

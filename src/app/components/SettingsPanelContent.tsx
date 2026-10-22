@@ -228,6 +228,36 @@ function TutorialRow({ label, onClick }: { label: string; onClick: () => void })
 }
 
 const SIRI_INFO = "Lets you add reminders by voice with Siri and the Shortcuts app. When off, Reminderly does not add reminders from Siri.";
+
+// The phrases registered in ios/App/App/AppShortcuts.swift; keep both in step. All of them always work.
+export const SIRI_PHRASES = [
+  "Add to Reminderly app",
+  "Remind me in Reminderly app",
+  "New reminder in Reminderly app",
+  "Add a reminder in Reminderly app",
+];
+
+// Siri shortcuts sub-page, laid out like Haptic feedback: the on/off, a key line, then the phrases Siri recognises and how to go on,
+// inactive (#D9D9D9) while Siri is off. The phrases are a list to read, not a choice.
+function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange: (value: boolean) => void }) {
+  return (
+    <>
+      <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />
+      <KeyLine />
+      <p className="font-['Lato:SemiBold',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
+        You can use any of these with Siri...
+      </p>
+      {SIRI_PHRASES.map((phrase) => (
+        <p key={phrase} className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
+          {`\u201C${phrase}\u201D`}
+        </p>
+      ))}
+      <p className="font-['Lato:SemiBold',sans-serif] leading-[23px] text-[17px] w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
+        Then reply when Siri asks.
+      </p>
+    </>
+  );
+}
 const SOUNDS_INFO = "Choose when Reminderly plays a soft click, such as when you complete or delete an item.";
 
 export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailable, notifPrefs, notifPermissionDenied, onNotifChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; notifPermissionDenied: boolean; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
@@ -238,11 +268,11 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       title="Reminders settings"
       subPage={subPage}
       onBack={() => setSubPage(null)}
-      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : subPage === "Sounds" ? <SoundSettings panel="reminders" /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : null}
+      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Haptic feedback" ? <HapticSettings panel="reminders" /> : subPage === "Sounds" ? <SoundSettings panel="reminders" /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
       {datePresetsAvailable && <ToggleRow label="Show date presets" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
-      {siriAvailable && <ToggleRow label="Use Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
       {oneMinuteAvailable && <ToggleRow label="1 minute time increments" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 5 minute steps." />}
+      {siriAvailable && <MenuRow label="Siri shortcuts" onClick={() => setSubPage("Siri shortcuts")} infoTitle="Turn Siri on or off and see what to say to add a reminder with your voice." />}
       {notificationsAvailable && <MenuRow label="Notifications" onClick={() => setSubPage("Notifications")} infoTitle="Choose how Reminderly alerts you when reminders are due, with or without sound, and whether the app icon shows a badge." />}
       {nlcAvailable && <MenuRow label="Natural Language Capture" onClick={() => setSubPage("Natural Language Capture")} infoTitle="Reminderly can pick out dates, times and repeats as you type, such as 'tomorrow at 3pm' or 'every Monday'. Choose what is recognised and how it works." />}
       {hapticsAvailable && <MenuRow label="Haptic feedback" onClick={() => setSubPage("Haptic feedback")} infoTitle="Choose when your iPhone gives a small vibration, such as when you complete or delete a reminder." />}

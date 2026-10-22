@@ -1,6 +1,6 @@
 # Siri Phase 1: technical reliability - plan
 
-Status: approved, implementation in progress.
+Status: implemented on `fix/siri-reliability`. John's iPhone Siri tests passed, including cold launch (2026-10-22). Awaiting CTO merge approval.
 
 Type C under Working Agreement v1.3 (protected areas: date handling, time handling, reminder creation). Branch `fix/siri-reliability` from `main` at 4f274c6.
 

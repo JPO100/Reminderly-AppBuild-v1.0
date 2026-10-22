@@ -76,8 +76,9 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 Created: 2026-10-22
 Parent: main (4f274c6)
 Purpose: Siri Phase 1, technical reliability ([plans/siri-phase-1.md](./plans/siri-phase-1.md)). Type C. The intent encodes "&+=?#" so "&" no longer cuts the text short. A time with no date at or before the current minute moves to tomorrow. A month-name date with no year that has passed moves to next year. The Siri settings info text is corrected. The Siri parsing moved from App.tsx to utils/siri.ts for tests. Siri still acts only when the flag, the preference and the Reminders module are all on; otherwise the request is ignored (John, D1)
-Verification: Vitest 265/265 (16 new Siri tests), Self Check 412/412 (Node run), simulator and iPhone builds installed and launched. Siri cold-launch test on the iPhone outstanding (needs John: voice and Dev tools)
-Status: Awaiting CTO review. Not merged
+Verification: Vitest 265/265 (16 new Siri tests), Self Check 412/412 (Node run), type-check clean, production build successful, simulator and iPhone builds installed and launched. John's iPhone Siri tests passed (cold launch, background, lock screen, Siri off, several variations), 2026-10-22. Phase 1 accepted from functional testing
+Follow-up: relative time expressions ("Call mum in an hour" creates a Sometime reminder) recorded as a feature gap for Siri Phase 4, not a Phase 1 defect. Sequence: Phase 2 Siri phrases, Phase 3 Siri onboarding, Phase 4 relative time expressions
+Status: Awaiting CTO merge approval. Not merged
 
 ### fix/list-item-edit-background-save
 

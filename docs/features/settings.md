@@ -134,18 +134,18 @@ With the settings menu on, a settings button in the Reminders or Lists header op
 
 Reminders settings:
 
-- 1 minute time increments (toggle)
+- 1 minute time steps (toggle)
 - Siri shortcuts (page): Siri shortcuts on/off, a key line, "To add a reminder with Siri just say...", "“Hey Siri...”" and the phrase "Add to Reminderly app" (both bold), then "...then when Siri replies, say your reminder.", inactive while Siri is off. The phrase is registered in `AppShortcuts.swift` and listed in `SIRI_PHRASES`; a test keeps them in step. Phrases containing "remind" or "reminder" were removed because Siri asked "Reminderly or Notes?" every time
-- Notifications (page): Notifications, Sound (inactive while Notifications is off), a key line, App badge, Include today in badge (inactive while App badge is off); "Turn on in Settings" at the top when iOS permission is denied
-- Natural Language Capture (page): on/off, Recognise dates, times, repeats (repeats only while repeat reminders are active), Apply as you type
+- Notifications (page): Notifications, Alert sound (inactive while Notifications is off), a key line, Overdue badge, Include due today (inactive while Overdue badge is off); "Allow in iOS Settings" at the top when iOS permission is denied
+- Natural Language Capture (page): on/off, Recognise dates, times, repeats (repeats only while repeat reminders are active), Set dates as you type
 - Haptic feedback (page), Sounds (page)
 - Reminders tutorial (re-runs the tutorial)
 
 Lists settings:
 
 - Sort items A to Z (toggle, `reminderly-pref-list-sort-az`, default off): item order for every list
-- Clear done lists nightly (toggle, `reminderly-pref-list-auto-clear`, default off): fully ticked lists move to Done after midnight (see [lists.md](./lists.md))
-- Use Siri shortcuts (toggle, only once Siri for lists exists)
+- Ticked lists to Done (toggle, `reminderly-pref-list-auto-clear`, default off): fully ticked lists move to Done after midnight (see [lists.md](./lists.md))
+- Siri shortcuts (toggle, only once Siri for lists exists)
 - Haptic feedback (page), Sounds (page)
 - Lists tutorial
 

@@ -53,7 +53,7 @@ export function OnboardingSiriText() {
         </div>
       </div>
       <div className={TUTORIAL_BODY_CLASSNAME}>
-        <p className="css-4hzbpn leading-[30px]">Say &ldquo;Hey Siri, add to Reminderly app&rdquo;<br />then tell Siri your reminder</p>
+        <p className="css-4hzbpn leading-[30px]">Say <span className="text-[#4784F8]">&ldquo;Hey Siri, add to Reminderly app&rdquo;</span><br />then tell Siri your reminder</p>
       </div>
     </div>
   );

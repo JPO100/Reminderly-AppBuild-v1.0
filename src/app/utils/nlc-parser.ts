@@ -47,6 +47,67 @@ export const MONTH_NAME_TO_NUMBER: Record<string, number> = {
 // All month name variants as regex fragment (case-insensitive via /i flag)
 const MONTH_NAMES = '(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)';
 
+// Spoken numbers one to twelve (Siri may pass words rather than digits)
+export const NUMBER_WORD_TO_NUMBER: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+  seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12,
+};
+const NUMBER_WORDS = '(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)';
+
+/** A spoken amount: digits, a number word, or "a"/"an" (one). Null when not a number. */
+export function spokenNumber(value: string): number | null {
+  const lower = value.toLowerCase();
+  if (lower === 'a' || lower === 'an') return 1;
+  if (/^\d+$/.test(lower)) return parseInt(lower, 10);
+  return NUMBER_WORD_TO_NUMBER[lower] ?? null;
+}
+
+// "in 10 minutes", "in an hour", "in two hours" (time) and "in 2 days" (date): amounts 1 to 99
+const RELATIVE_AMOUNT = `(\\d{1,2}|${NUMBER_WORDS}|an?)`;
+const RELATIVE_TIME_REGEX = new RegExp(`\\bin\\s+${RELATIVE_AMOUNT}\\s+(minutes?|mins?|hours?|hrs?)\\b`, 'gi');
+const RELATIVE_DAYS_REGEX = new RegExp(`\\bin\\s+${RELATIVE_AMOUNT}\\s+days?\\b`, 'gi');
+
+// Spoken clock times: "4 o'clock", "half past four", "quarter past 4", "quarter to five", optionally with am/pm
+const CLOCK_HOUR = `(\\d{1,2}|${NUMBER_WORDS})`;
+const SPOKEN_CLOCK_REGEX = new RegExp(
+  `\\b(?:(half|quarter)\\s+(past|to)\\s+${CLOCK_HOUR}|${CLOCK_HOUR}\\s+o['’]?\\s?clock)(?:\\s*(am|pm)\\b)?`,
+  'gi'
+);
+// A number word with am/pm: "four pm"
+const WORD_AM_PM_REGEX = new RegExp(`\\b${NUMBER_WORDS}\\s*(?:am|pm)\\b`, 'gi');
+
+function isRelativeAmount(value: string): boolean {
+  const amount = spokenNumber(value);
+  return amount !== null && amount >= 1 && amount <= 99;
+}
+
+/**
+ * The first explicit clock time whose minutes are not 00, 15, 30 or 45 ("4:10pm", "16:10"), or null.
+ * Matches the same 12-hour and 24-hour forms the time tokens use. Siri refuses these rather than rounding them.
+ */
+export function findUnsupportedClockTime(text: string): { text: string; hour: number; minute: number; is24Hour: boolean } | null {
+  const patterns: { regex: RegExp; is24Hour: boolean }[] = [
+    { regex: /\b(\d{1,2}):(\d{2})\s*(am|pm)\b/gi, is24Hour: false },
+    { regex: /\b([01]?\d|2[0-3]):([0-5]\d)\b/g, is24Hour: true },
+  ];
+  for (const { regex, is24Hour } of patterns) {
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      let hour = parseInt(match[1], 10);
+      const minute = parseInt(match[2], 10);
+      if (!is24Hour && (hour < 1 || hour > 12)) continue;
+      if (minute > 59 || [0, 15, 30, 45].includes(minute)) continue;
+      if (!is24Hour) {
+        const period = match[3].toLowerCase();
+        if (period === 'pm' && hour !== 12) hour += 12;
+        if (period === 'am' && hour === 12) hour = 0;
+      }
+      return { text: match[0], hour, minute, is24Hour };
+    }
+  }
+  return null;
+}
+
 /** Check if a month/day combination is valid (handles leap years) */
 function isValidMonthDay(month: number, day: number, year: number): boolean {
   if (day < 1) return false;
@@ -65,11 +126,15 @@ function isValidMonthDay(month: number, day: number, year: number): boolean {
  * - weekday names (Monday…Sunday)
  * - next <weekday>
  * - "on <weekday>" — the token is just the weekday, "on" is context
+ * - (the) day after tomorrow
+ * - in N days (N 1-99, digits, one…twelve or "a")
  *
  * Time tokens:
- * - Xam/pm, X:MMam/pm, X am/pm, X:MM am/pm
+ * - Xam/pm, X:MMam/pm, X am/pm, X:MM am/pm, and number words ("four pm")
  * - HH:MM (24h) — only if hour 0-23 and minute 00/15/30/45
  * - Only recognised if minutes are 00, 15, 30, or 45
+ * - X o'clock, half past X, quarter past X, quarter to X (optionally am/pm)
+ * - in N minutes/mins/hours (N 1-99, digits, one…twelve or "a"/"an")
  *
  * Repeats tokens:
  * - every day, every week, every month, every hour
@@ -153,6 +218,12 @@ export function parseTokens(text: string, recognition: NlcRecognitionConfig = AL
   // "next <weekday>"
   collect(new RegExp(`\\bnext\\s+${WEEKDAY}\\b`, 'gi'), 'date');
 
+  // "the day after tomorrow" (longer than "tomorrow", so it wins the overlap)
+  collect(/\b(?:the\s+)?day\s+after\s+tomorrow\b/gi, 'date');
+
+  // "in 2 days", "in two days", "in a day" (1 to 99)
+  collect(RELATIVE_DAYS_REGEX, 'date', (match) => isRelativeAmount(match[1]));
+
   // Bare weekday names (will be deduplicated against repeats via overlap removal)
   collect(new RegExp(`\\b${WEEKDAY}\\b`, 'gi'), 'date');
 
@@ -235,6 +306,18 @@ export function parseTokens(text: string, recognition: NlcRecognitionConfig = AL
       return true;
     }
   );
+
+  // Relative times: "in 10 minutes", "in 30 mins", "in an hour", "in two hours" (1 to 99)
+  collect(RELATIVE_TIME_REGEX, 'time', (match) => isRelativeAmount(match[1]));
+
+  // Spoken clock times: "4 o'clock", "half past four", "quarter to five" (hour 1-12)
+  collect(SPOKEN_CLOCK_REGEX, 'time', (match) => {
+    const hour = spokenNumber(match[3] ?? match[4]);
+    return hour !== null && hour >= 1 && hour <= 12;
+  });
+
+  // Number words with am/pm: "four pm"
+  collect(WORD_AM_PM_REGEX, 'time');
 
   // ── Time-of-day tokens (collected separately for suppression) ──
 

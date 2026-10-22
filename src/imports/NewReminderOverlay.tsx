@@ -4,6 +4,7 @@ import { keepRepeatRuleWhenOff } from "../app/settings/resolver";
 import {
   parseDateTokenValue,
   parseTimeTokenValue,
+  parseRelativeTimeValue,
   parseRepeatsTokenValue,
   computeEligibleTokens,
   computeInvalidation,
@@ -962,6 +963,15 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
         break;
       }
       case 'time': {
+        // Relative times ("in an hour") set their own date, which can be tomorrow
+        const relative = parseRelativeTimeValue(token.text, new Date());
+        if (relative) {
+          applyToggleStateSilently('date', true);
+          setSelectedDate(relative.date);
+          applyToggleStateSilently('time', true);
+          setSelectedTime(relative.time);
+          break;
+        }
         const time = parseTimeTokenValue(token.text);
         if (time) {
           // Compound tokens (this morning, tonight, etc.) and standalone time tokens

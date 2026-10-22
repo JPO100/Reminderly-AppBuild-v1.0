@@ -17,7 +17,7 @@ import type { NlcMode } from "./utils/nlc-interaction";
 import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
 import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
-import { syncWidget } from "./utils/widget";
+import { syncWidget, syncSiriActive } from "./utils/widget";
 import { buildSiriReminder } from "./utils/siri";
 import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMode } from "./reminder-utils";
 import { formatTime12h } from "./utils/normalise-text";
@@ -1815,6 +1815,11 @@ export default function App() {
       }, INSERT_HIGHLIGHT_MS);
     }, NEW_REMINDER_INSERT_DELAY);
   }, [maybeAskForNotifications]);
+
+  // Tells the Siri intent whether to accept requests (docs/plans/siri-off-refusal.md)
+  useEffect(() => {
+    syncSiriActive(isSiriRemindersActive);
+  }, [isSiriRemindersActive]);
 
   useEffect(() => {
     const PENDING_SIRI_TEXT_KEY = 'reminderly.pendingSiriText';

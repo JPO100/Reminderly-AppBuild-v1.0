@@ -216,16 +216,21 @@ export function DevToolsInfoOverlay({ visible, onClose, header, title }: { visib
 // "Show info icons" toggle (default off), provided around those panels in App. All infoTitle copy is kept.
 export const ShowInfoIconsContext = createContext(true);
 
+// The settings panels provide this so an info icon opens its description as a page in the same card, not a second overlay.
+// Without it (Dev tools), the icon opens the info overlay.
+export const InfoPageContext = createContext<((header: string, title: string) => void) | null>(null);
+
 export function InfoIconWithOverlay({ color, header, title }: { color?: string; header: string; title: string }) {
   const [showInfo, setShowInfo] = useState(false);
   const showInfoIcons = useContext(ShowInfoIconsContext);
+  const openInfoPage = useContext(InfoPageContext);
   if (!showInfoIcons) return null;
   return (
     <>
-      <span onClick={(e) => { e.stopPropagation(); setShowInfo(true); }} className="shrink-0 cursor-pointer">
+      <span onClick={(e) => { e.stopPropagation(); if (openInfoPage) openInfoPage(header, title); else setShowInfo(true); }} className="shrink-0 cursor-pointer">
         <InfoIcon color={color} />
       </span>
-      <DevToolsInfoOverlay visible={showInfo} onClose={() => setShowInfo(false)} header={header} title={title} />
+      {!openInfoPage && <DevToolsInfoOverlay visible={showInfo} onClose={() => setShowInfo(false)} header={header} title={title} />}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ToggleRow, MenuRow, KeyLine } from "./DevToolsOverlay";
+import { ToggleRow, MenuRow, KeyLine, InfoPageContext } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
 import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics";
@@ -83,20 +83,38 @@ function ScrollArea({ children }: { children: ReactNode }) {
   );
 }
 
+// Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
+// with Back returning to the page it was opened from. The card fits its height to the text.
+function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
+  return (
+    <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
+      <PanelHeader title={header} />
+      <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>
+      <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
+        <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
+      </button>
+    </div>
+  );
+}
+
 // Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
 // Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged.
 function PanelShell({ title, subPage, onBack, subContent, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
+  const [info, setInfo] = useState<{ header: string; title: string } | null>(null);
   useLayoutEffect(() => {
-    if (subPage === null && rootRef.current) setMainHeight(rootRef.current.offsetHeight);
+    if (subPage === null && info === null && rootRef.current) setMainHeight(rootRef.current.offsetHeight);
   });
+  if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
-    <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight } : undefined}>
-      <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
-      {content && <ScrollArea>{content}</ScrollArea>}
-    </div>
+    <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
+      <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight } : undefined}>
+        <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
+        {content && <ScrollArea>{content}</ScrollArea>}
+      </div>
+    </InfoPageContext.Provider>
   );
 }
 

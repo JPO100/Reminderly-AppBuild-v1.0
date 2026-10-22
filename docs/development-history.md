@@ -71,6 +71,14 @@ Merge - 2026-10-09: Settings Menu Phase 2 and Settings panel updates
 - Final approved positioning: all sliding panels stop 28px below the bottom edge of the Reminderly logo, with Lists on or off
 - Verification on main: Vitest 53/53, Self Check 334/334, production build successful. Physical iPhone testing passed
 
+### fix/siri-reliability
+
+Created: 2026-10-22
+Parent: main (4f274c6)
+Purpose: Siri Phase 1, technical reliability ([plans/siri-phase-1.md](./plans/siri-phase-1.md)). Type C. The intent encodes "&+=?#" so "&" no longer cuts the text short. A time with no date at or before the current minute moves to tomorrow. A month-name date with no year that has passed moves to next year. The Siri settings info text is corrected. The Siri parsing moved from App.tsx to utils/siri.ts for tests. Siri still acts only when the flag, the preference and the Reminders module are all on; otherwise the request is ignored (John, D1)
+Verification: Vitest 265/265 (16 new Siri tests), Self Check 412/412 (Node run), simulator and iPhone builds installed and launched. Siri cold-launch test on the iPhone outstanding (needs John: voice and Dev tools)
+Status: Awaiting CTO review. Not merged
+
 ### fix/list-item-edit-background-save
 
 Created: 2026-10-20

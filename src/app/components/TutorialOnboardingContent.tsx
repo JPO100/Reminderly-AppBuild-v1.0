@@ -38,7 +38,8 @@ import TutorialReminderFilters, {
 } from '@/app/components/TutorialReminderFilters';
 import OnboardingCreateReminderPhone, { OnboardingCreateReminderText, OnboardingTypeNaturallyText } from '@/app/components/OnboardingCreateReminderContent';
 import OnboardingNotificationAskPhone, { OnboardingNotificationAskAction, OnboardingNotificationAskText } from '@/app/components/OnboardingNotificationAskContent';
-import { getTutorialPageIds, TUTORIAL_PAGE_CREATE_REMINDER, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_PAGE_TYPE_NATURALLY } from '@/app/utils/tutorial-pages';
+import OnboardingSiriPhone, { OnboardingSiriText } from '@/app/components/OnboardingSiriContent';
+import { getTutorialPageIds, TUTORIAL_PAGE_CREATE_REMINDER, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_PAGE_SIRI, TUTORIAL_PAGE_TYPE_NATURALLY } from '@/app/utils/tutorial-pages';
 import type { NlcTutorialDemo } from '@/app/utils/tutorial-nlc-demo';
 
 interface TutorialOnboardingContentProps {
@@ -58,6 +59,8 @@ interface TutorialOnboardingContentProps {
   notificationPermission?: string | null;
   onNotificationAllow?: () => Promise<unknown> | void;
   onNotificationAskPageChange?: (isOnPage: boolean) => void;
+  // Reminders tutorial: Add reminders with Siri page (Siri for reminders available)
+  siriAvailable?: boolean;
   // Reminders tutorial: Re-run this tutorial page shows the settings rows the app shows
   remindersSettings?: TutorialRemindersSettings;
   // Lists tutorial: Re-run this tutorial page shows the Lists settings rows the app shows
@@ -1509,6 +1512,7 @@ export default function TutorialOnboardingContent({
   notificationPermission = null,
   onNotificationAllow,
   onNotificationAskPageChange,
+  siriAvailable = false,
   remindersSettings,
   listsSettings,
 }: TutorialOnboardingContentProps) {
@@ -1516,8 +1520,8 @@ export default function TutorialOnboardingContent({
   const [currentStep, setCurrentStep] = useState(0);
   const nlcDemoAvailable = nlcDemo != null;
   const pageIds = useMemo(
-    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible }),
-    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible],
+    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable }),
+    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable],
   );
   const totalPages = pageIds.length;
   const currentPage = pageIds[Math.min(currentStep, totalPages - 1)];
@@ -1713,6 +1717,15 @@ export default function TutorialOnboardingContent({
                 calendarEnabled={calendarEnabled}
                 showRepeats={repeatsEnabled}
               />
+            </div>
+          </div>
+        )}
+
+        {!isListsTutorial && currentPage === TUTORIAL_PAGE_SIRI && (
+          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
+            <OnboardingSiriText />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
+              <OnboardingSiriPhone isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
             </div>
           </div>
         )}

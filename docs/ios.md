@@ -35,7 +35,7 @@ Capacitor plugins registered: App, Haptics, LocalNotifications (patched), Badge 
 
 Implemented for reminders. Siri for lists is not built.
 
-1. `AppShortcuts.swift` exposes the phrase "Add to Reminderly app" (`AddReminderIntent`, iOS 16+). Siri asks "What would you like to be reminded about?".
+1. `AppShortcuts.swift` exposes four phrases, all always active: "Add to Reminderly app", "Remind me in Reminderly app", "New reminder in Reminderly app" and "Add a reminder in Reminderly app" (`AddReminderIntent`, iOS 16+). Reminders settings > Siri shortcuts lists them. Siri asks "What would you like to be reminded about?".
 2. The intent opens `reminderly://add?text=<percent-encoded text>` and brings the app to the foreground. Query separators (`&+=?#`) are encoded too, so they stay part of the text.
 3. `AppDelegate.scene(_:openURLContexts:)` checks the scheme and host, escapes the text, and runs JavaScript in the WebView that sets `localStorage['reminderly.pendingSiriText']` and dispatches `reminderly:siri-add`.
 4. `App.tsx` reads and removes the pending text on the event and on mount. If Siri for reminders is not active (Reminders module on, `reminderly-ff-siri-reminders` and the user's Siri preference on), the text is discarded.

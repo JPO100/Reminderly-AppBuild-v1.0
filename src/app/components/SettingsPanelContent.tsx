@@ -143,7 +143,7 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
 // Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
 // A sub-page with a version line has a taller header, so its scroll area measures from that much less.
 // Support pages sit 30px under the title, not 40px (John, 2026-10-23); their scroll area measures from that much more.
-function PanelShell({ title, subPage, subVersion, subTitleGap = 40, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subTitleGap?: number; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
+function PanelShell({ title, subPage, subVersion, subTitleGap = 40, subText = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subTitleGap?: number; subText?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
@@ -167,7 +167,9 @@ function PanelShell({ title, subPage, subVersion, subTitleGap = 40, onBack, subC
       <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight + grow } : {}) }}>
         <PanelHeader title={subPage ?? title} version={subPage ? subVersion : undefined} onBack={subPage ? onBack : undefined} />
         {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
-        {content && <ScrollArea key={subPage ?? ""} baseHeight={subPage && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) - (subVersion ? VERSION_LINE_HEIGHT : 0) : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
+        {/* Text pages (Support documents) scroll freely within the page's height: their tall blocks have no row middles to cut through */}
+        {content && subPage && subText && <div key={subPage} className="relative w-full min-h-0 flex-1 overflow-y-auto">{content}</div>}
+        {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) - (subVersion ? VERSION_LINE_HEIGHT : 0) : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>
   );
@@ -341,15 +343,57 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
 }
 
 // Support pages: FAQs differ per panel, with their own version; Privacy policy and Terms of use are shared by both panels.
-// Placeholder copy for now (John, 2026-10-23).
-type SupportDoc = { version: string; paragraphs: string[] };
+// FAQs and Terms of use are placeholder copy for now (John, 2026-10-23).
+// A paragraph is plain text or a run of text and links; "\n" breaks a line. Sections are 30px apart, with 15px inside.
+type DocLink = { text: string; href: string };
+type DocParagraph = string | (string | DocLink)[];
+type DocSection = { heading?: string; paragraphs: DocParagraph[] };
+type SupportDoc = { version: string; sections: DocSection[] };
 
 const PLACEHOLDER_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam velit lorem, rutrum quis felis eu, sodales ultrices arcu. Quisque a ultrices orci, rutrum dictum libero.";
 
-const REMINDERS_FAQS: SupportDoc = { version: "Version 1.0", paragraphs: [PLACEHOLDER_TEXT] };
-const LISTS_FAQS: SupportDoc = { version: "Version 1.0", paragraphs: [PLACEHOLDER_TEXT] };
-const PRIVACY_POLICY: SupportDoc = { version: "Version 1.0", paragraphs: [PLACEHOLDER_TEXT] };
-const TERMS_OF_USE: SupportDoc = { version: "Version 1.0", paragraphs: [PLACEHOLDER_TEXT] };
+const REMINDERS_FAQS: SupportDoc = { version: "Version 1.0", sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
+const LISTS_FAQS: SupportDoc = { version: "Version 1.0", sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
+const TERMS_OF_USE: SupportDoc = { version: "Version 1.0", sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
+
+// Privacy policy Version 1.0 (John and Kai, 2026-10-23)
+const PRIVACY_POLICY: SupportDoc = {
+  version: "Version 1.0",
+  sections: [
+    { paragraphs: [
+      "Last updated: 23 October 2026",
+      "Reminderly is developed and operated by Neatly Made Limited, a company registered in the United Kingdom.",
+      "We believe your reminders are your business. This policy explains how we handle your information.",
+    ] },
+    { heading: "Your information", paragraphs: [
+      "Reminderly does not require an account or registration and does not collect personally identifiable information (PII) through the app.",
+      "Your reminders, lists, preferences and attachments are stored locally on your device, not on our servers.",
+      "If you contact us by email, we use the personal information you voluntarily provide only to respond to your enquiry.",
+    ] },
+    { heading: "Permissions", paragraphs: [
+      "Reminderly may request access to notifications, photos or your camera to provide features you choose to use. You can manage these permissions in your device settings.",
+    ] },
+    { heading: "Sharing and security", paragraphs: [
+      "We do not sell your personal information or share your reminder content with advertisers or other third parties.",
+      "Information stored on your device is protected by your device's security features. Information you send us is handled with appropriate safeguards.",
+    ] },
+    { heading: "Retention and deletion", paragraphs: [
+      "Your reminders, lists and attachments remain on your device until you delete them or remove the app and its local data.",
+      "Support correspondence is retained only as long as reasonably necessary to handle your enquiry and meet any legal obligations.",
+    ] },
+    { heading: "Your rights", paragraphs: [
+      "Under UK data protection law, you may have rights to access, correct, delete or restrict the use of personal information we hold about you, or object to its processing.",
+      "You can withdraw optional device permissions at any time through your device settings.",
+      ["To exercise your rights, contact us using the details below. You may also complain to the UK Information Commissioner's Office at ", { text: "www.ico.org.uk", href: "https://www.ico.org.uk" }, "."],
+    ] },
+    { heading: "Changes to this policy", paragraphs: [
+      "We may update this policy when Reminderly changes. The latest version will be available in the app and on our website.",
+    ] },
+    { heading: "Contact", paragraphs: [
+      ["Neatly Made Limited\nWebsite: ", { text: "neatlymade.co", href: "https://neatlymade.co" }, "\nEmail: ", { text: "info@neatlymade.co", href: "mailto:info@neatlymade.co" }],
+    ] },
+  ],
+};
 
 // The pages opened from Support; Back from these returns to Support
 const SUPPORT_DOC_PAGES = ["FAQs", "Privacy policy", "Terms of use"];
@@ -373,16 +417,29 @@ function SupportSettings({ onOpen }: { onOpen: (page: string) => void }) {
   );
 }
 
-// A Support page's text: centred grey paragraphs, each its own row so long text scrolls like the other sub-pages.
+// A Support page's text: centred grey paragraphs under dark blue section headings, links in Reminderly blue.
+// Links open outside the app (Safari or Mail): the web view hands off navigation away from the app. They open in the
+// same window, as a new window (target _blank) is not handed off and does nothing.
 function SupportDocPage({ doc }: { doc: SupportDoc }) {
   return (
-    <>
-      {doc.paragraphs.map((paragraph, index) => (
-        <p key={index} className="font-['Lato:Medium',sans-serif] leading-[24px] text-[17px] text-[#BABABA] text-center w-full">
-          {paragraph}
-        </p>
+    <div className="flex flex-col gap-[30px] w-full">
+      {doc.sections.map((section, sectionIndex) => (
+        <div key={sectionIndex} className="flex flex-col gap-[15px] w-full">
+          {section.heading && (
+            <p className="font-['Lato:Bold',sans-serif] leading-[24px] text-[17px] text-[#1C2C42] text-center w-full" style={{ fontWeight: 700 }}>
+              {section.heading}
+            </p>
+          )}
+          {section.paragraphs.map((paragraph, index) => (
+            <p key={index} className="font-['Lato:Medium',sans-serif] leading-[24px] text-[17px] text-[#BABABA] text-center w-full whitespace-pre-line">
+              {typeof paragraph === "string" ? paragraph : paragraph.map((part, partIndex) => typeof part === "string" ? part : (
+                <a key={partIndex} href={part.href} className="text-[#4784F8] no-underline">{part.text}</a>
+              ))}
+            </p>
+          ))}
+        </div>
       ))}
-    </>
+    </div>
   );
 }
 
@@ -411,6 +468,7 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       subPage={subPage}
       subVersion={supportDoc?.version}
       subTitleGap={supportTitleGap(subPage)}
+      subText={supportDoc !== null}
       onBack={() => setSubPage(supportBack(subPage))}
       subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
@@ -431,7 +489,7 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
   const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subTitleGap={supportTitleGap(subPage)} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
       <ToggleRow label="Sort items A to Z" isOn={sortAzOn} onToggle={() => onSortAzChange(!sortAzOn)} infoTitle="Sorts the items in every list alphabetically. When off, items appear in the order you added them, most recent at the top." />
       <ToggleRow label="Ticked lists to Done" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

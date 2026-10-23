@@ -31,7 +31,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 |---|----------|-------|
 | D2 | Release feature defaults | Recommendations below for John's review |
 | D3 | Release scope for unfinished features (notification preferences, Siri for lists, NLC phone and contacts, attachments) | Unfinished features must be hidden or complete (2.1, 2.3.1) |
-| D4 | Privacy policy, terms of use and support site: content, owner and hosting | Needed whether or not the app is paid |
+| D4 | Privacy policy, terms of use and support site: content, owner and hosting | Needed whether or not the app is paid. Privacy policy Version 1.0 text in the app (feature/reminder-list-settings, not merged); terms of use and FAQs still placeholders; neatlymade.co does not resolve (2026-10-23), so no hosted policy URL yet |
 | D5 | Countries and storefronts, and seller details (individual or company) | Affects EU trader status and pricing |
 
 ## Recommended release defaults (for John's review)
@@ -68,10 +68,10 @@ With developer tools excluded, these values are what users get. Development defa
 
 | Requirement | Status | Reference | Notes |
 |-------------|--------|-----------|-------|
-| Privacy policy linked in the app and in App Store Connect | Outstanding (D4) | 5.1.1(i) | No link in the app today |
+| Privacy policy linked in the app and in App Store Connect | In progress (D4) | 5.1.1(i) | In the app under Settings > Support > Privacy policy (feature/reminder-list-settings, not merged). App Store Connect needs a hosted URL; neatlymade.co does not resolve yet |
 | Privacy manifest (`PrivacyInfo.xcprivacy`) for the app and widget | Outstanding | Required reason APIs; ITMS-91053 | UserDefaults used by app Swift code, widget, patched notifications plugin and the badge plugin (CA92.1, 1C8F.1) |
 | App Privacy answers ("nutrition label") | Outstanding | App Store Connect | Expected "Data Not Collected" unless monetisation tooling or fonts change this |
-| Bundle the Lato font instead of loading Google Fonts | Outstanding (recommended) | 5.1.1, privacy accuracy | Runtime request to `fonts.googleapis.com`; also affects offline appearance |
+| Bundle the Lato font instead of loading Google Fonts | Outstanding (recommended) | 5.1.1, privacy accuracy | Runtime request to `fonts.googleapis.com` sends the device IP address to Google on launch; the only third-party request found in the 2026-10-23 privacy audit and relevant to the policy's no-sharing statement. Also affects offline appearance |
 | Camera and photo library permission strings (attachments) | Done | 5.1.1, 2.5.1 | `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`, `NSPhotoLibraryAddUsageDescription` in Info.plist. Recommendation, not approved: include the Filesystem, Camera and File Picker plugins when preparing the privacy manifest |
 | Terms of use (Apple standard EULA or custom) | Pending D4 | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions |
 | Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Outstanding | App Store Connect | No non-exempt encryption used |
@@ -181,6 +181,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-23 | Privacy policy Version 1.0 in the app (Settings > Support, feature/reminder-list-settings, not merged). Privacy audit: no analytics, crash reporting, advertising or identifier SDKs and no app network calls; Google Fonts is the only third-party request. neatlymade.co does not resolve |
 | 2026-10-22 | Siri tutorial page merged to main (9067897): "Add reminders with Siri" in the Reminders tutorial while Siri is available |
 | 2026-10-22 | Siri creates reminders with the iPhone locked and in CarPlay, without opening Reminderly (2c0444d). Known issue 2 (Siri release defaults) unchanged |
 | 2026-10-22 | Siri Phase 2 complete: reduced to the single phrase "Add to Reminderly app" (617b75a), as the other phrases made Siri ask "Reminderly or Notes?" |

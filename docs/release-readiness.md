@@ -76,6 +76,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Camera and photo library permission strings (attachments) | Done | 5.1.1, 2.5.1 | `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`, `NSPhotoLibraryAddUsageDescription` in Info.plist. Recommendation, not approved: include the Filesystem, Camera and File Picker plugins when preparing the privacy manifest |
 | Terms of use (Apple standard EULA or custom) | In progress (D4) | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions. Custom Terms of Use Version 1.0 in the app under Settings > Support > Terms of use (feature/reminder-list-settings, not merged), approved in principle only |
 | LEGAL SIGN-OFF REQUIRED: Terms of Use Version 1.0 | Outstanding (must be resolved before release; does not block development) | Legal review | Text approved in principle by John (2026-10-23) and in the app, but must not go live until legal sign-off. Covers liability limits for missed reminders, governing law (England and Wales), consumer rights wording and the relationship with Apple's licence agreement. Update the version and date in the app if legal review changes the text |
+| Global distribution legal review: Privacy Policy and Terms of Use | Outstanding (must be resolved before release; does not block development) | Legal review, App Store country availability | John intends a global launch with the US as a priority market (2026-10-23). Confirm both documents are appropriate for international distribution, covering: US federal and state privacy and consumer requirements; UK and EU legal requirements; international enforceability of the Terms of Use (including the England and Wales governing law clause); and any country-specific App Store requirements. Related: D5 (countries and storefronts) and the Terms of Use legal sign-off above |
 | Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Outstanding | App Store Connect | No non-exempt encryption used |
 | Age rating (updated questionnaire) | Outstanding | Required since September 2026 | Expected lowest rating |
 | EU Digital Services Act trader status | Pending D5 | App Store Connect | Required for EU distribution |
@@ -183,6 +184,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-23 | Global distribution legal review added for the Privacy Policy and Terms of Use (US priority market; US, UK and EU requirements, enforceability, country-specific App Store requirements) |
 | 2026-10-23 | Lato bundled with the app; the Google Fonts request is removed, so the app makes no third-party requests found in the privacy audit |
 | 2026-10-23 | Terms of Use Version 1.0 in the app (Settings > Support, feature/reminder-list-settings, not merged), approved in principle only. Legal sign-off flagged as required before release |
 | 2026-10-23 | Outstanding action added: purchase and configure neatlymade.co and host the privacy policy at https://neatlymade.co/privacy before release |

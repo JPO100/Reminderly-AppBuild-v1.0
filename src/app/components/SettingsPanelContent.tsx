@@ -13,9 +13,10 @@ import type { SoundsConfig } from "../utils/sounds";
 // The version line under a Support page title: 8px gap plus a 20px line
 const VERSION_LINE_HEIGHT = 28;
 
-// Centred overlay header: title centred, back arrow on the left for sub-pages, and an optional grey version line under the title.
+// Centred overlay header: title centred, back arrow on the left for sub-pages, and an optional grey version line under the title,
+// with an optional last updated line under it in the same style (Privacy policy and Terms of use; John, 2026-10-23).
 // The back button pads the 9x17 arrow to a 45x45 tap area; the negative left offset keeps the arrow in place.
-function PanelHeader({ title, version, onBack }: { title: string; version?: string; onBack?: () => void }) {
+function PanelHeader({ title, version, updated, onBack }: { title: string; version?: string; updated?: string; onBack?: () => void }) {
   return (
     <div className="flex flex-col items-center shrink-0 w-full">
       <div className="relative flex items-center justify-center shrink-0 w-full">
@@ -35,6 +36,11 @@ function PanelHeader({ title, version, onBack }: { title: string; version?: stri
       {version && (
         <p className="font-['Lato:Medium',sans-serif] text-[15px] text-[#BABABA] leading-[20px] text-center mt-[8px]">
           {version}
+        </p>
+      )}
+      {updated && (
+        <p className="font-['Lato:Medium',sans-serif] text-[15px] text-[#BABABA] leading-[20px] text-center">
+          {updated}
         </p>
       )}
     </div>
@@ -161,7 +167,7 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
 // Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
 // A sub-page with a version line has a taller header, so its scroll area measures from that much less.
 // Support pages sit 30px under the title, not 40px (John, 2026-10-23); their scroll area measures from that much more.
-function PanelShell({ title, subPage, subVersion, subTitleGap = 40, subText = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subTitleGap?: number; subText?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
+function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, subText = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subUpdated?: string; subTitleGap?: number; subText?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
@@ -183,7 +189,7 @@ function PanelShell({ title, subPage, subVersion, subTitleGap = 40, subText = fa
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
       <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight + grow } : {}) }}>
-        <PanelHeader title={subPage ?? title} version={subPage ? subVersion : undefined} onBack={subPage ? onBack : undefined} />
+        <PanelHeader title={subPage ?? title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
         {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
         {/* Text pages (Support documents) scroll freely within the page's height: their tall blocks have no row middles to cut through */}
         {content && subPage && subText && <div key={subPage} className="relative w-full min-h-0 flex-1 overflow-y-auto">{content}</div>}
@@ -367,7 +373,8 @@ type DocParagraph = string | (string | DocLink)[];
 type DocSection = { heading?: string; paragraphs: DocParagraph[] };
 // topButton: a Back to top button after the text, styled as the info pages' Back button; the header arrow goes back (John, 2026-10-23).
 // FAQs use the same centred layout as the policy pages, all answers shown (John, after user testing, 2026-10-23).
-type SupportDoc = { version: string; sections: DocSection[]; topButton?: boolean };
+// lastUpdated shows in the fixed header under the version line, not in the text.
+type SupportDoc = { version: string; lastUpdated?: string; sections: DocSection[]; topButton?: boolean };
 
 // Reminders FAQs Version 1.0 (John and Kai, 2026-10-23): each question is a section heading, its answer the paragraph.
 // Recheck the NLC answer against the NLC release-readiness ticket (defaults and supported phrases) before release.
@@ -463,10 +470,10 @@ const LISTS_FAQS: SupportDoc = {
 // (docs/release-readiness.md, Privacy and legal).
 const TERMS_OF_USE: SupportDoc = {
   version: "Version 1.0",
+  lastUpdated: "Last updated: 23 October 2026",
   topButton: true,
   sections: [
     { paragraphs: [
-      "Last updated: 23 October 2026",
       "Reminderly is developed and operated by Neatly Made Limited, a company registered in the United Kingdom.",
       "By using Reminderly, you agree to these Terms of Use.",
     ] },
@@ -512,10 +519,10 @@ const TERMS_OF_USE: SupportDoc = {
 // Privacy policy Version 1.0 (John and Kai, 2026-10-23)
 const PRIVACY_POLICY: SupportDoc = {
   version: "Version 1.0",
+  lastUpdated: "Last updated: 23 October 2026",
   topButton: true,
   sections: [
     { paragraphs: [
-      "Last updated: 23 October 2026",
       "Reminderly is developed and operated by Neatly Made Limited, a company registered in the United Kingdom.",
       "We believe your reminders are your business. This policy explains how we handle your information.",
     ] },
@@ -635,6 +642,7 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       title="Reminders settings"
       subPage={subPage}
       subVersion={supportDoc?.version}
+      subUpdated={supportDoc?.lastUpdated}
       subTitleGap={supportTitleGap(subPage)}
       subText={supportDoc !== null}
       onBack={() => setSubPage(supportBack(subPage))}
@@ -656,7 +664,7 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
   const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
       <ToggleRow label="Sort items A to Z" isOn={sortAzOn} onToggle={() => onSortAzChange(!sortAzOn)} infoTitle="Sorts the items in every list alphabetically. When off, items appear in the order you added them, most recent at the top." />
       <ToggleRow label="Ticked lists to Done" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

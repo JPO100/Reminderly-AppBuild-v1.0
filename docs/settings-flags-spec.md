@@ -282,6 +282,7 @@ Not migrated (data and internal state, unchanged): `reminderly.reminders.v1`, `r
 - Recognition defaults: date, time and repeats on. Repeats recognition is also controlled by the repeat reminders flag (section 6).
 - The Siri path parses text independently of the NLC setting today and keeps doing so. NLC settings do not affect Siri.
 - When the NLC flag is turned on, the Natural Language Capture row in Reminders settings shows, with the master toggle (default off) and its options.
+- Status (2026-10-23): built in Phase 3. The NLC values are now saved as boolean keys (section 8), so F5 no longer describes the app. Current behaviour is in `docs/features/scheduling-and-nlc.md`.
 
 ## 10. Siri
 
@@ -297,7 +298,7 @@ Not migrated (data and internal state, unchanged): `reminderly.reminders.v1`, `r
 - Dev tools regrouped into Feature flags (by area), Config, Testing tools, and Access and diagnostics.
 - Dev tools holds no user preference controls (decision record, section 0). Preferences are set only in Reminders and Lists settings.
 - Show calendar is shown when the calendar flag is on and the screen is at least 852pt tall; its saved value is kept otherwise.
-- Rows for unbuilt features are hidden by their flags: the Haptic feedback page until wired, the Natural Language Capture page until wired. Sounds is built (section 12.2) and controlled by the Dev tools Sounds flag.
+- Rows for unbuilt features are hidden by their flags: the Haptic feedback page until wired, the Natural Language Capture page until wired (wired in Phase 3; shown while the NLC flag is on). Sounds is built (section 12.2) and controlled by the Dev tools Sounds flag.
 - "Use Smart Reminders" is removed from Lists settings (built-in feature).
 
 ### 11.1 UI and UX

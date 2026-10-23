@@ -89,7 +89,7 @@ New installs use the defaults above; the in-app ask turns alerts and badge on wh
 | `reminderly-ff-nlc` | off | NLC available |
 | `reminderly-pref-nlc` | off | NLC on |
 | `reminderly-pref-nlc-date`, `-time`, `-repeats` | on | Recognise each category |
-| `reminderly-pref-nlc-auto-parsing` | on | Apply as you type (auto mode) |
+| `reminderly-pref-nlc-auto-parsing` | on | Set dates as you type (auto mode) |
 | `reminderly-ff-nlc-phone`, `-contacts` | off | Not built |
 
 ### Haptics and sounds

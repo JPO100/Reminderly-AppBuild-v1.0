@@ -46,11 +46,13 @@ const SCROLL_PEEK = 40;
 // On sub-pages that scroll, the cut row's middle sits this far above the card's edge (John, 2026-10-22).
 const SUB_PAGE_GLIMPSE_GAP = 24;
 
-type ScrollFit = { cut: number | null; pad: number; grow: number };
+// cap: on a main page whose cut row sits above the bottom padding (cut < 0), the area's height is capped there so the card
+// shrinks with it and keeps its 40px bottom padding, rather than leaving the extra space as a larger gap under the rows.
+type ScrollFit = { cut: number | null; pad: number; grow: number; cap?: number };
 
 // Rows with 30px between them. When they do not fit they scroll, and the area's bottom edge moves so it cuts through the
 // middle of a row (not a divider): the lowest row whose middle falls within the card's bottom padding (clipped by the card), or, when none
-// does, the row above it (the area ends higher). Half a row always shows, as a hard edge. Space after the last row lets it
+// does, the row above it (the area ends higher and the card shrinks with it, keeping the 40px bottom padding; John, 2026-10-23). Half a row always shows, as a hard edge. Space after the last row lets it
 // scroll clear, ending 40px above the card's edge as usual. Rows that fit are unchanged.
 // With onGrow (sub-pages), the card instead grows or shrinks by up to 30px so the cut row's middle is always
 // SUB_PAGE_GLIMPSE_GAP above the card's edge, whatever the main page's height. baseHeight is the area's height on the
@@ -92,10 +94,10 @@ function ScrollArea({ children, onGrow, baseHeight }: { children: ReactNode; onG
             if (middle > SCROLL_PEEK) break;
             cut = middle;
           }
-          next = { cut, pad: Math.max(cut, 0), grow: 0 };
+          next = cut < 0 ? { cut, pad: 0, grow: 0, cap: visible + cut } : { cut, pad: Math.max(cut, 0), grow: 0 };
         }
       }
-      if (next.cut !== current.cut || next.pad !== current.pad || next.grow !== current.grow) {
+      if (next.cut !== current.cut || next.pad !== current.pad || next.grow !== current.grow || next.cap !== current.cap) {
         fitRef.current = next;
         setFit(next);
       }
@@ -106,10 +108,20 @@ function ScrollArea({ children, onGrow, baseHeight }: { children: ReactNode; onG
     const observer = new ResizeObserver(measure);
     observer.observe(scroll);
     observer.observe(rows);
-    return () => observer.disconnect();
+    // A capped area does not grow with the card, so on resize start again uncapped and measure afresh
+    const reset = () => {
+      if (fitRef.current.cap === undefined) return;
+      fitRef.current = { cut: null, pad: 0, grow: 0 };
+      setFit(fitRef.current);
+    };
+    window.addEventListener("resize", reset);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", reset);
+    };
   }, []);
   return (
-    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={fit.cut !== null ? { marginBottom: fit.grow - fit.cut } : undefined}>
+    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={fit.cap !== undefined ? { maxHeight: fit.cap } : fit.cut !== null ? { marginBottom: fit.grow - fit.cut } : undefined}>
       <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={fit.pad > 0 ? { paddingBottom: fit.pad } : undefined}>
         {children}
       </div>

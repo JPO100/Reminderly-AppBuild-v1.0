@@ -10,23 +10,33 @@ import type { SoundsConfig } from "../utils/sounds";
 // Settings panel content. App owns and saves the values; rows show only when their feature is available.
 // Each panel has its own Siri preference, saved by App. Each row shows only when its Siri flag is on.
 
-// Centred overlay header: title centred, back arrow on the left for sub-pages.
+// The version line under a Support page title: 8px gap plus a 20px line
+const VERSION_LINE_HEIGHT = 28;
+
+// Centred overlay header: title centred, back arrow on the left for sub-pages, and an optional grey version line under the title.
 // The back button pads the 9x17 arrow to a 45x45 tap area; the negative left offset keeps the arrow in place.
-function PanelHeader({ title, onBack }: { title: string; onBack?: () => void }) {
+function PanelHeader({ title, version, onBack }: { title: string; version?: string; onBack?: () => void }) {
   return (
-    <div className="relative flex items-center justify-center shrink-0 w-full">
-      {onBack && (
-        <button type="button" onClick={onBack} className="absolute left-[-18px] top-1/2 -translate-y-1/2 cursor-pointer shrink-0 px-[18px] py-[14px] m-0 border-none bg-transparent z-[1]" aria-label="Back">
-          <div className="h-[17px] relative shrink-0 w-[9px]">
-            <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 9 17">
-              <path d={svgPathsDummy.p347e8980} fill="#1C2C42" />
-            </svg>
-          </div>
-        </button>
+    <div className="flex flex-col items-center shrink-0 w-full">
+      <div className="relative flex items-center justify-center shrink-0 w-full">
+        {onBack && (
+          <button type="button" onClick={onBack} className="absolute left-[-18px] top-1/2 -translate-y-1/2 cursor-pointer shrink-0 px-[18px] py-[14px] m-0 border-none bg-transparent z-[1]" aria-label="Back">
+            <div className="h-[17px] relative shrink-0 w-[9px]">
+              <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 9 17">
+                <path d={svgPathsDummy.p347e8980} fill="#1C2C42" />
+              </svg>
+            </div>
+          </button>
+        )}
+        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap px-[24px]" style={{ fontWeight: 700 }}>
+          {title}
+        </p>
+      </div>
+      {version && (
+        <p className="font-['Lato:Medium',sans-serif] text-[15px] text-[#BABABA] leading-[20px] text-center mt-[8px]">
+          {version}
+        </p>
       )}
-      <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap px-[24px]" style={{ fontWeight: 700 }}>
-        {title}
-      </p>
     </div>
   );
 }
@@ -131,7 +141,9 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
 // Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged; a sub-page that
 // scrolls grows or shrinks by up to 30px so its bottom glimpse matches on every panel.
 // Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
-function PanelShell({ title, subPage, onBack, subContent, children }: { title: string; subPage: string | null; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
+// A sub-page with a version line has a taller header, so its scroll area measures from that much less.
+// Support pages sit 30px under the title, not 40px (John, 2026-10-23); their scroll area measures from that much more.
+function PanelShell({ title, subPage, subVersion, subTitleGap = 40, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subTitleGap?: number; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
@@ -152,10 +164,10 @@ function PanelShell({ title, subPage, onBack, subContent, children }: { title: s
   if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
-      <div ref={rootRef} className="content-stretch flex flex-col gap-[40px] items-start relative w-full min-h-0" style={subPage && mainHeight ? { height: mainHeight + grow } : undefined}>
-        <PanelHeader title={subPage ?? title} onBack={subPage ? onBack : undefined} />
+      <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight + grow } : {}) }}>
+        <PanelHeader title={subPage ?? title} version={subPage ? subVersion : undefined} onBack={subPage ? onBack : undefined} />
         {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
-        {content && <ScrollArea key={subPage ?? ""} baseHeight={subPage ? mainAreaHeight : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
+        {content && <ScrollArea key={subPage ?? ""} baseHeight={subPage && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) - (subVersion ? VERSION_LINE_HEIGHT : 0) : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>
   );
@@ -328,15 +340,79 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
   );
 }
 
+// Support pages: FAQs differ per panel, with their own version; Privacy policy and Terms of use are shared by both panels.
+// Placeholder copy for now (John, 2026-10-23).
+type SupportDoc = { version: string; paragraphs: string[] };
+
+const PLACEHOLDER_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam velit lorem, rutrum quis felis eu, sodales ultrices arcu. Quisque a ultrices orci, rutrum dictum libero.";
+
+const REMINDERS_FAQS: SupportDoc = { version: "Version 1.0", paragraphs: [PLACEHOLDER_TEXT] };
+const LISTS_FAQS: SupportDoc = { version: "Version 1.0", paragraphs: [PLACEHOLDER_TEXT] };
+const PRIVACY_POLICY: SupportDoc = { version: "Version 1.0", paragraphs: [PLACEHOLDER_TEXT] };
+const TERMS_OF_USE: SupportDoc = { version: "Version 1.0", paragraphs: [PLACEHOLDER_TEXT] };
+
+// The pages opened from Support; Back from these returns to Support
+const SUPPORT_DOC_PAGES = ["FAQs", "Privacy policy", "Terms of use"];
+
+function supportDocFor(page: string | null, faqs: SupportDoc): SupportDoc | null {
+  if (page === "FAQs") return faqs;
+  if (page === "Privacy policy") return PRIVACY_POLICY;
+  if (page === "Terms of use") return TERMS_OF_USE;
+  return null;
+}
+
+// Support sub-page: FAQs, a key line, then the legal pages.
+function SupportSettings({ onOpen }: { onOpen: (page: string) => void }) {
+  return (
+    <>
+      <MenuRow label="FAQs" onClick={() => onOpen("FAQs")} />
+      <KeyLine />
+      <MenuRow label="Privacy policy" onClick={() => onOpen("Privacy policy")} />
+      <MenuRow label="Terms of use" onClick={() => onOpen("Terms of use")} />
+    </>
+  );
+}
+
+// A Support page's text: centred grey paragraphs, each its own row so long text scrolls like the other sub-pages.
+function SupportDocPage({ doc }: { doc: SupportDoc }) {
+  return (
+    <>
+      {doc.paragraphs.map((paragraph, index) => (
+        <p key={index} className="font-['Lato:Medium',sans-serif] leading-[24px] text-[17px] text-[#BABABA] text-center w-full">
+          {paragraph}
+        </p>
+      ))}
+    </>
+  );
+}
+
+// Support row and the key line above it, as both panels show them. The row has no info icon.
+function SupportRow({ onClick }: { onClick: () => void }) {
+  return (
+    <>
+      <KeyLine />
+      <ShowInfoIconsContext.Provider value={false}>
+        <MenuRow label="Support" onClick={onClick} />
+      </ShowInfoIconsContext.Provider>
+    </>
+  );
+}
+
+const supportBack = (subPage: string | null) => (subPage && SUPPORT_DOC_PAGES.includes(subPage) ? "Support" : null);
+const supportTitleGap = (subPage: string | null) => (subPage === "Support" || (subPage && SUPPORT_DOC_PAGES.includes(subPage)) ? 30 : 40);
+
 export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailable, notifPrefs, notifPermissionDenied, onNotifChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; notifPermissionDenied: boolean; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
+  const supportDoc = supportDocFor(subPage, REMINDERS_FAQS);
 
   return (
     <PanelShell
       title="Reminders settings"
       subPage={subPage}
-      onBack={() => setSubPage(null)}
-      subContent={subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
+      subVersion={supportDoc?.version}
+      subTitleGap={supportTitleGap(subPage)}
+      onBack={() => setSubPage(supportBack(subPage))}
+      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
       {datePresetsAvailable && <ToggleRow label="Quick date buttons" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
       {oneMinuteAvailable && <ToggleRow label="1 minute time steps" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 15 minute steps." />}
@@ -344,6 +420,7 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       {notificationsAvailable && <MenuRow label="Notifications" onClick={() => setSubPage("Notifications")} infoTitle="Choose how Reminderly alerts you when reminders are due, with or without sound, and whether the app icon shows a badge." />}
       {nlcAvailable && <MenuRow label="Natural Language Capture" onClick={() => setSubPage("Natural Language Capture")} infoTitle="Reminderly can pick out dates, times and repeats as you type, such as 'tomorrow at 3pm' or 'every Monday'. Choose what is recognised and how it works." />}
       {(soundsAvailable || hapticsAvailable) && <MenuRow label="Sounds and haptics" onClick={() => setSubPage("Sounds and haptics")} infoTitle="Choose when Reminderly plays a soft click or your iPhone gives a small vibration, such as when you complete or delete a reminder." />}
+      <SupportRow onClick={() => setSubPage("Support")} />
       {onOpenTutorial && <TutorialRow label="Reminders tutorial" onClick={onOpenTutorial} />}
     </PanelShell>
   );
@@ -351,13 +428,15 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
 
 export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsAvailable, templatesAvailable, siriAvailable, siriOn, onSiriChange, sortAzOn, onSortAzChange, autoClearOn, onAutoClearChange }: { onOpenTutorial?: () => void; soundsAvailable: boolean; hapticsAvailable: boolean; templatesAvailable: boolean; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; sortAzOn: boolean; onSortAzChange: (value: boolean) => void; autoClearOn: boolean; onAutoClearChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
+  const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} onBack={() => setSubPage(null)} subContent={subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subTitleGap={supportTitleGap(subPage)} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
       <ToggleRow label="Sort items A to Z" isOn={sortAzOn} onToggle={() => onSortAzChange(!sortAzOn)} infoTitle="Sorts the items in every list alphabetically. When off, items appear in the order you added them, most recent at the top." />
       <ToggleRow label="Ticked lists to Done" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
       {(soundsAvailable || hapticsAvailable) && <MenuRow label="Sounds and haptics" onClick={() => setSubPage("Sounds and haptics")} infoTitle="Choose when Reminderly plays a soft click or your iPhone gives a small vibration, such as when you check off a list item or delete a list." />}
+      <SupportRow onClick={() => setSubPage("Support")} />
       {onOpenTutorial && <TutorialRow label="Lists tutorial" onClick={onOpenTutorial} />}
     </PanelShell>
   );

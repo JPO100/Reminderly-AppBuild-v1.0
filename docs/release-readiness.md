@@ -69,6 +69,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Requirement | Status | Reference | Notes |
 |-------------|--------|-----------|-------|
 | Privacy policy linked in the app and in App Store Connect | In progress (D4) | 5.1.1(i) | In the app under Settings > Support > Privacy policy (feature/reminder-list-settings, not merged). App Store Connect needs a hosted URL; neatlymade.co does not resolve yet |
+| Purchase and configure neatlymade.co; host the Reminderly privacy policy at `https://neatlymade.co/privacy`; verify the URL is publicly accessible and suitable for App Store submission | Outstanding (must be resolved before release; does not block development) | 5.1.1(i), App Store Connect privacy policy URL | Domain availability checked, not yet purchased (John, 2026-10-23). The in-app policy's website link fails until then |
 | Privacy manifest (`PrivacyInfo.xcprivacy`) for the app and widget | Outstanding | Required reason APIs; ITMS-91053 | UserDefaults used by app Swift code, widget, patched notifications plugin and the badge plugin (CA92.1, 1C8F.1) |
 | App Privacy answers ("nutrition label") | Outstanding | App Store Connect | Expected "Data Not Collected" unless monetisation tooling or fonts change this |
 | Bundle the Lato font instead of loading Google Fonts | Outstanding (recommended) | 5.1.1, privacy accuracy | Runtime request to `fonts.googleapis.com` sends the device IP address to Google on launch; the only third-party request found in the 2026-10-23 privacy audit and relevant to the policy's no-sharing statement. Also affects offline appearance |
@@ -181,6 +182,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-23 | Outstanding action added: purchase and configure neatlymade.co and host the privacy policy at https://neatlymade.co/privacy before release |
 | 2026-10-23 | Privacy policy Version 1.0 in the app (Settings > Support, feature/reminder-list-settings, not merged). Privacy audit: no analytics, crash reporting, advertising or identifier SDKs and no app network calls; Google Fonts is the only third-party request. neatlymade.co does not resolve |
 | 2026-10-22 | Siri tutorial page merged to main (9067897): "Add reminders with Siri" in the Reminders tutorial while Siri is available |
 | 2026-10-22 | Siri creates reminders with the iPhone locked and in CarPlay, without opening Reminderly (2c0444d). Known issue 2 (Siri release defaults) unchanged |

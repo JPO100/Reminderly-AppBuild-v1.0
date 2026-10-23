@@ -12,7 +12,7 @@ type ReminderSchedule =
 
 - Dates are `yyyy-mm-dd` local calendar dates; times are `HH:mm` 24-hour. No time zone is stored.
 - Sometime reminders have no date or time and show "No date / time set".
-- Display formats: dates via `formatSelectedDate` / `formatDateLabel` ("Monday 3 March", with the year when it is not this year); times via `formatTime12h` ("2:30 PM").
+- Display formats: editor Date row via `formatSelectedDate` ("Today", "Tomorrow", otherwise a short date); date labels in saved text via `formatDateLabel` ("on Friday" within 6 days, "on 27 Feb" later this year, "on 27 Feb, 2027" in another year); times via `formatTime12h` ("2:30pm", "5pm").
 - Weeks run Monday to Sunday.
 - `utils/schedule.ts` provides `dateUtils`, `scheduleEquality` (date, time, repeat rule; `byDay` order-insensitive) and `detectScheduleDeltas`. Used for edit-mode comparisons and duplicate detection.
 
@@ -26,7 +26,7 @@ Enforced by the manual toggle handlers in `NewReminderOverlay.tsx`:
 4. Turning time off clears the time only, leaving a date-only reminder.
 5. Date and time changes never affect the repeat setting.
 
-NLC applies values through `applyToggleStateSilently`, which does not open drawers. NLC date tokens also set 12:00 when time is off.
+NLC applies values through `applyToggleStateSilently`, which does not open drawers. NLC date tokens also set 12:00 when time is off. NLC time tokens with date off turn date on (today) only when the text has no date token.
 
 ## Pickers
 
@@ -135,8 +135,11 @@ Extracts dates, times and repeats from the reminder text as the user types. Dete
 
 - Active when the Reminders module is on, Dev tools > Natural Language > Enable (`reminderly-ff-nlc`, default off) and Reminders settings > Natural Language Capture (`reminderly-pref-nlc`) are on. When inactive, the text is not parsed at all.
 - Per-category recognition preferences: Recognise dates, times and repeats (`reminderly-pref-nlc-date`, `-time`, `-repeats`, default on). Repeats are only recognised while repeat reminders are active.
-- Mode: Apply as you type (`reminderly-pref-nlc-auto-parsing`, default on) gives auto mode; off gives click mode.
+- Mode: Set dates as you type (`reminderly-pref-nlc-auto-parsing`, default on) gives auto mode; off gives click mode.
+- Settings: Reminders settings > Natural Language Capture lists the on/off, a key line, then Recognise dates, Recognise times, Recognise repeats (only while repeat reminders are available) and Set dates as you type. While NLC is off the options stay listed, inactive and not tappable, keeping their saved choices.
 - Not available in smart reminder mode.
+- Siri parses with all categories recognised, whatever the NLC flag and settings; a repeat is only saved while repeat reminders are active. See [../ios.md](../ios.md).
+- The Reminders tutorial page Natural Language Capture shows whenever NLC is available, using the user's recognition settings when NLC is on (see [onboarding.md](./onboarding.md)).
 
 ### Recognition
 
@@ -157,7 +160,7 @@ Edit mode:
 3. A token not in the baseline makes its category eligible even if its toggle is on. Unchanged tokens never re-apply.
 4. The one-token rule and 200ms debounce still apply.
 
-Typing "at 3pm" in an edit therefore updates the time even if it was 2pm, without re-applying an unchanged "tomorrow".
+Typing "at 3pm" in an edit therefore updates the time even if it was 2pm, without re-applying an unchanged "tomorrow". An unchanged relative time ("in an hour") is not recalculated either.
 
 ### Invalidation
 
@@ -180,6 +183,8 @@ Date tokens:
 | `today`, `tomorrow` | That date |
 | `Monday` ... `Sunday` | Next occurrence, including today |
 | `next Monday` ... | That weekday at least 7 days ahead |
+| `the day after tomorrow`, `day after tomorrow` | Today + 2 (wins over `tomorrow`) |
+| `in 3 days`, `in three days`, `in a day` | Today + N, date only (N 1-99 in digits, one to twelve in words, or "a") |
 | `February 28th`, `Feb 28`, `28 Feb`, `28th February` | Next occurrence of that date (this year, or next if passed) |
 | `Feb 28 2027`, `28th February 2027` | That exact date |
 
@@ -191,11 +196,18 @@ Time tokens:
 |-------|---------|
 | `7pm`, `7:30pm`, `7 pm` | 12-hour (hour 1-12) |
 | `19:00`, `07:30` | 24-hour (hour 0-23) |
+| `four pm`, `twelve am` | Number words one to twelve with am/pm, as 12-hour |
+| `4 o'clock`, `four o'clock` (also `oclock`, `o clock`) | On the hour (hour 1-12, digits or words) |
+| `half past four`, `quarter past 4`, `quarter to five` | :30, :15, and :45 of the hour before |
+| `in 10 minutes`, `in 30 mins`, `in an hour`, `in two hours`, `in 2 hrs` | Now + N (N 1-99 in digits, one to twelve in words, or "a"/"an"), rounded to a quarter hour; sets date and time |
 | `morning` / `lunchtime`, `noon` / `afternoon` / `evening` / `night` | 07:00 / 12:00 / 15:00 / 18:00 / 21:00 |
 | `this morning`, `this afternoon`, `this evening`, `tonight` | Same times, and date today |
 
-- Minutes must be 00, 15, 30 or 45 (`7:10pm` is not recognised), regardless of the 1 minute increments setting.
-- An explicit clock time suppresses all time-of-day words.
+- Minutes must be 00, 15, 30 or 45 (`7:10pm` is not recognised), regardless of the 1 minute increments setting. Siri refuses such times instead (see [../ios.md](../ios.md)).
+- Spoken clock times take an optional am/pm. Without one: if the text has a date token (in Siri, an applied date or repeat), 7 to 11 are am and 12 to 6 are pm; otherwise the next occurrence of that clock time after now ("4 o'clock" at 10am is 4pm; at 5pm it is 4am). Siri then moves a time already past today to tomorrow; the in-app editor keeps the date at today.
+- Relative times round to the nearest quarter hour, a midpoint rounding up; a result at or before now moves to the next quarter. At 10:07: 10 minutes gives 10:15, 20 or 30 minutes 10:30, 1 hour 11:00. They set their own date, which can be tomorrow.
+- Bare hours ("at 4") are not recognised.
+- Any other time token (clock, spoken or relative) suppresses all time-of-day words.
 - "this night" is not recognised.
 - A time with no date token sets the date to today when date is off; the compound forms always set today when there is no date token.
 
@@ -204,14 +216,14 @@ Repeats tokens:
 | Input | Result | Implied time |
 |-------|--------|--------------|
 | `every day/week/month/year/hour` | Interval 1 | - |
-| `every N days/weeks/months/years/hours` | Interval N | - |
+| `every N days/weeks/months/hours` (digits) | Interval N | - |
 | `every Monday` ... | Custom days | - |
 | `every morning/afternoon/evening/night` | Daily | 07:00 / 15:00 / 18:00 / 21:00 |
 | `weekdays` | Custom days Mon-Fri | - |
 | `Mon, Wed, Fri` (2 or more short names) | Custom days | - |
 
 - Short names: Mon, Tue, Wed, Thu, Thur, Fri, Sat, Sun. Singular and plural units both work.
-- `everyday` and `every other` are not recognised.
+- `every N years`, number words in `every N ...`, `daily`, `everyday`, `every weekday` and `every other` are not recognised.
 - A repeats token suppresses all date tokens (not time tokens).
 - Applying a repeat turns on repeats and date, with an anchor date: the next matching day, or today for interval repeats. Without an implied time it also turns time on at 12:00 if time is off.
 
@@ -221,39 +233,43 @@ Repeats tokens:
 - `computeEligibleTokens()` hides other tokens in a category once one is applied.
 - `applyToken(token)` is the single path for click and auto: records the token, parses its value, sets toggles silently and sets values.
 - The auto-apply effect reads toggle state from refs to avoid stale closures, and pre-computes the repeats anchor date so a time token in the same pass cannot overwrite it.
-- `computeScheduleKind` decides scheduled or sometime at save from the date toggle and value.
+- At save, `handleSubmit` saves a scheduled reminder when date and time are both on with values, otherwise Sometime. `computeScheduleKind` (date toggle and value only) is covered by Self Check but not used by the editor.
 - The input uses three layers: a transparent textarea, a mirror behind it colouring tokens (`pointer-events: none`), and a hit layer above it where only tokens are tappable. One `renderLayerContent(mode)` function draws both layers, and scroll is synchronised.
 - All parsing and interaction logic is pure (`nlc-parser.ts`, `nlc-interaction.ts`); the overlay holds the React state.
 
 ### Non-goals
 
-No fuzzy matching, spelling correction or synonyms; no numeric dates ("15/03"); no relative phrases beyond today, tomorrow, weekdays and month-name dates ("in 3 days", "next week"); NLC never changes the reminder text or opens pickers; no explicit undo.
+No fuzzy matching, spelling correction or synonyms; no numeric dates ("15/03"); no relative phrases beyond those listed above ("next week", "this weekend"); NLC never changes the text in the input or opens pickers; no explicit undo.
 
-Siri uses the same parser in auto mode. See [../ios.md](../ios.md).
+Siri uses the same parser and value resolution, applied as in auto mode with all toggles off. See [../ios.md](../ios.md).
 
 ## Text normalisation and rendering
 
-Text is processed twice: once at save and again at render.
+Text is processed once at save, and the row title is derived from it at render.
 
 ### Save time: `normaliseReminderText()` (`utils/normalise-text.ts`)
 
-Makes the stored `displayText` stay correct on later days. `originalText` keeps the raw input.
+Builds the stored `displayText`; `originalText` keeps the raw input. Applied in the editor to scheduled reminders while NLC is active; otherwise `displayText` is the typed text.
 
-- "today" and "tomorrow" become the absolute date ("Monday 3 March").
-- "tonight", "next Monday" and month-name dates are stripped (the schedule carries the date).
-- Weekday names stay. If stripping leaves a bare weekday matching the scheduled date, it becomes "Weekday DD Mon" in place rather than adding a duplicate.
-- Applied to scheduled reminders when NLC is active; otherwise `displayText` is the typed text. Siri reminders skip date and time injection.
+- Stripped: "today", "tomorrow", "tonight", "next week", "next <weekday>", "this <weekday>" and month-name dates ("Feb 28", "28 Feb 2027").
+- With a time, time-of-day words and phrases are stripped too ("morning", "in the morning", "at night"), except the word in an "every morning/afternoon/evening/night" repeat.
+- Not stripped: other tokens, such as "in 3 days", "in 10 minutes", "the day after tomorrow" and spoken clock times.
+- A date label from `formatDateLabel` ("on Friday", "on 27 Feb", "on 27 Feb, 2027") is then added, before an existing "at <12-hour time>" or at the end. It is not added when the reminder repeats, when a month-name date was stripped, or when the text has no date token (date set by hand). If the text still has the scheduled date's weekday, that becomes "Weekday D Mon" in place instead.
+- " at <time>" ("at 5pm") is added unless the text already has a 12-hour time.
+- Siri titles are built differently (see [../ios.md](../ios.md)).
 
-Example: "Buy milk today at 5pm" is stored with `displayText` "Buy milk Monday 3 March at 5pm".
+Examples (made on Friday 23 October 2026): "Buy milk today at 5pm" becomes "Buy milk on Friday at 5pm"; "Call mum next Monday" (12:00) becomes "Call mum on 2 Nov at 12pm"; "Dentist Feb 28 at 3pm" becomes "Dentist at 3pm"; "Gym Monday morning" becomes "Gym Monday 26 Oct at 7am"; "Pay rent in 3 days" becomes "Pay rent in 3 days on Monday at 12pm".
 
-### Render time: `renderReminderText()` and `getDisplayTitle()` (`utils/render-text.ts`)
+### Render time: `getDisplayTitle()` (`utils/render-text.ts`)
 
-- `renderReminderText` swaps the stored date back to "today" or "tomorrow" when it matches. Presentation only.
-- `getDisplayTitle` strips date and time phrases for the row title: "Monday 3 March at 5pm", "today at 5pm", "at 5pm", month-name dates, and time-of-day words or phrases when a clock time exists (unless preceded by "every"). "Buy milk Monday 3 March at 5pm" becomes "Buy milk".
+- The row title strips one trailing suffix added at save: " on D Mon at <time>", " on D Mon" or " at <time>". Under-stripping is accepted; weekday labels stay, so "Buy milk on Friday at 5pm" shows as "Buy milk on Friday".
+- The reminder info overlay strips a trailing " at <time>" only. Notifications use `displayText` as is.
+- `renderReminderText` (swaps a stored date for "today" or "tomorrow") is imported by `App.tsx` but not called.
 
 ## Files
 
-- `src/app/utils/schedule.ts`, `repeat-conversion.ts`, `nlc-parser.ts`, `nlc-interaction.ts`, `normalise-text.ts`, `render-text.ts`, `date-display.ts`
+- `src/app/utils/schedule.ts`, `repeat-conversion.ts`, `nlc-parser.ts`, `nlc-interaction.ts`, `normalise-text.ts`, `render-text.ts`, `date-display.ts`, `tutorial-nlc-demo.ts`, `siri.ts` (Siri parsing)
+- Tests: `src/app/__tests__/nlc-spoken-times.test.ts`, `tutorial-nlc-demo.test.ts`; Self Check `src/app/dev/nlc-parser-checks.ts`, `nlc-interaction-checks.ts`
 - `src/app/reminder-utils.ts` - labels and calendar helpers
 - `src/imports/NewReminderOverlay.tsx`, `src/imports/TimePicker.tsx`
 - `src/app/components/RepeatsOverlay.tsx`, `src/app/components/RemindersCalendar.tsx`

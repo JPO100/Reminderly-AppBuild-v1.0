@@ -347,15 +347,15 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
 type DocLink = { text: string; href: string };
 type DocParagraph = string | (string | DocLink)[];
 type DocSection = { heading?: string; paragraphs: DocParagraph[] };
-// backButton: a Back button after the text, as on the info pages (John, 2026-10-23).
+// topButton: a Back to top button after the text, styled as the info pages' Back button; the header arrow goes back (John, 2026-10-23).
 // FAQs use the same centred layout as the policy pages, all answers shown (John, after user testing, 2026-10-23).
-type SupportDoc = { version: string; sections: DocSection[]; backButton?: boolean };
+type SupportDoc = { version: string; sections: DocSection[]; topButton?: boolean };
 
 // Reminders FAQs Version 1.0 (John and Kai, 2026-10-23): each question is a section heading, its answer the paragraph.
 // Recheck the NLC answer against the NLC release-readiness ticket (defaults and supported phrases) before release.
 const REMINDERS_FAQS: SupportDoc = {
   version: "Version 1.0",
-  backButton: true,
+  topButton: true,
   sections: [
     { paragraphs: ["Last updated: 23 October 2026"] },
     { heading: "How do I add a reminder?", paragraphs: [
@@ -399,7 +399,7 @@ const REMINDERS_FAQS: SupportDoc = {
 // Lists FAQs Version 1.0 (John and Kai, 2026-10-23).
 const LISTS_FAQS: SupportDoc = {
   version: "Version 1.0",
-  backButton: true,
+  topButton: true,
   sections: [
     { paragraphs: ["Last updated: 23 October 2026"] },
     { heading: "How do I create a list?", paragraphs: [
@@ -445,7 +445,7 @@ const LISTS_FAQS: SupportDoc = {
 // (docs/release-readiness.md, Privacy and legal).
 const TERMS_OF_USE: SupportDoc = {
   version: "Version 1.0",
-  backButton: true,
+  topButton: true,
   sections: [
     { paragraphs: [
       "Last updated: 23 October 2026",
@@ -494,7 +494,7 @@ const TERMS_OF_USE: SupportDoc = {
 // Privacy policy Version 1.0 (John and Kai, 2026-10-23)
 const PRIVACY_POLICY: SupportDoc = {
   version: "Version 1.0",
-  backButton: true,
+  topButton: true,
   sections: [
     { paragraphs: [
       "Last updated: 23 October 2026",
@@ -560,11 +560,12 @@ function renderParagraph(paragraph: DocParagraph) {
   ));
 }
 
-// The info page's Back button, 40px below the text as there.
-function DocBackButton({ onBack }: { onBack: () => void }) {
+// Back to top: the info page's Back button style, 40px below the text; scrolls the page's text back to the top.
+function DocTopButton() {
+  const buttonRef = useRef<HTMLButtonElement>(null);
   return (
-    <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none mt-[10px]">
-      <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
+    <button ref={buttonRef} type="button" onClick={() => buttonRef.current?.closest(".overflow-y-auto")?.scrollTo({ top: 0, behavior: "smooth" })} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none mt-[10px]">
+      <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back to top</p>
     </button>
   );
 }
@@ -572,7 +573,7 @@ function DocBackButton({ onBack }: { onBack: () => void }) {
 // A Support page's text: centred grey paragraphs under dark blue section headings, links in Reminderly blue.
 // Links open outside the app (Safari or Mail): the web view hands off navigation away from the app. They open in the
 // same window, as a new window (target _blank) is not handed off and does nothing.
-function SupportDocPage({ doc, onBack }: { doc: SupportDoc; onBack: () => void }) {
+function SupportDocPage({ doc }: { doc: SupportDoc }) {
   return (
     <div className="flex flex-col gap-[30px] w-full">
       {doc.sections.map((section, sectionIndex) => (
@@ -589,7 +590,7 @@ function SupportDocPage({ doc, onBack }: { doc: SupportDoc; onBack: () => void }
           ))}
         </div>
       ))}
-      {doc.backButton && <DocBackButton onBack={onBack} />}
+      {doc.topButton && <DocTopButton />}
     </div>
   );
 }
@@ -621,7 +622,7 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       subTitleGap={supportTitleGap(subPage)}
       subText={supportDoc !== null}
       onBack={() => setSubPage(supportBack(subPage))}
-      subContent={supportDoc ? <SupportDocPage doc={supportDoc} onBack={() => setSubPage("Support")} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
+      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
       {datePresetsAvailable && <ToggleRow label="Quick date buttons" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
       {oneMinuteAvailable && <ToggleRow label="1 minute time steps" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 15 minute steps." />}
@@ -640,7 +641,7 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
   const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} onBack={() => setSubPage("Support")} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
       <ToggleRow label="Sort items A to Z" isOn={sortAzOn} onToggle={() => onSortAzChange(!sortAzOn)} infoTitle="Sorts the items in every list alphabetically. When off, items appear in the order you added them, most recent at the top." />
       <ToggleRow label="Ticked lists to Done" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

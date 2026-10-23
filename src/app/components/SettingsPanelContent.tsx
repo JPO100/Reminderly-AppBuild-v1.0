@@ -343,17 +343,61 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
 }
 
 // Support pages: FAQs differ per panel, with their own version; Privacy policy and Terms of use are shared by both panels.
-// FAQs are placeholder copy for now (John, 2026-10-23).
+// Lists FAQs are placeholder copy for now (John, 2026-10-23).
 // A paragraph is plain text or a run of text and links; "\n" breaks a line. Sections are 30px apart, with 15px inside.
 type DocLink = { text: string; href: string };
 type DocParagraph = string | (string | DocLink)[];
 type DocSection = { heading?: string; paragraphs: DocParagraph[] };
-// backButton: a Back button after the text, as on the info pages (John, 2026-10-23: Privacy policy, Terms of use).
+// backButton: a Back button after the text, as on the info pages (John, 2026-10-23: Privacy policy, Terms of use, FAQs).
 type SupportDoc = { version: string; sections: DocSection[]; backButton?: boolean };
 
 const PLACEHOLDER_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam velit lorem, rutrum quis felis eu, sodales ultrices arcu. Quisque a ultrices orci, rutrum dictum libero.";
 
-const REMINDERS_FAQS: SupportDoc = { version: "Version 1.0", sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
+// Reminders FAQs Version 1.0 (John and Kai, 2026-10-23): each question is a section heading, its answer the paragraph.
+// Recheck the NLC answer against the NLC release-readiness ticket (defaults and supported phrases) before release.
+const REMINDERS_FAQS: SupportDoc = {
+  version: "Version 1.0",
+  backButton: true,
+  sections: [
+    { paragraphs: ["Last updated: 23 October 2026"] },
+    { heading: "How do I add a reminder?", paragraphs: [
+      "Tap New reminder, type what you need to remember, then tap the tick. You can add a date, time or repeat if you need one.",
+    ] },
+    { heading: "Can I type dates and times naturally?", paragraphs: [
+      "Yes. Type phrases like “tomorrow at 3pm” or “every Monday” and Reminderly picks out the date, time or repeat for you. You can choose what's recognised in Reminders settings > Natural Language Capture.",
+    ] },
+    { heading: "How do I edit or delete a reminder?", paragraphs: [
+      "Tap the three dots next to it and choose Edit reminder to change its text, date, time or repeat. Choose Delete reminder to remove it.",
+    ] },
+    { heading: "What do the colours and filters mean?", paragraphs: [
+      "Blue reminders are due today, pink this week, and orange later or with no date. Tap Today, This week or Later to show only those, and tap again to see everything.",
+    ] },
+    { heading: "What happens if I miss a reminder?", paragraphs: [
+      "It turns red and stays at the top of every view until you deal with it. Tap its circle to mark it as done, or tap the three dots to move it to tomorrow.",
+    ] },
+    { heading: "Will I get a notification?", paragraphs: [
+      "Reminders with a time notify you when they're due, once you allow notifications. Reminders with only a date, or no date, don't. Press and hold a notification to mark the reminder as done or move it to tomorrow.",
+    ] },
+    { heading: "What does the number on the app icon mean?", paragraphs: [
+      "It shows how many reminders are overdue or due today. In Reminders settings > Notifications you can count overdue reminders only, or turn it off.",
+    ] },
+    { heading: "How do repeating reminders work?", paragraphs: [
+      "Tap Repeats and choose days of the week, daily, weekly or monthly. When you mark one as done, the next is added, based on the date it was due rather than the day you completed it.",
+    ] },
+    { heading: "Can I add a reminder with Siri?", paragraphs: [
+      "Yes. Say “Hey Siri, add to Reminderly app”, then say your reminder when Siri replies, such as “Call Mum tomorrow at 4pm”.",
+    ] },
+    { heading: "How do I complete a reminder, and where does it go?", paragraphs: [
+      "Tap the circle next to a reminder to mark it as done. Tap the tick in the Reminderly logo to see done and deleted reminders, and tap a reminder's circle to restore it. Clear all permanently removes them.",
+    ] },
+    { heading: "Are my reminders synced or stored online?", paragraphs: [
+      "No. Your reminders are stored locally on your iPhone, not on our servers. They aren't synced between devices, so deleting the app may permanently remove them.",
+    ] },
+    { heading: "Can I see my reminders on the Lock Screen?", paragraphs: [
+      "Yes. Add the Reminderly widget to your Lock Screen. It shows how many reminders are due today or overdue, with a ring that fills as you complete them.",
+    ] },
+  ],
+};
 const LISTS_FAQS: SupportDoc = { version: "Version 1.0", sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
 
 // Terms of use Version 1.0 (John, 2026-10-23). Approved in principle only: needs legal sign-off before release

@@ -24,6 +24,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 | Tutorial shows once on first launch, then only manually | 2026-10-12, John | Implemented, merged 2026-10-14 ([features/onboarding.md](./features/onboarding.md)) |
 | Monetisation: 5 for Free with Reminderly Premium, £9 a year (D1) | 2026-10-14, John and CTO | Annual auto-renewing subscription through StoreKit 2; no trial, offer or Family Sharing. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 | No default templates for new users | 2026-10-14, John and CTO | `config-templates-in-clean-state` stays off; all templates count towards the free limit |
+| Natural language capture ships in the release | 2026-10-23, John | A key differentiator against competitor apps. A separate ticket will review NLC and make it release-ready. Free or Premium not yet decided |
 
 ## Pending product decisions
 
@@ -54,7 +55,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Sounds | `ff-sounds`, `pref-sounds` | off, off | Decision | |
 | Siri for reminders | `ff-` / `pref-siri-reminders` | off / off | on / on | Confirmed decision |
 | Siri for lists | `ff-siri-lists` | off | off | Not built |
-| Natural language capture | `ff-nlc`, `pref-nlc` | off, off | Decision (possible paid feature) | Major feature |
+| Natural language capture | `ff-nlc`, `pref-nlc` | off, off | on (decided 2026-10-23, John); default preference set in the NLC release-readiness ticket | Major feature; free or Premium not yet decided |
 | NLC phone, contacts | `ff-nlc-phone`, `ff-nlc-contacts` | off | off | Not built |
 | Onboarding tutorial | `ff-onboarding-tutorial`, `config-tutorial-first-launch` | on, on | on, on (after the first-launch fix) | |
 | Settings menu | `ff-settings-menu-v2` | on | on | Only settings entry point |
@@ -184,6 +185,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-23 | Decision: natural language capture ships in the release (John). Release readiness review to follow in a separate ticket |
 | 2026-10-23 | Global distribution legal review added for the Privacy Policy and Terms of Use (US priority market; US, UK and EU requirements, enforceability, country-specific App Store requirements) |
 | 2026-10-23 | Lato bundled with the app; the Google Fonts request is removed, so the app makes no third-party requests found in the privacy audit |
 | 2026-10-23 | Terms of Use Version 1.0 in the app (Settings > Support, feature/reminder-list-settings, not merged), approved in principle only. Legal sign-off flagged as required before release |

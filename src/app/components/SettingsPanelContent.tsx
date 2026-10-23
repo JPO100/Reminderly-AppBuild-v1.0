@@ -348,7 +348,7 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
 type DocLink = { text: string; href: string };
 type DocParagraph = string | (string | DocLink)[];
 type DocSection = { heading?: string; paragraphs: DocParagraph[] };
-// backButton: a Back button after the text, as on the info pages (John, 2026-10-23: Privacy policy, Terms of use, FAQs).
+// backButton: a Back button after the text, as on the info pages (John, 2026-10-23: Privacy policy, Terms of use; not FAQs).
 // faq: sections with a heading are questions, shown collapsed; tapping one opens its answer and closes any other (John, 2026-10-23).
 type SupportDoc = { version: string; sections: DocSection[]; backButton?: boolean; faq?: boolean };
 
@@ -359,7 +359,6 @@ const PLACEHOLDER_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing eli
 const REMINDERS_FAQS: SupportDoc = {
   version: "Version 1.0",
   faq: true,
-  backButton: true,
   sections: [
     { paragraphs: ["Last updated: 23 October 2026"] },
     { heading: "How do I add a reminder?", paragraphs: [
@@ -400,7 +399,7 @@ const REMINDERS_FAQS: SupportDoc = {
     ] },
   ],
 };
-const LISTS_FAQS: SupportDoc = { version: "Version 1.0", faq: true, backButton: true, sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
+const LISTS_FAQS: SupportDoc = { version: "Version 1.0", faq: true, sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
 
 // Terms of use Version 1.0 (John, 2026-10-23). Approved in principle only: needs legal sign-off before release
 // (docs/release-readiness.md, Privacy and legal).
@@ -530,7 +529,7 @@ function DocBackButton({ onBack }: { onBack: () => void }) {
   );
 }
 
-// One FAQ: the question as a settings row (left aligned, MenuRow chevron, which turns down while open) and its answer
+// One FAQ: the question as a settings row (left aligned, MenuRow chevron pointing up, turning down while open; John, 2026-10-23) and its answer
 // below, opening with the Repeats overlay's max-height transition (300ms).
 function FaqItem({ section, isOpen, onToggle }: { section: DocSection; isOpen: boolean; onToggle: () => void }) {
   const answerRef = useRef<HTMLDivElement>(null);
@@ -538,7 +537,7 @@ function FaqItem({ section, isOpen, onToggle }: { section: DocSection; isOpen: b
     <div className="flex flex-col w-full">
       <button type="button" onClick={onToggle} aria-expanded={isOpen} className="flex min-h-[30px] items-center justify-between gap-[15px] w-full pr-[15px] m-0 border-none bg-transparent text-left cursor-pointer">
         <p className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-[#1C2C42]" style={{ fontWeight: 700 }}>{section.heading}</p>
-        <svg width="7" height="13" viewBox="0 0 7 13" fill="none" className="shrink-0 transition-transform duration-300" style={{ transform: isOpen ? "rotate(90deg)" : undefined }} aria-hidden="true">
+        <svg width="7" height="13" viewBox="0 0 7 13" fill="none" className="shrink-0 transition-transform duration-300" style={{ transform: isOpen ? "rotate(90deg)" : "rotate(-90deg)" }} aria-hidden="true">
           <path d="M1.92753 0.349745C1.50716 -0.116582 0.82549 -0.116582 0.405113 0.349745C-0.0151913 0.816064 -0.0152062 1.57198 0.405113 2.03828L4.38238 6.45L0.315234 10.9617C-0.10508 11.428 -0.105076 12.1839 0.315234 12.6503C0.735611 13.1166 1.41728 13.1166 1.83766 12.6503L6.4969 7.48173C6.5635 7.43513 6.62678 7.37992 6.68481 7.31555C7.10508 6.84926 7.10505 6.09333 6.68481 5.62701L1.92753 0.349745Z" fill="#939393" />
         </svg>
       </button>

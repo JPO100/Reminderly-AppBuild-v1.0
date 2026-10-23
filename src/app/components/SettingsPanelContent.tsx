@@ -343,7 +343,6 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
 }
 
 // Support pages: FAQs differ per panel, with their own version; Privacy policy and Terms of use are shared by both panels.
-// Lists FAQs are placeholder copy for now (John, 2026-10-23).
 // A paragraph is plain text or a run of text and links; "\n" breaks a line. Sections are 30px apart, with 15px inside.
 type DocLink = { text: string; href: string };
 type DocParagraph = string | (string | DocLink)[];
@@ -351,8 +350,6 @@ type DocSection = { heading?: string; paragraphs: DocParagraph[] };
 // backButton: a Back button after the text, as on the info pages (John, 2026-10-23: Privacy policy, Terms of use; not FAQs).
 // faq: sections with a heading are questions, shown collapsed; tapping one opens its answer and closes any other (John, 2026-10-23).
 type SupportDoc = { version: string; sections: DocSection[]; backButton?: boolean; faq?: boolean };
-
-const PLACEHOLDER_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam velit lorem, rutrum quis felis eu, sodales ultrices arcu. Quisque a ultrices orci, rutrum dictum libero.";
 
 // Reminders FAQs Version 1.0 (John and Kai, 2026-10-23): each question is a section heading, its answer the paragraph.
 // Recheck the NLC answer against the NLC release-readiness ticket (defaults and supported phrases) before release.
@@ -399,7 +396,50 @@ const REMINDERS_FAQS: SupportDoc = {
     ] },
   ],
 };
-const LISTS_FAQS: SupportDoc = { version: "Version 1.0", faq: true, sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
+// Lists FAQs Version 1.0 (John and Kai, 2026-10-23).
+const LISTS_FAQS: SupportDoc = {
+  version: "Version 1.0",
+  faq: true,
+  sections: [
+    { paragraphs: ["Last updated: 23 October 2026"] },
+    { heading: "How do I create a list?", paragraphs: [
+      "Tap New list, give it a name and add your items. Tap the tick or close the list to save it.",
+    ] },
+    { heading: "How do I tick off or remove an item?", paragraphs: [
+      "Open the list and tap an item's circle to tick it off. Tap it again to untick it. Swipe an item to the left to delete it.",
+    ] },
+    { heading: "What do the colours and filters mean?", paragraphs: [
+      "Grey lists haven't been started, blue lists are started and purple lists have every item ticked. Tap Todo, Started or Done to show only those, and tap again to see everything.",
+    ] },
+    { heading: "How do I edit, rename or delete a list?", paragraphs: [
+      "Tap the three dots next to a list. Choose Edit list to change its name or items, or Delete list to remove it.",
+    ] },
+    { heading: "How do I mark a whole list as done?", paragraphs: [
+      "Tap the circle next to the list. Every item is ticked and the list moves to your done lists. Any smart reminder for it is completed too.",
+    ] },
+    { heading: "Can completed lists move to Done automatically?", paragraphs: [
+      "Yes. Turn on Ticked lists to Done in Lists settings. At midnight, any list with every item ticked moves to Done. Pinned lists stay where they are.",
+    ] },
+    { heading: "Can I keep a list at the top?", paragraphs: [
+      "Yes. Tap the three dots and choose Pin to top. Pinned lists stay at the top and aren't moved to Done automatically.",
+    ] },
+    { heading: "What are list templates?", paragraphs: [
+      "Templates are lists you use again and again, like a weekly shop or a packing list. Tap the blue templates button next to the filters, with the two overlapping squares, to create one. Then choose Use template to start a fresh copy with every item unticked.",
+    ] },
+    { heading: "What is a smart reminder?", paragraphs: [
+      "A reminder linked to a list. Tap the three dots, choose Set smart reminder and pick a due date. It appears in Reminders and shows how many items you've ticked. It's completed automatically when the list is done.",
+    ] },
+    { heading: "Can items be sorted A to Z?", paragraphs: [
+      "Yes. Turn on Sort items A to Z in Lists settings. When it's off, the newest items are at the top.",
+    ] },
+    { heading: "Where do done and deleted lists go?", paragraphs: [
+      "Tap the tick in the Reminderly logo to see them. Tap a list's circle to restore it: done lists come back with every item unticked, ready to use again. Clear all permanently removes all done and deleted lists and deleted templates.",
+    ] },
+    { heading: "Are my lists synced or stored online?", paragraphs: [
+      "No. Your lists are stored locally on your iPhone, not on our servers. They aren't synced between devices, so deleting the app may permanently remove them.",
+    ] },
+  ],
+};
 
 // Terms of use Version 1.0 (John, 2026-10-23). Approved in principle only: needs legal sign-off before release
 // (docs/release-readiness.md, Privacy and legal).

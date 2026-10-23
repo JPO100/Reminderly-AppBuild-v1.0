@@ -347,15 +347,15 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
 type DocLink = { text: string; href: string };
 type DocParagraph = string | (string | DocLink)[];
 type DocSection = { heading?: string; paragraphs: DocParagraph[] };
-// backButton: a Back button after the text, as on the info pages (John, 2026-10-23: Privacy policy, Terms of use; not FAQs).
-// faq: sections with a heading are questions, shown collapsed; tapping one opens its answer and closes any other (John, 2026-10-23).
-type SupportDoc = { version: string; sections: DocSection[]; backButton?: boolean; faq?: boolean };
+// backButton: a Back button after the text, as on the info pages (John, 2026-10-23).
+// FAQs use the same centred layout as the policy pages, all answers shown (John, after user testing, 2026-10-23).
+type SupportDoc = { version: string; sections: DocSection[]; backButton?: boolean };
 
 // Reminders FAQs Version 1.0 (John and Kai, 2026-10-23): each question is a section heading, its answer the paragraph.
 // Recheck the NLC answer against the NLC release-readiness ticket (defaults and supported phrases) before release.
 const REMINDERS_FAQS: SupportDoc = {
   version: "Version 1.0",
-  faq: true,
+  backButton: true,
   sections: [
     { paragraphs: ["Last updated: 23 October 2026"] },
     { heading: "How do I add a reminder?", paragraphs: [
@@ -399,7 +399,7 @@ const REMINDERS_FAQS: SupportDoc = {
 // Lists FAQs Version 1.0 (John and Kai, 2026-10-23).
 const LISTS_FAQS: SupportDoc = {
   version: "Version 1.0",
-  faq: true,
+  backButton: true,
   sections: [
     { paragraphs: ["Last updated: 23 October 2026"] },
     { heading: "How do I create a list?", paragraphs: [
@@ -569,49 +569,10 @@ function DocBackButton({ onBack }: { onBack: () => void }) {
   );
 }
 
-// One FAQ: the question as a settings row (left aligned, MenuRow chevron pointing up, turning down while open; John, 2026-10-23) and its answer
-// below, opening with the Repeats overlay's max-height transition (300ms).
-function FaqItem({ section, isOpen, onToggle }: { section: DocSection; isOpen: boolean; onToggle: () => void }) {
-  const answerRef = useRef<HTMLDivElement>(null);
-  return (
-    <div className="flex flex-col w-full">
-      <button type="button" onClick={onToggle} aria-expanded={isOpen} className="flex min-h-[30px] items-center justify-between gap-[15px] w-full pr-[15px] m-0 border-none bg-transparent text-left cursor-pointer">
-        <p className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-[#1C2C42]" style={{ fontWeight: 700 }}>{section.heading}</p>
-        <svg width="7" height="13" viewBox="0 0 7 13" fill="none" className="shrink-0 transition-transform duration-300" style={{ transform: isOpen ? "rotate(90deg)" : "rotate(-90deg)" }} aria-hidden="true">
-          <path d="M1.92753 0.349745C1.50716 -0.116582 0.82549 -0.116582 0.405113 0.349745C-0.0151913 0.816064 -0.0152062 1.57198 0.405113 2.03828L4.38238 6.45L0.315234 10.9617C-0.10508 11.428 -0.105076 12.1839 0.315234 12.6503C0.735611 13.1166 1.41728 13.1166 1.83766 12.6503L6.4969 7.48173C6.5635 7.43513 6.62678 7.37992 6.68481 7.31555C7.10508 6.84926 7.10505 6.09333 6.68481 5.62701L1.92753 0.349745Z" fill="#939393" />
-        </svg>
-      </button>
-      <div className="overflow-hidden transition-[max-height] duration-300 ease-in-out" style={{ maxHeight: isOpen ? answerRef.current?.scrollHeight ?? 0 : 0 }}>
-        <div ref={answerRef} className="flex flex-col gap-[15px] pt-[15px] pr-[15px]">
-          {section.paragraphs.map((paragraph, index) => (
-            <p key={index} className="font-['Lato:Medium',sans-serif] leading-[24px] text-[17px] text-[#BABABA] w-full whitespace-pre-line">{renderParagraph(paragraph)}</p>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// FAQ page: any opening text, then the questions 30px apart, one open at a time.
-function FaqPage({ doc, onBack }: { doc: SupportDoc; onBack: () => void }) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-  return (
-    <div className="flex flex-col gap-[30px] w-full">
-      {doc.sections.map((section, index) => section.heading ? (
-        <FaqItem key={index} section={section} isOpen={openIndex === index} onToggle={() => setOpenIndex(openIndex === index ? null : index)} />
-      ) : section.paragraphs.map((paragraph, paragraphIndex) => (
-        <p key={`${index}-${paragraphIndex}`} className="font-['Lato:Medium',sans-serif] leading-[24px] text-[17px] text-[#BABABA] w-full whitespace-pre-line">{renderParagraph(paragraph)}</p>
-      )))}
-      {doc.backButton && <DocBackButton onBack={onBack} />}
-    </div>
-  );
-}
-
 // A Support page's text: centred grey paragraphs under dark blue section headings, links in Reminderly blue.
 // Links open outside the app (Safari or Mail): the web view hands off navigation away from the app. They open in the
 // same window, as a new window (target _blank) is not handed off and does nothing.
 function SupportDocPage({ doc, onBack }: { doc: SupportDoc; onBack: () => void }) {
-  if (doc.faq) return <FaqPage doc={doc} onBack={onBack} />;
   return (
     <div className="flex flex-col gap-[30px] w-full">
       {doc.sections.map((section, sectionIndex) => (

@@ -173,6 +173,14 @@ Layouts:
 | Dev tools info | Title, 40, body, 40, Close |
 | Dev tools confirmations | Title, 40, body, 40, Cancel and Confirm |
 
+Scrolling settings pages (reduced footer standard, John, 2026-10-23):
+
+- Any Reminders or Lists settings page whose content does not fit (main pages, row sub-pages, and text pages such as FAQs, Privacy policy and Terms of use) uses the reduced footer: the scroll area ends 24px above the card's bottom edge instead of the usual 40px, as a hard edge (no fade), so the content visibly falls away. On row pages the cut runs through the middle of a row.
+- Space after the content lets it scroll clear, so the last item ends 40px above the card's edge when scrolled to the end.
+- Pages that fit keep the standard 40px bottom padding.
+- Constants: `SCROLL_PEEK` (40) and `SUB_PAGE_GLIMPSE_GAP` (24) in `SettingsPanelContent.tsx`. Every scrolling page uses them; none sets its own footer.
+- The tutorial Re-run pages show the live settings content, so they inherit the same footer. Any tutorial page that mirrors a settings page must match it exactly.
+
 Toggle rows in centred overlays:
 
 - Row: full width, `flex gap-[16px] items-start`, whole row tappable; the toggle stops propagation to avoid double firing.

@@ -192,7 +192,12 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
         <PanelHeader title={subPage ?? title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
         {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
         {/* Text pages (Support documents) scroll freely within the page's height: their tall blocks have no row middles to cut through */}
-        {content && subPage && subText && <div key={subPage} className="relative w-full min-h-0 flex-1 overflow-y-auto">{content}</div>}
+        {/* Like every scrolling page, they use the reduced footer: the area ends SUB_PAGE_GLIMPSE_GAP above the card's edge, and space after the text lets it scroll clear, ending 40px above the edge (John, 2026-10-23) */}
+        {content && subPage && subText && (
+          <div key={subPage} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={{ marginBottom: SUB_PAGE_GLIMPSE_GAP - SCROLL_PEEK }}>
+            <div style={{ paddingBottom: SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP }}>{content}</div>
+          </div>
+        )}
         {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) - (subVersion ? VERSION_LINE_HEIGHT : 0) : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>

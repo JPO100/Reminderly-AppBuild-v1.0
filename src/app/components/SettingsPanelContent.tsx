@@ -343,19 +343,68 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
 }
 
 // Support pages: FAQs differ per panel, with their own version; Privacy policy and Terms of use are shared by both panels.
-// FAQs and Terms of use are placeholder copy for now (John, 2026-10-23).
+// FAQs are placeholder copy for now (John, 2026-10-23).
 // A paragraph is plain text or a run of text and links; "\n" breaks a line. Sections are 30px apart, with 15px inside.
 type DocLink = { text: string; href: string };
 type DocParagraph = string | (string | DocLink)[];
 type DocSection = { heading?: string; paragraphs: DocParagraph[] };
-// backButton: a Back button after the text, as on the info pages (John, 2026-10-23: Privacy policy).
+// backButton: a Back button after the text, as on the info pages (John, 2026-10-23: Privacy policy, Terms of use).
 type SupportDoc = { version: string; sections: DocSection[]; backButton?: boolean };
 
 const PLACEHOLDER_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam velit lorem, rutrum quis felis eu, sodales ultrices arcu. Quisque a ultrices orci, rutrum dictum libero.";
 
 const REMINDERS_FAQS: SupportDoc = { version: "Version 1.0", sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
 const LISTS_FAQS: SupportDoc = { version: "Version 1.0", sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
-const TERMS_OF_USE: SupportDoc = { version: "Version 1.0", sections: [{ paragraphs: [PLACEHOLDER_TEXT] }] };
+
+// Terms of use Version 1.0 (John, 2026-10-23). Approved in principle only: needs legal sign-off before release
+// (docs/release-readiness.md, Privacy and legal).
+const TERMS_OF_USE: SupportDoc = {
+  version: "Version 1.0",
+  backButton: true,
+  sections: [
+    { paragraphs: [
+      "Last updated: 23 October 2026",
+      "Reminderly is developed and operated by Neatly Made Limited, a company registered in the United Kingdom.",
+      "By using Reminderly, you agree to these Terms of Use.",
+    ] },
+    { heading: "Using Reminderly", paragraphs: [
+      "Reminderly helps you organise reminders, lists and everyday tasks. You may use the app for personal or lawful purposes in accordance with Apple's App Store terms.",
+      "No account or registration is required.",
+    ] },
+    { heading: "Reminders and notifications", paragraphs: [
+      "We aim to make Reminderly reliable, but cannot guarantee that reminders or notifications will always be delivered on time.",
+      "Notifications may be affected by device settings, permissions, operating system behaviour or technical issues.",
+      "Please do not rely on Reminderly as your sole means of remembering critical, medical, safety-related or time-sensitive obligations.",
+    ] },
+    { heading: "Your content and data", paragraphs: [
+      "Your reminders, lists and attachments belong to you and are stored locally on your device.",
+      "You are responsible for maintaining appropriate backups of important information. We cannot guarantee recovery of information lost through device failure, deletion or other technical issues.",
+      "For details about how we handle information, please see our Privacy Policy.",
+    ] },
+    { heading: "Acceptable use", paragraphs: [
+      "You agree not to misuse Reminderly, interfere with its operation or use it for unlawful purposes.",
+    ] },
+    { heading: "Ownership", paragraphs: [
+      "Reminderly, including its design, software, branding and associated intellectual property, belongs to Neatly Made Limited or its licensors.",
+      "You are granted permission to use the app in accordance with these terms and Apple's applicable licence agreement.",
+    ] },
+    { heading: "Availability and liability", paragraphs: [
+      "We may update, improve or discontinue features of Reminderly.",
+      "While we take reasonable care to provide a reliable app, we cannot guarantee uninterrupted or error-free operation.",
+      "To the extent permitted by law, Neatly Made Limited is not responsible for losses arising from missed reminders, delayed notifications or unavailable features.",
+      "Nothing in these terms excludes or limits liability where doing so would be unlawful, or affects your statutory consumer rights.",
+    ] },
+    { heading: "Changes to these terms", paragraphs: [
+      "We may update these terms from time to time. The latest version will be available in the app and on our website.",
+    ] },
+    { heading: "Governing law", paragraphs: [
+      "These terms are governed by the laws of England and Wales, subject to any mandatory consumer protections that apply where you live.",
+    ] },
+    { heading: "Contact", paragraphs: [
+      ["Neatly Made Limited\nWebsite: ", { text: "neatlymade.co", href: "https://neatlymade.co" }, "\nEmail: ", { text: "info@neatlymade.co", href: "mailto:info@neatlymade.co" }],
+    ] },
+  ],
+};
 
 // Privacy policy Version 1.0 (John and Kai, 2026-10-23)
 const PRIVACY_POLICY: SupportDoc = {

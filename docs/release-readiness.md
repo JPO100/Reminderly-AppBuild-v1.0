@@ -74,7 +74,8 @@ With developer tools excluded, these values are what users get. Development defa
 | App Privacy answers ("nutrition label") | Outstanding | App Store Connect | Expected "Data Not Collected" unless monetisation tooling or fonts change this |
 | Bundle the Lato font instead of loading Google Fonts | Outstanding (recommended) | 5.1.1, privacy accuracy | Runtime request to `fonts.googleapis.com` sends the device IP address to Google on launch; the only third-party request found in the 2026-10-23 privacy audit and relevant to the policy's no-sharing statement. Also affects offline appearance |
 | Camera and photo library permission strings (attachments) | Done | 5.1.1, 2.5.1 | `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`, `NSPhotoLibraryAddUsageDescription` in Info.plist. Recommendation, not approved: include the Filesystem, Camera and File Picker plugins when preparing the privacy manifest |
-| Terms of use (Apple standard EULA or custom) | Pending D4 | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions |
+| Terms of use (Apple standard EULA or custom) | In progress (D4) | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions. Custom Terms of Use Version 1.0 in the app under Settings > Support > Terms of use (feature/reminder-list-settings, not merged), approved in principle only |
+| LEGAL SIGN-OFF REQUIRED: Terms of Use Version 1.0 | Outstanding (must be resolved before release; does not block development) | Legal review | Text approved in principle by John (2026-10-23) and in the app, but must not go live until legal sign-off. Covers liability limits for missed reminders, governing law (England and Wales), consumer rights wording and the relationship with Apple's licence agreement. Update the version and date in the app if legal review changes the text |
 | Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Outstanding | App Store Connect | No non-exempt encryption used |
 | Age rating (updated questionnaire) | Outstanding | Required since September 2026 | Expected lowest rating |
 | EU Digital Services Act trader status | Pending D5 | App Store Connect | Required for EU distribution |
@@ -182,6 +183,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-23 | Terms of Use Version 1.0 in the app (Settings > Support, feature/reminder-list-settings, not merged), approved in principle only. Legal sign-off flagged as required before release |
 | 2026-10-23 | Outstanding action added: purchase and configure neatlymade.co and host the privacy policy at https://neatlymade.co/privacy before release |
 | 2026-10-23 | Privacy policy Version 1.0 in the app (Settings > Support, feature/reminder-list-settings, not merged). Privacy audit: no analytics, crash reporting, advertising or identifier SDKs and no app network calls; Google Fonts is the only third-party request. neatlymade.co does not resolve |
 | 2026-10-22 | Siri tutorial page merged to main (9067897): "Add reminders with Siri" in the Reminders tutorial while Siri is available |

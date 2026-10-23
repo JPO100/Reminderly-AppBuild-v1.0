@@ -139,11 +139,13 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
   return (
     <div ref={rootRef} className="absolute inset-0 pointer-events-none">
       {overlayOpen && (
-        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/50">
+        // The card sits PAGE_6_CARD_MARGIN above the phone's bottom edge, scaled from its bottom, so a card that fits
+        // (Lists) keeps the same bottom gap as one capped to the phone (Reminders) (John, 2026-10-23)
+        <div className="absolute inset-0 z-[60] flex items-end justify-center bg-black/50" style={{ paddingBottom: PAGE_6_CARD_MARGIN }}>
           <div
             ref={cardRef}
             className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] outline-none shrink-0"
-            style={{ width: 340, maxHeight: cardMaxHeight, overflowY: "hidden", transform: `scale(${PAGE_6_CARD_SCALE})`, transformOrigin: "center" }}
+            style={{ width: 340, maxHeight: cardMaxHeight, overflowY: "hidden", transform: `scale(${PAGE_6_CARD_SCALE})`, transformOrigin: "bottom center" }}
           >
             {variant === "lists" ? (
             <ShowInfoIconsContext.Provider value={listsSettings?.showInfoIcons ?? true}>

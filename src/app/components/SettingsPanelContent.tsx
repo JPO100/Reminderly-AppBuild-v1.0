@@ -559,12 +559,13 @@ function supportDocFor(page: string | null, faqs: SupportDoc): SupportDoc | null
   return null;
 }
 
-// Support sub-page: FAQs, the panel's tutorial, then the legal pages (John, 2026-10-23).
+// Support sub-page: FAQs and the panel's tutorial (John, 2026-10-23), a key line, then the legal pages.
 function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial }: { onOpen: (page: string) => void; tutorialLabel: string; onOpenTutorial?: () => void }) {
   return (
     <>
       <MenuRow label="FAQs" onClick={() => onOpen("FAQs")} />
       {onOpenTutorial && <TutorialRow label={tutorialLabel} onClick={onOpenTutorial} />}
+      <KeyLine />
       <MenuRow label="Privacy policy" onClick={() => onOpen("Privacy policy")} />
       <MenuRow label="Terms of use" onClick={() => onOpen("Terms of use")} />
     </>
@@ -613,15 +614,12 @@ function SupportDocPage({ doc }: { doc: SupportDoc }) {
   );
 }
 
-// Support row and the key line above it, as both panels show them. The row has no info icon.
+// Support row, as both panels show it, with no key line above it (John, 2026-10-23). The row has no info icon.
 function SupportRow({ onClick }: { onClick: () => void }) {
   return (
-    <>
-      <KeyLine />
-      <ShowInfoIconsContext.Provider value={false}>
-        <MenuRow label="Support" onClick={onClick} />
-      </ShowInfoIconsContext.Provider>
-    </>
+    <ShowInfoIconsContext.Provider value={false}>
+      <MenuRow label="Support" onClick={onClick} />
+    </ShowInfoIconsContext.Provider>
   );
 }
 

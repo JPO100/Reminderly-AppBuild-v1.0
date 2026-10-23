@@ -36,7 +36,7 @@ export default function OnboardingPage6Content({ combineLaterSometime = false }:
   );
 }
 
-type Page6Phase = "none" | "settings-throb" | "settings-overlay" | "settings-scroll" | "tutorial-throb";
+type Page6Phase = "none" | "settings-throb" | "settings-overlay" | "settings-scroll" | "support-throb" | "support-open" | "tutorial-throb";
 
 // Reminders settings rows as the live overlay shows them (App passes its own availability and values)
 export type TutorialRemindersSettings = Pick<ComponentProps<typeof RemindersSettingsContent>,
@@ -58,6 +58,10 @@ const PAGE_6_CARD_SCALE = TUTORIAL_OVERLAY_PHONE_INTERIOR_WIDTH / PAGE_6_APP_WID
 const PAGE_6_CARD_MARGIN = 16;
 const noop = () => {};
 
+function findButton(root: HTMLElement | null, label: string) {
+  return root ? [...root.querySelectorAll("button")].find((button) => button.textContent === label) : undefined;
+}
+
 function Page6Ring({ rect, size }: { rect: { x: number; y: number }; size: number }) {
   return (
     <motion.div
@@ -75,7 +79,7 @@ function Page6Ring({ rect, size }: { rect: { x: number; y: number }; size: numbe
 }
 
 // Re-run page: highlight the Settings button, open Reminders (or Lists) settings with the rows the app shows, scroll them
-// to the bottom, highlight the tutorial option, then stop. The card is the live overlay scaled to the phone, centred, its
+// to the bottom, highlight Support, open it, highlight the tutorial option under FAQs, then stop. The card is the live overlay scaled to the phone, centred, its
 // height capped to the phone so the rows scroll as they do on shorter screens.
 export function OnboardingPage6Overlay({ variant = "reminders", settings, listsSettings }: { variant?: "reminders" | "lists"; settings?: TutorialRemindersSettings; listsSettings?: TutorialListsSettings }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -91,13 +95,17 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
     const t2 = t1 + PAGE_6_THROB_TOTAL_MS + PAGE_6_PAUSE_MS;
     const t3 = t2 + PAGE_6_PAUSE_MS;
     const t4 = t3 + PAGE_6_SCROLL_MS + PAGE_6_PAUSE_MS / 2;
+    const t5 = t4 + PAGE_6_THROB_TOTAL_MS + PAGE_6_PAUSE_MS;
+    const t6 = t5 + PAGE_6_PAUSE_MS;
     const timers = [
       window.setTimeout(() => setPhase("settings-throb"), t1),
       window.setTimeout(() => setPhase("settings-overlay"), t2),
       window.setTimeout(() => setPhase("settings-scroll"), t3),
-      window.setTimeout(() => setPhase("tutorial-throb"), t4),
+      window.setTimeout(() => setPhase("support-throb"), t4),
+      window.setTimeout(() => setPhase("support-open"), t5),
+      window.setTimeout(() => setPhase("tutorial-throb"), t6),
       // Hold the end state, then close the overlay and run again, as the other cycling pages do
-      window.setTimeout(() => setCycle((value) => value + 1), t4 + PAGE_6_THROB_TOTAL_MS + TUTORIAL_ATTENTION_RECYCLE_DELAY),
+      window.setTimeout(() => setCycle((value) => value + 1), t6 + PAGE_6_THROB_TOTAL_MS + TUTORIAL_ATTENTION_RECYCLE_DELAY),
     ];
     return () => timers.forEach((timer) => clearTimeout(timer));
   }, [cycle]);
@@ -119,22 +127,28 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
     scroll?.scrollTo({ top: scroll.scrollHeight, behavior: "smooth" });
   }, [phase]);
 
+  // Open the Support sub-page, where the tutorial option sits under FAQs
+  useEffect(() => {
+    if (phase !== "support-open") return;
+    findButton(cardRef.current, "Support")?.click();
+  }, [phase]);
+
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || (phase !== "settings-throb" && phase !== "tutorial-throb")) {
+    if (!root || (phase !== "settings-throb" && phase !== "support-throb" && phase !== "tutorial-throb")) {
       setRingCentre(null);
       return;
     }
     const target = phase === "settings-throb"
       ? root.parentElement?.querySelector('svg[data-tutorial-settings-button]')
-      : [...root.querySelectorAll("button")].find((button) => button.textContent === (variant === "lists" ? "Lists tutorial" : "Reminders tutorial"))?.querySelector("svg");
+      : findButton(root, phase === "support-throb" ? "Support" : variant === "lists" ? "Lists tutorial" : "Reminders tutorial")?.querySelector("svg");
     if (!target) return;
     const rootRect = root.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
     setRingCentre({ x: targetRect.left - rootRect.left + targetRect.width / 2, y: targetRect.top - rootRect.top + targetRect.height / 2 });
   }, [phase, variant]);
 
-  const overlayOpen = phase === "settings-overlay" || phase === "settings-scroll" || phase === "tutorial-throb";
+  const overlayOpen = phase === "settings-overlay" || phase === "settings-scroll" || phase === "support-throb" || phase === "support-open" || phase === "tutorial-throb";
 
   return (
     <div ref={rootRef} className="absolute inset-0 pointer-events-none">

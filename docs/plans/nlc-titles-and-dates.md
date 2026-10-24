@@ -1,6 +1,6 @@
 # NLC titles, numeric dates and format gaps - plan
 
-Status: PLAN, awaiting Kai's review. Not implemented.
+Status: PLAN, conditionally approved by Kai (2026-10-24), revised for his five conditions and a staged implementation (sections 5 and 6). Awaiting final plan approval and John's decisions D1, D2, D4, D7, D8, D9. Not implemented.
 
 Type D under Working Agreement v1.3. It is cross-component (the shared NLC parser and title logic used by the in-app editor, the Siri intent through the bundled siri-core.js, and notification text) and touches protected areas (date handling, time handling, notification scheduling input). Kai approves this plan before implementation and signs off before merge.
 
@@ -13,6 +13,7 @@ Branch: `feature/nlc-titles-dates`, from main (a89da9f).
 - 2026-10-24, John: refinements accepted - capitalise the first letter after removal; only remove a word that ends the text, follows at/on/in, or sits next to another removed word.
 - 2026-10-24, John: every reminder has a time. Siri date-only reminders default to 12pm, as the app does.
 - 2026-10-24, John: support DD/MM/YYYY, D/M/YY and variations, and fill every gap in the date format table.
+- 2026-10-24, Kai: Type D and the approach confirmed, no scope reduction. Conditionally approved, subject to five conditions (title cleaning, word order, numeric safety, Siri behaviour, regression; section 5) and at most 5 implementation stages (section 6). No implementation or merge approval yet.
 
 ## 1. Current behaviour
 
@@ -103,14 +104,31 @@ Decisions (recommendation first):
 - D8, weekday and date that disagree ("Wednesday 5 November" when 5 November is a Thursday)? Recommended the date wins. John.
 - D9, add daily/weekly/monthly/yearly/hourly? Recommended yes. John.
 
-## 5. Testing and verification
+## 5. CTO conditions (Kai, 2026-10-24)
+
+1. Title cleaning. Only tokens the parser positively identified and NLC applied are removed (2.1, rules 1, 2 and 5). Unmatched text stays, including words that resemble dates or repeats but were not applied ("Monday meeting notes", "Sunday lunch", "every so often", "evening" when a clock time was applied). The helper never strips by word lists: the existing word-list stripping in `normaliseReminderText` is not used for new titles. An empty result keeps the typed text (rule 4).
+2. Word order. Only a value NLC filled in as a default can be replaced by a later token (2.2). A date, time or repeat the user set by hand, a tapped token and an applied token are never overwritten. Both orders are tested ("tomorrow ... at 3pm" and "at 3pm ... tomorrow", with and without pauses), plus a hand-set time followed by a typed time.
+3. Numeric dates. A pattern that is not a valid calendar date (31/4, 29/2/2027, 0/3, 3/13) or fails the boundary rules is not a token, so it never highlights or schedules. Boundary tests: phone numbers (07700 900123, 0161 496 0000, +44 20 7946 0000), fractions and scores ("1/2 price", "3/4 cup", "won 3-2"), dotted and colon times ("3.30", "3.30pm", "at 3:30"), versions ("v2.1.3"), "24/7", dates inside longer digit runs ("12/12/12/12").
+4. Siri. The helper keeps Siri's current results except the agreed changes, and every existing Siri test keeps its expected title unless listed here. Agreed changes: repeat words removed (D1); capitalisation; refinement 2 ("Monday meeting notes" stays whole, today "meeting notes"); words not applied are kept ("Parents evening at 6pm" becomes "Parents evening", today "Parents", because the old normalisation strips "evening" by word list). The 12pm default follows D7: a date with no time gets 12:00 even when that is already past today; a time with no date still moves to tomorrow once past; the 15-minute refusal and Siri-off error are unchanged.
+5. Regression. Validation includes edit-mode re-parsing (older text with newly recognised forms does not auto-apply), notification title and body consistency (body equals the saved title, app and Siri), recurrence (next occurrence keeps the task-only title and its rule), and the stale siri-core.js check.
+
+## 6. Implementation stages
+
+Each stage ends with its tests and the full vitest suite and Self Check passing before the next starts. Stages 1 and 2 are committed on this branch and can be tried in the app on their own.
+
+1. Date formats and repeat words (2.4, 2.5 repeat words). Parser only: numeric dates, ISO, two-digit years, "of", "Sept", weekday with a date, daily/weekly/monthly/yearly/hourly. Validation: unit tests for every form and every boundary case in condition 3; Self Check parsing suite extended; simulator spot check of numeric dates in the editor.
+2. Word order (2.2). Auto-apply replaces NLC defaults only. Validation: condition 2 cases in unit tests and the Self Check interaction suite; simulator re-run of checklist group E typed with pauses.
+3. Titles and Siri (2.1, 2.3). Shared title helper used by the editor save and Siri; Siri 12pm default; siri-core.js rebuilt. Validation: the 20 sample titles and refinement cases, conditions 1 and 4 (existing Siri tests unchanged except the listed changes), notification body, edit mode and recurrence (condition 5); stale bundle test.
+4. Verification and docs. Full regression: vitest, Self Check (Node run), type-check, production build; simulator re-run of checklist groups A, B, E, G, H, J plus new rows for numeric dates and titles, recorded in the checklist doc; existing reminders keep their titles; docs (scheduling-and-nlc.md, ios.md, development history). Then deploy to simulator and iPhone for John's device tests (spoken Siri with numeric and date-only phrases, a 12pm Siri notification), and request Kai's merge approval.
+
+## 7. Testing and verification
 
 - Unit (vitest): every form in 2.4, including the boundary cases and false-positive phrases; the 20 sample titles plus refinement cases; empty-title fallback; capitalisation; word order in both typing orders; Siri 12pm default; edit-mode baseline for older text.
 - Self Check: extend the NLC parsing and interaction suites; Node run with the localStorage shim.
-- Regression: full vitest suite and Self Check, type-check, production build, siri-core.js rebuilt and its test passing.
+- Regression: full vitest suite and Self Check, type-check, production build, siri-core.js rebuilt and its test passing; notification body matches the saved title; repeating reminders keep their title and rule on completion.
 - Simulator: re-run the affected checklist groups (A, B, E, G, H, J) and new rows for numeric dates and titles, recorded in the NLC testing checklist doc. Check that existing reminders keep their titles.
 - Device (John): spoken Siri phrases for numeric and date-only commands; a 12pm notification for a Siri date-only reminder.
 
-## 6. Out of scope
+## 8. Out of scope
 
 Deleting a word leaving Time on; times already past saved as overdue in the app; US date order; "next week", "this weekend"; short weekday names on their own ("Tues"); bare day numbers ("the 3rd"); times off the quarter hour in the app; rewriting existing reminders.

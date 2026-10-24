@@ -12,22 +12,22 @@ function config(overrides: Partial<TutorialPageConfig> = {}): TutorialPageConfig
 }
 
 describe('getTutorialPageIds - reminders tutorial', () => {
-  it('shows 6 pages, with create a reminder second, when the optional pages are off', () => {
-    expect(getTutorialPageIds(config())).toEqual([0, 6, 1, 2, 3, 4]);
+  it('shows 5 pages, with create a reminder second and the filters page hidden, when the optional pages are off', () => {
+    expect(getTutorialPageIds(config())).toEqual([0, 6, 2, 3, 4]);
   });
 
   it('adds the re-run tutorial page when the settings menu is on', () => {
-    expect(getTutorialPageIds(config({ settingsMenuEnabled: true }))).toEqual([0, 6, 1, 2, 3, 4, 5]);
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true }))).toEqual([0, 6, 2, 3, 4, 5]);
   });
 
   it('adds type it naturally after create a reminder only when the NLC demo is available', () => {
-    expect(getTutorialPageIds(config({ nlcDemoAvailable: true }))).toEqual([0, 6, 7, 1, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ nlcDemoAvailable: true }))).toEqual([0, 6, 7, 2, 3, 4]);
   });
 
   it('adds the Siri page third, straight after create a reminder, only when Siri is available', () => {
-    expect(getTutorialPageIds(config({ siriAvailable: true }))).toEqual([0, 6, 9, 1, 2, 3, 4]);
-    expect(getTutorialPageIds(config({ siriAvailable: true, nlcDemoAvailable: true }))).toEqual([0, 6, 9, 7, 1, 2, 3, 4]);
-    expect(getTutorialPageIds(config({ siriAvailable: false }))).toEqual([0, 6, 1, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ siriAvailable: true }))).toEqual([0, 6, 9, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ siriAvailable: true, nlcDemoAvailable: true }))).toEqual([0, 6, 9, 7, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ siriAvailable: false }))).toEqual([0, 6, 2, 3, 4]);
   });
 
   it('never adds the Siri page to the lists tutorial', () => {
@@ -35,16 +35,16 @@ describe('getTutorialPageIds - reminders tutorial', () => {
   });
 
   it('adds the notification ask as the last page only when eligible', () => {
-    expect(getTutorialPageIds(config({ notificationAskEligible: true }))).toEqual([0, 6, 1, 2, 3, 4, 8]);
-    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, notificationAskEligible: true }))).toEqual([0, 6, 1, 2, 3, 4, 5, 8]);
+    expect(getTutorialPageIds(config({ notificationAskEligible: true }))).toEqual([0, 6, 2, 3, 4, 8]);
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, notificationAskEligible: true }))).toEqual([0, 6, 2, 3, 4, 5, 8]);
   });
 
-  it('shows all 9 pages when every optional page is on', () => {
-    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true }))).toEqual([0, 6, 7, 1, 2, 3, 4, 5, 8]);
+  it('shows all 8 pages when every optional page is on', () => {
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true }))).toEqual([0, 6, 7, 2, 3, 4, 5, 8]);
   });
 
   it('ignores list-only features', () => {
-    expect(getTutorialPageIds(config({ smartRemindersEnabled: true, savedListsEnabled: true }))).toEqual([0, 6, 1, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ smartRemindersEnabled: true, savedListsEnabled: true }))).toEqual([0, 6, 2, 3, 4]);
   });
 });
 

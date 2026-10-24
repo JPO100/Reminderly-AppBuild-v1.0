@@ -1,6 +1,6 @@
 # Settings scroll cut: always half a row - plan
 
-Status: plan for Kai's review. Not implemented.
+Status: plan approved by Kai (2026-10-24); implemented on fix/settings-scroll-peek, awaiting final CTO review. Not merged.
 
 Type C under Working Agreement v1.3 (shared settings component used by every Reminders and Lists settings page and the tutorial pages that show them). Branch `fix/settings-scroll-peek` from main 59752c8. Implementation after `feature/nlc-mode-toggles` is merged, as that branch adds the page that shows the fault.
 
@@ -47,3 +47,29 @@ Web layer only (React layout). No plugins, storage, notifications or native code
 - Measured table for every page before and after (scrolls or fits, cut offset from row middle, footer).
 - Pass: every scrolling row page shows part of a row at the cut, middle about 24px above the card edge; footers 24 when scrolling and 40 when fitting; no page height changes on repeat visits.
 - Vitest and Self Check unchanged and passing.
+
+## 8. Results
+
+Cause confirmed: on the Natural Language Capture page the header is 48px (title on two lines) against 24px on the main page, so the area was 24px shorter than assumed and the cut fell between rows.
+
+Fix: `ScrollArea` takes the main page's header height and subtracts any extra height of the sub-page's own header from `baseHeight`. `VERSION_LINE_HEIGHT` removed (the measured header covers the version line). Main pages, text pages and the tutorial settings page (main page only) take the unchanged path. No guard needed.
+
+Browser preview, 402x874 (after fix; before in brackets where different):
+
+| Page | Card | Scrolls | Footer | Cut |
+|---|---|---|---|---|
+| Reminders settings | 474 | no | 40 | fits |
+| Siri shortcuts | 474 | no | 40 | fits |
+| Notifications | 474 | no | 40 | fits |
+| Natural Language Capture | 498 (474) | yes | 24 | row middle 24 above edge (in a gap, no row showing) |
+| Sounds and haptics (Reminders) | 474 | yes | 24 | row middle 24 above edge |
+| Support (Reminders) | 474 | no | 40 | fits |
+| Lists settings | 414 | no | 40 | fits |
+| Sounds and haptics (Lists) | 443 | yes | 24 | row middle 24 above edge |
+| Support (Lists) | 414 | no | 40 | fits |
+
+Repeat visits (Natural Language Capture and Sounds and haptics, 3 times each): heights stable (498, 474).
+
+375x812 (fixed 450px card): every scrolling page now cuts through a row (Natural Language Capture was in a gap before the fix, now row middle 36 above the edge). Pre-existing and unchanged by this fix: on the fixed card, row middles sit 31 to 60 above the edge rather than 24, and pages that fit show 47 or 76 below the content rather than 40 (the fixed height does not take the growth). Reported for decision, not changed.
+
+Vitest 444 passed.

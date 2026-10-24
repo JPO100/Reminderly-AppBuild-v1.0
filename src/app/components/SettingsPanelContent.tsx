@@ -10,9 +10,6 @@ import type { SoundsConfig } from "../utils/sounds";
 // Settings panel content. App owns and saves the values; rows show only when their feature is available.
 // Each panel has its own Siri preference, saved by App. Each row shows only when its Siri flag is on.
 
-// The version line under a Support page title: 8px gap plus a 20px line
-const VERSION_LINE_HEIGHT = 28;
-
 // Centred overlay header: title centred, back arrow on the left for sub-pages, and an optional grey version line under the title,
 // with an optional last updated line under it in the same style (Privacy policy and Terms of use; John, 2026-10-23).
 // The back button pads the 9x17 arrow to a 45x45 tap area; the negative left offset keeps the arrow in place.
@@ -63,7 +60,9 @@ type ScrollFit = { cut: number | null; pad: number; grow: number; cap?: number; 
 // With onGrow (sub-pages), the card instead grows or shrinks by up to 30px so the cut row's middle is always
 // SUB_PAGE_GLIMPSE_GAP above the card's edge, whatever the main page's height. baseHeight is the area's height on the
 // main page; measuring from it, not the rendered height, keeps the growth from feeding back into itself.
-function ScrollArea({ children, onGrow, baseHeight }: { children: ReactNode; onGrow?: (grow: number) => void; baseHeight?: number }) {
+// mainHeaderHeight is the main page's header height: a sub-page header that is taller (a title on two lines, a version
+// line) leaves that much less room, measured from the header itself (docs/plans/settings-scroll-peek.md).
+function ScrollArea({ children, onGrow, baseHeight, mainHeaderHeight }: { children: ReactNode; onGrow?: (grow: number) => void; baseHeight?: number; mainHeaderHeight?: number }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
   // cut: how far the bottom edge moves down (negative: up), null while the rows fit. pad: space after the last row.
@@ -75,6 +74,8 @@ function ScrollArea({ children, onGrow, baseHeight }: { children: ReactNode; onG
   onGrowRef.current = onGrow;
   const baseHeightRef = useRef(baseHeight);
   baseHeightRef.current = baseHeight;
+  const mainHeaderHeightRef = useRef(mainHeaderHeight);
+  mainHeaderHeightRef.current = mainHeaderHeight;
   useLayoutEffect(() => {
     const scroll = scrollRef.current;
     const rows = rowsRef.current;
@@ -83,7 +84,9 @@ function ScrollArea({ children, onGrow, baseHeight }: { children: ReactNode; onG
       const current = fitRef.current;
       // Sizes as they would be without the cut and growth, so the result never depends on itself
       // A capped area keeps the height it was measured from (base), as its rendered height depends on the cap
-      const visible = baseHeightRef.current ?? current.base ?? scroll.clientHeight - (current.cut ?? 0) - current.grow;
+      const header = scroll.parentElement?.firstElementChild as HTMLElement | null;
+      const headerExtra = baseHeightRef.current !== undefined && mainHeaderHeightRef.current !== undefined && header ? header.offsetHeight - mainHeaderHeightRef.current : 0;
+      const visible = baseHeightRef.current !== undefined ? baseHeightRef.current - headerExtra : current.base ?? scroll.clientHeight - (current.cut ?? 0) - current.grow;
       const content = rows.offsetHeight - current.pad;
       let next: ScrollFit = { cut: null, pad: 0, grow: 0 };
       if (content > visible + 1) {
@@ -165,7 +168,7 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
 // Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged; a sub-page that
 // scrolls grows or shrinks by up to 30px so its bottom glimpse matches on every panel.
 // Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
-// A sub-page with a version line has a taller header, so its scroll area measures from that much less.
+// A sub-page with a taller header (a version line, a title on two lines) measures its scroll area from that much less.
 // Support pages sit 30px under the title, not 40px (John, 2026-10-23); their scroll area measures from that much more.
 function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, subText = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subUpdated?: string; subTitleGap?: number; subText?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
@@ -173,6 +176,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
   const [mainHeight, setMainHeight] = useState<number | null>(null);
   // The scroll area's height on the main page (below the title and its 40px gap); sub-pages measure from it
   const [mainAreaHeight, setMainAreaHeight] = useState<number | undefined>(undefined);
+  const [mainHeaderHeight, setMainHeaderHeight] = useState<number | undefined>(undefined);
   const [info, setInfo] = useState<{ header: string; title: string } | null>(null);
   // Growth reported by the sub-page's scroll area, kept per page so another page's growth never applies
   const [growth, setGrowth] = useState<{ page: string; grow: number } | null>(null);
@@ -182,7 +186,10 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
     if (subPage === null && info === null && root) {
       setMainHeight(root.offsetHeight);
       const header = root.firstElementChild as HTMLElement | null;
-      if (header) setMainAreaHeight(root.offsetHeight - header.offsetHeight - 40);
+      if (header) {
+        setMainAreaHeight(root.offsetHeight - header.offsetHeight - 40);
+        setMainHeaderHeight(header.offsetHeight);
+      }
     }
   });
   if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
@@ -198,7 +205,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
             <div style={{ paddingBottom: SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP }}>{content}</div>
           </div>
         )}
-        {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) - (subVersion ? VERSION_LINE_HEIGHT : 0) : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
+        {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) : undefined} mainHeaderHeight={subPage ? mainHeaderHeight : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>
   );

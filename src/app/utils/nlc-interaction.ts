@@ -584,6 +584,25 @@ export function computeScheduleKind(
 // 5. Auto-apply (mode: 'auto')
 // ============================================================================
 
+/** Rows whose current value NLC filled in as a default, not from a token or the user */
+export type NlcDefaults = { date: boolean; time: boolean };
+
+/**
+ * The toggle state auto-apply should see. A row on only because NLC filled in a default (Time 12pm or an implied
+ * time from a date or repeat, Date today from a time) counts as off, so a token typed later can still set it.
+ * Rows the user set, and rows set from a token, stay on and are never overwritten.
+ */
+export function togglesForAutoApply(
+  toggles: { date: boolean; time: boolean; repeats: boolean },
+  nlcDefaults: NlcDefaults,
+): { date: boolean; time: boolean; repeats: boolean } {
+  return {
+    date: toggles.date && !nlcDefaults.date,
+    time: toggles.time && !nlcDefaults.time,
+    repeats: toggles.repeats,
+  };
+}
+
 /**
  * Compute which categories should be auto-applied given the current parsed tokens
  * and toggle state.

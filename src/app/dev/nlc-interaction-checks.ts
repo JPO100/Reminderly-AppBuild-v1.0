@@ -21,6 +21,7 @@ import {
   computeInvalidation,
   computeScheduleKind,
   computeAutoApplyResult,
+  togglesForAutoApply,
   getNextDayOccurrence,
   isCompoundTimeToken,
   getRepeatsImpliedTime,
@@ -1300,6 +1301,27 @@ export function getNlcInteractionChecks(): Check[] {
         assert(tokens[0].category === 'date', `Expected date token, got ${tokens[0].category}`);
         const eligible = computeEligibleTokens(tokens, emptyApplied());
         assert(eligible.length === 1, `Expected 1 eligible token, got ${eligible.length}`);
+      },
+    },
+
+    // Word order (docs/plans/nlc-titles-and-dates.md, 2.2)
+    {
+      id: 'nlc-interaction-word-order-default-replaced',
+      name: 'NLC interaction: a later token replaces an NLC default in either order ("tomorrow ... 3pm", "3pm ... tomorrow")',
+      run: () => {
+        const timeLater = computeAutoApplyResult(parseTokens('Call mum tomorrow at 3pm'), togglesForAutoApply({ date: true, time: true, repeats: false }, { date: false, time: true }));
+        assert(timeLater.length === 1 && timeLater[0].token.text === '3pm', 'Expected 3pm to replace the 12pm default');
+        const dateLater = computeAutoApplyResult(parseTokens('Call mum at 3pm tomorrow'), togglesForAutoApply({ date: true, time: true, repeats: false }, { date: true, time: false }));
+        assert(dateLater.length === 1 && dateLater[0].token.text === 'tomorrow', 'Expected tomorrow to replace the today default');
+      },
+    },
+
+    {
+      id: 'nlc-interaction-word-order-user-protected',
+      name: 'NLC interaction: a date or time the user set is never replaced by a typed token',
+      run: () => {
+        const actions = computeAutoApplyResult(parseTokens('Call mum tomorrow at 3pm'), togglesForAutoApply({ date: true, time: true, repeats: false }, { date: false, time: false }));
+        assert(actions.length === 0, `Expected no auto-apply, got ${actions.length}`);
       },
     },
   ];

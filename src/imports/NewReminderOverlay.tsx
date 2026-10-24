@@ -9,9 +9,11 @@ import {
   computeEligibleTokens,
   computeInvalidation,
   computeAutoApplyResult,
+  togglesForAutoApply,
   isCompoundTimeToken,
   getRepeatsImpliedTime,
   type NlcMode,
+  type NlcDefaults,
 } from "../app/utils/nlc-interaction";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -744,6 +746,10 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   isTimeOnRef.current = isTimeOn;
   isRepeatsOnRef.current = isRepeatsOn;
 
+  // NLC auto-apply: rows whose value NLC filled in as a default (Time 12pm, Date today), which a later token may
+  // replace. Cleared when a token or the user sets that row (docs/plans/nlc-titles-and-dates.md, 2.2).
+  const nlcDefaultsRef = useRef<NlcDefaults>({ date: false, time: false });
+
   // Edit mode: suppress auto-apply on mount so prepopulated values are not overwritten.
   // Starts true when editing, false otherwise. Set to false after the first auto-apply
   // cycle is skipped, so subsequent edits by the user trigger normal auto-apply.
@@ -847,6 +853,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
       if (impliedTime) {
         applyToggleStateSilently('time', true);
         setSelectedTime(impliedTime);
+        nlcDefaultsRef.current.time = true;
       }
     }
   }, [parsedTokens]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -870,11 +877,10 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
       // a genuinely new token (not present in the original text). This lets
       // typed tokens like "3pm" override prepopulated values without
       // re-applying unchanged tokens from the original text.
-      const effectiveToggles = {
-        date: isDateOnRef.current,
-        time: isTimeOnRef.current,
-        repeats: isRepeatsOnRef.current,
-      };
+      const effectiveToggles = togglesForAutoApply(
+        { date: isDateOnRef.current, time: isTimeOnRef.current, repeats: isRepeatsOnRef.current },
+        nlcDefaultsRef.current,
+      );
       if (isEditMode) {
         for (const token of parsedTokens) {
           const key = `${token.category}:${token.text.toLowerCase()}`;
@@ -955,9 +961,11 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
         if (date) {
           applyToggleStateSilently('date', true);
           setSelectedDate(date);
+          nlcDefaultsRef.current.date = false;
           if (!isTimeOnRef.current) {
             applyToggleStateSilently('time', true);
             setSelectedTime({ hour: 12, minute: 0 });
+            nlcDefaultsRef.current.time = true;
           }
         }
         break;
@@ -970,6 +978,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
           setSelectedDate(relative.date);
           applyToggleStateSilently('time', true);
           setSelectedTime(relative.time);
+          nlcDefaultsRef.current = { date: false, time: false };
           break;
         }
         const hasExplicitDateToken = parsedTokens.some(t => t.category === 'date');
@@ -984,9 +993,11 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
             today.setHours(0, 0, 0, 0);
             applyToggleStateSilently('date', true);
             setSelectedDate(today);
+            nlcDefaultsRef.current.date = true;
           }
           applyToggleStateSilently('time', true);
           setSelectedTime(time);
+          nlcDefaultsRef.current.time = false;
         }
         break;
       }
@@ -997,9 +1008,11 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
           applyToggleStateSilently('date', true);
           onRepeatConfigChange(result.config);
           setSelectedDate(result.anchorDate);
+          nlcDefaultsRef.current.date = false;
 
           // If the repeat token has an implied time (every morning/afternoon/evening/night),
           // apply it — unless an explicit clock time token exists in the parsed text.
+          // An implied time, like the 12pm default, can be replaced by a clock time typed later.
           if (result.impliedTime) {
             const hasExplicitClockTime = parsedTokens.some(
               t => t.category === 'time' && !/^(this\s+)?(morning|lunchtime|noon|afternoon|evening|night)$/i.test(t.text.trim())
@@ -1007,10 +1020,12 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
             if (!hasExplicitClockTime) {
               applyToggleStateSilently('time', true);
               setSelectedTime(result.impliedTime);
+              nlcDefaultsRef.current.time = true;
             }
           } else if (!isTimeOnRef.current) {
             applyToggleStateSilently('time', true);
             setSelectedTime({ hour: 12, minute: 0 });
+            nlcDefaultsRef.current.time = true;
           }
         }
         break;
@@ -1117,7 +1132,11 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     }
   }, [isRepeatsOverlayOpen, repeatConfig]);
 
+  // A date or time the user sets by hand is theirs: NLC never replaces it
+  const clearNlcDefaults = () => { nlcDefaultsRef.current = { date: false, time: false }; };
+
   const handleDateToggle = () => {
+    clearNlcDefaults();
     if (isDateOn) {
       if (isSmartReminderMode) {
         setOpenDrawer(openDrawer === 'date' ? null : 'date');
@@ -1148,10 +1167,12 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   };
 
   const handleDateSelect = (date: Date) => {
+    nlcDefaultsRef.current.date = false;
     setSelectedDate(date);
   };
 
   const handleTimeToggle = () => {
+    clearNlcDefaults();
     if (isTimeOn) {
       if (isSmartReminderMode) {
         setOpenDrawer(openDrawer === 'time' ? null : 'time');
@@ -1177,10 +1198,12 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   };
 
   const handleTimeSelect = (time: { hour: number; minute: number }) => {
+    nlcDefaultsRef.current.time = false;
     setSelectedTime(time);
   };
 
   const handleDatePresetTap = (preset: DatePreset) => {
+    clearNlcDefaults();
     if (activePreset?.id === preset) {
       // Tapping the active pill turns date and time off through the manual toggle-off path (repeats untouched)
       setActivePreset(null);
@@ -1593,6 +1616,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     setSelectedDate(null);
     setSelectedTime(null);
     setAppliedTokens({ date: null, time: null, repeats: null });
+    clearNlcDefaults();
     setPendingAttachment(null);
     setAttachmentError(null);
     setShowDeleteAttachmentConfirm(false);

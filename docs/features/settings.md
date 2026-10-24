@@ -89,7 +89,7 @@ New installs use the defaults above; the in-app ask turns alerts and badge on wh
 | `reminderly-ff-nlc` | off | NLC available |
 | `reminderly-pref-nlc` | off | NLC on |
 | `reminderly-pref-nlc-date`, `-time`, `-repeats` | on | Recognise each category |
-| `reminderly-pref-nlc-auto-parsing` | on | Set dates as you type (auto mode) |
+| `reminderly-pref-nlc-auto-parsing` | on | Auto-fill as you type (auto mode); off is Tap highlighted words (click mode) |
 | `reminderly-ff-nlc-phone`, `-contacts` | off | Not built |
 
 ### Haptics and sounds
@@ -137,7 +137,7 @@ Reminders settings:
 - 1 minute time steps (toggle)
 - Siri shortcuts (page): Siri shortcuts on/off, a key line, "To add a reminder with Siri just say...", "“Hey Siri...”" and the phrase "Add to Reminderly app" (both bold), then "...then when Siri replies, say your reminder.", inactive while Siri is off. The phrase is registered in `AppShortcuts.swift` and listed in `SIRI_PHRASES`; a test keeps them in step. Phrases containing "remind" or "reminder" were removed because Siri asked "Reminderly or Notes?" every time
 - Notifications (page): Notifications, Alert sound (inactive while Notifications is off), a key line, Overdue badge, Include due today (inactive while Overdue badge is off); "Allow in iOS Settings" at the top when iOS permission is denied
-- Natural Language Capture (page): on/off, Recognise dates, times, repeats (repeats only while repeat reminders are active), Set dates as you type
+- Natural Language Capture (page): on/off, key line, the mode as two linked toggles, Auto-fill as you type and Tap highlighted words (exactly one on), then Recognise dates, times, repeats (repeats only while repeat reminders are active)
 - Sounds and haptics (page, shown while sounds or haptics are available): the Sounds on/off and its switches, a key line, then the Haptic feedback on/off and its switches; each group only while its feature is available. Rows scroll with the usual half-row glimpse
 - Reminders tutorial (re-runs the tutorial)
 

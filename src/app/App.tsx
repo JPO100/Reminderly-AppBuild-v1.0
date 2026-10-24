@@ -5151,6 +5151,16 @@ export default function App() {
                       );
                     })}
                     </AnimatePresence>
+                    {/* Hide ticked items on: note under the last item, in the empty state text style */}
+                    {listHideTicked && !isSavedListCreateOverlay && listItems.length > 0 && (
+                      <motion.p
+                        layout="position"
+                        transition={{ layout: { type: 'spring', stiffness: 220, damping: 26, mass: 0.9 } }}
+                        className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full"
+                      >
+                        Ticked items are hidden
+                      </motion.p>
+                    )}
                   </div>
                 </div>
               </motion.div>

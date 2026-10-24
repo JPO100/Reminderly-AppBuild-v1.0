@@ -668,6 +668,10 @@ var ReminderlySiri = (function(exports) {
   function keepRepeatRuleWhenOff(repeatsActive, existingRule, requestedRule) {
     return repeatsActive ? requestedRule : existingRule ?? null;
   }
+  const SIRI_CANCEL_ANSWERS = /* @__PURE__ */ new Set(["cancel", "stop", "never mind", "nevermind", "forget it"]);
+  function isSiriCancelAnswer(answer) {
+    return SIRI_CANCEL_ANSWERS.has(answer.trim().toLowerCase().replace(/[.!?,]+$/, "").trim());
+  }
   function quarterSuggestions(hour, minute, is24Hour) {
     const format = (totalMinutes) => {
       const h = Math.floor(totalMinutes / 60) % 24;
@@ -723,7 +727,7 @@ var ReminderlySiri = (function(exports) {
       }
     }
     if (!selectedDate && selectedTime) selectedDate = new Date(startOfToday);
-    if (selectedDate && !selectedTime) selectedTime = { hour: 12, minute: 0 };
+    if (selectedDate && !selectedTime) return { needsTime: true };
     let schedule;
     if (selectedDate && selectedTime) {
       schedule = {
@@ -740,6 +744,7 @@ var ReminderlySiri = (function(exports) {
     return { originalText: text, displayText, schedule, repeatRule };
   }
   exports.buildSiriReminder = buildSiriReminder;
+  exports.isSiriCancelAnswer = isSiriCancelAnswer;
   Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
   return exports;
 })({});

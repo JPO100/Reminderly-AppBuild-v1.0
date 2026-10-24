@@ -604,14 +604,6 @@ export function togglesForAutoApply(
 }
 
 /**
- * Whether applying a date or a plain repeat token also turns Time on at 12pm. Auto mode only: in click mode each
- * highlighted token is tapped separately, so the user can leave out the time (John, 24 Oct).
- */
-export function applyDefaultsTime(mode: NlcMode): boolean {
-  return mode === 'auto';
-}
-
-/**
  * Whether applying a time token sets Date to today. In click mode, whenever Date is off: an untapped date token is
  * not applied. In auto mode, only when no date token is in the text, as that token applies itself.
  */

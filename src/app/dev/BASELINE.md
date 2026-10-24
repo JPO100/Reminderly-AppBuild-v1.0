@@ -232,7 +232,7 @@ Persistence and hydration
 ✓ Calendar: filter ranges match Today, This week and Later, past days never in range
 ✓ Calendar: today lists due today plus overdue; another day lists only that date
 ✓ Calendar: month navigation crosses year boundaries, returning to the current month follows today
-✓ Calendar: New reminder from a selected day prefills that local date at 12pm, nothing without a day
+✓ Calendar: New reminder from a selected day prefills that local date with no time, nothing without a day
 
 Natural language parsing
 
@@ -385,7 +385,8 @@ Lists and smart reminders
 ✓ List smart reminders: 1%-74% progress uses Finish copy
 ✓ List smart reminders: 75%+ progress uses Nearly done copy
 ✓ List smart reminders: no due date means no linked reminder
-✓ List smart reminders: linked reminder uses scheduled noon and list metadata
+✓ List smart reminders: a due date with no time means no linked reminder (no 12pm fallback)
+✓ List smart reminders: linked reminder uses the list due date, time and metadata
 ✓ List categories: todo, started, almost, complete derive from completion ratio
 ✓ List ordering: insertion mode preserves authored order
 ✓ List ordering: alphabetical mode sorts by item text

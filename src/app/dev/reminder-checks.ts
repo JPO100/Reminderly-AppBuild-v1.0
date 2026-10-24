@@ -1475,11 +1475,11 @@ export function getReminderChecks(): Check[] {
     },
     {
       id: 'calendar-new-reminder-prefill',
-      name: 'Calendar: New reminder from a selected day prefills that local date at 12pm, nothing without a day',
+      name: 'Calendar: New reminder from a selected day prefills that local date with no time, nothing without a day',
       run: () => {
         const prefill = getCalendarPrefill('2026-01-22');
         assert(prefill !== null && toDateKey(prefill.date) === '2026-01-22', 'Prefill should keep the selected local date');
-        assert(prefill?.time.hour === 12 && prefill.time.minute === 0, 'Prefill time should be 12:00');
+        assert(prefill !== null && !('time' in prefill), 'Prefill should not set a time');
         assert(getCalendarPrefill(null) === null, 'No selected day should prefill nothing');
       },
     },

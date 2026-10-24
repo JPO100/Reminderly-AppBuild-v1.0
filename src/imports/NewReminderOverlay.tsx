@@ -10,7 +10,6 @@ import {
   computeInvalidation,
   computeAutoApplyResult,
   togglesForAutoApply,
-  applyDefaultsTime,
   timeSetsToday,
   isCompoundTimeToken,
   getRepeatsImpliedTime,
@@ -99,12 +98,12 @@ export function canSubmitReminder({ text, requiresScheduledReminder, isDateOn, s
   return selectedDate !== null && isTimeOn && selectedTime !== null;
 }
 
-// Calendar view: a new reminder from a selected day starts with that date and the usual 12pm time
-// (a new reminder with a date needs a time). Null when there is no selected day.
-export function getCalendarPrefill(initialDate: string | null): { date: Date; time: { hour: number; minute: number } } | null {
+// Calendar view: a new reminder from a selected day starts with that date and Time off; the user adds the time
+// (docs/plans/no-auto-time.md). Null when there is no selected day.
+export function getCalendarPrefill(initialDate: string | null): { date: Date } | null {
   if (!initialDate) return null;
   const [y, m, d] = initialDate.split('-').map(Number);
-  return { date: new Date(y, m - 1, d), time: { hour: 12, minute: 0 } };
+  return { date: new Date(y, m - 1, d) };
 }
 
 export function formatSelectedDate(date: Date | null, now?: Date): string | null {
@@ -360,7 +359,9 @@ function IconDetails({ isOn, selectedDate, onLabelClick }: { isOn: boolean; sele
   );
 }
 
-function IconDetails1({ isOn, selectedTime, onLabelClick }: { isOn: boolean; selectedTime: { hour: number; minute: number } | null; onLabelClick?: () => void }) {
+// needsTime: Date is on and Time is off, so "Add a time" shows in place of a value and turns Time on when tapped
+// (docs/plans/no-auto-time.md, D6)
+function IconDetails1({ isOn, selectedTime, onLabelClick, needsTime = false, onAddTime }: { isOn: boolean; selectedTime: { hour: number; minute: number } | null; onLabelClick?: () => void; needsTime?: boolean; onAddTime?: () => void }) {
   const color = "#1C2C42";
   const timeLabel = isOn ? formatSelectedTime(selectedTime) : null;
   return (
@@ -378,6 +379,9 @@ function IconDetails1({ isOn, selectedTime, onLabelClick }: { isOn: boolean; sel
       <p className="font-['Lato:Bold',sans-serif] leading-[23px] not-italic relative shrink-0 text-[17px] min-w-[68px]" style={{ color }}>Time</p>
       {timeLabel && (
         <p className="font-['Lato',sans-serif] font-[600] leading-[23px] not-italic relative text-[17px] text-[#4784F8] ml-[4px] cursor-pointer truncate" onClick={onLabelClick}>{timeLabel}</p>
+      )}
+      {!timeLabel && needsTime && (
+        <p className="font-['Lato',sans-serif] font-[600] leading-[23px] not-italic relative text-[17px] text-[#4784F8] ml-[4px] cursor-pointer truncate" onClick={onAddTime} data-name="add-a-time">Add a time</p>
       )}
     </div>
   );
@@ -471,10 +475,10 @@ function SetDate({
   );
 }
 
-function SetTimeFrame({ isTimeOn, onTimeToggle, selectedTime, onLabelClick }: { isTimeOn: boolean; onTimeToggle: () => void; selectedTime: { hour: number; minute: number } | null; onLabelClick?: () => void }) {
+function SetTimeFrame({ isTimeOn, onTimeToggle, selectedTime, onLabelClick, needsTime }: { isTimeOn: boolean; onTimeToggle: () => void; selectedTime: { hour: number; minute: number } | null; onLabelClick?: () => void; needsTime?: boolean }) {
   return (
     <div className="content-stretch flex items-center justify-between gap-[16px] relative shrink-0 w-full" data-name="set-time-frame">
-      <IconDetails1 isOn={isTimeOn} selectedTime={selectedTime} onLabelClick={onLabelClick} />
+      <IconDetails1 isOn={isTimeOn} selectedTime={selectedTime} onLabelClick={onLabelClick} needsTime={needsTime} onAddTime={onTimeToggle} />
       <ToggleBtn isOn={isTimeOn} onToggle={onTimeToggle} />
     </div>
   );
@@ -488,6 +492,7 @@ function SetTime({
   isDrawerOpen,
   onLabelClick,
   useOneMinuteIncrements = false,
+  needsTime = false,
 }: { 
   isTimeOn: boolean; 
   onTimeToggle: () => void; 
@@ -496,10 +501,11 @@ function SetTime({
   isDrawerOpen: boolean;
   onLabelClick: () => void;
   useOneMinuteIncrements?: boolean;
+  needsTime?: boolean;
 }) {
   return (
     <div className="content-stretch flex flex-col items-start relative shrink-0 w-full" data-name="set-time">
-      <SetTimeFrame isTimeOn={isTimeOn} onTimeToggle={onTimeToggle} selectedTime={selectedTime} onLabelClick={onLabelClick} />
+      <SetTimeFrame isTimeOn={isTimeOn} onTimeToggle={onTimeToggle} selectedTime={selectedTime} onLabelClick={onLabelClick} needsTime={needsTime} />
       
       {/* Animated Time Picker Drawer */}
       <AnimatePresence>
@@ -595,7 +601,7 @@ function ReminderOptions({
         isDrawerOpen={openDrawer === 'date'}
         onLabelClick={onDateLabelClick}
       />
-      <SetTime isTimeOn={isTimeOn} onTimeToggle={onTimeToggle} selectedTime={selectedTime} onTimeSelect={onTimeSelect} isDrawerOpen={openDrawer === 'time'} onLabelClick={onTimeLabelClick} useOneMinuteIncrements={useOneMinuteIncrements} />
+      <SetTime isTimeOn={isTimeOn} onTimeToggle={onTimeToggle} selectedTime={selectedTime} onTimeSelect={onTimeSelect} isDrawerOpen={openDrawer === 'time'} onLabelClick={onTimeLabelClick} useOneMinuteIncrements={useOneMinuteIncrements} needsTime={isDateOn && !isTimeOn} />
       {showRepeats && <SetRepeats isRepeatsOn={isRepeatsOn} onRepeatsToggle={onRepeatsToggle} repeatConfig={repeatConfig} onLabelClick={onRepeatsLabelClick} disabled={disableRepeats || (!isDateOn && !isTimeOn)} keepFullOpacityWhenDisabled={disableRepeats} inactiveColor={repeatInactiveColor} />}
     </div>
   );
@@ -608,15 +614,13 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   const isSmartReminderMode = isSmartReminderEdit || isSmartReminderCreate;
   const calendarPrefill = editReminder ? null : getCalendarPrefill(initialDate);
 
+  // A new smart reminder starts with Date and Time off; the user adds both (docs/plans/no-auto-time.md, D5)
   const [isDateOn, setIsDateOn] = useState(() => {
-    if (smartReminderCreateList) return true;
     if (editReminder?.schedule.kind === 'scheduled') return true;
     if (calendarPrefill) return true;
     return false;
   });
   const [isTimeOn, setIsTimeOn] = useState(() => {
-    if (smartReminderCreateList) return true;
-    if (calendarPrefill) return true;
     if (editReminder?.schedule.kind === 'scheduled' && editReminder.schedule.time) return true;
     return false;
   });
@@ -625,15 +629,10 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     return false;
   });
   const [openDrawer, setOpenDrawer] = useState<'date' | 'time' | 'repeats' | null>(() => {
-    if (isSmartReminderMode) return 'date';
+    if (isSmartReminderEdit) return 'date';
     return null;
   });
   const [selectedDate, setSelectedDate] = useState<Date | null>(() => {
-    if (smartReminderCreateList) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return today;
-    }
     if (editReminder?.schedule.kind === 'scheduled') {
       const [y, m, d] = editReminder.schedule.date.split('-').map(Number);
       const date = new Date(y, m - 1, d);
@@ -644,10 +643,6 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     return null;
   });
   const [selectedTime, setSelectedTime] = useState<{ hour: number; minute: number } | null>(() => {
-    if (smartReminderCreateList) {
-      return { hour: 12, minute: 0 };
-    }
-    if (calendarPrefill) return calendarPrefill.time;
     if (editReminder?.schedule.kind === 'scheduled' && editReminder.schedule.time) {
       const [hh, mm] = editReminder.schedule.time.split(':').map(Number);
       return { hour: hh, minute: mm };
@@ -748,7 +743,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   isTimeOnRef.current = isTimeOn;
   isRepeatsOnRef.current = isRepeatsOn;
 
-  // NLC auto-apply: rows whose value NLC filled in as a default (Time 12pm, Date today), which a later token may
+  // NLC auto-apply: rows whose value NLC filled in as a default (Date today, an implied repeat time), which a later token may
   // replace. Cleared when a token or the user sets that row (docs/plans/nlc-titles-and-dates.md, 2.2).
   const nlcDefaultsRef = useRef<NlcDefaults>({ date: false, time: false });
 
@@ -964,11 +959,6 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
           applyToggleStateSilently('date', true);
           setSelectedDate(date);
           nlcDefaultsRef.current.date = false;
-          if (!isTimeOnRef.current && applyDefaultsTime(nlcMode)) {
-            applyToggleStateSilently('time', true);
-            setSelectedTime({ hour: 12, minute: 0 });
-            nlcDefaultsRef.current.time = true;
-          }
         }
         break;
       }
@@ -1014,7 +1004,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
 
           // If the repeat token has an implied time (every morning/afternoon/evening/night),
           // apply it — unless an explicit clock time token exists in the parsed text.
-          // An implied time, like the 12pm default, can be replaced by a clock time typed later.
+          // An implied time can be replaced by a clock time typed later.
           if (result.impliedTime) {
             const hasExplicitClockTime = parsedTokens.some(
               t => t.category === 'time' && !/^(this\s+)?(morning|lunchtime|noon|afternoon|evening|night)$/i.test(t.text.trim())
@@ -1024,10 +1014,6 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
               setSelectedTime(result.impliedTime);
               nlcDefaultsRef.current.time = true;
             }
-          } else if (!isTimeOnRef.current && applyDefaultsTime(nlcMode)) {
-            applyToggleStateSilently('time', true);
-            setSelectedTime({ hour: 12, minute: 0 });
-            nlcDefaultsRef.current.time = true;
           }
         }
         break;
@@ -1155,16 +1141,13 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
         if (openDrawer === 'time') setOpenDrawer(null);
       }
     } else {
-      // Turning ON: date requires a companion time, so enable both.
+      // Turning ON: Time stays as it is; a date with no time shows "Add a time" and can't be saved until the
+      // user adds one (docs/plans/no-auto-time.md, D1)
       setIsDateOn(true);
       setOpenDrawer('date');
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       setSelectedDate(today);
-      if (!isTimeOn) {
-        setIsTimeOn(true);
-        setSelectedTime({ hour: 12, minute: 0 });
-      }
     }
   };
 
@@ -1185,7 +1168,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
       setSelectedTime(null);
       if (openDrawer === 'time') setOpenDrawer(null);
     } else {
-      // Turning ON: set toggle, open drawer, reset to 12:00
+      // Turning ON: set toggle, open drawer; the picker starts at 12:00 (docs/plans/no-auto-time.md, D2)
       setIsTimeOn(true);
       setOpenDrawer('time');
       setSelectedTime({ hour: 12, minute: 0 });
@@ -1519,8 +1502,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
 
   const handleSubmit = async () => {
     const text = reminderText.trim();
-    const requiresScheduledReminder = !isEditMode && !isSmartReminderMode;
-    if (!canSubmitReminder({ text, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime })) return;
+    if (!canSubmitReminder({ text, requiresScheduledReminder: true, isDateOn, selectedDate, isTimeOn, selectedTime })) return;
 
     // Build schedule
     let schedule: Reminder['schedule'];
@@ -1636,8 +1618,11 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     return DEFAULT_HEIGHT;
   };
 
-  const requiresScheduledReminder = !isEditMode && !isSmartReminderMode;
-  const isSubmitActive = canSubmitReminder({ text: reminderText, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime });
+  // Date on needs a time in every mode, now that no time is filled in for the user; a new smart reminder also
+  // needs both, as handleSubmit already requires (docs/plans/no-auto-time.md, D5)
+  const requiresScheduledReminder = true;
+  const isSubmitActive = canSubmitReminder({ text: reminderText, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime })
+    && (!isSmartReminderCreate || (isDateOn && !!selectedDate && isTimeOn && !!selectedTime));
 
   return (
     <>

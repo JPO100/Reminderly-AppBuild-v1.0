@@ -20,13 +20,13 @@ type ReminderSchedule =
 
 Enforced by the manual toggle handlers in `NewReminderOverlay.tsx`:
 
-1. Turning date on sets the date (today if none) and, if time is off, turns time on at 12:00. A new reminder with a date therefore gets a time by default.
+1. Turning date on sets the date (today if none). No time is filled in (docs/plans/no-auto-time.md): while Date is on and Time is off, the Time row shows "Add a time" in reminderly blue (tapping it turns Time on) and the save tick stays inactive. A reminder with a date needs a time in every mode, including edit and smart reminders (`canSubmitReminder`).
 2. Turning time on with date off turns date on (today) as well.
 3. Turning date off also turns time off and clears both values.
-4. Turning time off clears the time only, leaving a date-only reminder.
+4. Turning time off clears the time only; with Date still on, "Add a time" shows and the reminder cannot be saved until a time is added.
 5. Date and time changes never affect the repeat setting.
 
-NLC applies values through `applyToggleStateSilently`, which does not open drawers. In auto mode, NLC date tokens also set 12:00 when time is off, and NLC time tokens with date off turn date on (today) only when the text has no date token. Those NLC defaults can be replaced by a token typed later (see Auto mode). Click mode differs (see Click mode).
+NLC applies values through `applyToggleStateSilently`, which does not open drawers. NLC date and repeat tokens never set a time, and NLC time tokens with date off turn date on (today) only when the text has no date token. Those NLC defaults can be replaced by a token typed later (see Auto mode). Click mode differs (see Click mode).
 
 ## Pickers
 
@@ -44,7 +44,7 @@ Inline month calendar in the New reminder overlay, opened from the Date row.
 
 - Two wheel columns: hours 0-23 and minutes.
 - Minutes in 15-minute steps (00, 15, 30, 45), or every minute when 1 minute increments are active (`reminderly-ff-one-minute-increments` available and `reminderly-pref-one-minute-increments` on). The current minute snaps to the nearest valid value.
-- Default 12:00.
+- Starts at 12:00 when Time is switched on by hand (D2); the user chose to add a time.
 
 Drawers open and close only on user action, never because NLC applied a value.
 
@@ -123,7 +123,7 @@ Filter row, month header, weekday row, date grid, 1px `#E4E4E4` divider, list he
 
 ### New reminder from the calendar
 
-If a day other than today is selected, New reminder opens with that date and 12:00 filled in (`getCalendarPrefill`). Otherwise behaviour is unchanged.
+If a day other than today is selected, New reminder opens with that date filled in and Time off (`getCalendarPrefill`); the user adds the time. Otherwise behaviour is unchanged.
 
 Out of scope as built: a Lists calendar, viewing past or completed reminders, projected future repeats, week view, drag to reschedule.
 
@@ -149,13 +149,13 @@ Recognised spans (tokens) are drawn in Reminderly blue `#4784F8`. Recognition is
 
 Tapping a token turns on its toggle and sets its value without opening a drawer. If a category has several tokens, applying one hides the others.
 
-Each token is tapped separately (`applyDefaultsTime`, `timeSetsToday`): a date or a plain repeat ("every Monday") sets no time, so Time stays off and the save tick stays inactive until a time is tapped, typed or set by hand (a new reminder with a date needs a time, `canSubmitReminder`). A repeat with an implied time ("every morning", 7am) and a relative time ("in an hour") still set both, as one token. Tapping a time with Date off sets today, even when a date token is in the text but not tapped. Untapped tokens stay in the title; with nothing tapped the reminder saves with no date. Auto mode, Siri and the manual Date switch keep the 12pm default.
+Each token is tapped separately (`timeSetsToday`): a date or a plain repeat ("every Monday") sets no time, so Time stays off and the save tick stays inactive until a time is tapped, typed or set by hand (a new reminder with a date needs a time, `canSubmitReminder`). A repeat with an implied time ("every morning", 7am) and a relative time ("in an hour") still set both, as one token. Tapping a time with Date off sets today, even when a date token is in the text but not tapped. Untapped tokens stay in the title; with nothing tapped the reminder saves with no date. Auto mode, Siri and the manual Date switch work the same way: no 12pm default (docs/plans/no-auto-time.md).
 
 ### Auto mode
 
 Tokens are applied 200ms after parsing when the category has exactly one token and its toggle is off. Several tokens in a category are ambiguous and nothing is applied. A repeats token auto-applies only when both repeats and date are off.
 
-Word order: a row NLC filled in as a default counts as off, so a token typed later can still set it (`togglesForAutoApply`, `nlcDefaultsRef` in the overlay). The defaults are Time 12pm after a date or repeat token, a repeat's implied time ("every morning" 7am), and Date today after a time token. "Call mum tomorrow", pause, "at 3pm" gives tomorrow at 3pm; "at 3pm", pause, "tomorrow" gives tomorrow too; "every morning", pause, "at 6am" gives 6am. A date or time set by the user (the switches, the pickers, a date preset) or from a token is never replaced; switching Time on by hand starts it at 12pm, and that 12pm is the user's.
+Word order: a row NLC filled in as a default counts as off, so a token typed later can still set it (`togglesForAutoApply`, `nlcDefaultsRef` in the overlay). The defaults are a repeat's implied time ("every morning" 7am), and Date today after a time token. "Call mum tomorrow", pause, "at 3pm" gives tomorrow at 3pm; "at 3pm", pause, "tomorrow" gives tomorrow too; "every morning", pause, "at 6am" gives 6am. A date or time set by the user (the switches, the pickers, a date preset) or from a token is never replaced; switching Time on by hand starts it at 12pm, and that 12pm is the user's.
 
 Edit mode:
 
@@ -236,7 +236,7 @@ Repeats tokens:
 - Short names: Mon, Tue, Wed, Thu, Thur, Fri, Sat, Sun. Singular and plural units both work.
 - `every N years`, number words in `every N ...`, `everyday`, `every weekday` and `every other` are not recognised.
 - A repeats token suppresses all date tokens (not time tokens).
-- Applying a repeat turns on repeats and date, with an anchor date: the next matching day, or today for interval repeats. Without an implied time it also turns time on at 12:00 if time is off.
+- Applying a repeat turns on repeats and date, with an anchor date: the next matching day, or today for interval repeats. Without an implied time, Time stays off and "Add a time" shows.
 
 ### How it works
 

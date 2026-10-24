@@ -17,8 +17,22 @@ export type SiriReminderFields = Pick<Reminder, 'originalText' | 'displayText' |
 /** An explicit time off the quarter hour: no reminder is created and Siri suggests the quarters either side. */
 export type SiriUnsupportedTime = { unsupportedTime: { earlier: string; later: string } };
 
-export function isSiriUnsupportedTime(result: SiriReminderFields | SiriUnsupportedTime): result is SiriUnsupportedTime {
+export function isSiriUnsupportedTime(result: SiriReminderFields | SiriUnsupportedTime | SiriNeedsTime): result is SiriUnsupportedTime {
   return 'unsupportedTime' in result;
+}
+
+/** A date or repeat with no time: no reminder is created; Siri asks "What time?" (docs/plans/no-auto-time.md, 4). */
+export type SiriNeedsTime = { needsTime: true };
+
+// An answer to "What time?" that cancels: nothing is saved and Siri says "Okay, cancelled." (docs/plans/no-auto-time.md)
+const SIRI_CANCEL_ANSWERS = new Set(['cancel', 'stop', 'never mind', 'nevermind', 'forget it']);
+
+export function isSiriCancelAnswer(answer: string): boolean {
+  return SIRI_CANCEL_ANSWERS.has(answer.trim().toLowerCase().replace(/[.!?,]+$/, '').trim());
+}
+
+export function isSiriNeedsTime(result: SiriReminderFields | SiriUnsupportedTime | SiriNeedsTime): result is SiriNeedsTime {
+  return 'needsTime' in result;
 }
 
 // The quarters either side of an unsupported time, in the clock it was said in: "4:00"/"4:15" or "16:00"/"16:15"
@@ -33,7 +47,7 @@ function quarterSuggestions(hour: number, minute: number, is24Hour: boolean): { 
   return { earlier: format(earlier), later: format(earlier + 15) };
 }
 
-export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActive: boolean): SiriReminderFields | SiriUnsupportedTime {
+export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActive: boolean): SiriReminderFields | SiriUnsupportedTime | SiriNeedsTime {
   // Explicit times must be on the quarter hour; Siri never rounds them or saves them as Sometime
   const unsupported = findUnsupportedClockTime(text);
   if (unsupported) return { unsupportedTime: quarterSuggestions(unsupported.hour, unsupported.minute, unsupported.is24Hour) };
@@ -92,8 +106,8 @@ export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActi
   // A time with no date means today, even once that time has passed (it then shows as overdue), as in the app
   if (!selectedDate && selectedTime) selectedDate = new Date(startOfToday);
 
-  // Every reminder has a time: a date with no time is at 12pm, as in the app (even when 12pm has passed today)
-  if (selectedDate && !selectedTime) selectedTime = { hour: 12, minute: 0 };
+  // A date (or repeat) with no time is never given one: the user adds it, as in the app (docs/plans/no-auto-time.md)
+  if (selectedDate && !selectedTime) return { needsTime: true };
 
   let schedule: ReminderSchedule;
   if (selectedDate && selectedTime) {

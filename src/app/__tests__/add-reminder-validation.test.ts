@@ -51,7 +51,9 @@ describe('add reminder validation', () => {
     expect(create({ isDateOn: true, selectedDate: today, isTimeOn: true, selectedTime: null })).toBe(false);
   });
 
-  it('edit and smart reminder modes keep text-only validation', () => {
+  // The editor now passes requiresScheduledReminder: true in every mode, including edit and smart reminders
+  // (docs/plans/no-auto-time.md); without it, validation is text-only
+  it('without the scheduled requirement, validation is text-only', () => {
     expect(create({ requiresScheduledReminder: false, isDateOn: true, selectedDate: today })).toBe(true);
     expect(create({ requiresScheduledReminder: false, text: ' ' })).toBe(false);
   });

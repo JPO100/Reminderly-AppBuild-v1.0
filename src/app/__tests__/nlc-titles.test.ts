@@ -3,7 +3,7 @@ import type { Reminder } from '../reminder-utils';
 import { parseTokens } from '../utils/nlc-parser';
 import { computeAutoApplyResult } from '../utils/nlc-interaction';
 import { titleFromAppliedTokens } from '../utils/normalise-text';
-import { buildSiriReminder, isSiriUnsupportedTime } from '../utils/siri';
+import { buildSiriReminder, isSiriNeedsTime, isSiriUnsupportedTime } from '../utils/siri';
 import { buildScheduledNotifications } from '../notifications';
 
 // NLC task-only titles, Stage 3 (docs/plans/nlc-titles-and-dates.md, 2.1, 2.3 and conditions 1, 4 and 5)
@@ -82,12 +82,13 @@ describe('Siri titles and times (condition 4)', () => {
     vi.setSystemTime(at);
     const result = buildSiriReminder(text, at, repeats);
     if (isSiriUnsupportedTime(result)) throw new Error(`refused: ${text}`);
+    if (isSiriNeedsTime(result)) throw new Error(`needs a time: ${text}`);
     return result;
   };
 
   it('keeps words that were not applied (changed: was "Parents" and "meeting notes")', () => {
     expect(siri('Parents evening at 6pm').displayText).toBe('Parents evening');
-    expect(siri('Monday meeting notes').displayText).toBe('Monday meeting notes');
+    expect(siri('Monday meeting notes at 9am').displayText).toBe('Monday meeting notes');
   });
 
   it('keeps repeat words when repeat reminders are off, as no repeat is saved', () => {
@@ -96,8 +97,9 @@ describe('Siri titles and times (condition 4)', () => {
     expect(result.displayText).toBe('Call mum every Monday');
   });
 
-  it('a date with no time is 12pm even once 12pm has passed today (D7)', () => {
-    expect(siri('Call mum today').schedule).toEqual({ kind: 'scheduled', date: '2026-10-22', time: '12:00' });
+  // Superseded D7: a date with no time gets no time; Siri asks for one (docs/plans/no-auto-time.md)
+  it('a date with no time needs a time, with no 12pm default', () => {
+    expect(isSiriNeedsTime(buildSiriReminder('Call mum today', at, true))).toBe(true);
   });
 
   it('numeric dates from Stage 1 work through Siri', () => {

@@ -154,8 +154,23 @@ export function getListChecks(): Check[] {
     },
 
     {
+      id: 'list-smart-reminder-create-null-without-time',
+      name: 'List smart reminders: a due date with no time means no linked reminder (no 12pm fallback)',
+      run: () => {
+        const reminder = createSmartReminderForList(makeList({
+          id: 'l4b',
+          title: 'Books to read',
+          items: [makeItem('a', 'Dune', false)],
+          smartReminderDueDate: '2026-04-24',
+          smartReminderTime: null,
+        }));
+        assert(reminder === null, `Expected null, got ${JSON.stringify(reminder)}`);
+      },
+    },
+
+    {
       id: 'list-smart-reminder-create-scheduled-noon',
-      name: 'List smart reminders: linked reminder uses scheduled noon and list metadata',
+      name: 'List smart reminders: linked reminder uses the list due date, time and metadata',
       run: () => {
         const reminder = createSmartReminderForList(
           makeList({
@@ -163,6 +178,7 @@ export function getListChecks(): Check[] {
             title: 'Grocery shopping',
             items: [makeItem('a', 'Milk', false)],
             smartReminderDueDate: '2026-04-24',
+            smartReminderTime: '15:30',
           }),
           { idFactory: () => 'smart-1', createdAt: 123456 },
         ) as Reminder;
@@ -172,7 +188,7 @@ export function getListChecks(): Check[] {
         assert(reminder.isSmartReminder === true, 'Expected isSmartReminder true');
         assert(reminder.schedule.kind === 'scheduled', `Expected scheduled, got ${reminder.schedule.kind}`);
         assert(reminder.schedule.date === '2026-04-24', `Expected due date 2026-04-24, got ${reminder.schedule.date}`);
-        assert(reminder.schedule.time === '12:00', `Expected time 12:00, got ${reminder.schedule.time}`);
+        assert(reminder.schedule.time === '15:30', `Expected time 15:30, got ${reminder.schedule.time}`);
       },
     },
 
@@ -839,6 +855,7 @@ export function getListChecks(): Check[] {
           items: [makeItem('a', 'Weed beds', false)],
           smartReminders: true,
           smartReminderDueDate: '2026-04-24',
+          smartReminderTime: '09:00',
         });
         const prev: Reminder[] = [];
         const desiredLists = [list];

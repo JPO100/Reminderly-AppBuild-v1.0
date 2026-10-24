@@ -73,3 +73,13 @@ Repeat visits (Natural Language Capture and Sounds and haptics, 3 times each): h
 375x812 (fixed 450px card): every scrolling page now cuts through a row (Natural Language Capture was in a gap before the fix, now row middle 36 above the edge). Pre-existing and unchanged by this fix: on the fixed card, row middles sit 31 to 60 above the edge rather than 24, and pages that fit show 47 or 76 below the content rather than 40 (the fixed height does not take the growth). Reported for decision, not changed.
 
 Vitest 444 passed.
+
+## 9. Confirmation for final review (2026-10-24, at 0f2399a, NLC title now one line)
+
+Method: browser preview, every Reminders and Lists settings page, two full passes after a fresh load at each width; each scrolling page also scrolled to the end to check the last row is fully visible. Baseline: the same passes with main's SettingsPanelContent.tsx (08e2d27, no fix).
+
+402x874: every scrolling page (Natural Lang. Capture 474, Sounds and haptics 474 and 443) cuts through a row middle 24 above the edge; footers 24 when scrolling and 40 when fitting; the last row is fully visible when scrolled; no change between passes.
+
+375x812 (fixed 450px card): every scrolling page cuts through a row (Reminders settings 31, Notifications, Natural Lang. Capture and Sounds and haptics 60 above the edge); fitting pages 47. Identical with main's component, so pre-existing and unchanged by this branch.
+
+Pre-existing defect found, identical on main: at 375 wide, on the first pass after a fresh load, opening Notifications straight after Siri shortcuts gives footer 47 instead of 60 and the last row ("Include due today") stays partly clipped when scrolled to the end; the next visit is correct. Not caused or changed by this branch. Reported to Kai for a decision.

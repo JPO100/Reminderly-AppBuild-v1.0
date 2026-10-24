@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-import { buildSiriReminder, isSiriNeedsTime, isSiriUnsupportedTime } from '../utils/siri';
+import { buildSiriReminder, isSiriCancelAnswer, isSiriNeedsTime, isSiriUnsupportedTime } from '../utils/siri';
 
 // Thursday 22 October 2026, 3:00pm local
 const now = new Date(2026, 9, 22, 15, 0);
@@ -115,6 +115,15 @@ describe('Siri reminder parsing', () => {
 
     it('no date and no time is still Sometime, not a question', () => {
       expect(needsTime('Buy milk')).toBe(false);
+    });
+
+    it.each(['cancel', 'Cancel.', 'stop', 'Never mind', 'nevermind', 'forget it!', '  Cancel  '])(
+      'answering "%s" cancels', (answer) => {
+        expect(isSiriCancelAnswer(answer)).toBe(true);
+      });
+
+    it.each(['3pm', 'banana', 'cancel at 3pm', 'stop at 5', ''])('answering "%s" does not cancel', (answer) => {
+      expect(isSiriCancelAnswer(answer)).toBe(false);
     });
   });
 

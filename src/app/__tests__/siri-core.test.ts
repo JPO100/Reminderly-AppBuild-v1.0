@@ -3,11 +3,11 @@ import fs from 'fs';
 import vm from 'vm';
 import path from 'path';
 import { build } from 'vite';
-import { buildSiriReminder } from '../utils/siri';
+import { buildSiriReminder, isSiriCancelAnswer } from '../utils/siri';
 
 // The Siri core bundle (vite.siri-core.config.ts) run as the Siri intent will run it: one plain script in an empty
 // sandbox with no window, document or localStorage. It must give exactly what the app's own code gives.
-type SiriCore = { buildSiriReminder: typeof buildSiriReminder };
+type SiriCore = { buildSiriReminder: typeof buildSiriReminder; isSiriCancelAnswer: typeof isSiriCancelAnswer };
 let sandbox: Record<string, unknown>;
 let core: SiriCore;
 let builtCode = '';
@@ -56,8 +56,14 @@ describe('Siri core bundle', () => {
     expect(bundled).toBe(builtCode);
   });
 
-  it('exposes only buildSiriReminder', () => {
-    expect(Object.keys(core)).toEqual(['buildSiriReminder']);
+  it('exposes only buildSiriReminder and isSiriCancelAnswer', () => {
+    expect(Object.keys(core).sort()).toEqual(['buildSiriReminder', 'isSiriCancelAnswer']);
+  });
+
+  it('cancel answers to "What time?" match the app code', () => {
+    for (const answer of ['cancel', 'Stop.', 'never mind', 'forget it', '3pm', 'banana']) {
+      expect(core.isSiriCancelAnswer(answer)).toBe(isSiriCancelAnswer(answer));
+    }
   });
 
   it('runs with no DOM and matches the app code for every phrase, time and repeat setting', () => {

@@ -24,6 +24,13 @@ export function isSiriUnsupportedTime(result: SiriReminderFields | SiriUnsupport
 /** A date or repeat with no time: no reminder is created; Siri asks "What time?" (docs/plans/no-auto-time.md, 4). */
 export type SiriNeedsTime = { needsTime: true };
 
+// An answer to "What time?" that cancels: nothing is saved and Siri says "Okay, cancelled." (docs/plans/no-auto-time.md)
+const SIRI_CANCEL_ANSWERS = new Set(['cancel', 'stop', 'never mind', 'nevermind', 'forget it']);
+
+export function isSiriCancelAnswer(answer: string): boolean {
+  return SIRI_CANCEL_ANSWERS.has(answer.trim().toLowerCase().replace(/[.!?,]+$/, '').trim());
+}
+
 export function isSiriNeedsTime(result: SiriReminderFields | SiriUnsupportedTime | SiriNeedsTime): result is SiriNeedsTime {
   return 'needsTime' in result;
 }

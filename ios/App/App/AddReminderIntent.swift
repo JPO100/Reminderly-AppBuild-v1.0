@@ -42,6 +42,8 @@ struct AddReminderIntent: AppIntent {
         if try await SiriReminderCreator.needsTime(text: reminderText) {
             var answer = try await $timeText.requestValue("What time?") ?? ""
             answer = answer.trimmingCharacters(in: .whitespacesAndNewlines)
+            // "cancel", "stop", "never mind", "forget it": nothing is saved (docs/plans/no-auto-time.md)
+            if SiriCore.isCancelAnswer(answer) { return .result(dialog: "Okay, cancelled.") }
             if answer.lowercased().hasPrefix("at ") { answer = String(answer.dropFirst(3)) }
             guard !answer.isEmpty else { throw SiriNeedsTimeError() }
             reminderText = "\(reminderText) at \(answer)"
@@ -137,6 +139,16 @@ enum SiriCore {
         let object = try parse(text: text, now: now, repeatsActive: repeatsActive)
         if object["needsTime"] as? Bool == true { throw SiriNeedsTimeError() }
         return object
+    }
+
+    // Whether an answer to "What time?" cancels (isSiriCancelAnswer in src/app/utils/siri.ts)
+    static func isCancelAnswer(_ answer: String) -> Bool {
+        guard let url = Bundle.main.url(forResource: "siri-core", withExtension: "js"),
+              let script = try? String(contentsOf: url, encoding: .utf8),
+              let js = JSContext() else { return false }
+        js.evaluateScript(script)
+        js.setObject(answer, forKeyedSubscript: "siriAnswer" as NSString)
+        return js.evaluateScript("ReminderlySiri.isSiriCancelAnswer(siriAnswer)")?.toBool() ?? false
     }
 
     static func parse(text: String, now: Date, repeatsActive: Bool) throws -> [String: Any] {

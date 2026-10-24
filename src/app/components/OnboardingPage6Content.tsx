@@ -45,7 +45,7 @@ export type TutorialRemindersSettings = Pick<ComponentProps<typeof RemindersSett
 
 // Lists settings rows as the live overlay shows them
 export type TutorialListsSettings = Pick<ComponentProps<typeof ListsSettingsContent>,
-  "soundsAvailable" | "hapticsAvailable" | "templatesAvailable" | "siriAvailable" | "siriOn" | "sortAzOn" | "autoClearOn"> & { showInfoIcons: boolean };
+  "soundsAvailable" | "hapticsAvailable" | "templatesAvailable" | "siriAvailable" | "siriOn" | "itemOrder" | "hideTickedOn" | "autoClearOn"> & { showInfoIcons: boolean };
 
 const PAGE_6_PAUSE_MS = 750;
 const PAGE_6_THROB_TOTAL_MS = (TUTORIAL_ATTENTION_THROB_DELAY + TUTORIAL_ATTENTION_THROB_DURATION) * 1000;
@@ -171,8 +171,10 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
                 siriAvailable={listsSettings?.siriAvailable ?? false}
                 siriOn={listsSettings?.siriOn ?? false}
                 onSiriChange={noop}
-                sortAzOn={listsSettings?.sortAzOn ?? false}
-                onSortAzChange={noop}
+                itemOrder={listsSettings?.itemOrder ?? "newest"}
+                onItemOrderChange={noop}
+                hideTickedOn={listsSettings?.hideTickedOn ?? false}
+                onHideTickedChange={noop}
                 autoClearOn={listsSettings?.autoClearOn ?? false}
                 onAutoClearChange={noop}
               />

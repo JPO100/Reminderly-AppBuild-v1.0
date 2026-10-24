@@ -63,11 +63,14 @@ import {
   getListCircleColour,
   getDisplayListItems,
   resolveListSortMode,
+  createKeptTickedTracker,
+  resolveListItemOrder,
+  listItemOrderSettings,
   getBlankedLists,
   clearListSmartReminder,
   getListSheetTop,
 } from "./utils/list-utils";
-import type { ListItem, CreatedList, ListCategory } from "./utils/list-utils";
+import type { ListItem, CreatedList, ListCategory, ListItemOrder } from "./utils/list-utils";
 import { DEFAULT_TEMPLATE_SEED } from "./utils/default-templates";
 
 type SavedListTemplate = {
@@ -230,6 +233,7 @@ const NEW_REMINDER_INSERT_DELAY = 500;
 
 // Duration of the temporary "just inserted" text/icon highlight (ms)
 const INSERT_HIGHLIGHT_MS = 1000;
+const LIST_TICK_HIDE_DELAY_MS = 1500;
 
 function RowMenuButton({ onClick, alignWithSettingsButton = false }: { onClick?: () => void; alignWithSettingsButton?: boolean }) {
   return (
@@ -658,12 +662,33 @@ export default function App() {
   const [listInfoOverlayListId, setListInfoOverlayListId] = useState<string | null>(null);
   const [doneInfoTarget, setDoneInfoTarget] = useState<{ kind: 'reminder' | 'list'; id: string } | null>(null);
   const [savedDeletedListInfoId, setSavedDeletedListInfoId] = useState<string | null>(null);
-  // Lists settings > Sort items A to Z sets the order for every list. Templates always edit A to Z.
-  // The legacy per-list sortMode is kept in saved data but no longer read.
+  // Lists settings > Item order (Newest first, Oldest first, A to Z) sets the order for every list: A to Z is the sort-az
+  // key (kept, so existing A to Z users carry over), Oldest first the oldest-first key, Newest first both off.
+  // Templates always edit A to Z. The legacy per-list sortMode is kept in saved data but no longer read.
   const [listSortAz, setListSortAz] = useStoredSetting('reminderly-pref-list-sort-az');
+  const [listOldestFirst, setListOldestFirst] = useStoredSetting('reminderly-pref-list-oldest-first');
+  const [listHideTicked, setListHideTicked] = useStoredSetting('reminderly-pref-list-hide-ticked');
   const [listAutoClear, setListAutoClear] = useStoredSetting('reminderly-pref-list-auto-clear');
   const [isTemplateEditorSort, setIsTemplateEditorSort] = useState(false);
-  const listSortMode = resolveListSortMode(listSortAz, isTemplateEditorSort);
+  const listSortMode = resolveListSortMode(listSortAz, isTemplateEditorSort, listOldestFirst);
+  const listItemOrder = resolveListItemOrder(listSortAz, listOldestFirst);
+  const setListItemOrder = (order: ListItemOrder) => {
+    const next = listItemOrderSettings(order, listOldestFirst);
+    setListSortAz(next.sortAzOn);
+    setListOldestFirst(next.oldestFirstOn);
+  };
+  // Hide ticked items: a newly ticked item stays in view for LIST_TICK_HIDE_DELAY_MS so a mistaken tick can be undone
+  const [keptTickedListItemIds, setKeptTickedListItemIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [keptTickedTracker] = useState(() => createKeptTickedTracker(
+    (id) => setKeptTickedListItemIds((current) => new Set(current).add(id)),
+    (id) => setKeptTickedListItemIds((current) => {
+      if (!current.has(id)) return current;
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    }),
+    LIST_TICK_HIDE_DELAY_MS,
+  ));
   const [listSmartReminders, setListSmartReminders] = useState(false);
   const [listSmartReminderDueDate, setListSmartReminderDueDate] = useState<string | null>(null);
   const [listSmartReminderTime, setListSmartReminderTime] = useState<string | null>(null);
@@ -884,10 +909,14 @@ export default function App() {
     listSortMode,
     alphabeticalPinnedListItemId,
     alphabeticalPinnedListItemIndex,
+    listHideTicked && !isTemplateEditorSort,
+    keptTickedListItemIds,
   );
 
+
+  // The add-item pin is used by A to Z and Oldest first (new items move away from the top); Newest first never pins
   useEffect(() => {
-    if (listSortMode === 'alphabetical') return;
+    if (listSortMode !== 'insertion') return;
     if (alphabeticalListItemTimerRef.current !== null) {
       clearTimeout(alphabeticalListItemTimerRef.current);
       alphabeticalListItemTimerRef.current = null;
@@ -1720,7 +1749,8 @@ export default function App() {
     templatesAvailable: savedListsFeatureEnabled,
     siriAvailable: isSiriListsAvailable,
     siriOn: listsSettingsSiriOn,
-    sortAzOn: listSortAz,
+    itemOrder: listItemOrder,
+    hideTickedOn: listHideTicked,
     autoClearOn: listAutoClear,
     showInfoIcons,
   };
@@ -5042,7 +5072,7 @@ export default function App() {
                         return;
                       }
                       persistOverlayListDraft({ nextItems });
-                      if (listSortMode === 'alphabetical') {
+                      if (listSortMode !== 'insertion') {
                         setAlphabeticalPinnedListItemId(newId);
                         setAlphabeticalPinnedListItemIndex(0);
                         if (alphabeticalListItemTimerRef.current !== null) {
@@ -5088,7 +5118,7 @@ export default function App() {
                           }}
                           className="w-full"
                         >
-                          <EditableListItem name={item.text} completed={isSavedListCreateOverlay ? false : item.completed} isHighlighted={isItemHighlighted} accentColor={isSavedListCreateOverlay ? '#4784F8' : currentListAccentColor} isDeleteRevealed={revealedDeleteListItemId === item.id} onDeleteRevealChange={(revealed) => setRevealedDeleteListItemId(revealed ? item.id : null)} onToggle={isSavedListCreateOverlay ? undefined : () => { hapticTap('toggleListItemCheckbox'); setRevealedDeleteListItemId(null); const nextItems = listItems.map((listItem) => (listItem.id === item.id ? { ...listItem, completed: !listItem.completed, completedAt: listItem.completed ? null : Date.now() } : listItem)); setListItems(nextItems); persistOverlayListDraft({ nextItems }); }} onDelete={() => { hapticTap('deleteListItem'); setRevealedDeleteListItemId(null); const nextItems = listItems.filter((listItem) => listItem.id !== item.id); setListItems(nextItems); persistOverlayListDraft({ nextItems }); }} editable={true} leadingIcon={isSavedListCreateOverlay ? <SavedListOverlayCheckCircle /> : undefined} onCommit={(val: string) => {
+                          <EditableListItem name={item.text} completed={isSavedListCreateOverlay ? false : item.completed} isHighlighted={isItemHighlighted} accentColor={isSavedListCreateOverlay ? '#4784F8' : currentListAccentColor} isDeleteRevealed={revealedDeleteListItemId === item.id} onDeleteRevealChange={(revealed) => setRevealedDeleteListItemId(revealed ? item.id : null)} onToggle={isSavedListCreateOverlay ? undefined : () => { hapticTap('toggleListItemCheckbox'); setRevealedDeleteListItemId(null); const nextItems = listItems.map((listItem) => (listItem.id === item.id ? { ...listItem, completed: !listItem.completed, completedAt: listItem.completed ? null : Date.now() } : listItem)); setListItems(nextItems); persistOverlayListDraft({ nextItems }); keptTickedTracker.tick(item.id, !item.completed); }} onDelete={() => { hapticTap('deleteListItem'); setRevealedDeleteListItemId(null); const nextItems = listItems.filter((listItem) => listItem.id !== item.id); setListItems(nextItems); persistOverlayListDraft({ nextItems }); }} editable={true} leadingIcon={isSavedListCreateOverlay ? <SavedListOverlayCheckCircle /> : undefined} onCommit={(val: string) => {
                             const currentIndex = overlayDisplayListItems.findIndex((displayItem) => displayItem.id === item.id);
                             setRevealedDeleteListItemId(null);
                             const nextItems = listItems.map((listItem) => (
@@ -5657,8 +5687,10 @@ export default function App() {
                   siriAvailable={isSiriListsAvailable}
                   siriOn={listsSettingsSiriOn}
                   onSiriChange={setListsSettingsSiriOn}
-                  sortAzOn={listSortAz}
-                  onSortAzChange={setListSortAz}
+                  itemOrder={listItemOrder}
+                  onItemOrderChange={setListItemOrder}
+                  hideTickedOn={listHideTicked}
+                  onHideTickedChange={setListHideTicked}
                   autoClearOn={listAutoClear}
                   onAutoClearChange={setListAutoClear}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}

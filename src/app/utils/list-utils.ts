@@ -229,19 +229,85 @@ export function orderListsByCategory<T extends { items: ListItem[] }>(lists: T[]
     .map(({ list }) => list);
 }
 
-// Lists settings > Sort items A to Z decides the order for every list. A list's own legacy
-// sortMode is not read. The template editor always sorts A to Z.
-export function resolveListSortMode(sortAzOn: boolean, isTemplateEditor: boolean): 'alphabetical' | 'insertion' {
-  return isTemplateEditor || sortAzOn ? 'alphabetical' : 'insertion';
+// Lists settings > Item order (Newest first, Oldest first, A to Z) decides the order for every list. A list's own
+// legacy sortMode is not read. The template editor always sorts A to Z. 'insertion' is newest first (stored order).
+export type ListItemSortMode = 'alphabetical' | 'insertion' | 'oldest';
+// The Lists settings choice, exactly one on
+export type ListItemOrder = 'newest' | 'oldest' | 'az';
+
+export function resolveListSortMode(sortAzOn: boolean, isTemplateEditor: boolean, oldestFirstOn = false): ListItemSortMode {
+  if (isTemplateEditor || sortAzOn) return 'alphabetical';
+  return oldestFirstOn ? 'oldest' : 'insertion';
 }
 
+// Item order from its two stored keys: A to Z wins (sort-az is kept so existing A to Z users carry over)
+export function resolveListItemOrder(sortAzOn: boolean, oldestFirstOn: boolean): ListItemOrder {
+  if (sortAzOn) return 'az';
+  return oldestFirstOn ? 'oldest' : 'newest';
+}
+
+// Stored keys for an Item order choice. Choosing A to Z leaves the oldest-first key as it was.
+export function listItemOrderSettings(order: ListItemOrder, oldestFirstOn: boolean): { sortAzOn: boolean; oldestFirstOn: boolean } {
+  return { sortAzOn: order === 'az', oldestFirstOn: order === 'az' ? oldestFirstOn : order === 'oldest' };
+}
+
+// Stored items are newest first. Ticked items sit below unticked ones in every order. A pinned item (just added, or
+// edited in A to Z) holds its position until the pin clears. Hide ticked items leaves out ticked items, except those
+// ticked in the last moment (keptTickedIds) so a mistaken tick can be undone; those stay where they were (ordered as
+// unticked) so they fade out in place rather than dropping to the bottom first.
 export function getDisplayListItems(
   listItems: ListItem[],
-  sortMode: 'alphabetical' | 'insertion',
+  sortMode: ListItemSortMode,
   alphabeticalPinnedListItemId: string | null,
   alphabeticalPinnedListItemIndex: number,
+  hideTicked = false,
+  keptTickedIds: ReadonlySet<string> = new Set(),
 ): ListItem[] {
-  if (sortMode !== 'alphabetical') {
+  if (!hideTicked) {
+    return orderListItems(listItems, sortMode, alphabeticalPinnedListItemId, alphabeticalPinnedListItemIndex);
+  }
+  const byId = new Map(listItems.map((item) => [item.id, item]));
+  const forOrdering = listItems.map((item) => (item.completed && keptTickedIds.has(item.id) ? { ...item, completed: false } : item));
+  return orderListItems(forOrdering, sortMode, alphabeticalPinnedListItemId, alphabeticalPinnedListItemIndex)
+    .map((item) => byId.get(item.id) ?? item)
+    .filter((item) => !item.completed || keptTickedIds.has(item.id));
+}
+
+type TickTimers = { set: (callback: () => void, ms: number) => unknown; clear: (handle: unknown) => void };
+
+// Hide ticked items: keeps a newly ticked item in view for delayMs so a mistaken tick can be undone. Unticking within
+// the delay releases it at once (an unticked item always shows). onKeep and onRelease add and remove one id, so the
+// caller's kept set is updated per id and a release can never be lost.
+export function createKeptTickedTracker(
+  onKeep: (id: string) => void,
+  onRelease: (id: string) => void,
+  delayMs: number,
+  timers: TickTimers = { set: (callback, ms) => globalThis.setTimeout(callback, ms), clear: (handle) => globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>) },
+) {
+  const pending = new Map<string, unknown>();
+  const release = (id: string) => {
+    const handle = pending.get(id);
+    if (handle !== undefined) timers.clear(handle);
+    pending.delete(id);
+    onRelease(id);
+  };
+  return {
+    tick(id: string, ticked: boolean) {
+      release(id);
+      if (!ticked) return;
+      onKeep(id);
+      pending.set(id, timers.set(() => release(id), delayMs));
+    },
+  };
+}
+
+function orderListItems(
+  listItems: ListItem[],
+  sortMode: ListItemSortMode,
+  pinnedListItemId: string | null,
+  pinnedListItemIndex: number,
+): ListItem[] {
+  if (sortMode === 'insertion') {
     const incompleteItems: ListItem[] = [];
     const completedItems: Array<ListItem & { originalIndex: number }> = [];
 
@@ -265,20 +331,28 @@ export function getDisplayListItems(
     ];
   }
 
-  const alphabeticalSort = (a: ListItem, b: ListItem) => a.text.localeCompare(b.text);
-  const incompleteItems = listItems.filter((item) => !item.completed).sort(alphabeticalSort);
-  const completedItems = listItems.filter((item) => item.completed).sort(alphabeticalSort);
-  const sortedItems = [...incompleteItems, ...completedItems];
+  let sortedItems: ListItem[];
+  if (sortMode === 'oldest') {
+    // Oldest first: unticked items in reverse stored order; ticked items as in newest first
+    const newestFirst = orderListItems(listItems, 'insertion', null, 0);
+    const incompleteItems = newestFirst.filter((item) => !item.completed).reverse();
+    sortedItems = [...incompleteItems, ...newestFirst.filter((item) => item.completed)];
+  } else {
+    const alphabeticalSort = (a: ListItem, b: ListItem) => a.text.localeCompare(b.text);
+    const incompleteItems = listItems.filter((item) => !item.completed).sort(alphabeticalSort);
+    const completedItems = listItems.filter((item) => item.completed).sort(alphabeticalSort);
+    sortedItems = [...incompleteItems, ...completedItems];
+  }
 
-  if (!alphabeticalPinnedListItemId) {
+  if (!pinnedListItemId) {
     return sortedItems;
   }
 
-  const pinnedItem = listItems.find((item) => item.id === alphabeticalPinnedListItemId);
-  const remainingItems = sortedItems.filter((item) => item.id !== alphabeticalPinnedListItemId);
+  const pinnedItem = listItems.find((item) => item.id === pinnedListItemId);
+  const remainingItems = sortedItems.filter((item) => item.id !== pinnedListItemId);
   if (!pinnedItem) return remainingItems;
 
-  const insertIndex = Math.max(0, Math.min(alphabeticalPinnedListItemIndex, remainingItems.length));
+  const insertIndex = Math.max(0, Math.min(pinnedListItemIndex, remainingItems.length));
   return [
     ...remainingItems.slice(0, insertIndex),
     pinnedItem,

@@ -16,6 +16,9 @@ import {
   markListDone,
   syncSmartReminderForInactiveList,
   resolveListSortMode,
+  resolveListItemOrder,
+  listItemOrderSettings,
+  createKeptTickedTracker,
   storageStringToDate,
   getListSheetTop,
 } from '../utils/list-utils';
@@ -544,6 +547,141 @@ export function getListChecks(): Check[] {
         ];
         const ordered = getDisplayListItems(items, 'alphabetical', 'missing', 1);
         assert(ordered.map((item) => item.id).join(',') === 'a,b', `Expected a,b got ${ordered.map((item) => item.id).join(',')}`);
+      },
+    },
+
+    {
+      id: 'list-sort-item-order-defaults-newest-first',
+      name: 'List ordering: Item order defaults to Newest first, Hide ticked items off',
+      run: () => {
+        assert(SETTINGS_DEFAULTS['reminderly-pref-list-oldest-first'] === 'false', 'Oldest first should default off');
+        assert(SETTINGS_DEFAULTS['reminderly-pref-list-hide-ticked'] === 'false', 'Hide ticked items should default off');
+        assert(resolveListItemOrder(false, false) === 'newest', 'Expected Newest first with both keys off');
+        assert(resolveListSortMode(false, false, false) === 'insertion', 'Expected stored order for Newest first');
+      },
+    },
+
+    {
+      id: 'list-sort-item-order-exactly-one-on',
+      name: 'List ordering: choosing an Item order turns it on and the other two off',
+      run: () => {
+        const orders = ['newest', 'oldest', 'az'] as const;
+        for (const startOldest of [false, true]) {
+          for (const order of orders) {
+            const next = listItemOrderSettings(order, startOldest);
+            const resolved = resolveListItemOrder(next.sortAzOn, next.oldestFirstOn);
+            assert(resolved === order, `Choosing ${order} resolved to ${resolved}`);
+            assert(orders.filter((o) => o === resolved).length === 1, 'Exactly one order should be on');
+          }
+        }
+        // Choosing the option already on leaves it on
+        const again = listItemOrderSettings('oldest', true);
+        assert(resolveListItemOrder(again.sortAzOn, again.oldestFirstOn) === 'oldest', 'Oldest first should stay on');
+      },
+    },
+
+    {
+      id: 'list-sort-item-order-az-carries-over',
+      name: 'List ordering: an existing Sort items A to Z setting carries over as A to Z',
+      run: () => {
+        assert(resolveListItemOrder(true, false) === 'az', 'A to Z users should stay on A to Z');
+        assert(resolveListItemOrder(true, true) === 'az', 'A to Z wins over the oldest-first key');
+        assert(resolveListSortMode(true, false, true) === 'alphabetical', 'Expected alphabetical sort');
+      },
+    },
+
+    {
+      id: 'list-sort-templates-always-az',
+      name: 'List ordering: the template editor sorts A to Z in every Item order',
+      run: () => {
+        for (const [az, oldest] of [[false, false], [false, true], [true, false]] as const) {
+          assert(resolveListSortMode(az, true, oldest) === 'alphabetical', 'Templates should always edit A to Z');
+        }
+      },
+    },
+
+    {
+      id: 'list-display-items-oldest-first',
+      name: 'List ordering: Oldest first shows unticked items oldest at the top, ticked items still at the bottom',
+      run: () => {
+        // Stored newest first: c was added last, a first
+        const items = [makeItem('c', 'Carrot', false), makeItem('t', 'Tea', true), makeItem('b', 'Banana', false), makeItem('a', 'Apple', false)];
+        const ordered = getDisplayListItems(items, resolveListSortMode(false, false, true), null, 0).map((item) => item.id).join(',');
+        assert(ordered === 'a,b,c,t', `Expected a,b,c,t got ${ordered}`);
+      },
+    },
+
+    {
+      id: 'list-display-items-oldest-first-pins-new-item',
+      name: 'List ordering: in Oldest first a new item holds the top until its pin clears, then moves to the bottom',
+      run: () => {
+        const items = [makeItem('n', 'New', false), makeItem('b', 'Banana', false), makeItem('a', 'Apple', false)];
+        const pinned = getDisplayListItems(items, 'oldest', 'n', 0).map((item) => item.id).join(',');
+        const settled = getDisplayListItems(items, 'oldest', null, 0).map((item) => item.id).join(',');
+        assert(pinned === 'n,a,b', `Expected n,a,b while pinned, got ${pinned}`);
+        assert(settled === 'a,b,n', `Expected a,b,n after the pin, got ${settled}`);
+      },
+    },
+
+    {
+      id: 'list-display-items-hide-ticked',
+      name: 'List ordering: Hide ticked items leaves ticked items out, and shows them again when off',
+      run: () => {
+        const items = [makeItem('a', 'Apple', false), makeItem('t', 'Tea', true), makeItem('b', 'Banana', false)];
+        for (const mode of ['insertion', 'oldest', 'alphabetical'] as const) {
+          const hidden = getDisplayListItems(items, mode, null, 0, true).map((item) => item.id);
+          const shown = getDisplayListItems(items, mode, null, 0, false).map((item) => item.id);
+          assert(!hidden.includes('t') && hidden.length === 2, `${mode}: ticked item should be hidden`);
+          assert(shown.includes('t') && shown.length === 3, `${mode}: ticked item should show with the setting off`);
+        }
+        // The item data is unchanged
+        assert(items.filter((item) => item.completed).length === 1, 'Hiding must not change item data');
+      },
+    },
+
+    {
+      id: 'list-display-items-hide-ticked-delay',
+      name: 'List ordering: a newly ticked item stays in place for the delay, then hides; unticking in the delay keeps it',
+      run: () => {
+        const scheduled: Array<{ callback: () => void; cleared: boolean }> = [];
+        const timers = {
+          set: (callback: () => void) => { const entry = { callback, cleared: false }; scheduled.push(entry); return entry; },
+          clear: (handle: unknown) => { (handle as { cleared: boolean }).cleared = true; },
+        };
+        let kept: ReadonlySet<string> = new Set();
+        const tracker = createKeptTickedTracker(
+          (id) => { kept = new Set(kept).add(id); },
+          (id) => { const next = new Set(kept); next.delete(id); kept = next; },
+          1500,
+          timers,
+        );
+        const runDue = () => scheduled.filter((entry) => !entry.cleared).forEach((entry) => { entry.cleared = true; entry.callback(); });
+        const visible = (items: ListItem[]) => getDisplayListItems(items, 'insertion', null, 0, true, kept).map((item) => item.id);
+
+        // Tick: visible straight away, hidden once the delay has run
+        tracker.tick('a', true);
+        const ticked = [makeItem('a', 'Apple', true), makeItem('b', 'Banana', false)];
+        assert(visible(ticked).includes('a'), 'A newly ticked item should stay visible');
+        runDue();
+        assert(!visible(ticked).includes('a'), 'The ticked item should hide after the delay');
+
+        // While kept, the ticked item holds its place among the unticked items (it fades out in place)
+        tracker.tick('m', true);
+        const inPlace = [makeItem('n', 'New', false), makeItem('m', 'Milk', true), makeItem('o', 'Old', false)];
+        for (const mode of ['insertion', 'oldest', 'alphabetical'] as const) {
+          const kept_ = getDisplayListItems(inPlace, mode, null, 0, true, kept).map((item) => item.id).join(',');
+          const before = getDisplayListItems(inPlace.map((item) => ({ ...item, completed: false })), mode, null, 0).map((item) => item.id).join(',');
+          assert(kept_ === before, `${mode}: kept ticked item should stay in place, expected ${before} got ${kept_}`);
+        }
+        runDue();
+
+        // Tick then untick within the delay: stays visible, and the pending hide is cancelled
+        tracker.tick('b', true);
+        tracker.tick('b', false);
+        assert(!kept.has('b'), 'Unticking should release the item at once');
+        runDue();
+        const unticked = [makeItem('a', 'Apple', true), makeItem('b', 'Banana', false)];
+        assert(visible(unticked).includes('b'), 'An item unticked in the delay should stay visible');
       },
     },
 

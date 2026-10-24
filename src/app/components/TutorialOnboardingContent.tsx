@@ -104,26 +104,22 @@ const NEW_REMINDER_INSERT_DELAY = 500;
 
 type Page5Phase = "none" | "templates-throb" | "templates-open" | "template-row-throb" | "editor-open" | "typing" | "add-throb" | "item-added" | "menu-throb" | "settings-overlay";
 const PAGE_5_TEMPLATES = [
-  { id: "tpl-1", title: "Weekly food shop", itemCount: 8 },
-  { id: "tpl-2", title: "Morning routine", itemCount: 6 },
-  { id: "tpl-3", title: "Weekend tasks", itemCount: 5 },
-  { id: "tpl-4", title: "Packing list (weekend away)", itemCount: 6 },
-  { id: "tpl-5", title: "Spaghetti bolognese", itemCount: 6 },
-  { id: "tpl-6", title: "Pancakes (classic)", itemCount: 6 },
+  { id: "tpl-1", title: "Morning workout", itemCount: 8 },
+  { id: "tpl-2", title: "Spaghetti bolognese", itemCount: 6 },
+  { id: "tpl-3", title: "Films to watch", itemCount: 10 },
+  { id: "tpl-4", title: "Holiday destination ideas", itemCount: 10 },
 ] as const;
-const PAGE_5_TARGET_TEMPLATE_ID = "tpl-1";
+const PAGE_5_TARGET_TEMPLATE_ID = "tpl-2";
 const PAGE_5_EDITOR_ITEMS = [
-  { id: "shop-1", text: "Milk", completed: false },
-  { id: "shop-2", text: "Bread", completed: false },
-  { id: "shop-3", text: "Eggs", completed: false },
-  { id: "shop-4", text: "Chicken", completed: false },
-  { id: "shop-5", text: "Rice", completed: false },
-  { id: "shop-6", text: "Bananas", completed: false },
-  { id: "shop-7", text: "Pasta", completed: false },
-  { id: "shop-8", text: "Butter", completed: false },
+  { id: "bolognese-1", text: "Minced beef", completed: false },
+  { id: "bolognese-2", text: "Onion", completed: false },
+  { id: "bolognese-3", text: "Garlic", completed: false },
+  { id: "bolognese-4", text: "Chopped tomatoes", completed: false },
+  { id: "bolognese-5", text: "Tomato purée", completed: false },
+  { id: "bolognese-6", text: "Spaghetti", completed: false },
 ] as const;
-const PAGE_5_DEMO_ITEM = "Olive oil";
-const PAGE_5_DEMO_ITEM_ID = "shop-olive-oil";
+const PAGE_5_DEMO_ITEM = "Parmesan";
+const PAGE_5_DEMO_ITEM_ID = "bolognese-parmesan";
 const PAGE_5_THROB_TOTAL_MS = (TUTORIAL_ATTENTION_THROB_DELAY + TUTORIAL_ATTENTION_THROB_DURATION) * 1000;
 
 function TutorialSavedListTemplateIcon() {
@@ -1207,7 +1203,7 @@ function ListsTutorialPlaceholderPage({
                     <div ref={setPage5EditorHostElement} className="relative w-full h-full flex flex-col mx-auto">
                       <div className="content-stretch flex flex-col gap-[26px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
                         <ListsHeader
-                          value="Weekly food shop"
+                          value="Spaghetti bolognese"
                           onChange={() => {}}
                           active
                           isEditMode
@@ -1316,7 +1312,7 @@ function ListsTutorialPlaceholderPage({
               {page5Phase === "settings-overlay" && (
                 <TutorialMiniOverlayShell>
                   <TutorialOverlayCard>
-                    <TutorialOverlayTitle>Weekly food shop</TutorialOverlayTitle>
+                    <TutorialOverlayTitle>Spaghetti bolognese</TutorialOverlayTitle>
                     <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
                       <div className="h-[50px] relative rounded-[100px] shrink-0 w-full" style={{ backgroundColor: '#4784F8' }}>
                         <div className="flex flex-row items-center justify-center size-full">

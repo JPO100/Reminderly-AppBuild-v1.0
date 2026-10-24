@@ -19,7 +19,7 @@ import { renderReminderText, getDisplayTitle } from "./utils/render-text";
 import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
 import { syncWidget, syncSiriActive, syncSiriContext, getSiriPending, removeSiriPending } from "./utils/widget";
 import { buildSiriContext, planSiriImport } from "./utils/siri-pending";
-import { buildSiriReminder, isSiriUnsupportedTime } from "./utils/siri";
+import { buildSiriReminder, isSiriNeedsTime, isSiriUnsupportedTime } from "./utils/siri";
 import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMode } from "./reminder-utils";
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
@@ -1926,8 +1926,8 @@ export default function App() {
 
       const now = new Date();
       const fields = buildSiriReminder(text, now, isRepeatRemindersActive);
-      // An explicit time off the quarter hour never creates a reminder
-      if (isSiriUnsupportedTime(fields)) return;
+      // An explicit time off the quarter hour, or a date with no time, never creates a reminder
+      if (isSiriUnsupportedTime(fields) || isSiriNeedsTime(fields)) return;
       const reminder: Reminder = {
         id: crypto.randomUUID(),
         createdAt: now.getTime(),

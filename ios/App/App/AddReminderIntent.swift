@@ -8,7 +8,8 @@ import WidgetKit
 // version, also with the iPhone locked, and never opens Reminderly:
 // 1. refuses when Siri is off in Reminderly (fails closed, docs/plans/siri-off-refusal.md)
 // 2. builds the reminder with Reminderly's own parsing (siri-core.js in JavaScriptCore); an explicit time off the
-//    quarter hour is refused with a spoken explanation and nothing is saved
+//    quarter hour is refused with a spoken explanation and nothing is saved; a date with no time makes Siri ask
+//    "What time?" and nothing is saved without one (docs/plans/no-auto-time.md)
 // 3. saves it to the App Group pending list and reads it back; the app imports it by id when it next runs
 // 4. schedules its notification exactly as the Capacitor plugin would, with badges per src/app/utils/siri-badge.ts
 // 5. updates the lock screen widget, then says "Okay, that's added"
@@ -25,6 +26,9 @@ struct AddReminderIntent: AppIntent {
     @Parameter(title: "Reminder text")
     var text: String?
 
+    @Parameter(title: "Time")
+    var timeText: String?
+
     func perform() async throws -> some IntentResult & ProvidesDialog {
         guard await SiriStore.siriActive() else { throw SiriOffError() }
 
@@ -33,6 +37,15 @@ struct AddReminderIntent: AppIntent {
             reminderText = try await $text.requestValue("What would you like to be reminded about?") ?? ""
         }
         guard !reminderText.isEmpty else { throw SiriNotConfirmedError() }
+
+        // A date with no time: ask for one and parse it with the request, before anything is saved
+        if try await SiriReminderCreator.needsTime(text: reminderText) {
+            var answer = try await $timeText.requestValue("What time?") ?? ""
+            answer = answer.trimmingCharacters(in: .whitespacesAndNewlines)
+            if answer.lowercased().hasPrefix("at ") { answer = String(answer.dropFirst(3)) }
+            guard !answer.isEmpty else { throw SiriNeedsTimeError() }
+            reminderText = "\(reminderText) at \(answer)"
+        }
 
         try await SiriReminderCreator.create(text: reminderText)
         return .result(dialog: "Okay, that's added")
@@ -45,6 +58,13 @@ struct AddReminderIntent: AppIntent {
 @MainActor
 enum SiriReminderCreator {
     private static var inFlight: Task<Void, Error>?
+
+    // Whether the text has a date but no time (buildSiriReminder's needsTime); an unsupported time throws as usual
+    static func needsTime(text: String) throws -> Bool {
+        guard let context = SiriStore.context() else { throw SiriNotConfirmedError() }
+        let object = try SiriCore.parse(text: text, now: Date(), repeatsActive: context.repeatsActive)
+        return object["needsTime"] as? Bool == true
+    }
 
     static func create(text: String) async throws {
         if let running = inFlight { return try await running.value }
@@ -112,7 +132,14 @@ enum SiriStore {
 // Reminderly's own Siri parsing (buildSiriReminder in src/app/utils/siri.ts), bundled as siri-core.js
 @available(iOS 16.0, *)
 enum SiriCore {
+    // A reminder to save: a date with no time is refused here too, so it can never be saved without one
     static func buildReminder(text: String, now: Date, repeatsActive: Bool) throws -> [String: Any] {
+        let object = try parse(text: text, now: now, repeatsActive: repeatsActive)
+        if object["needsTime"] as? Bool == true { throw SiriNeedsTimeError() }
+        return object
+    }
+
+    static func parse(text: String, now: Date, repeatsActive: Bool) throws -> [String: Any] {
         guard let url = Bundle.main.url(forResource: "siri-core", withExtension: "js"),
               let script = try? String(contentsOf: url, encoding: .utf8),
               let js = JSContext() else { throw SiriNotConfirmedError() }
@@ -293,6 +320,14 @@ struct SiriUnsupportedTimeError: Error, CustomLocalizedStringResourceConvertible
     let later: String
     var localizedStringResource: LocalizedStringResource {
         "Reminderly currently supports reminders in 15-minute increments. Try \(earlier) or \(later)."
+    }
+}
+
+// A date with no time and no usable answer to "What time?" (docs/plans/no-auto-time.md, D7); no reminder was created
+@available(iOS 16.0, *)
+struct SiriNeedsTimeError: Error, CustomLocalizedStringResourceConvertible {
+    var localizedStringResource: LocalizedStringResource {
+        "Reminderly needs a time for that. Try again with a time, like today at 3pm."
     }
 }
 

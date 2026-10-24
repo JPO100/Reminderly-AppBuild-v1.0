@@ -723,7 +723,7 @@ var ReminderlySiri = (function(exports) {
       }
     }
     if (!selectedDate && selectedTime) selectedDate = new Date(startOfToday);
-    if (selectedDate && !selectedTime) selectedTime = { hour: 12, minute: 0 };
+    if (selectedDate && !selectedTime) return { needsTime: true };
     let schedule;
     if (selectedDate && selectedTime) {
       schedule = {

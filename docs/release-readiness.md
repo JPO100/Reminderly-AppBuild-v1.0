@@ -178,6 +178,7 @@ Decided within D1 (2026-10-14): annual subscription at £9, all features free wi
 6. Marking a list done removes its linked smart reminder instead of completing it (pre-existing race). Must be fixed before any TestFlight release that includes Clear done lists nightly (CTO, 2026-10-15). Fixed and merged to main (4daa7f5).
 7. Deleting a list removes its linked smart reminder instead of moving it to Deleted (same sync race as issue 6, recorded for future consideration by the CTO, 2026-10-15). Not scheduled.
 8. A list item edit still open (keyboard showing) when the app is closed or killed is lost; edits are saved on blur or Return only. Long-standing behaviour, recorded 2026-10-20. Fixed and merged to main (a368cad): an open edit is saved when the app stops being active. The related list editor lock after editing (which forced a restart) is fixed and merged to main (ac17400).
+9. At 375pt wide (fixed 450px settings card), the first visit to Reminders > Notifications straight after Siri shortcuts after a fresh load gives a 47px footer instead of 60, and the last row (Include due today) stays partly clipped when scrolled; correct on the next visit. Identical on main before the settings scroll cut fix (acc5d3c). Recorded 2026-10-24 at the CTO's request; not scheduled.
 
 Details: [architecture.md](./architecture.md) (Known constraints) and the feature documents.
 

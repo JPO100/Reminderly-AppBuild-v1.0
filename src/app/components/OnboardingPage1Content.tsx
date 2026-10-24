@@ -19,7 +19,7 @@ export function OnboardingPage1Text() {
     <div className="content-stretch flex flex-col gap-[27px] [@media(max-height:570px)]:gap-[10px] items-center relative shrink-0">
       <Frame3 />
       <div className={TUTORIAL_BODY_CLASSNAME}>
-        <p className="css-4hzbpn leading-[30px]">Your reminders are grouped and<br />coloured by when they are due:</p>
+        <p className="css-4hzbpn leading-[30px]">Your reminders are grouped and<br />coloured by when they are due</p>
       </div>
     </div>
   );

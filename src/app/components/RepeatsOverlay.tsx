@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import svgPaths from "../../imports/svg-prkucc25l";
 import repeatSvg from "../../imports/svg-upkw3rt5ea";
-import checkSvg from "../../imports/svg-w98xpyjjva";
 import type { RepeatConfig } from "../reminder-utils";
 
 interface RepeatsOverlayProps {
@@ -137,42 +136,26 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
                   style={{ maxHeight: activeFrequency === 'custom-days' ? customDaysHeight : 0 }}
                 >
                   <div ref={customDaysRef}>
-                    <div className="content-stretch flex flex-col items-center justify-center px-[20px] relative w-full" data-name="container-frame">
-                      <div className="flex flex-col gap-[25px] items-start py-[40px] w-fit mx-auto" data-name="weekdays">
+                    <div className="content-stretch flex flex-col items-center justify-center relative w-full" data-name="container-frame">
+                      <div className="flex items-center justify-between py-[40px] w-full" data-name="weekdays">
                         {WEEKDAYS.map(day => {
                           const isChecked = selectedDays.has(day);
                           return (
                             <button
                               key={day}
                               onClick={() => toggleDay(day)}
-                              className="content-stretch flex gap-[16px] items-center relative shrink-0 cursor-pointer border-none bg-transparent p-0"
+                              aria-label={day}
+                              aria-pressed={isChecked}
+                              className="flex items-center justify-center shrink-0 size-[45px] rounded-full cursor-pointer border-none p-0"
+                              style={{ backgroundColor: isChecked ? "#4784F8" : "#D9D9D9" }}
                               data-name="Weekday"
                             >
-                              <div className="relative shrink-0 size-[25px]" data-name="Checkbox">
-                                {isChecked ? (
-                                  <div className="bg-[#4784f8] flex flex-col items-start pb-[7px] pt-[8px] px-[6px] rounded-[12.5px] size-full">
-                                    <div className="h-[9.58px] relative shrink-0 w-[12.491px]">
-                                      <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 12.4913 9.58041">
-                                        <path d={checkSvg.p30409b00} fill="#FEF6EA" />
-                                      </svg>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <svg className="absolute block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 25 25">
-                                    <circle cx="12.5" cy="12.5" fill="white" r="11.5" stroke="#939393" strokeWidth="2" />
-                                  </svg>
-                                )}
-                              </div>
-                              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-left whitespace-nowrap"
-                                style={{ color: isChecked ? "#1C2C42" : "#939393" }}
-                              >
-                                <p className="leading-[normal]">Every {day}</p>
-                              </div>
+                              <span className="font-['Lato:Bold',sans-serif] not-italic text-[17px] text-white leading-[normal]">{day[0]}</span>
                             </button>
                           );
                         })}
                       </div>
-                      <div className="h-0 relative shrink-0 w-full">
+                      <div className="h-0 relative shrink-0 w-[calc(100%-40px)]">
                         <div className="absolute inset-[-1px_0_0_0]">
                           <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 381 1">
                             <line stroke="#EDEDED" strokeLinecap="round" x1="0.5" x2="380.5" y1="0.5" y2="0.5" />

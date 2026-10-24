@@ -13,7 +13,7 @@
  */
 
 import type { ParsedToken, TokenCategory, NlcRecognitionConfig } from './nlc-parser';
-import { MONTH_NAME_TO_NUMBER, spokenNumber } from './nlc-parser';
+import { MONTH_NAME_TO_NUMBER, LEADING_WEEKDAY, fullYear, spokenNumber } from './nlc-parser';
 import type { RepeatConfig } from '../reminder-utils';
 
 // ============================================================================
@@ -116,11 +116,37 @@ export function getNextDayOccurrence(from: Date, dayIndices: number[]): Date {
   return new Date(from); // fallback
 }
 
+/** A calendar date from day, month and an optional year (no year: this year, or next once passed); null if not real */
+function resolveDayMonth(day: number, month: number, year: number | null, today: Date): Date | null {
+  let y = year ?? today.getFullYear();
+  if (year === null && (month < today.getMonth() + 1 || (month === today.getMonth() + 1 && day < today.getDate()))) y += 1;
+  const candidate = new Date(y, month - 1, day);
+  if (candidate.getFullYear() !== y || candidate.getMonth() !== month - 1 || candidate.getDate() !== day) return null;
+  candidate.setHours(0, 0, 0, 0);
+  return candidate;
+}
+
 /** Parse a date token's text into a Date value */
 export function parseDateTokenValue(tokenText: string, now: Date = new Date()): Date | null {
-  const lower = tokenText.toLowerCase().trim();
+  let lower = tokenText.toLowerCase().trim();
   const today = new Date(now);
   today.setHours(0, 0, 0, 0);
+
+  // A weekday leading an absolute date ("wednesday 4 november", "wed, 4/11/26"): the date decides the day
+  const withoutWeekday = lower.replace(new RegExp(`^${LEADING_WEEKDAY}\\s*,?\\s+(?=(?:the\\s+)?\\d|[a-z]+\\s+\\d)`), '');
+  if (withoutWeekday !== lower && withoutWeekday !== '') lower = withoutWeekday;
+  // "the 3rd of march" reads as "3rd march"
+  lower = lower.replace(/^the\s+/, '').replace(/\s+of\s+/, ' ');
+
+  // Numeric, day first: "3/3/27", "03-03-2027", "3.3.27", "3/3"
+  const numeric = /^(\d{1,2})([/.-])(\d{1,2})(?:\2(\d{2}|\d{4}))?$/.exec(lower);
+  if (numeric) {
+    return resolveDayMonth(parseInt(numeric[1], 10), parseInt(numeric[3], 10), numeric[4] ? fullYear(numeric[4]) : null, today);
+  }
+
+  // ISO: "2027-03-03"
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lower);
+  if (iso) return resolveDayMonth(parseInt(iso[3], 10), parseInt(iso[2], 10), parseInt(iso[1], 10), today);
 
   if (lower === 'today') return today;
 
@@ -147,56 +173,21 @@ export function parseDateTokenValue(tokenText: string, now: Date = new Date()): 
     return d;
   }
 
-  // Month-name dates: "February 28", "Feb 28th", "Feb 28 2027", etc.
-  const monthDateMatch = /^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+(\d{4}))?$/i.exec(lower);
+  // Month-name dates: "February 28", "Feb 28th", "Feb 28 2027", "Mar 3rd 27", "Mar 3 '27" (explicit year as-is)
+  const monthDateMatch = /^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+('?\d{2}|\d{4}))?$/i.exec(lower);
   if (monthDateMatch) {
     const monthNum = MONTH_NAME_TO_NUMBER[monthDateMatch[1]];
     if (monthNum !== undefined) {
-      const day = parseInt(monthDateMatch[2], 10);
-      let year: number;
-      if (monthDateMatch[3]) {
-        // Explicit year — use as-is, no rollover
-        year = parseInt(monthDateMatch[3], 10);
-      } else {
-        year = today.getFullYear();
-        const todayMonth = today.getMonth() + 1;
-        const todayDay = today.getDate();
-        if (monthNum < todayMonth || (monthNum === todayMonth && day < todayDay)) {
-          year += 1;
-        }
-      }
-      const candidate = new Date(year, monthNum - 1, day);
-      if (candidate.getFullYear() === year && candidate.getMonth() === monthNum - 1 && candidate.getDate() === day) {
-        candidate.setHours(0, 0, 0, 0);
-        return candidate;
-      }
-      return null;
+      return resolveDayMonth(parseInt(monthDateMatch[2], 10), monthNum, monthDateMatch[3] ? fullYear(monthDateMatch[3]) : null, today);
     }
   }
 
-  // Day-first month-name dates: "28 Feb", "28th February", "28 Feb 2027", etc.
-  const dayMonthMatch = /^(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)(?:\s+(\d{4}))?$/i.exec(lower);
+  // Day-first month-name dates: "28 Feb", "28th February", "28 Feb 2027", "3 Mar 27", "3rd March '27"
+  const dayMonthMatch = /^(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)(?:\s+('?\d{2}|\d{4}))?$/i.exec(lower);
   if (dayMonthMatch) {
-    const day = parseInt(dayMonthMatch[1], 10);
     const monthNum = MONTH_NAME_TO_NUMBER[dayMonthMatch[2]];
     if (monthNum !== undefined) {
-      let year: number;
-      if (dayMonthMatch[3]) {
-        year = parseInt(dayMonthMatch[3], 10);
-      } else {
-        year = today.getFullYear();
-        const todayMonth = today.getMonth() + 1;
-        const todayDay = today.getDate();
-        if (monthNum < todayMonth || (monthNum === todayMonth && day < todayDay)) {
-          year += 1;
-        }
-      }
-      const candidate = new Date(year, monthNum - 1, day);
-      if (candidate.getFullYear() === year && candidate.getMonth() === monthNum - 1 && candidate.getDate() === day) {
-        candidate.setHours(0, 0, 0, 0);
-        return candidate;
-      }
-      return null;
+      return resolveDayMonth(parseInt(dayMonthMatch[1], 10), monthNum, dayMonthMatch[3] ? fullYear(dayMonthMatch[3]) : null, today);
     }
   }
 
@@ -321,6 +312,14 @@ export function parseRepeatsTokenValue(tokenText: string): { config: RepeatConfi
   const lower = tokenText.toLowerCase().trim();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  // "daily", "weekly", "monthly", "yearly", "hourly": interval 1, as "every day" and so on
+  const oneWordFrequency: Record<string, 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly'> = {
+    hourly: 'hourly', daily: 'daily', weekly: 'weekly', monthly: 'monthly', yearly: 'yearly',
+  };
+  if (oneWordFrequency[lower]) {
+    return { config: { frequency: oneWordFrequency[lower], interval: 1 }, anchorDate: new Date(today), impliedTime: null };
+  }
 
   // "weekdays"
   if (lower === 'weekdays') {
@@ -584,6 +583,42 @@ export function computeScheduleKind(
 // ============================================================================
 // 5. Auto-apply (mode: 'auto')
 // ============================================================================
+
+/** Rows whose current value NLC filled in as a default, not from a token or the user */
+export type NlcDefaults = { date: boolean; time: boolean };
+
+/**
+ * The toggle state auto-apply should see. A row on only because NLC filled in a default (Time 12pm or an implied
+ * time from a date or repeat, Date today from a time) counts as off, so a token typed later can still set it.
+ * Rows the user set, and rows set from a token, stay on and are never overwritten.
+ */
+export function togglesForAutoApply(
+  toggles: { date: boolean; time: boolean; repeats: boolean },
+  nlcDefaults: NlcDefaults,
+): { date: boolean; time: boolean; repeats: boolean } {
+  return {
+    date: toggles.date && !nlcDefaults.date,
+    time: toggles.time && !nlcDefaults.time,
+    repeats: toggles.repeats,
+  };
+}
+
+/**
+ * Whether applying a date or a plain repeat token also turns Time on at 12pm. Auto mode only: in click mode each
+ * highlighted token is tapped separately, so the user can leave out the time (John, 24 Oct).
+ */
+export function applyDefaultsTime(mode: NlcMode): boolean {
+  return mode === 'auto';
+}
+
+/**
+ * Whether applying a time token sets Date to today. In click mode, whenever Date is off: an untapped date token is
+ * not applied. In auto mode, only when no date token is in the text, as that token applies itself.
+ */
+export function timeSetsToday(mode: NlcMode, state: { isDateOn: boolean; hasDateToken: boolean; isCompound: boolean }): boolean {
+  if (mode === 'click') return !state.isDateOn;
+  return !state.hasDateToken && (state.isCompound || !state.isDateOn);
+}
 
 /**
  * Compute which categories should be auto-applied given the current parsed tokens

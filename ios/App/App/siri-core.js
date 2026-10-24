@@ -20,6 +20,7 @@ var ReminderlySiri = (function(exports) {
     aug: 8,
     august: 8,
     sep: 9,
+    sept: 9,
     september: 9,
     oct: 10,
     october: 10,
@@ -28,7 +29,13 @@ var ReminderlySiri = (function(exports) {
     dec: 12,
     december: 12
   };
-  const MONTH_NAMES = "(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)";
+  const MONTH_NAMES = "(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)";
+  const LEADING_WEEKDAY = "(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues|tue|weds|wed|thurs|thur|thu|fri|sat|sun)";
+  const YEARLESS_NUMERIC_LEAD = /\b(?:on|by|before|until|from|due|for)\s+$/i;
+  function fullYear(value) {
+    const year = parseInt(value.replace(/^'/, ""), 10);
+    return value.replace(/^'/, "").length === 2 ? 2e3 + year : year;
+  }
   const NUMBER_WORD_TO_NUMBER = {
     one: 1,
     two: 2,
@@ -123,6 +130,7 @@ var ReminderlySiri = (function(exports) {
       collect(/\bevery\s+(?:day|week|month|year|hour)\b/gi, "repeats");
       collect(/\bevery\s+\d+\s+(?:days?|weeks?|months?|hours?)\b/gi, "repeats");
       collect(/\bweekdays\b/gi, "repeats");
+      collect(/\b(?:daily|weekly|monthly|yearly|hourly)\b/gi, "repeats");
       const commaListRegex = new RegExp(
         `\\b${WEEKDAY_SHORT}(?:\\s*,\\s*${WEEKDAY_SHORT})+\\b`,
         "gi"
@@ -136,38 +144,69 @@ var ReminderlySiri = (function(exports) {
       collect(/\b(?:the\s+)?day\s+after\s+tomorrow\b/gi, "date");
       collect(RELATIVE_DAYS_REGEX, "date", (match) => isRelativeAmount(match[1]));
       collect(new RegExp(`\\b${WEEKDAY}\\b`, "gi"), "date");
-      collect(
-        new RegExp(`\\b(${MONTH_NAMES})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(\\d{4}))?\\b`, "gi"),
-        "date",
-        (match) => {
-          const monthNum = MONTH_NAME_TO_NUMBER[match[1].toLowerCase()];
-          if (!monthNum) return false;
+      const absoluteDates = [];
+      const pushAbsolute = (start, end) => {
+        const token = { category: "date", start, end, text: text.slice(start, end) };
+        candidates.push(token);
+        absoluteDates.push(token);
+      };
+      const isRealDate = (day, month, year) => {
+        if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+        if (year !== null) return isValidMonthDay(month, day, year);
+        const thisYear = (/* @__PURE__ */ new Date()).getFullYear();
+        return isValidMonthDay(month, day, thisYear) || isValidMonthDay(month, day, thisYear + 1);
+      };
+      const TWO_DIGIT_YEAR = `'?(\\d{2})(?![\\d:]|\\s*(?:am|pm)\\b)`;
+      const collectMonthNameDates = (pattern, datePart, fields) => {
+        const regex = new RegExp(pattern, "gi");
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const { day, month, fourDigit, twoDigit } = fields(match);
+          const year = fourDigit ? parseInt(fourDigit, 10) : twoDigit ? 2e3 + parseInt(twoDigit, 10) : null;
+          const yearOk = year !== null && isRealDate(day, month, year) && (!!fourDigit || year >= (/* @__PURE__ */ new Date()).getFullYear());
+          if (yearOk) pushAbsolute(match.index, match.index + match[0].length);
+          else if (isRealDate(day, month, null)) pushAbsolute(match.index, match.index + datePart.exec(match[0])[0].length);
+        }
+      };
+      collectMonthNameDates(
+        `\\b(${MONTH_NAMES})\\s+(\\d{1,2})(st|nd|rd|th)?(?:\\s+(?:(\\d{4})|${TWO_DIGIT_YEAR}))?\\b`,
+        new RegExp(`^${MONTH_NAMES}\\s+\\d{1,2}(?:st|nd|rd|th)?`, "i"),
+        (m) => ({
+          day: parseInt(m[2], 10),
+          month: MONTH_NAME_TO_NUMBER[m[1].toLowerCase()],
+          fourDigit: m[4],
+          twoDigit: m[5] && (m[3] || m[0].includes("'")) ? m[5] : void 0
+        })
+      );
+      collectMonthNameDates(
+        `\\b(?:the\\s+)?(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?(${MONTH_NAMES})(?:\\s+(?:(\\d{4})|${TWO_DIGIT_YEAR}))?\\b`,
+        new RegExp(`^(?:the\\s+)?\\d{1,2}(?:st|nd|rd|th)?\\s+(?:of\\s+)?${MONTH_NAMES}`, "i"),
+        (m) => ({ day: parseInt(m[1], 10), month: MONTH_NAME_TO_NUMBER[m[2].toLowerCase()], fourDigit: m[3], twoDigit: m[4] })
+      );
+      {
+        const regex = /(^|[\s(])(\d{1,2})([/.-])(\d{1,2})(?:\3(\d{4}|\d{2}))?(?=$|[\s,;!?)]|\.(?:\s|$))/g;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const start = match.index + match[1].length;
           const day = parseInt(match[2], 10);
-          if (day < 1 || day > 31) return false;
-          if (match[3]) {
-            const year = parseInt(match[3], 10);
-            return isValidMonthDay(monthNum, day, year);
-          }
-          const thisYear = (/* @__PURE__ */ new Date()).getFullYear();
-          return isValidMonthDay(monthNum, day, thisYear) || isValidMonthDay(monthNum, day, thisYear + 1);
+          const month = parseInt(match[4], 10);
+          const year = match[5] ? fullYear(match[5]) : null;
+          if (year === null && (match[3] !== "/" || !YEARLESS_NUMERIC_LEAD.test(text.slice(0, start)))) continue;
+          if (!isRealDate(day, month, year)) continue;
+          pushAbsolute(start, match.index + match[0].length);
         }
-      );
-      collect(
-        new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${MONTH_NAMES})(?:\\s+(\\d{4}))?\\b`, "gi"),
-        "date",
-        (match) => {
-          const day = parseInt(match[1], 10);
-          if (day < 1 || day > 31) return false;
-          const monthNum = MONTH_NAME_TO_NUMBER[match[2].toLowerCase()];
-          if (!monthNum) return false;
-          if (match[3]) {
-            const year = parseInt(match[3], 10);
-            return isValidMonthDay(monthNum, day, year);
-          }
-          const thisYear = (/* @__PURE__ */ new Date()).getFullYear();
-          return isValidMonthDay(monthNum, day, thisYear) || isValidMonthDay(monthNum, day, thisYear + 1);
+        const iso = /(^|[\s(])(\d{4})-(\d{2})-(\d{2})(?=$|[\s,;!?)]|\.(?:\s|$))/g;
+        while ((match = iso.exec(text)) !== null) {
+          if (!isRealDate(parseInt(match[4], 10), parseInt(match[3], 10), parseInt(match[2], 10))) continue;
+          pushAbsolute(match.index + match[1].length, match.index + match[0].length);
         }
-      );
+      }
+      for (const date of absoluteDates) {
+        const lead = new RegExp(`\\b${LEADING_WEEKDAY}\\s*,?\\s+$`, "i").exec(text.slice(0, date.start));
+        if (lead) {
+          candidates.push({ category: "date", start: lead.index, end: date.end, text: text.slice(lead.index, date.end) });
+        }
+      }
     }
     if (!recognition.time) ;
     else {
@@ -222,7 +261,7 @@ var ReminderlySiri = (function(exports) {
     }
     return result;
   }
-  const WEEKDAY_NAMES$1 = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const WEEKDAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const FULL_DAY_TO_JS_INDEX = {
     sunday: 0,
     monday: 1,
@@ -275,10 +314,27 @@ var ReminderlySiri = (function(exports) {
     }
     return new Date(from);
   }
+  function resolveDayMonth(day, month, year, today) {
+    let y = year ?? today.getFullYear();
+    if (year === null && (month < today.getMonth() + 1 || month === today.getMonth() + 1 && day < today.getDate())) y += 1;
+    const candidate = new Date(y, month - 1, day);
+    if (candidate.getFullYear() !== y || candidate.getMonth() !== month - 1 || candidate.getDate() !== day) return null;
+    candidate.setHours(0, 0, 0, 0);
+    return candidate;
+  }
   function parseDateTokenValue(tokenText, now = /* @__PURE__ */ new Date()) {
-    const lower = tokenText.toLowerCase().trim();
+    let lower = tokenText.toLowerCase().trim();
     const today = new Date(now);
     today.setHours(0, 0, 0, 0);
+    const withoutWeekday = lower.replace(new RegExp(`^${LEADING_WEEKDAY}\\s*,?\\s+(?=(?:the\\s+)?\\d|[a-z]+\\s+\\d)`), "");
+    if (withoutWeekday !== lower && withoutWeekday !== "") lower = withoutWeekday;
+    lower = lower.replace(/^the\s+/, "").replace(/\s+of\s+/, " ");
+    const numeric = /^(\d{1,2})([/.-])(\d{1,2})(?:\2(\d{2}|\d{4}))?$/.exec(lower);
+    if (numeric) {
+      return resolveDayMonth(parseInt(numeric[1], 10), parseInt(numeric[3], 10), numeric[4] ? fullYear(numeric[4]) : null, today);
+    }
+    const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lower);
+    if (iso) return resolveDayMonth(parseInt(iso[3], 10), parseInt(iso[2], 10), parseInt(iso[1], 10), today);
     if (lower === "today") return today;
     if (/^(?:the\s+)?day\s+after\s+tomorrow$/.test(lower)) {
       const d = new Date(today);
@@ -298,52 +354,18 @@ var ReminderlySiri = (function(exports) {
       d.setDate(d.getDate() + 1);
       return d;
     }
-    const monthDateMatch = /^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+(\d{4}))?$/i.exec(lower);
+    const monthDateMatch = /^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+('?\d{2}|\d{4}))?$/i.exec(lower);
     if (monthDateMatch) {
       const monthNum = MONTH_NAME_TO_NUMBER[monthDateMatch[1]];
       if (monthNum !== void 0) {
-        const day = parseInt(monthDateMatch[2], 10);
-        let year;
-        if (monthDateMatch[3]) {
-          year = parseInt(monthDateMatch[3], 10);
-        } else {
-          year = today.getFullYear();
-          const todayMonth = today.getMonth() + 1;
-          const todayDay = today.getDate();
-          if (monthNum < todayMonth || monthNum === todayMonth && day < todayDay) {
-            year += 1;
-          }
-        }
-        const candidate = new Date(year, monthNum - 1, day);
-        if (candidate.getFullYear() === year && candidate.getMonth() === monthNum - 1 && candidate.getDate() === day) {
-          candidate.setHours(0, 0, 0, 0);
-          return candidate;
-        }
-        return null;
+        return resolveDayMonth(parseInt(monthDateMatch[2], 10), monthNum, monthDateMatch[3] ? fullYear(monthDateMatch[3]) : null, today);
       }
     }
-    const dayMonthMatch = /^(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)(?:\s+(\d{4}))?$/i.exec(lower);
+    const dayMonthMatch = /^(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)(?:\s+('?\d{2}|\d{4}))?$/i.exec(lower);
     if (dayMonthMatch) {
-      const day = parseInt(dayMonthMatch[1], 10);
       const monthNum = MONTH_NAME_TO_NUMBER[dayMonthMatch[2]];
       if (monthNum !== void 0) {
-        let year;
-        if (dayMonthMatch[3]) {
-          year = parseInt(dayMonthMatch[3], 10);
-        } else {
-          year = today.getFullYear();
-          const todayMonth = today.getMonth() + 1;
-          const todayDay = today.getDate();
-          if (monthNum < todayMonth || monthNum === todayMonth && day < todayDay) {
-            year += 1;
-          }
-        }
-        const candidate = new Date(year, monthNum - 1, day);
-        if (candidate.getFullYear() === year && candidate.getMonth() === monthNum - 1 && candidate.getDate() === day) {
-          candidate.setHours(0, 0, 0, 0);
-          return candidate;
-        }
-        return null;
+        return resolveDayMonth(parseInt(dayMonthMatch[1], 10), monthNum, dayMonthMatch[3] ? fullYear(dayMonthMatch[3]) : null, today);
       }
     }
     const hasNext = lower.startsWith("next ");
@@ -436,6 +458,16 @@ var ReminderlySiri = (function(exports) {
     const lower = tokenText.toLowerCase().trim();
     const today = /* @__PURE__ */ new Date();
     today.setHours(0, 0, 0, 0);
+    const oneWordFrequency = {
+      hourly: "hourly",
+      daily: "daily",
+      weekly: "weekly",
+      monthly: "monthly",
+      yearly: "yearly"
+    };
+    if (oneWordFrequency[lower]) {
+      return { config: { frequency: oneWordFrequency[lower], interval: 1 }, anchorDate: new Date(today), impliedTime: null };
+    }
     if (lower === "weekdays") {
       return {
         config: { frequency: "custom-days", interval: 5, selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] },
@@ -471,7 +503,7 @@ var ReminderlySiri = (function(exports) {
     const everyWordMatch = /^every\s+(\w+)$/.exec(lower);
     if (everyWordMatch) {
       const word = everyWordMatch[1];
-      if (WEEKDAY_NAMES$1.includes(word)) {
+      if (WEEKDAY_NAMES.includes(word)) {
         const capitalized = word.charAt(0).toUpperCase() + word.slice(1);
         const dayIndex = FULL_DAY_TO_JS_INDEX[word];
         return {
@@ -578,117 +610,36 @@ var ReminderlySiri = (function(exports) {
     }
     return actions;
   }
-  const SHORT_MONTHS = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  const WEEKDAY_NAMES = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ];
-  function formatDateLabel(dateStr, now) {
-    const [y, m, d] = dateStr.split("-").map(Number);
-    const target = new Date(y, m - 1, d);
-    target.setHours(0, 0, 0, 0);
-    const today = new Date(now);
-    today.setHours(0, 0, 0, 0);
-    const nowYear = now.getFullYear();
-    if (y !== nowYear) {
-      return `on ${target.getDate()} ${SHORT_MONTHS[target.getMonth()]}, ${y}`;
+  const CONNECTOR_BEFORE = /\b(?:at|on|in)\s+$/i;
+  const TOKEN_GAP = /^\s*,?\s*(?:(?:at|on|in)\s+)?$/i;
+  const EVERY_BEFORE = /\bevery\s+$/i;
+  function titleFromAppliedTokens(text, applied) {
+    const tokens = applied.filter((t) => t.start >= 0 && t.end <= text.length && t.end > t.start).sort((a, b) => a.start - b.start);
+    const kept = tokens.map((t) => EVERY_BEFORE.test(text.slice(0, t.start)));
+    const removable = tokens.map((t, i) => !kept[i] && (CONNECTOR_BEFORE.test(text.slice(0, t.start)) || /^[\s,.;!?]*$/.test(text.slice(t.end))));
+    let changed = true;
+    while (changed) {
+      changed = false;
+      tokens.forEach((t, i) => {
+        if (removable[i] || kept[i]) return;
+        const joinsPrevious = i > 0 && removable[i - 1] && TOKEN_GAP.test(text.slice(tokens[i - 1].end, t.start));
+        const joinsNext = i < tokens.length - 1 && removable[i + 1] && TOKEN_GAP.test(text.slice(t.end, tokens[i + 1].start));
+        if (joinsPrevious || joinsNext) {
+          removable[i] = true;
+          changed = true;
+        }
+      });
     }
-    const diffMs = target.getTime() - today.getTime();
-    const diffDays = Math.round(diffMs / (1e3 * 60 * 60 * 24));
-    if (diffDays >= 0 && diffDays <= 6) {
-      return `on ${WEEKDAY_NAMES[target.getDay()]}`;
+    if (!removable.some(Boolean)) return text;
+    let result = text;
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      if (!removable[i]) continue;
+      const before = result.slice(0, tokens[i].start).replace(CONNECTOR_BEFORE, "");
+      result = `${before} ${result.slice(tokens[i].end)}`;
     }
-    return `on ${target.getDate()} ${SHORT_MONTHS[target.getMonth()]}`;
-  }
-  const RELATIVE_DATE_PATTERNS = [
-    /\btomorrow\b/gi,
-    /\btoday\b/gi,
-    /\btonight\b/gi,
-    /\bnext\s+week\b/gi,
-    /\bnext\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
-    /\bthis\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi
-  ];
-  const TIME_OF_DAY_PHRASE_PATTERNS = [
-    /\bin\s+the\s+morning\b/gi,
-    /\bin\s+morning\b/gi,
-    /\bin\s+the\s+afternoon\b/gi,
-    /\bin\s+afternoon\b/gi,
-    /\bin\s+the\s+evening\b/gi,
-    /\bin\s+evening\b/gi,
-    /\bin\s+the\s+night\b/gi,
-    /\bin\s+night\b/gi,
-    /\bat\s+morning\b/gi,
-    /\bat\s+night\b/gi
-  ];
-  const TIME_OF_DAY_PATTERNS = [
-    /\bmorning\b/gi,
-    /\bafternoon\b/gi,
-    /\bevening\b/gi,
-    /\bnight\b/gi
-  ];
-  function normaliseReminderText(originalText, schedule, repeatRule, now, options) {
-    if (schedule.kind !== "scheduled") return originalText;
-    let result = originalText;
-    for (const pattern of RELATIVE_DATE_PATTERNS) {
-      pattern.lastIndex = 0;
-      result = result.replace(pattern, "");
-    }
-    const absoluteDatePatterns = [
-      /\b(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}(?:st|nd|rd|th)?(?!\s*(?:am|pm)\b)(?:\s+\d{4})?\b/gi,
-      /\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)(?:\s+\d{4})?\b/gi
-    ];
-    for (const pattern of absoluteDatePatterns) {
-      pattern.lastIndex = 0;
-      if (pattern.test(result)) ;
-      pattern.lastIndex = 0;
-      result = result.replace(pattern, "");
-    }
-    if (schedule.time) {
-      const everyTodMatch = repeatRule ? /every\s+(morning|afternoon|evening|night)/i.exec(originalText) : null;
-      const protectedWord = everyTodMatch ? everyTodMatch[1].toLowerCase() : null;
-      for (const pattern of TIME_OF_DAY_PHRASE_PATTERNS) {
-        pattern.lastIndex = 0;
-        if (protectedWord && pattern.source.includes(protectedWord)) continue;
-        result = result.replace(pattern, "");
-      }
-      for (const pattern of TIME_OF_DAY_PATTERNS) {
-        pattern.lastIndex = 0;
-        if (protectedWord && pattern.source.includes(protectedWord)) continue;
-        result = result.replace(pattern, "");
-      }
-    }
-    result = result.replace(/\s{2,}/g, " ").trim();
-    result = result.replace(/\bon\s*$/i, "").trim();
-    result = result.replace(/\bon\s+(?=at\b)/gi, "").trim();
-    result = result.replace(/\s+(in|on|at|the)\s*$/i, "").trim();
-    const dateLabel = formatDateLabel(schedule.date, now);
-    !result.toLowerCase().includes(dateLabel.toLowerCase());
-    result.match(/\bat\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/i);
-    if (schedule.time) {
-      {
-        result = result.replace(/\b(?:at\s+)?\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi, "");
-      }
-    }
-    result = result.replace(/\s{2,}/g, " ").trim();
-    return result;
+    result = result.replace(/\s+([,.;!?])/g, "$1").replace(/\s{2,}/g, " ").replace(/^[\s,;]+|[\s,;]+$/g, "").trim();
+    if (!result) return text;
+    return result.charAt(0).toUpperCase() + result.slice(1);
   }
   const DAY_ABBREV = {
     "Monday": "mo",
@@ -771,31 +722,21 @@ var ReminderlySiri = (function(exports) {
         }
       }
     }
-    if (!selectedDate && selectedTime) {
-      const timeMinutes = selectedTime.hour * 60 + selectedTime.minute;
-      const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      selectedDate = new Date(startOfToday);
-      if (timeMinutes <= nowMinutes) selectedDate.setDate(selectedDate.getDate() + 1);
-    }
+    if (!selectedDate && selectedTime) selectedDate = new Date(startOfToday);
+    if (selectedDate && !selectedTime) selectedTime = { hour: 12, minute: 0 };
     let schedule;
-    if (selectedDate) {
+    if (selectedDate && selectedTime) {
       schedule = {
         kind: "scheduled",
         date: toYyyyMmDd(selectedDate),
-        ...selectedTime ? { time: toHhMm(selectedTime.hour, selectedTime.minute) } : {}
+        time: toHhMm(selectedTime.hour, selectedTime.minute)
       };
     } else {
       schedule = { kind: "sometime" };
     }
     const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
-    let titleText = text;
-    const appliedSpans = actions.filter((a) => a.category !== "repeats").map((a) => a.token).sort((a, b) => b.start - a.start);
-    for (const token of appliedSpans) {
-      const before = titleText.slice(0, token.start).replace(/\b(?:at|on|in)\s+$/i, "");
-      titleText = `${before} ${titleText.slice(token.end)}`;
-    }
-    titleText = titleText.replace(/\s{2,}/g, " ").trim();
-    const displayText = schedule.kind === "scheduled" ? normaliseReminderText(titleText, schedule, repeatRule, now) : text;
+    const applied = actions.filter((a) => a.category !== "repeats" || repeatRule).map((a) => a.token);
+    const displayText = titleFromAppliedTokens(text, applied);
     return { originalText: text, displayText, schedule, repeatRule };
   }
   exports.buildSiriReminder = buildSiriReminder;

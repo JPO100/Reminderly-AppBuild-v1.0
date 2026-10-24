@@ -21,6 +21,7 @@ import {
   computeInvalidation,
   computeScheduleKind,
   computeAutoApplyResult,
+  togglesForAutoApply,
   getNextDayOccurrence,
   isCompoundTimeToken,
   getRepeatsImpliedTime,
@@ -28,6 +29,7 @@ import {
   parseDateTokenValue,
   type AppliedTokens,
 } from '../utils/nlc-interaction';
+import { titleFromAppliedTokens } from '../utils/normalise-text';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -1300,6 +1302,39 @@ export function getNlcInteractionChecks(): Check[] {
         assert(tokens[0].category === 'date', `Expected date token, got ${tokens[0].category}`);
         const eligible = computeEligibleTokens(tokens, emptyApplied());
         assert(eligible.length === 1, `Expected 1 eligible token, got ${eligible.length}`);
+      },
+    },
+
+    // Word order (docs/plans/nlc-titles-and-dates.md, 2.2)
+    {
+      id: 'nlc-interaction-word-order-default-replaced',
+      name: 'NLC interaction: a later token replaces an NLC default in either order ("tomorrow ... 3pm", "3pm ... tomorrow")',
+      run: () => {
+        const timeLater = computeAutoApplyResult(parseTokens('Call mum tomorrow at 3pm'), togglesForAutoApply({ date: true, time: true, repeats: false }, { date: false, time: true }));
+        assert(timeLater.length === 1 && timeLater[0].token.text === '3pm', 'Expected 3pm to replace the 12pm default');
+        const dateLater = computeAutoApplyResult(parseTokens('Call mum at 3pm tomorrow'), togglesForAutoApply({ date: true, time: true, repeats: false }, { date: true, time: false }));
+        assert(dateLater.length === 1 && dateLater[0].token.text === 'tomorrow', 'Expected tomorrow to replace the today default');
+      },
+    },
+
+    {
+      id: 'nlc-interaction-word-order-user-protected',
+      name: 'NLC interaction: a date or time the user set is never replaced by a typed token',
+      run: () => {
+        const actions = computeAutoApplyResult(parseTokens('Call mum tomorrow at 3pm'), togglesForAutoApply({ date: true, time: true, repeats: false }, { date: false, time: false }));
+        assert(actions.length === 0, `Expected no auto-apply, got ${actions.length}`);
+      },
+    },
+
+    // Task-only titles (docs/plans/nlc-titles-and-dates.md, 2.1)
+    {
+      id: 'nlc-interaction-task-only-title',
+      name: 'NLC interaction: applied tokens are removed from the title; a day that is part of the task stays',
+      run: () => {
+        const titleOf = (text: string) => titleFromAppliedTokens(text, computeAutoApplyResult(parseTokens(text), { date: false, time: false, repeats: false }).map(a => a.token));
+        assert(titleOf('Call mum on Monday at 9pm') === 'Call mum', `Expected "Call mum", got "${titleOf('Call mum on Monday at 9pm')}"`);
+        assert(titleOf('Monday meeting notes') === 'Monday meeting notes', 'Expected "Monday meeting notes" unchanged');
+        assert(titleOf('Tomorrow at 9pm') === 'Tomorrow at 9pm', 'Expected the typed text when nothing would be left');
       },
     },
   ];

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseTokens } from '../utils/nlc-parser';
-import { computeAutoApplyResult, togglesForAutoApply } from '../utils/nlc-interaction';
+import { computeAutoApplyResult, togglesForAutoApply, applyDefaultsTime, timeSetsToday } from '../utils/nlc-interaction';
 
 // NLC word order, Stage 2 (docs/plans/nlc-titles-and-dates.md, 2.2 and condition 2): a row NLC filled in as a
 // default can take a later token; rows set by the user or from a token are never overwritten.
@@ -55,5 +55,25 @@ describe('protected values (condition 2)', () => {
 
   it('two tokens in a category stay ambiguous, default or not', () => {
     expect(applied('Call mum tomorrow at 3pm or 4pm', { date: true, time: true, repeats: false }, { date: false, time: true })).toEqual([]);
+  });
+});
+
+// Click mode (Set dates as you type off): each highlighted token is tapped separately (John, 24 Oct; Kai approved)
+describe('click mode applies each token separately', () => {
+  it('a date or plain repeat adds the 12pm default in auto mode only', () => {
+    expect(applyDefaultsTime('auto')).toBe(true);
+    expect(applyDefaultsTime('click')).toBe(false);
+  });
+
+  it('tapping a time with Date off sets today, even with an untapped date token', () => {
+    expect(timeSetsToday('click', { isDateOn: false, hasDateToken: true, isCompound: false })).toBe(true);
+    expect(timeSetsToday('click', { isDateOn: true, hasDateToken: true, isCompound: true })).toBe(false);
+  });
+
+  it('auto mode is unchanged: a date token in the text applies itself', () => {
+    expect(timeSetsToday('auto', { isDateOn: false, hasDateToken: true, isCompound: false })).toBe(false);
+    expect(timeSetsToday('auto', { isDateOn: false, hasDateToken: false, isCompound: false })).toBe(true);
+    expect(timeSetsToday('auto', { isDateOn: true, hasDateToken: false, isCompound: true })).toBe(true);
+    expect(timeSetsToday('auto', { isDateOn: true, hasDateToken: false, isCompound: false })).toBe(false);
   });
 });

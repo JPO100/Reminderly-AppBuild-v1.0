@@ -26,7 +26,7 @@ Enforced by the manual toggle handlers in `NewReminderOverlay.tsx`:
 4. Turning time off clears the time only, leaving a date-only reminder.
 5. Date and time changes never affect the repeat setting.
 
-NLC applies values through `applyToggleStateSilently`, which does not open drawers. NLC date tokens also set 12:00 when time is off. NLC time tokens with date off turn date on (today) only when the text has no date token. Those NLC defaults can be replaced by a token typed later (see Auto mode).
+NLC applies values through `applyToggleStateSilently`, which does not open drawers. In auto mode, NLC date tokens also set 12:00 when time is off, and NLC time tokens with date off turn date on (today) only when the text has no date token. Those NLC defaults can be replaced by a token typed later (see Auto mode). Click mode differs (see Click mode).
 
 ## Pickers
 
@@ -148,6 +148,8 @@ Recognised spans (tokens) are drawn in Reminderly blue `#4784F8`. Recognition is
 ### Click mode
 
 Tapping a token turns on its toggle and sets its value without opening a drawer. If a category has several tokens, applying one hides the others.
+
+Each token is tapped separately (`applyDefaultsTime`, `timeSetsToday`): a date or a plain repeat ("every Monday") sets no time, so Time stays off and the save tick stays inactive until a time is tapped, typed or set by hand (a new reminder with a date needs a time, `canSubmitReminder`). A repeat with an implied time ("every morning", 7am) and a relative time ("in an hour") still set both, as one token. Tapping a time with Date off sets today, even when a date token is in the text but not tapped. Untapped tokens stay in the title; with nothing tapped the reminder saves with no date. Auto mode, Siri and the manual Date switch keep the 12pm default.
 
 ### Auto mode
 

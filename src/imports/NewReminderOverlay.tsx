@@ -10,6 +10,8 @@ import {
   computeInvalidation,
   computeAutoApplyResult,
   togglesForAutoApply,
+  applyDefaultsTime,
+  timeSetsToday,
   isCompoundTimeToken,
   getRepeatsImpliedTime,
   type NlcMode,
@@ -962,7 +964,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
           applyToggleStateSilently('date', true);
           setSelectedDate(date);
           nlcDefaultsRef.current.date = false;
-          if (!isTimeOnRef.current) {
+          if (!isTimeOnRef.current && applyDefaultsTime(nlcMode)) {
             applyToggleStateSilently('time', true);
             setSelectedTime({ hour: 12, minute: 0 });
             nlcDefaultsRef.current.time = true;
@@ -988,7 +990,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
           // can imply date = today — BUT only when no explicit date token exists in
           // the parsed text. Explicit date tokens (tomorrow, next Monday, etc.) take
           // precedence; time-of-day must never override them.
-          if (!hasExplicitDateToken && (isCompoundTimeToken(token.text) || !isDateOnRef.current)) {
+          if (timeSetsToday(nlcMode, { isDateOn: isDateOnRef.current, hasDateToken: hasExplicitDateToken, isCompound: isCompoundTimeToken(token.text) })) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             applyToggleStateSilently('date', true);
@@ -1022,7 +1024,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
               setSelectedTime(result.impliedTime);
               nlcDefaultsRef.current.time = true;
             }
-          } else if (!isTimeOnRef.current) {
+          } else if (!isTimeOnRef.current && applyDefaultsTime(nlcMode)) {
             applyToggleStateSilently('time', true);
             setSelectedTime({ hour: 12, minute: 0 });
             nlcDefaultsRef.current.time = true;

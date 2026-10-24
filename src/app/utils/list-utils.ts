@@ -87,6 +87,7 @@ function formatTime12h(time: string): string {
   return `${h12}:${String(mm).padStart(2, "0")}${suffix}`;
 }
 
+// Display only, for saved lists: never used to give a new reminder its time (docs/plans/no-auto-time.md, 3.3)
 export function getSmartReminderTime(value: string | null | undefined): string {
   return value || "12:00";
 }
@@ -139,14 +140,15 @@ export function createSmartReminderForList(
   list: CreatedList,
   options?: { idFactory?: () => string; createdAt?: number },
 ): Reminder | null {
-  if (!list.smartReminderDueDate) return null;
+  // A smart reminder needs the list's own date and time; no 12pm fallback (docs/plans/no-auto-time.md, 3.3)
+  if (!list.smartReminderDueDate || !list.smartReminderTime) return null;
   const text = buildSmartReminderText(list);
   return {
     id: options?.idFactory?.() ?? crypto.randomUUID(),
     originalText: text,
     displayText: text,
     createdAt: options?.createdAt ?? Date.now(),
-    schedule: { kind: "scheduled", date: list.smartReminderDueDate, time: getSmartReminderTime(list.smartReminderTime) },
+    schedule: { kind: "scheduled", date: list.smartReminderDueDate, time: list.smartReminderTime },
     linkedListId: list.id,
     isSmartReminder: true,
   };

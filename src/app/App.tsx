@@ -49,7 +49,6 @@ import {
   dateToStorageString,
   storageStringToDate,
   formatSmartReminderDueBy,
-  getSmartReminderTime,
   formatListProgress,
   buildSmartReminderText,
   createSmartReminderForList,
@@ -1570,13 +1569,16 @@ export default function App() {
         seenSmartListIds.add(reminder.linkedListId);
         const nextText = buildSmartReminderText(linkedList);
         const nextDate = linkedList.smartReminderDueDate!;
-        const nextTime = getSmartReminderTime(linkedList.smartReminderTime);
+        // The list's own time, else the reminder's; never a 12pm fallback (docs/plans/no-auto-time.md, 3.3)
+        const nextTime = linkedList.smartReminderTime
+          ?? (reminder.schedule.kind === "scheduled" ? reminder.schedule.time : undefined)
+          ?? null;
         const needsUpdate =
           reminder.originalText !== nextText ||
           reminder.displayText !== nextText ||
           reminder.schedule.kind !== "scheduled" ||
           reminder.schedule.date !== nextDate ||
-          reminder.schedule.time !== nextTime ||
+          (reminder.schedule.time ?? null) !== nextTime ||
           reminder.linkedListId !== linkedList.id ||
           reminder.isSmartReminder !== true;
 
@@ -1586,7 +1588,7 @@ export default function App() {
             ...reminder,
             originalText: nextText,
             displayText: nextText,
-            schedule: { kind: "scheduled", date: nextDate, time: nextTime },
+            schedule: nextTime ? { kind: "scheduled", date: nextDate, time: nextTime } : { kind: "scheduled", date: nextDate },
             linkedListId: linkedList.id,
             isSmartReminder: true,
           });
@@ -1977,7 +1979,7 @@ export default function App() {
                 ...list,
                 smartReminders: true,
                 smartReminderDueDate: updated.schedule.date,
-                smartReminderTime: updated.schedule.time ?? getSmartReminderTime(list.smartReminderTime),
+                smartReminderTime: updated.schedule.time ?? list.smartReminderTime ?? null,
               }
             : list
         )
@@ -1985,7 +1987,7 @@ export default function App() {
       if (editingListId === updated.linkedListId) {
         setListSmartReminders(true);
         setListSmartReminderDueDate(updated.schedule.date);
-        setListSmartReminderTime(updated.schedule.time ?? getSmartReminderTime(listSmartReminderTime));
+        setListSmartReminderTime(updated.schedule.time ?? listSmartReminderTime ?? null);
       }
       return;
     }
@@ -2031,7 +2033,7 @@ export default function App() {
                 ...list,
                 smartReminders: true,
                 smartReminderDueDate: date,
-                smartReminderTime: time ?? getSmartReminderTime(list.smartReminderTime),
+                smartReminderTime: time ?? list.smartReminderTime ?? null,
               }
             : list
         )
@@ -2039,7 +2041,7 @@ export default function App() {
       if (editingListId === listId) {
         setListSmartReminders(true);
         setListSmartReminderDueDate(date);
-        setListSmartReminderTime(time ?? getSmartReminderTime(listSmartReminderTime));
+        setListSmartReminderTime(time ?? listSmartReminderTime ?? null);
       }
     }, NEW_REMINDER_INSERT_DELAY);
     setPendingListInfoSmartReminderListId(null);
@@ -3194,8 +3196,8 @@ export default function App() {
                 smartReminderDueDate: nextDate,
                 smartReminderTime:
                   targetReminder.schedule.kind === 'scheduled'
-                    ? (targetReminder.schedule.time ?? getSmartReminderTime(list.smartReminderTime))
-                    : getSmartReminderTime(list.smartReminderTime),
+                    ? (targetReminder.schedule.time ?? list.smartReminderTime ?? null)
+                    : (list.smartReminderTime ?? null),
               }
             : list
         )
@@ -4949,10 +4951,10 @@ export default function App() {
             }
             if (listOverlayMode === 'edit' && editingListId !== null) {
               const targetId = editingListId;
-              setCreatedLists((prev) => prev.map((l) => l.id === targetId ? { ...l, title, items, smartReminders: listSmartReminders, smartReminderDueDate: listSmartReminderDueDate, smartReminderTime: listSmartReminderTime ?? (listSmartReminders && listSmartReminderDueDate ? '12:00' : null), status: l.status ?? 'active', statusChangedAt: l.statusChangedAt ?? null } : l));
+              setCreatedLists((prev) => prev.map((l) => l.id === targetId ? { ...l, title, items, smartReminders: listSmartReminders, smartReminderDueDate: listSmartReminderDueDate, smartReminderTime: listSmartReminderTime ?? null, status: l.status ?? 'active', statusChangedAt: l.statusChangedAt ?? null } : l));
             } else if (title.length > 0 && items.length > 0) {
               const newId = crypto.randomUUID();
-              setCreatedLists((prev) => [...prev, { id: newId, title, items, pinnedAt: null, smartReminders: listSmartReminders, smartReminderDueDate: listSmartReminderDueDate, smartReminderTime: listSmartReminderTime ?? (listSmartReminders && listSmartReminderDueDate ? '12:00' : null), status: 'active', statusChangedAt: null }]);
+              setCreatedLists((prev) => [...prev, { id: newId, title, items, pinnedAt: null, smartReminders: listSmartReminders, smartReminderDueDate: listSmartReminderDueDate, smartReminderTime: listSmartReminderTime ?? null, status: 'active', statusChangedAt: null }]);
               setEditingListId(newId);
               setListOverlayMode('edit');
             }
@@ -5152,13 +5154,14 @@ export default function App() {
                   handleSmartRemindersChange(false);
                   return;
                 }
-                if (listSmartReminderDueDate) {
+                // A saved due date and time are reused; otherwise the smart reminder panel opens to add them
+                // (docs/plans/no-auto-time.md, D5)
+                if (listSmartReminderDueDate && listSmartReminderTime) {
                   handleSmartRemindersChange(true);
-                  setListSmartReminderTime((current) => current ?? '12:00');
                   return;
                 }
                 openSmartReminderAddFlow(editingListId, 'list-settings');
-              }} showSmartReminders={isSmartRemindersEnabled} smartReminderDueDate={storageStringToDate(listSmartReminderDueDate)} smartReminderTime={listSmartReminderTime} onSetSmartReminderDueDate={(date) => { setListSmartReminderDueDate(dateToStorageString(date)); setListSmartReminderTime((current) => current ?? '12:00'); }} onOpenSmartReminderEditor={editingListId ? () => openSmartReminderEditFlow(editingListId, 'list-settings') : undefined} />
+              }} showSmartReminders={isSmartRemindersEnabled} smartReminderDueDate={storageStringToDate(listSmartReminderDueDate)} smartReminderTime={listSmartReminderTime} onSetSmartReminderDueDate={(date) => { setListSmartReminderDueDate(dateToStorageString(date)); }} onOpenSmartReminderEditor={editingListId ? () => openSmartReminderEditFlow(editingListId, 'list-settings') : undefined} />
             </div>
           </div>
         </>
@@ -5177,11 +5180,11 @@ export default function App() {
                 smartReminders={(listInfoOverlayList.smartReminders ?? false) || pendingListInfoSmartReminderListId === listInfoOverlayList.id}
                 onSmartRemindersChange={(val) => {
                   if (val) {
-                    if (listInfoOverlayList.smartReminderDueDate) {
+                    // A saved due date and time are reused; otherwise the smart reminder panel opens to add them
+                    // (docs/plans/no-auto-time.md, D5)
+                    if (listInfoOverlayList.smartReminderDueDate && listInfoOverlayList.smartReminderTime) {
                       setCreatedLists((prev) => prev.map((list) => (
-                        list.id === listInfoOverlayList.id
-                          ? { ...list, smartReminders: true, smartReminderTime: list.smartReminderTime ?? '12:00' }
-                          : list
+                        list.id === listInfoOverlayList.id ? { ...list, smartReminders: true } : list
                       )));
                       return;
                     }
@@ -5198,7 +5201,7 @@ export default function App() {
                 onSetSmartReminderDueDate={(date) => {
                   const nextDate = dateToStorageString(date);
                   setCreatedLists((prev) => prev.map((list) => (
-                    list.id === listInfoOverlayList.id ? { ...list, smartReminderDueDate: nextDate, smartReminderTime: list.smartReminderTime ?? '12:00' } : list
+                    list.id === listInfoOverlayList.id ? { ...list, smartReminderDueDate: nextDate } : list
                   )));
                 }}
                 onOpenSmartReminderEditor={() => openSmartReminderEditFlow(listInfoOverlayList.id, 'list-info')}

@@ -14,6 +14,7 @@ Type D under Working Agreement v1.3 (cross-component: reminder editor, calendar,
 - 2026-10-24, John: D5 revised (section 7). Keep the existing behaviour (switch to the Reminders tab and open the smart reminder panel); the only change is that Date and Time both start off. No new pickers or UI; navigation, panel behaviour and save validation preserved.
 - 2026-10-24, Kai: revised D5 and the Save button adjustment approved; no further technical changes. Proceed once John confirms D1-D4, D6 and D7. Stage 3 device gate and regression evidence required for final sign-off. No merge to main authorised.
 - 2026-10-24, John: D1-D4, D6 and D7 approved as recommended (D5 approved earlier). Kai: implementation authorised on `feature/no-auto-time`; Stage 3 device gate retained; results and evidence for final CTO review.
+- 2026-10-24, Stage 3 device gate (John's iPhone 15 Pro, ea50398): G1-G5 passed, locked and unlocked. Kai accepted the gate. John: saying "cancel" at "What time?" gives the needs-time refusal; Kai supports handling cancel phrases separately, nothing saved, reply "Okay, cancelled." (awaiting John). Kai asked for the edit-mode deviation rationale (section 11) before assessing it.
 - Supersedes: D7 in [nlc-titles-and-dates.md](./nlc-titles-and-dates.md) (Siri date-only at 12pm), the 12pm calendar prefill in [archive/calendar-view-plan.md](../archive/calendar-view-plan.md), and "Date ON auto-enables Time at 12:00" in the development history.
 
 ## 1. Problem
@@ -164,3 +165,24 @@ John's iPhone (Siri, locked and unlocked; Stage 3 gate first):
 | S12 | List: cancel the panel | List restored as before |
 | S13 | Existing smart reminder edited from the list | Unchanged |
 | S14 | New reminder, text only | Saves as Sometime |
+
+## 11. Results and deviation
+
+Commits: 637b356 (Stage 1), 261f9e1 (Stage 2), 56408e0 (Stage 3), ea50398 (smart reminder Save fix, test list).
+
+- Vitest 431 passed. Self Check 422 passed, 0 failed (Node run). `siri-core.js` rebuilt; its bundle test passes.
+- Simulator (iPhone 17 Pro): S1, S2, S5, S7, S9, S10, S11, S12, S14 pass. S11 first showed Save active with Date and Time off in the smart reminder panel; fixed in ea50398. S3, S4 (presets flag off on the simulator), S6, S8, S13 not run there; covered by unit tests.
+- iPhone (Siri gate): G1-G5 pass, locked and unlocked.
+- Pre-existing, unchanged: switching smart reminders on for a list with no date briefly shows "Jan 1st 2026 at 12pm" in the list header behind the panel (display fallback while the list has smart reminders on and no date yet).
+
+### Deviation: the save rule in edit mode (for Kai's assessment)
+
+What changed: `requiresScheduledReminder` is now true in every mode. Before, edit mode and smart reminder mode passed false, so `canSubmitReminder` accepted any text and `handleSubmit` saved Sometime whenever Date or Time was off.
+
+Why: before this branch, edit mode never reached "Date on, Time off" from the Date switch, because turning Date on also turned Time on at 12:00. With D1, turning Date on while editing a Sometime reminder leaves Time off. With the old exemption, Save would stay active and `handleSubmit` would save the reminder as Sometime, dropping the date the user had just set, with no warning. The same applies to turning Time off on a timed reminder being edited.
+
+Effect: edit mode now behaves as new reminders: Date on needs a time, "Add a time" shows, Save is inactive until a time is added. Date off still saves as Sometime. Editing a timed reminder is unchanged (S10). Saved data is not changed. A saved reminder with a date and no time (older data only, if any) opens with "Add a time" and needs a time to save; before, saving it silently made it Sometime.
+
+Alternatives considered: keep the exemption (silent date loss, rejected) or block Date on in edit mode (new behaviour, not requested).
+
+Tests: `add-reminder-validation.test.ts` (the rule), S9 on the simulator.

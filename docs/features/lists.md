@@ -77,7 +77,7 @@ States are stored on the list (`status`, `statusChangedAt`). Templates have thei
 
 A list can own one smart reminder: a normal `Reminder` with `isSmartReminder: true` and `linkedListId`.
 
-- Set per list (Set smart reminder, with a due date; time defaults to 12:00) from the list info or list settings overlays, or created through the New reminder overlay in smart reminder mode ("Add smart reminder").
+- Set per list (Set smart reminder; the date and time are chosen in the smart reminder panel, which opens with Date and Time off, and a smart reminder exists only when the list has both: no 12pm fallback, docs/plans/no-auto-time.md) from the list info or list settings overlays, or created through the New reminder overlay in smart reminder mode ("Add smart reminder").
 - Text from `buildSmartReminderText`: "Complete '<title>' list" (nothing checked), "Finish '<title>' list" (under 75%), "Nearly done - '<title>'" (75% or more).
 - An effect in `App.tsx` reconciles reminders with lists whenever either changes: each active list with smart reminders on and a due date has exactly one active linked reminder, kept in step with the list's text, date and time; active linked reminders for lists that no longer qualify are removed; done and deleted ones are kept. Smart reminders feature off removes the active ones.
 - Rows show "<done> of <total> items. Due by ..." with a smart reminder indicator. Reminder info shows progress and a Go to list action.

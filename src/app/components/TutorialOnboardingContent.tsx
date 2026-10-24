@@ -3,8 +3,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import svgPaths from '@/imports/svg-go2phgsyt4';
 import ListsHeader from '@/imports/Header';
 import OnboardingPage1Content, { OnboardingPage1Text } from '@/app/components/OnboardingPage1Content';
-import OnboardingPage2Content, { OnboardingPage2Text } from '@/app/components/OnboardingPage2Content';
-import { useOnboardingPage2ActiveFilter } from '@/app/components/OnboardingPage2Content';
 import OnboardingPage3Content, {
   CALL_DENTIST_TUTORIAL_REMINDER,
   OnboardingPage3Text,
@@ -1544,7 +1542,7 @@ export default function TutorialOnboardingContent({
     onNotificationAskPageChange?.(isNotificationAskPage);
   }, [isNotificationAskPage, onNotificationAskPageChange]);
 
-  const page2ActiveFilter = useOnboardingPage2ActiveFilter(!isListsTutorial && currentPage === 1, settingsMenuEnabled);
+  const [remindersTourActiveFilter, setRemindersTourActiveFilter] = useState<TutorialFilterKey | undefined>(undefined);
   const [listsTutorialActiveFilter, setListsTutorialActiveFilter] = useState<TutorialFilterKey | undefined>(undefined);
   const [listsPage2CycleKey, setListsPage2CycleKey] = useState(0);
   const [listsPage2Phase, setListsPage2Phase] = useState<"marking" | "done-list">("marking");
@@ -1570,6 +1568,12 @@ export default function TutorialOnboardingContent({
   useEffect(() => {
     if (!isListsTutorial || currentPage !== 0) {
       setListsTutorialActiveFilter(undefined);
+    }
+  }, [currentPage, isListsTutorial]);
+
+  useEffect(() => {
+    if (isListsTutorial || currentPage !== 0) {
+      setRemindersTourActiveFilter(undefined);
     }
   }, [currentPage, isListsTutorial]);
 
@@ -1709,10 +1713,14 @@ export default function TutorialOnboardingContent({
                 showMainTabBar={isListsEnabled}
                 showHeaderMenu={false}
                 filterRow={
-                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
+                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} activeKey={remindersTourActiveFilter} />
                 }
               >
-                <OnboardingPage1Content combineLaterSometime={settingsMenuEnabled} />
+                <OnboardingPage1Content
+                  combineLaterSometime={settingsMenuEnabled}
+                  activeFilter={remindersTourActiveFilter}
+                  onActiveFilterChange={setRemindersTourActiveFilter}
+                />
               </TutorialPhoneShell>
             </div>
           </div>
@@ -1785,24 +1793,6 @@ export default function TutorialOnboardingContent({
           </div>
         )}
 
-        {!isListsTutorial && currentPage === 1 && (
-          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
-            <OnboardingPage2Text />
-            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
-              <TutorialPhoneShell
-                activeMainTab="reminders"
-                showMainTabBar={isListsEnabled}
-                showHeaderMenu={false}
-                filterRow={
-                  <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} activeKey={page2ActiveFilter} />
-                }
-              >
-                <OnboardingPage2Content activeFilter={page2ActiveFilter} combineLaterSometime={settingsMenuEnabled} />
-              </TutorialPhoneShell>
-            </div>
-          </div>
-        )}
-        
         {!isListsTutorial && currentPage === 2 && (
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
             <OnboardingPage3Text />

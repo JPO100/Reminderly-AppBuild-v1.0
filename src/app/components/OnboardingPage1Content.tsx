@@ -2,6 +2,7 @@ import svgPaths from "@/imports/svg-b2700o3wr8";
 import ImportedReminderList from "@/imports/ReminderList-1189-377";
 import { TUTORIAL_BODY_CLASSNAME, TUTORIAL_TITLE_CLASSNAME } from "./tutorialTokens";
 import TutorialStaticReminderList from "./TutorialStaticReminderList";
+import type { TutorialFilterKey } from "./TutorialReminderFilters";
 
 function Frame3() {
   return (
@@ -39,10 +40,23 @@ function NewReminderBtn() {
   );
 }
 
-export default function OnboardingPage1Content({ combineLaterSometime = false }: { combineLaterSometime?: boolean }) {
+export default function OnboardingPage1Content({
+  combineLaterSometime = false,
+  activeFilter,
+  onActiveFilterChange,
+}: {
+  combineLaterSometime?: boolean;
+  activeFilter?: TutorialFilterKey;
+  onActiveFilterChange?: (activeFilter: TutorialFilterKey | undefined) => void;
+}) {
   return (
     <div className="content-stretch flex flex-col flex-1 min-h-0 gap-[22.334px] items-center pt-[10px] px-[14px] relative w-full">
-      <TutorialStaticReminderList page1BuildSequence combineLaterSometime={combineLaterSometime} />
+      <TutorialStaticReminderList
+        page1BuildSequence
+        combineLaterSometime={combineLaterSometime}
+        activeFilter={activeFilter}
+        onListFilterChange={onActiveFilterChange}
+      />
     </div>
   );
 }

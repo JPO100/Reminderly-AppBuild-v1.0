@@ -21,7 +21,7 @@ export const TUTORIAL_PAGE_ATTACHMENT = 10;
 // 6 create a reminder, 7 type it naturally (NLC demo available), 8 notification ask (eligible when opened),
 // 9 add reminders with Siri (Siri available), 10 add an attachment (attachments available), straight after create a
 // reminder and before Siri.
-// Page 1 (filters) is hidden for now to keep the reminders tutorial short (John, 2026-10-24); its content is kept.
+// Page 1 (filters) is retired: page 0 now clicks through the filters, as the lists tour does (John, 2026-10-24).
 // Lists tutorial pages: 0 tour, 1 completed lists, 2 view and edit, 3 smart reminders, 4 list templates,
 // 5 re-run from settings.
 // Page ids are stable so each page keeps its own content; only the visible sequence changes.

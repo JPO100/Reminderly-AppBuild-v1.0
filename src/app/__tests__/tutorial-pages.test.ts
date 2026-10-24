@@ -12,7 +12,7 @@ function config(overrides: Partial<TutorialPageConfig> = {}): TutorialPageConfig
 }
 
 describe('getTutorialPageIds - reminders tutorial', () => {
-  it('shows 5 pages, with create a reminder second and the filters page hidden, when the optional pages are off', () => {
+  it('shows 5 pages, with create a reminder second and no filters page, when the optional pages are off', () => {
     expect(getTutorialPageIds(config())).toEqual([0, 6, 2, 3, 4]);
   });
 

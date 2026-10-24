@@ -151,6 +151,19 @@ const LIST_FILTER_LOOP_SEQUENCE: Array<TutorialFilterKey | undefined> = [
   "complete",
   undefined,
 ];
+// Reminders tour: two passes through the filters once the list has built, mirroring the lists tour
+const REMINDER_FILTER_LOOP_SEQUENCE: Array<TutorialFilterKey | undefined> = [
+  "today",
+  "thisWeek",
+  "later",
+  "sometime",
+  undefined,
+  "today",
+  "thisWeek",
+  "later",
+  "sometime",
+  undefined,
+];
 
 function getTutorialReminderSubtitle(reminder: TutorialReminder): string {
   if (reminder.repeatRule) {
@@ -439,9 +452,7 @@ export default function TutorialStaticReminderList({
       setVisibleIds(defaultVisibleIds);
       setReinsertedId(null);
       setInsertHighlightId(null);
-      if (mode === "lists") {
-        onListFilterChange?.(undefined);
-      }
+      onListFilterChange?.(undefined);
       return;
     }
 
@@ -449,9 +460,7 @@ export default function TutorialStaticReminderList({
       setVisibleIds([]);
       setReinsertedId(null);
       setInsertHighlightId(null);
-      if (mode === "lists") {
-        onListFilterChange?.(undefined);
-      }
+      onListFilterChange?.(undefined);
 
       const initialTimer = window.setTimeout(() => {
         const insertTimer = window.setTimeout(() => {
@@ -493,14 +502,18 @@ export default function TutorialStaticReminderList({
 
       const populatedAt = PAGE_1_INITIAL_INSERT_DELAY + (sequenceIds.length - 1) * PAGE_1_INSERT_START_GAP + NEW_REMINDER_INSERT_DELAY + INSERT_HIGHLIGHT_MS;
       let recycleTimer: number;
-      if (mode === "lists") {
+      if (mode === "lists" || onListFilterChange) {
+        // Settings menu on: Sometime is combined into Later, so no Sometime filter to show
+        const filterLoopSequence = mode === "lists"
+          ? LIST_FILTER_LOOP_SEQUENCE
+          : REMINDER_FILTER_LOOP_SEQUENCE.filter((key) => !combineLaterSometime || key !== "sometime");
         let elapsed = TUTORIAL_FILTER_RECYCLE_DELAY;
-        LIST_FILTER_LOOP_SEQUENCE.forEach((filter, index) => {
+        filterLoopSequence.forEach((filter, index) => {
           const filterTimer = window.setTimeout(() => {
             onListFilterChange?.(filter);
           }, populatedAt + elapsed);
           timeoutsRef.current.push(filterTimer);
-          const isFullListPause = filter == null && index < LIST_FILTER_LOOP_SEQUENCE.length - 1;
+          const isFullListPause = filter == null && index < filterLoopSequence.length - 1;
           elapsed += isFullListPause ? TUTORIAL_FILTER_RECYCLE_DELAY : TUTORIAL_FILTER_STEP_DELAY;
         });
         recycleTimer = window.setTimeout(() => {
@@ -525,7 +538,7 @@ export default function TutorialStaticReminderList({
         insertHighlightTimerRef.current = null;
       }
     };
-  }, [mode, onListFilterChange, page1BuildSequence]);
+  }, [combineLaterSometime, mode, onListFilterChange, page1BuildSequence]);
 
   useEffect(() => {
     if (!page3DoneSequence) {
@@ -674,7 +687,7 @@ export default function TutorialStaticReminderList({
 
   const animatePresenceKey = mode === "lists"
     ? `tutorial-lists-${doneReminderIds != null ? "done-lists" : page1BuildSequence && activeFilter == null ? "page1-sequence" : activeFilter ?? "all"}`
-    : `tutorial-${doneReminderIds != null ? "done-reminders" : page1BuildSequence ? "page1-sequence" : activeFilter ?? "all"}`;
+    : `tutorial-${doneReminderIds != null ? "done-reminders" : page1BuildSequence && activeFilter == null ? "page1-sequence" : activeFilter ?? "all"}`;
 
   return (
     <div

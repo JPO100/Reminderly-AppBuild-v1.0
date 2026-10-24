@@ -54,12 +54,12 @@ Render path:
 
 ### Reminders (5 to 10 pages)
 
-Pages 0-5 are signed off and locked. Visible order: 0, 6, 10 (attachments available), 9 (Siri available), 7 (NLC demo available), 2, 3, 4, 5 (settings menu on), 8 (notification ask eligible). Page 1 (filters) is hidden from the sequence for now to keep the tutorial short (John, 2026-10-24, feature/onboarding-tutorial-updates); its content is kept so it can come back. Pages 6-8 added on feature/onboarding-gaps (docs/plans/onboarding-gaps.md).
+Pages 0-5 are signed off and locked. Visible order: 0, 6, 10 (attachments available), 9 (Siri available), 7 (NLC demo available), 2, 3, 4, 5 (settings menu on), 8 (notification ask eligible). Page 1 (filters) is retired: it was hidden on 2026-10-24 (feature/onboarding-tutorial-updates), and page 0 now clicks through the filters instead, as the lists tour does (feature/reminders-tour-filters). Its render block is removed; `OnboardingPage2Content.tsx` is kept. Pages 6-8 added on feature/onboarding-gaps (docs/plans/onboarding-gaps.md).
 
 | Page | Title | Content |
 |------|-------|---------|
-| 0 | A tour of reminders | Mini-list builds with row fade-ins; 2000ms pause, then repeats |
-| 1 | Filter your reminders | Hidden (not in the visible sequence) since 2026-10-24. Cycles the filters; 2000ms pause |
+| 0 | A tour of reminders | Mini-list builds with row fade-ins; 2000ms pause, then two passes through the filters (Today, This week, Later, Sometime; Sometime skipped when the settings menu combines it into Later), 1000ms per filter with a 2000ms full-list pause between passes; 2000ms pause, then repeats. Same build and filter timing as lists page 0 |
+| 1 | Filter your reminders | Retired. Filters are shown on page 0 |
 | 2 | Manage your reminders | Attention throb on the "Pick up milk" three-dot button, then the scaled Reminder info overlay; 2000ms pause |
 | 3 | Mark reminders as 'done' | Completes every reminder except the Sometime one; resets with fade-ins |
 | 4 | See what you've done | Starts with only "Organise family photo"; the logo tick throbs and the view switches to Done reminders (scaled Done, Deleted and Clear all pills, white logo tick, no three-dot buttons) showing the page 3 reminders; 2000ms pauses between states |

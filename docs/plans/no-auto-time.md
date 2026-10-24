@@ -1,6 +1,6 @@
 # No automatic 12pm - plan
 
-Status: approved by Kai (Type D); D1-D7 confirmed by John. Implementation authorised (Kai, 2026-10-24). Merge to main subject to separate CTO approval.
+Status: merged into main (23bfee1, 2026-10-24). Final Type D sign-off by Kai; merge confirmed by John.
 
 Type D under Working Agreement v1.3 (cross-component: reminder editor, calendar, NLC, list smart reminders and the native Siri intent; protected areas: time handling, scheduling, notification scheduling). Branch `feature/no-auto-time` from main ca75bae.
 

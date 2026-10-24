@@ -127,3 +127,7 @@ Lists settings page: Newest first, Oldest first, A to Z, Hide ticked items, Tick
 
 - The order mapping (`resolveListItemOrder`, `listItemOrderSettings`) and the tick delay (`createKeptTickedTracker`, injectable timers) are small pure helpers in list-utils.ts so they are tested directly in Vitest and Self Check.
 - A list with every item ticked and Hide ticked items on shows only the add-item input and the list header with its progress ("5 of 5"), as decided in D2.
+
+## 13. Change after implementation (John, 2026-10-24)
+
+D1 reversed on the device: with the three order toggles on the main page, a separator (key line) after them did not work visually. John chose the click-through from section 2 instead: an "Item order" row on Lists settings opens a sub-page with Newest first, Oldest first and A to Z. The separator is removed. Main page: Item order >, Hide ticked items, Ticked lists to Done, Siri shortcuts (when available), Sounds and haptics >, Support >. Ordering logic and storage unchanged.

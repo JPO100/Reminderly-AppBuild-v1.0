@@ -677,17 +677,24 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
   );
 }
 
+// Lists settings > Item order: linked toggles, exactly one on; tapping the one that is on leaves it on
+function ItemOrderSettings({ itemOrder, onItemOrderChange }: { itemOrder: ListItemOrder; onItemOrderChange: (value: ListItemOrder) => void }) {
+  return (
+    <>
+      <ToggleRow label="Newest first" isOn={itemOrder === 'newest'} onToggle={() => onItemOrderChange('newest')} infoTitle="New items appear at the top of every list." />
+      <ToggleRow label="Oldest first" isOn={itemOrder === 'oldest'} onToggle={() => onItemOrderChange('oldest')} infoTitle="Items appear in the order you added them, with new items at the bottom." />
+      <ToggleRow label="A to Z" isOn={itemOrder === 'az'} onToggle={() => onItemOrderChange('az')} infoTitle="Sorts the items in every list alphabetically." />
+    </>
+  );
+}
+
 export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsAvailable, templatesAvailable, siriAvailable, siriOn, onSiriChange, itemOrder, onItemOrderChange, hideTickedOn, onHideTickedChange, autoClearOn, onAutoClearChange }: { onOpenTutorial?: () => void; soundsAvailable: boolean; hapticsAvailable: boolean; templatesAvailable: boolean; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; itemOrder: ListItemOrder; onItemOrderChange: (value: ListItemOrder) => void; hideTickedOn: boolean; onHideTickedChange: (value: boolean) => void; autoClearOn: boolean; onAutoClearChange: (value: boolean) => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
   const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : null}>
-      {/* Item order: linked toggles, exactly one on; tapping the one that is on leaves it on */}
-      <ToggleRow label="Newest first" isOn={itemOrder === 'newest'} onToggle={() => onItemOrderChange('newest')} infoTitle="New items appear at the top of every list." />
-      <ToggleRow label="Oldest first" isOn={itemOrder === 'oldest'} onToggle={() => onItemOrderChange('oldest')} infoTitle="Items appear in the order you added them, with new items at the bottom." />
-      <ToggleRow label="A to Z" isOn={itemOrder === 'az'} onToggle={() => onItemOrderChange('az')} infoTitle="Sorts the items in every list alphabetically." />
-      <KeyLine />
+    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
+      <MenuRow label="Item order" onClick={() => setSubPage("Item order")} infoTitle="Choose whether list items show newest first, oldest first or A to Z." />
       <ToggleRow label="Hide ticked items" isOn={hideTickedOn} onToggle={() => onHideTickedChange(!hideTickedOn)} infoTitle="Ticked items disappear from your lists a moment after you tick them. Turn this off to see them again." />
       <ToggleRow label="Ticked lists to Done" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

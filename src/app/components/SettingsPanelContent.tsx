@@ -161,6 +161,9 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
   );
 }
 
+// Sub-page titles that differ from their row label, shortened to fit on one line (John, 2026-10-24)
+const SUB_PAGE_TITLES: Record<string, string> = { 'Natural Language Capture': 'Natural Lang. Capture' };
+
 // Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
 // Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged; a sub-page that
 // scrolls grows or shrinks by up to 30px so its bottom glimpse matches on every panel.
@@ -189,7 +192,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
       <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight + grow } : {}) }}>
-        <PanelHeader title={subPage ?? title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
+        <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
         {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
         {/* Text pages (Support documents) scroll freely within the page's height: their tall blocks have no row middles to cut through */}
         {/* Like every scrolling page, they use the reduced footer: the area ends SUB_PAGE_GLIMPSE_GAP above the card's edge, and space after the text lets it scroll clear, ending 40px above the edge (John, 2026-10-23) */}
@@ -206,7 +209,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
 
 export type NlcPrefs = { on: boolean; date: boolean; time: boolean; repeats: boolean; autoParsing: boolean };
 
-// Natural Language Capture sub-page: the on/off, a key line, then the options,
+// Natural Language Capture sub-page: the on/off, a key line, the mode as two linked rows, then the recognise options,
 // always listed and inactive (#D9D9D9, not tappable) while NLC is off, keeping their saved choices; repeats only while
 // repeat reminders are available.
 function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean }) {
@@ -214,10 +217,12 @@ function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; o
     <>
       <ToggleRow label="Natural Language Capture" isOn={prefs.on} onToggle={() => onChange('on', !prefs.on)} infoTitle="Picks out dates, times and repeats as you type a reminder, such as 'tomorrow at 3pm'." />
       <KeyLine />
+      {/* The two modes as linked rows, one always on, first so both stay in view: both read and flip the one auto-parsing setting */}
+      <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} disabled={!prefs.on} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
+      <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} disabled={!prefs.on} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
       <ToggleRow label="Recognise dates" isOn={prefs.date} disabled={!prefs.on} onToggle={() => onChange('date', !prefs.date)} infoTitle="Recognises dates such as 'tomorrow' or 'next Friday'." />
       <ToggleRow label="Recognise times" isOn={prefs.time} disabled={!prefs.on} onToggle={() => onChange('time', !prefs.time)} infoTitle="Recognises times such as 'at 3pm' or 'in the morning'." />
       {repeatsAvailable && <ToggleRow label="Recognise repeats" isOn={prefs.repeats} disabled={!prefs.on} onToggle={() => onChange('repeats', !prefs.repeats)} infoTitle="Recognises repeats such as 'every Monday' or 'daily'." />}
-      <ToggleRow label="Set dates as you type" isOn={prefs.autoParsing} disabled={!prefs.on} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="When on, recognised dates, times and repeats are applied as you type. When off, tap a highlighted word to apply it." />
     </>
   );
 }

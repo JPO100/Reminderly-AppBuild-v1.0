@@ -135,8 +135,8 @@ Extracts dates, times and repeats from the reminder text as the user types. Dete
 
 - Active when the Reminders module is on, Dev tools > Natural Language > Enable (`reminderly-ff-nlc`, default off) and Reminders settings > Natural Language Capture (`reminderly-pref-nlc`) are on. When inactive, the text is not parsed at all.
 - Per-category recognition preferences: Recognise dates, times and repeats (`reminderly-pref-nlc-date`, `-time`, `-repeats`, default on). Repeats are only recognised while repeat reminders are active.
-- Mode: Set dates as you type (`reminderly-pref-nlc-auto-parsing`, default on) gives auto mode; off gives click mode.
-- Settings: Reminders settings > Natural Language Capture lists the on/off, a key line, then Recognise dates, Recognise times, Recognise repeats (only while repeat reminders are available) and Set dates as you type. While NLC is off the options stay listed, inactive and not tappable, keeping their saved choices.
+- Mode: two linked toggles on one setting (`reminderly-pref-nlc-auto-parsing`, default auto): Auto-fill as you type (auto mode) and Tap highlighted words (click mode). Exactly one is on; tapping either switches mode.
+- Settings: Reminders settings > Natural Language Capture lists the on/off, a key line, then Recognise dates, Recognise times, Recognise repeats (only while repeat reminders are available), Auto-fill as you type and Tap highlighted words. While NLC is off the options stay listed, inactive and not tappable, keeping their saved choices.
 - Not available in smart reminder mode.
 - Siri parses with all categories recognised, whatever the NLC flag and settings; a repeat is only saved while repeat reminders are active. See [../ios.md](../ios.md).
 - The Reminders tutorial page Natural Language Capture shows whenever NLC is available, using the user's recognition settings when NLC is on (see [onboarding.md](./onboarding.md)).

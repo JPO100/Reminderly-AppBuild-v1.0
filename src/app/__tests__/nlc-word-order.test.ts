@@ -58,7 +58,7 @@ describe('protected values (condition 2)', () => {
   });
 });
 
-// Click mode (Set dates as you type off): each highlighted token is tapped separately (John, 24 Oct; Kai approved)
+// Click mode (Tap highlighted words on): each highlighted token is tapped separately (John, 24 Oct; Kai approved)
 describe('click mode applies each token separately', () => {
   it('tapping a time with Date off sets today, even with an untapped date token', () => {
     expect(timeSetsToday('click', { isDateOn: false, hasDateToken: true, isCompound: false })).toBe(true);

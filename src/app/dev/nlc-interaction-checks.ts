@@ -29,6 +29,7 @@ import {
   parseDateTokenValue,
   type AppliedTokens,
 } from '../utils/nlc-interaction';
+import { titleFromAppliedTokens } from '../utils/normalise-text';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -1322,6 +1323,18 @@ export function getNlcInteractionChecks(): Check[] {
       run: () => {
         const actions = computeAutoApplyResult(parseTokens('Call mum tomorrow at 3pm'), togglesForAutoApply({ date: true, time: true, repeats: false }, { date: false, time: false }));
         assert(actions.length === 0, `Expected no auto-apply, got ${actions.length}`);
+      },
+    },
+
+    // Task-only titles (docs/plans/nlc-titles-and-dates.md, 2.1)
+    {
+      id: 'nlc-interaction-task-only-title',
+      name: 'NLC interaction: applied tokens are removed from the title; a day that is part of the task stays',
+      run: () => {
+        const titleOf = (text: string) => titleFromAppliedTokens(text, computeAutoApplyResult(parseTokens(text), { date: false, time: false, repeats: false }).map(a => a.token));
+        assert(titleOf('Call mum on Monday at 9pm') === 'Call mum', `Expected "Call mum", got "${titleOf('Call mum on Monday at 9pm')}"`);
+        assert(titleOf('Monday meeting notes') === 'Monday meeting notes', 'Expected "Monday meeting notes" unchanged');
+        assert(titleOf('Tomorrow at 9pm') === 'Tomorrow at 9pm', 'Expected the typed text when nothing would be left');
       },
     },
   ];

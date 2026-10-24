@@ -1,6 +1,6 @@
 # NLC titles, numeric dates and format gaps - plan
 
-Status: APPROVED by Kai (2026-10-24). John's decisions confirmed. Stages 1 and 2 complete; next Stage 3.
+Status: APPROVED by Kai (2026-10-24). John's decisions confirmed. Stages 1, 2 and 3 complete; next Stage 4 (verification and docs).
 
 Type D under Working Agreement v1.3. It is cross-component (the shared NLC parser and title logic used by the in-app editor, the Siri intent through the bundled siri-core.js, and notification text) and touches protected areas (date handling, time handling, notification scheduling input). Kai approves this plan before implementation and signs off before merge.
 

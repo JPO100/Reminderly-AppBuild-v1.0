@@ -8,7 +8,7 @@
 import type { Reminder, ReminderSchedule, RepeatConfig } from '../reminder-utils';
 import { parseTokens, findUnsupportedClockTime, MONTH_NAME_TO_NUMBER } from './nlc-parser';
 import { computeAutoApplyResult, computeTokenClickResult } from './nlc-interaction';
-import { normaliseReminderText } from './normalise-text';
+import { titleFromAppliedTokens } from './normalise-text';
 import { repeatConfigToRule } from './repeat-conversion';
 import { keepRepeatRuleWhenOff } from '../settings/resolver';
 
@@ -89,20 +89,18 @@ export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActi
     }
   }
 
-  // A time with no date means today, or tomorrow once that time has passed
-  if (!selectedDate && selectedTime) {
-    const timeMinutes = selectedTime.hour * 60 + selectedTime.minute;
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    selectedDate = new Date(startOfToday);
-    if (timeMinutes <= nowMinutes) selectedDate.setDate(selectedDate.getDate() + 1);
-  }
+  // A time with no date means today, even once that time has passed (it then shows as overdue), as in the app
+  if (!selectedDate && selectedTime) selectedDate = new Date(startOfToday);
+
+  // Every reminder has a time: a date with no time is at 12pm, as in the app (even when 12pm has passed today)
+  if (selectedDate && !selectedTime) selectedTime = { hour: 12, minute: 0 };
 
   let schedule: ReminderSchedule;
-  if (selectedDate) {
+  if (selectedDate && selectedTime) {
     schedule = {
       kind: 'scheduled',
       date: toYyyyMmDd(selectedDate),
-      ...(selectedTime ? { time: toHhMm(selectedTime.hour, selectedTime.minute) } : {}),
+      time: toHhMm(selectedTime.hour, selectedTime.minute),
     };
   } else {
     schedule = { kind: 'sometime' };
@@ -110,18 +108,10 @@ export function buildSiriReminder(text: string, now: Date, isRepeatRemindersActi
 
   // Repeat reminders off: Siri never creates a repeat rule
   const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
-  // Title: remove the date and time words that were applied (with a preceding "at", "on" or "in"), then the
-  // existing normalisation. Repeat words stay, as before.
-  let titleText = text;
-  const appliedSpans = actions.filter(a => a.category !== 'repeats').map(a => a.token).sort((a, b) => b.start - a.start);
-  for (const token of appliedSpans) {
-    const before = titleText.slice(0, token.start).replace(/\b(?:at|on|in)\s+$/i, '');
-    titleText = `${before} ${titleText.slice(token.end)}`;
-  }
-  titleText = titleText.replace(/\s{2,}/g, ' ').trim();
-  const displayText = schedule.kind === 'scheduled'
-    ? normaliseReminderText(titleText, schedule, repeatRule, now, { skipDateInjection: true, skipTimeInjection: true })
-    : text;
+  // Title: the task only, from the shared helper (docs/plans/nlc-titles-and-dates.md, 2.1). Repeat words are
+  // removed only when a repeat is saved.
+  const applied = actions.filter(a => a.category !== 'repeats' || repeatRule).map(a => a.token);
+  const displayText = titleFromAppliedTokens(text, applied);
 
   return { originalText: text, displayText, schedule, repeatRule };
 }

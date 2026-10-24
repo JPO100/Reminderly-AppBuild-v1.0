@@ -43,7 +43,7 @@ import { DATE_PRESETS, getDatePresetValue } from "../app/utils/date-presets";
 import type { DatePreset } from "../app/utils/date-presets";
 import { formatShortMonthDay } from "../app/utils/date-display";
 import { buildSmartReminderText, getSmartReminderTime, storageStringToDate, type CreatedList } from "../app/utils/list-utils";
-import { normaliseReminderText } from "../app/utils/normalise-text";
+import { titleFromAppliedTokens } from "../app/utils/normalise-text";
 
 // Minimal id generator (local to overlay, matches App.tsx pattern)
 function generateId(): string {
@@ -1534,15 +1534,19 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
 
     const repeatRule = keepRepeatRuleWhenOff(repeatsEnabled, editReminder?.repeatRule, isRepeatsOn ? repeatConfigToRule(repeatConfig) : null);
 
-    const now = new Date();
-
-    // Determine if the date was set from a typed token (NLC) or manually via the date picker.
-    // If no date token was parsed from the text, skip injecting a date label into displayText.
-    const hasDateToken = parsedTokens.some(t => t.category === 'date');
-    const normaliseOptions = hasDateToken ? undefined : { skipDateInjection: true };
-    const displayText = schedule.kind === 'scheduled' && nlcEnabled
-      ? normaliseReminderText(text, schedule, repeatRule, now, normaliseOptions)
-      : text;
+    // With NLC on, the title is the task only: the date, time and repeat tokens NLC applied are removed
+    // (docs/plans/nlc-titles-and-dates.md, 2.1). Editing keeps the tokens the reminder was saved with while
+    // their row is still on, so a saved title does not grow its date back on the next save.
+    const isRowOn = { date: isDateOn, time: isTimeOn, repeats: isRepeatsOn };
+    const offset = reminderText.indexOf(text);
+    const tokensToRemove = parsedTokens
+      .filter((t) => {
+        const applied = appliedTokens[t.category];
+        if (applied && applied.start === t.start && applied.end === t.end) return true;
+        return isEditMode && isRowOn[t.category] && editInitialTokenTextsRef.current.has(`${t.category}:${t.text.toLowerCase()}`);
+      })
+      .map((t) => ({ start: t.start - offset, end: t.end - offset }));
+    const displayText = nlcEnabled ? titleFromAppliedTokens(text, tokensToRemove) : text;
 
     if (isSmartReminderCreate && smartReminderCreateList && onCreateSmartReminder) {
       if (schedule.kind !== 'scheduled' || !schedule.time) return;

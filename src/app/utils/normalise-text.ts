@@ -18,6 +18,55 @@ const WEEKDAY_NAMES = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
 ];
 
+// A connector directly before a removed token ("at 3pm", "on Monday", "in an hour")
+const CONNECTOR_BEFORE = /\b(?:at|on|in)\s+$/i;
+// What may sit between two tokens for them to count as next to each other: spaces, a comma, a connector
+const TOKEN_GAP = /^\s*,?\s*(?:(?:at|on|in)\s+)?$/i;
+
+/**
+ * The task-only title for text whose date, time and repeat tokens NLC applied (docs/plans/nlc-titles-and-dates.md,
+ * 2.1). Only the applied tokens passed in are removed, each with a directly preceding at/on/in, and only when the
+ * token ends the text, follows at/on/in, or sits next to another removed token, so "Monday meeting notes" and
+ * "Sunday lunch" keep the day. The first letter is capitalised after a removal. If nothing would be left, the typed
+ * text is kept. Never strips by word lists.
+ */
+export function titleFromAppliedTokens(text: string, applied: { start: number; end: number }[]): string {
+  const tokens = applied
+    .filter(t => t.start >= 0 && t.end <= text.length && t.end > t.start)
+    .sort((a, b) => a.start - b.start);
+
+  const removable = tokens.map(t => CONNECTOR_BEFORE.test(text.slice(0, t.start)) || /^[\s,.;!?]*$/.test(text.slice(t.end)));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    tokens.forEach((t, i) => {
+      if (removable[i]) return;
+      const joinsPrevious = i > 0 && removable[i - 1] && TOKEN_GAP.test(text.slice(tokens[i - 1].end, t.start));
+      const joinsNext = i < tokens.length - 1 && removable[i + 1] && TOKEN_GAP.test(text.slice(t.end, tokens[i + 1].start));
+      if (joinsPrevious || joinsNext) {
+        removable[i] = true;
+        changed = true;
+      }
+    });
+  }
+  if (!removable.some(Boolean)) return text;
+
+  let result = text;
+  for (let i = tokens.length - 1; i >= 0; i--) {
+    if (!removable[i]) continue;
+    const before = result.slice(0, tokens[i].start).replace(CONNECTOR_BEFORE, '');
+    result = `${before} ${result.slice(tokens[i].end)}`;
+  }
+  result = result
+    .replace(/\s+([,.;!?])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s,;]+|[\s,;]+$/g, '')
+    .trim();
+
+  if (!result) return text;
+  return result.charAt(0).toUpperCase() + result.slice(1);
+}
+
 /**
  * Format a 24h "HH:MM" string into 12-hour display.
  * Rules: no leading zero, lowercase am/pm, minutes only if non-zero.

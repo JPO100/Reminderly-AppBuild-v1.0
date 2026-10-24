@@ -261,7 +261,7 @@ var ReminderlySiri = (function(exports) {
     }
     return result;
   }
-  const WEEKDAY_NAMES$1 = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const WEEKDAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const FULL_DAY_TO_JS_INDEX = {
     sunday: 0,
     monday: 1,
@@ -503,7 +503,7 @@ var ReminderlySiri = (function(exports) {
     const everyWordMatch = /^every\s+(\w+)$/.exec(lower);
     if (everyWordMatch) {
       const word = everyWordMatch[1];
-      if (WEEKDAY_NAMES$1.includes(word)) {
+      if (WEEKDAY_NAMES.includes(word)) {
         const capitalized = word.charAt(0).toUpperCase() + word.slice(1);
         const dayIndex = FULL_DAY_TO_JS_INDEX[word];
         return {
@@ -610,117 +610,34 @@ var ReminderlySiri = (function(exports) {
     }
     return actions;
   }
-  const SHORT_MONTHS = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec"
-  ];
-  const WEEKDAY_NAMES = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday"
-  ];
-  function formatDateLabel(dateStr, now) {
-    const [y, m, d] = dateStr.split("-").map(Number);
-    const target = new Date(y, m - 1, d);
-    target.setHours(0, 0, 0, 0);
-    const today = new Date(now);
-    today.setHours(0, 0, 0, 0);
-    const nowYear = now.getFullYear();
-    if (y !== nowYear) {
-      return `on ${target.getDate()} ${SHORT_MONTHS[target.getMonth()]}, ${y}`;
+  const CONNECTOR_BEFORE = /\b(?:at|on|in)\s+$/i;
+  const TOKEN_GAP = /^\s*,?\s*(?:(?:at|on|in)\s+)?$/i;
+  function titleFromAppliedTokens(text, applied) {
+    const tokens = applied.filter((t) => t.start >= 0 && t.end <= text.length && t.end > t.start).sort((a, b) => a.start - b.start);
+    const removable = tokens.map((t) => CONNECTOR_BEFORE.test(text.slice(0, t.start)) || /^[\s,.;!?]*$/.test(text.slice(t.end)));
+    let changed = true;
+    while (changed) {
+      changed = false;
+      tokens.forEach((t, i) => {
+        if (removable[i]) return;
+        const joinsPrevious = i > 0 && removable[i - 1] && TOKEN_GAP.test(text.slice(tokens[i - 1].end, t.start));
+        const joinsNext = i < tokens.length - 1 && removable[i + 1] && TOKEN_GAP.test(text.slice(t.end, tokens[i + 1].start));
+        if (joinsPrevious || joinsNext) {
+          removable[i] = true;
+          changed = true;
+        }
+      });
     }
-    const diffMs = target.getTime() - today.getTime();
-    const diffDays = Math.round(diffMs / (1e3 * 60 * 60 * 24));
-    if (diffDays >= 0 && diffDays <= 6) {
-      return `on ${WEEKDAY_NAMES[target.getDay()]}`;
+    if (!removable.some(Boolean)) return text;
+    let result = text;
+    for (let i = tokens.length - 1; i >= 0; i--) {
+      if (!removable[i]) continue;
+      const before = result.slice(0, tokens[i].start).replace(CONNECTOR_BEFORE, "");
+      result = `${before} ${result.slice(tokens[i].end)}`;
     }
-    return `on ${target.getDate()} ${SHORT_MONTHS[target.getMonth()]}`;
-  }
-  const RELATIVE_DATE_PATTERNS = [
-    /\btomorrow\b/gi,
-    /\btoday\b/gi,
-    /\btonight\b/gi,
-    /\bnext\s+week\b/gi,
-    /\bnext\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi,
-    /\bthis\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/gi
-  ];
-  const TIME_OF_DAY_PHRASE_PATTERNS = [
-    /\bin\s+the\s+morning\b/gi,
-    /\bin\s+morning\b/gi,
-    /\bin\s+the\s+afternoon\b/gi,
-    /\bin\s+afternoon\b/gi,
-    /\bin\s+the\s+evening\b/gi,
-    /\bin\s+evening\b/gi,
-    /\bin\s+the\s+night\b/gi,
-    /\bin\s+night\b/gi,
-    /\bat\s+morning\b/gi,
-    /\bat\s+night\b/gi
-  ];
-  const TIME_OF_DAY_PATTERNS = [
-    /\bmorning\b/gi,
-    /\bafternoon\b/gi,
-    /\bevening\b/gi,
-    /\bnight\b/gi
-  ];
-  function normaliseReminderText(originalText, schedule, repeatRule, now, options) {
-    if (schedule.kind !== "scheduled") return originalText;
-    let result = originalText;
-    for (const pattern of RELATIVE_DATE_PATTERNS) {
-      pattern.lastIndex = 0;
-      result = result.replace(pattern, "");
-    }
-    const absoluteDatePatterns = [
-      /\b(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}(?:st|nd|rd|th)?(?!\s*(?:am|pm)\b)(?:\s+\d{4})?\b/gi,
-      /\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)(?:\s+\d{4})?\b/gi
-    ];
-    for (const pattern of absoluteDatePatterns) {
-      pattern.lastIndex = 0;
-      if (pattern.test(result)) ;
-      pattern.lastIndex = 0;
-      result = result.replace(pattern, "");
-    }
-    if (schedule.time) {
-      const everyTodMatch = repeatRule ? /every\s+(morning|afternoon|evening|night)/i.exec(originalText) : null;
-      const protectedWord = everyTodMatch ? everyTodMatch[1].toLowerCase() : null;
-      for (const pattern of TIME_OF_DAY_PHRASE_PATTERNS) {
-        pattern.lastIndex = 0;
-        if (protectedWord && pattern.source.includes(protectedWord)) continue;
-        result = result.replace(pattern, "");
-      }
-      for (const pattern of TIME_OF_DAY_PATTERNS) {
-        pattern.lastIndex = 0;
-        if (protectedWord && pattern.source.includes(protectedWord)) continue;
-        result = result.replace(pattern, "");
-      }
-    }
-    result = result.replace(/\s{2,}/g, " ").trim();
-    result = result.replace(/\bon\s*$/i, "").trim();
-    result = result.replace(/\bon\s+(?=at\b)/gi, "").trim();
-    result = result.replace(/\s+(in|on|at|the)\s*$/i, "").trim();
-    const dateLabel = formatDateLabel(schedule.date, now);
-    !result.toLowerCase().includes(dateLabel.toLowerCase());
-    result.match(/\bat\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/i);
-    if (schedule.time) {
-      {
-        result = result.replace(/\b(?:at\s+)?\d{1,2}(?::\d{2})?\s*(?:am|pm)\b/gi, "");
-      }
-    }
-    result = result.replace(/\s{2,}/g, " ").trim();
-    return result;
+    result = result.replace(/\s+([,.;!?])/g, "$1").replace(/\s{2,}/g, " ").replace(/^[\s,;]+|[\s,;]+$/g, "").trim();
+    if (!result) return text;
+    return result.charAt(0).toUpperCase() + result.slice(1);
   }
   const DAY_ABBREV = {
     "Monday": "mo",
@@ -803,31 +720,21 @@ var ReminderlySiri = (function(exports) {
         }
       }
     }
-    if (!selectedDate && selectedTime) {
-      const timeMinutes = selectedTime.hour * 60 + selectedTime.minute;
-      const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      selectedDate = new Date(startOfToday);
-      if (timeMinutes <= nowMinutes) selectedDate.setDate(selectedDate.getDate() + 1);
-    }
+    if (!selectedDate && selectedTime) selectedDate = new Date(startOfToday);
+    if (selectedDate && !selectedTime) selectedTime = { hour: 12, minute: 0 };
     let schedule;
-    if (selectedDate) {
+    if (selectedDate && selectedTime) {
       schedule = {
         kind: "scheduled",
         date: toYyyyMmDd(selectedDate),
-        ...selectedTime ? { time: toHhMm(selectedTime.hour, selectedTime.minute) } : {}
+        time: toHhMm(selectedTime.hour, selectedTime.minute)
       };
     } else {
       schedule = { kind: "sometime" };
     }
     const repeatRule = keepRepeatRuleWhenOff(isRepeatRemindersActive, null, repeatConfigToRule(repeatConfig));
-    let titleText = text;
-    const appliedSpans = actions.filter((a) => a.category !== "repeats").map((a) => a.token).sort((a, b) => b.start - a.start);
-    for (const token of appliedSpans) {
-      const before = titleText.slice(0, token.start).replace(/\b(?:at|on|in)\s+$/i, "");
-      titleText = `${before} ${titleText.slice(token.end)}`;
-    }
-    titleText = titleText.replace(/\s{2,}/g, " ").trim();
-    const displayText = schedule.kind === "scheduled" ? normaliseReminderText(titleText, schedule, repeatRule, now) : text;
+    const applied = actions.filter((a) => a.category !== "repeats" || repeatRule).map((a) => a.token);
+    const displayText = titleFromAppliedTokens(text, applied);
     return { originalText: text, displayText, schedule, repeatRule };
   }
   exports.buildSiriReminder = buildSiriReminder;

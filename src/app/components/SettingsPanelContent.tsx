@@ -385,9 +385,9 @@ type SupportDoc = { version: string; lastUpdated?: string; sections: DocSection[
 // Recheck the NLC answer against the NLC release-readiness ticket (defaults and supported phrases) before release.
 const REMINDERS_FAQS: SupportDoc = {
   version: "Version 1.0",
+  lastUpdated: "Last updated: 23 October 2026",
   topButton: true,
   sections: [
-    { paragraphs: ["Last updated: 23 October 2026"] },
     { heading: "How do I add a reminder?", paragraphs: [
       "Tap New reminder, type what you need to remember, then tap the tick. You can add a date, time or repeat if you need one.",
     ] },
@@ -429,9 +429,9 @@ const REMINDERS_FAQS: SupportDoc = {
 // Lists FAQs Version 1.0 (John and Kai, 2026-10-23).
 const LISTS_FAQS: SupportDoc = {
   version: "Version 1.0",
+  lastUpdated: "Last updated: 23 October 2026",
   topButton: true,
   sections: [
-    { paragraphs: ["Last updated: 23 October 2026"] },
     { heading: "How do I create a list?", paragraphs: [
       "Tap New list, give it a name and add your items. Tap the tick or close the list to save it.",
     ] },

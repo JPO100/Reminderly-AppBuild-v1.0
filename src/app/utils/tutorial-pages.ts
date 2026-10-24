@@ -7,16 +7,20 @@ export type TutorialPageConfig = {
   notificationAskEligible?: boolean;
   // Siri for reminders available (flag and Reminders module on); the user's Siri setting does not matter
   siriAvailable?: boolean;
+  // Reminder attachments available (flag and Reminders module on)
+  attachmentsAvailable?: boolean;
 };
 
 export const TUTORIAL_PAGE_CREATE_REMINDER = 6;
 export const TUTORIAL_PAGE_TYPE_NATURALLY = 7;
 export const TUTORIAL_PAGE_NOTIFICATION_ASK = 8;
 export const TUTORIAL_PAGE_SIRI = 9;
+export const TUTORIAL_PAGE_ATTACHMENT = 10;
 
 // Reminders tutorial pages: 0 tour, 1 filters, 2 manage, 3 mark done, 4 see done, 5 re-run from settings,
 // 6 create a reminder, 7 type it naturally (NLC demo available), 8 notification ask (eligible when opened),
-// 9 add reminders with Siri (Siri available), third, straight after create a reminder.
+// 9 add reminders with Siri (Siri available), 10 add an attachment (attachments available), straight after create a
+// reminder and before Siri.
 // Page 1 (filters) is hidden for now to keep the reminders tutorial short (John, 2026-10-24); its content is kept.
 // Lists tutorial pages: 0 tour, 1 completed lists, 2 view and edit, 3 smart reminders, 4 list templates,
 // 5 re-run from settings.
@@ -31,6 +35,7 @@ export function getTutorialPageIds(config: TutorialPageConfig): number[] {
   }
 
   const pages = [0, TUTORIAL_PAGE_CREATE_REMINDER];
+  if (config.attachmentsAvailable) pages.push(TUTORIAL_PAGE_ATTACHMENT);
   if (config.siriAvailable) pages.push(TUTORIAL_PAGE_SIRI);
   if (config.nlcDemoAvailable) pages.push(TUTORIAL_PAGE_TYPE_NATURALLY);
   pages.push(2, 3, 4);

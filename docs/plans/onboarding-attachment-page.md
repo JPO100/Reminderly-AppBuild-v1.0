@@ -1,6 +1,6 @@
 # Onboarding tutorial: Add an attachment page, filters page hidden - plan
 
-Status: plan for Kai's review. The filters page change is implemented (Type B); the attachment page is not implemented.
+Status: plan approved by Kai (2026-10-24) with John's decisions; implemented on feature/onboarding-tutorial-updates, awaiting final Type C review. Not merged.
 
 Branch `feature/onboarding-tutorial-updates` from main 59b33db.
 
@@ -81,3 +81,16 @@ Web layer only. The page is a static mock: it does not call the Camera, FilePick
 - Simulator screenshots of each step (paperclip circled, overlay, Choose a photo ring, attached thumbnail), compared side by side with the live overlay at the same scale.
 - Navigation: Back, Next, dots and Restart across the new page, with attachments on and off.
 - Deploy to the simulator and John's iPhone.
+
+## 9. Approved decisions (Kai, 2026-10-24)
+
+- D1: straight after Create a reminder.
+- D2: only when reminder attachments are available.
+- D3: a simple mocked photo-selection step (a "Photos" grid), then the attached thumbnail. Not the native picker.
+- D4: the paperclip is added to Create a reminder, on the same attachments gate as the new page. The Natural Language Capture page uses the same mock sheet, so it shows the paperclip too, as the live sheet does.
+- D5: flat-colour SVG image.
+
+## 10. Implementation notes
+
+- The mock sheet's tick follows the text by default; the attachment page sets it grey, as the live tick is with no date or time.
+- 375 x 667: the phone slice (about 161px) is shorter than the sheet's text field at the usual sheet top, so on short phones the attachment page stops the sheet higher (top = screen height minus the field's bottom edge, capped at the usual top). The centred overlay card is taller than the slice at this size and clips top and bottom, as the existing Manage your reminders overlay already does; Choose a photo and its ring stay in view.

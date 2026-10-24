@@ -30,6 +30,16 @@ describe('getTutorialPageIds - reminders tutorial', () => {
     expect(getTutorialPageIds(config({ siriAvailable: false }))).toEqual([0, 6, 2, 3, 4]);
   });
 
+  it('adds the attachment page straight after create a reminder only when attachments are available', () => {
+    expect(getTutorialPageIds(config({ attachmentsAvailable: true }))).toEqual([0, 6, 10, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ attachmentsAvailable: false }))).toEqual([0, 6, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ attachmentsAvailable: true, siriAvailable: true, nlcDemoAvailable: true }))).toEqual([0, 6, 10, 9, 7, 2, 3, 4]);
+  });
+
+  it('never adds the attachment page to the lists tutorial', () => {
+    expect(getTutorialPageIds(config({ variant: 'lists', attachmentsAvailable: true }))).toEqual([0, 1, 2]);
+  });
+
   it('never adds the Siri page to the lists tutorial', () => {
     expect(getTutorialPageIds(config({ variant: 'lists', siriAvailable: true }))).toEqual([0, 1, 2]);
   });
@@ -41,6 +51,7 @@ describe('getTutorialPageIds - reminders tutorial', () => {
 
   it('shows all 8 pages when every optional page is on', () => {
     expect(getTutorialPageIds(config({ settingsMenuEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true }))).toEqual([0, 6, 7, 2, 3, 4, 5, 8]);
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true, siriAvailable: true, attachmentsAvailable: true }))).toEqual([0, 6, 10, 9, 7, 2, 3, 4, 5, 8]);
   });
 
   it('ignores list-only features', () => {

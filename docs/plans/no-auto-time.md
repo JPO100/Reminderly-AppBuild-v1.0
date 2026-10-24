@@ -12,6 +12,7 @@ Type D under Working Agreement v1.3 (cross-component: reminder editor, calendar,
 - 2026-10-24, audit for conditions 1 and 2 (section 3): two routes added (the in-app Siri handoff and list smart reminder creation through the fallback). The fallback is not read-only today, so D5 is revised (section 7).
 - 2026-10-24, Kai: plan approved, Type D confirmed. Proceed with the staged implementation once John confirms D1-D7. D5: supports option (a), reusing the existing smart reminder editor, without unnecessarily interrupting list editing. The Stage 3 locked and unlocked iPhone `requestValue` test stays a mandatory hard gate. Keep the planned regression coverage and verify the rebuilt `siri-core.js`. Completion evidence and test results required for final Type D sign-off.
 - 2026-10-24, John: D5 revised (section 7). Keep the existing behaviour (switch to the Reminders tab and open the smart reminder panel); the only change is that Date and Time both start off. No new pickers or UI; navigation, panel behaviour and save validation preserved.
+- 2026-10-24, Kai: revised D5 and the Save button adjustment approved; no further technical changes. Proceed once John confirms D1-D4, D6 and D7. Stage 3 device gate and regression evidence required for final sign-off. No merge to main authorised.
 - Supersedes: D7 in [nlc-titles-and-dates.md](./nlc-titles-and-dates.md) (Siri date-only at 12pm), the 12pm calendar prefill in [archive/calendar-view-plan.md](../archive/calendar-view-plan.md), and "Date ON auto-enables Time at 12:00" in the development history.
 
 ## 1. Problem

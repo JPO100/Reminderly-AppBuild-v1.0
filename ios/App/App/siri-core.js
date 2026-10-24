@@ -20,6 +20,7 @@ var ReminderlySiri = (function(exports) {
     aug: 8,
     august: 8,
     sep: 9,
+    sept: 9,
     september: 9,
     oct: 10,
     october: 10,
@@ -28,7 +29,13 @@ var ReminderlySiri = (function(exports) {
     dec: 12,
     december: 12
   };
-  const MONTH_NAMES = "(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)";
+  const MONTH_NAMES = "(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)";
+  const LEADING_WEEKDAY = "(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues|tue|weds|wed|thurs|thur|thu|fri|sat|sun)";
+  const YEARLESS_NUMERIC_LEAD = /\b(?:on|by|before|until|from|due|for)\s+$/i;
+  function fullYear(value) {
+    const year = parseInt(value.replace(/^'/, ""), 10);
+    return value.replace(/^'/, "").length === 2 ? 2e3 + year : year;
+  }
   const NUMBER_WORD_TO_NUMBER = {
     one: 1,
     two: 2,
@@ -123,6 +130,7 @@ var ReminderlySiri = (function(exports) {
       collect(/\bevery\s+(?:day|week|month|year|hour)\b/gi, "repeats");
       collect(/\bevery\s+\d+\s+(?:days?|weeks?|months?|hours?)\b/gi, "repeats");
       collect(/\bweekdays\b/gi, "repeats");
+      collect(/\b(?:daily|weekly|monthly|yearly|hourly)\b/gi, "repeats");
       const commaListRegex = new RegExp(
         `\\b${WEEKDAY_SHORT}(?:\\s*,\\s*${WEEKDAY_SHORT})+\\b`,
         "gi"
@@ -136,38 +144,69 @@ var ReminderlySiri = (function(exports) {
       collect(/\b(?:the\s+)?day\s+after\s+tomorrow\b/gi, "date");
       collect(RELATIVE_DAYS_REGEX, "date", (match) => isRelativeAmount(match[1]));
       collect(new RegExp(`\\b${WEEKDAY}\\b`, "gi"), "date");
-      collect(
-        new RegExp(`\\b(${MONTH_NAMES})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(\\d{4}))?\\b`, "gi"),
-        "date",
-        (match) => {
-          const monthNum = MONTH_NAME_TO_NUMBER[match[1].toLowerCase()];
-          if (!monthNum) return false;
+      const absoluteDates = [];
+      const pushAbsolute = (start, end) => {
+        const token = { category: "date", start, end, text: text.slice(start, end) };
+        candidates.push(token);
+        absoluteDates.push(token);
+      };
+      const isRealDate = (day, month, year) => {
+        if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+        if (year !== null) return isValidMonthDay(month, day, year);
+        const thisYear = (/* @__PURE__ */ new Date()).getFullYear();
+        return isValidMonthDay(month, day, thisYear) || isValidMonthDay(month, day, thisYear + 1);
+      };
+      const TWO_DIGIT_YEAR = `'?(\\d{2})(?![\\d:]|\\s*(?:am|pm)\\b)`;
+      const collectMonthNameDates = (pattern, datePart, fields) => {
+        const regex = new RegExp(pattern, "gi");
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const { day, month, fourDigit, twoDigit } = fields(match);
+          const year = fourDigit ? parseInt(fourDigit, 10) : twoDigit ? 2e3 + parseInt(twoDigit, 10) : null;
+          const yearOk = year !== null && isRealDate(day, month, year) && (!!fourDigit || year >= (/* @__PURE__ */ new Date()).getFullYear());
+          if (yearOk) pushAbsolute(match.index, match.index + match[0].length);
+          else if (isRealDate(day, month, null)) pushAbsolute(match.index, match.index + datePart.exec(match[0])[0].length);
+        }
+      };
+      collectMonthNameDates(
+        `\\b(${MONTH_NAMES})\\s+(\\d{1,2})(st|nd|rd|th)?(?:\\s+(?:(\\d{4})|${TWO_DIGIT_YEAR}))?\\b`,
+        new RegExp(`^${MONTH_NAMES}\\s+\\d{1,2}(?:st|nd|rd|th)?`, "i"),
+        (m) => ({
+          day: parseInt(m[2], 10),
+          month: MONTH_NAME_TO_NUMBER[m[1].toLowerCase()],
+          fourDigit: m[4],
+          twoDigit: m[5] && (m[3] || m[0].includes("'")) ? m[5] : void 0
+        })
+      );
+      collectMonthNameDates(
+        `\\b(?:the\\s+)?(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?(${MONTH_NAMES})(?:\\s+(?:(\\d{4})|${TWO_DIGIT_YEAR}))?\\b`,
+        new RegExp(`^(?:the\\s+)?\\d{1,2}(?:st|nd|rd|th)?\\s+(?:of\\s+)?${MONTH_NAMES}`, "i"),
+        (m) => ({ day: parseInt(m[1], 10), month: MONTH_NAME_TO_NUMBER[m[2].toLowerCase()], fourDigit: m[3], twoDigit: m[4] })
+      );
+      {
+        const regex = /(^|[\s(])(\d{1,2})([/.-])(\d{1,2})(?:\3(\d{4}|\d{2}))?(?=$|[\s,;!?)]|\.(?:\s|$))/g;
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          const start = match.index + match[1].length;
           const day = parseInt(match[2], 10);
-          if (day < 1 || day > 31) return false;
-          if (match[3]) {
-            const year = parseInt(match[3], 10);
-            return isValidMonthDay(monthNum, day, year);
-          }
-          const thisYear = (/* @__PURE__ */ new Date()).getFullYear();
-          return isValidMonthDay(monthNum, day, thisYear) || isValidMonthDay(monthNum, day, thisYear + 1);
+          const month = parseInt(match[4], 10);
+          const year = match[5] ? fullYear(match[5]) : null;
+          if (year === null && (match[3] !== "/" || !YEARLESS_NUMERIC_LEAD.test(text.slice(0, start)))) continue;
+          if (!isRealDate(day, month, year)) continue;
+          pushAbsolute(start, match.index + match[0].length);
         }
-      );
-      collect(
-        new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${MONTH_NAMES})(?:\\s+(\\d{4}))?\\b`, "gi"),
-        "date",
-        (match) => {
-          const day = parseInt(match[1], 10);
-          if (day < 1 || day > 31) return false;
-          const monthNum = MONTH_NAME_TO_NUMBER[match[2].toLowerCase()];
-          if (!monthNum) return false;
-          if (match[3]) {
-            const year = parseInt(match[3], 10);
-            return isValidMonthDay(monthNum, day, year);
-          }
-          const thisYear = (/* @__PURE__ */ new Date()).getFullYear();
-          return isValidMonthDay(monthNum, day, thisYear) || isValidMonthDay(monthNum, day, thisYear + 1);
+        const iso = /(^|[\s(])(\d{4})-(\d{2})-(\d{2})(?=$|[\s,;!?)]|\.(?:\s|$))/g;
+        while ((match = iso.exec(text)) !== null) {
+          if (!isRealDate(parseInt(match[4], 10), parseInt(match[3], 10), parseInt(match[2], 10))) continue;
+          pushAbsolute(match.index + match[1].length, match.index + match[0].length);
         }
-      );
+      }
+      for (const date of absoluteDates) {
+        const lead = new RegExp(`\\b${LEADING_WEEKDAY}\\s*,?\\s+$`, "i").exec(text.slice(0, date.start));
+        if (lead) {
+          candidates.push({ category: "date", start: lead.index, end: date.end, text: text.slice(lead.index, date.end) });
+        }
+      }
     }
     if (!recognition.time) ;
     else {
@@ -275,10 +314,27 @@ var ReminderlySiri = (function(exports) {
     }
     return new Date(from);
   }
+  function resolveDayMonth(day, month, year, today) {
+    let y = year ?? today.getFullYear();
+    if (year === null && (month < today.getMonth() + 1 || month === today.getMonth() + 1 && day < today.getDate())) y += 1;
+    const candidate = new Date(y, month - 1, day);
+    if (candidate.getFullYear() !== y || candidate.getMonth() !== month - 1 || candidate.getDate() !== day) return null;
+    candidate.setHours(0, 0, 0, 0);
+    return candidate;
+  }
   function parseDateTokenValue(tokenText, now = /* @__PURE__ */ new Date()) {
-    const lower = tokenText.toLowerCase().trim();
+    let lower = tokenText.toLowerCase().trim();
     const today = new Date(now);
     today.setHours(0, 0, 0, 0);
+    const withoutWeekday = lower.replace(new RegExp(`^${LEADING_WEEKDAY}\\s*,?\\s+(?=(?:the\\s+)?\\d|[a-z]+\\s+\\d)`), "");
+    if (withoutWeekday !== lower && withoutWeekday !== "") lower = withoutWeekday;
+    lower = lower.replace(/^the\s+/, "").replace(/\s+of\s+/, " ");
+    const numeric = /^(\d{1,2})([/.-])(\d{1,2})(?:\2(\d{2}|\d{4}))?$/.exec(lower);
+    if (numeric) {
+      return resolveDayMonth(parseInt(numeric[1], 10), parseInt(numeric[3], 10), numeric[4] ? fullYear(numeric[4]) : null, today);
+    }
+    const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lower);
+    if (iso) return resolveDayMonth(parseInt(iso[3], 10), parseInt(iso[2], 10), parseInt(iso[1], 10), today);
     if (lower === "today") return today;
     if (/^(?:the\s+)?day\s+after\s+tomorrow$/.test(lower)) {
       const d = new Date(today);
@@ -298,52 +354,18 @@ var ReminderlySiri = (function(exports) {
       d.setDate(d.getDate() + 1);
       return d;
     }
-    const monthDateMatch = /^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+(\d{4}))?$/i.exec(lower);
+    const monthDateMatch = /^([a-z]+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s+('?\d{2}|\d{4}))?$/i.exec(lower);
     if (monthDateMatch) {
       const monthNum = MONTH_NAME_TO_NUMBER[monthDateMatch[1]];
       if (monthNum !== void 0) {
-        const day = parseInt(monthDateMatch[2], 10);
-        let year;
-        if (monthDateMatch[3]) {
-          year = parseInt(monthDateMatch[3], 10);
-        } else {
-          year = today.getFullYear();
-          const todayMonth = today.getMonth() + 1;
-          const todayDay = today.getDate();
-          if (monthNum < todayMonth || monthNum === todayMonth && day < todayDay) {
-            year += 1;
-          }
-        }
-        const candidate = new Date(year, monthNum - 1, day);
-        if (candidate.getFullYear() === year && candidate.getMonth() === monthNum - 1 && candidate.getDate() === day) {
-          candidate.setHours(0, 0, 0, 0);
-          return candidate;
-        }
-        return null;
+        return resolveDayMonth(parseInt(monthDateMatch[2], 10), monthNum, monthDateMatch[3] ? fullYear(monthDateMatch[3]) : null, today);
       }
     }
-    const dayMonthMatch = /^(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)(?:\s+(\d{4}))?$/i.exec(lower);
+    const dayMonthMatch = /^(\d{1,2})(?:st|nd|rd|th)?\s+([a-z]+)(?:\s+('?\d{2}|\d{4}))?$/i.exec(lower);
     if (dayMonthMatch) {
-      const day = parseInt(dayMonthMatch[1], 10);
       const monthNum = MONTH_NAME_TO_NUMBER[dayMonthMatch[2]];
       if (monthNum !== void 0) {
-        let year;
-        if (dayMonthMatch[3]) {
-          year = parseInt(dayMonthMatch[3], 10);
-        } else {
-          year = today.getFullYear();
-          const todayMonth = today.getMonth() + 1;
-          const todayDay = today.getDate();
-          if (monthNum < todayMonth || monthNum === todayMonth && day < todayDay) {
-            year += 1;
-          }
-        }
-        const candidate = new Date(year, monthNum - 1, day);
-        if (candidate.getFullYear() === year && candidate.getMonth() === monthNum - 1 && candidate.getDate() === day) {
-          candidate.setHours(0, 0, 0, 0);
-          return candidate;
-        }
-        return null;
+        return resolveDayMonth(parseInt(dayMonthMatch[1], 10), monthNum, dayMonthMatch[3] ? fullYear(dayMonthMatch[3]) : null, today);
       }
     }
     const hasNext = lower.startsWith("next ");
@@ -436,6 +458,16 @@ var ReminderlySiri = (function(exports) {
     const lower = tokenText.toLowerCase().trim();
     const today = /* @__PURE__ */ new Date();
     today.setHours(0, 0, 0, 0);
+    const oneWordFrequency = {
+      hourly: "hourly",
+      daily: "daily",
+      weekly: "weekly",
+      monthly: "monthly",
+      yearly: "yearly"
+    };
+    if (oneWordFrequency[lower]) {
+      return { config: { frequency: oneWordFrequency[lower], interval: 1 }, anchorDate: new Date(today), impliedTime: null };
+    }
     if (lower === "weekdays") {
       return {
         config: { frequency: "custom-days", interval: 5, selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] },

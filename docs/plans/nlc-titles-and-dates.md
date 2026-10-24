@@ -1,6 +1,6 @@
 # NLC titles, numeric dates and format gaps - plan
 
-Status: PLAN, conditionally approved by Kai (2026-10-24), revised for his five conditions and a staged implementation (sections 5 and 6). Awaiting final plan approval and John's decisions D1, D2, D4, D7, D8, D9. Not implemented.
+Status: APPROVED by Kai (2026-10-24). John's decisions confirmed. In progress: Stage 1. One deviation awaiting Kai: Siri past times (decision record, 2026-10-24).
 
 Type D under Working Agreement v1.3. It is cross-component (the shared NLC parser and title logic used by the in-app editor, the Siri intent through the bundled siri-core.js, and notification text) and touches protected areas (date handling, time handling, notification scheduling input). Kai approves this plan before implementation and signs off before merge.
 
@@ -14,6 +14,10 @@ Branch: `feature/nlc-titles-dates`, from main (a89da9f).
 - 2026-10-24, John: every reminder has a time. Siri date-only reminders default to 12pm, as the app does.
 - 2026-10-24, John: support DD/MM/YYYY, D/M/YY and variations, and fill every gap in the date format table.
 - 2026-10-24, Kai: Type D and the approach confirmed, no scope reduction. Conditionally approved, subject to five conditions (title cleaning, word order, numeric safety, Siri behaviour, regression; section 5) and at most 5 implementation stages (section 6). No implementation or merge approval yet.
+- 2026-10-24, Kai: plan approved (Type D, four stages). Proceed once John confirms D1, D2, D4, D7, D8, D9.
+- 2026-10-24, John: all six recommendations accepted (D1 yes, D2 yes, D4 yes with / only, D7 keep 12pm, D8 date wins, D9 yes).
+- 2026-10-24, John: a time with no date always means today, even once that time has passed; the reminder shows as overdue. This is the app's current behaviour. For Siri it is a deviation: Siri moves a past time to tomorrow (Stage 4, condition 4 here). Raised with Kai; it affects Stage 3 only, so Stages 1 and 2 proceed.
+- 2026-10-24, Stage 1 detail within condition 3: yearless numeric dates ("3/3") are recognised only after on, by, before, until, from, due or for ("Pay rent on 3/3"), so "1/2 price", "3/4 cup" and "open 24/7" never schedule. Numeric dates must start the text or follow a space or "(".
 
 ## 1. Current behaviour
 

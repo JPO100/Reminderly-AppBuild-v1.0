@@ -192,14 +192,13 @@ export function getNlcParserChecks(): Check[] {
 
     {
       id: 'nlc-hardening-two-digit-year',
-      name: 'NLC parser hardening: rejects 2-digit year (23 Feb 27)',
+      name: 'NLC parser hardening: 2-digit year joins a day-first date (23 Feb 27), a past one does not (23 Feb 20 people)',
       run: () => {
-        const tokens = parseTokens('Car MOT 23 Feb 27');
-        const dates = tokens.filter(t => t.category === 'date');
-        // "23 Feb" is a valid date token, but "23 Feb 27" must not be a single token
-        for (const d of dates) {
-          assert(!d.text.includes('27'), `Date token "${d.text}" must not include 2-digit year "27"`);
-        }
+        // Two-digit years were added by docs/plans/nlc-titles-and-dates.md (2000 + YY, not in the past)
+        const withYear = parseTokens('Car MOT 23 Feb 27').filter(t => t.category === 'date');
+        assert(withYear.length === 1 && withYear[0].text === '23 Feb 27', `Expected one token "23 Feb 27"`);
+        const count = parseTokens('Party 23 Feb 20 people').filter(t => t.category === 'date');
+        assert(count.length === 1 && count[0].text === '23 Feb', `Expected "23 Feb" without the count "20"`);
       },
     },
 
@@ -722,6 +721,71 @@ export function getNlcParserChecks(): Check[] {
       run: () => {
         const tokens = parseTokens('Buy milk today at 3pm every week', { date: false, time: false, repeats: false });
         assert(tokens.length === 0, `Expected 0 tokens, got ${tokens.length}`);
+      },
+    },
+
+    // ========================================================================
+    // Numeric dates and format gaps (docs/plans/nlc-titles-and-dates.md)
+    // ========================================================================
+
+    {
+      id: 'nlc-date-numeric-day-first',
+      name: 'NLC parser: recognises day-first numeric dates (3/3/27, 03/03/2027, 3-3-27, 3.3.27, 2027-03-03)',
+      run: () => {
+        for (const date of ['3/3/27', '03/03/2027', '3-3-27', '3.3.27', '2027-03-03']) {
+          const dateTokens = parseTokens(`Dentist ${date}`).filter(t => t.category === 'date');
+          assert(dateTokens.length === 1 && dateTokens[0].text === date, `Expected date token "${date}"`);
+        }
+      },
+    },
+
+    {
+      id: 'nlc-date-numeric-yearless',
+      name: 'NLC parser: "on 3/3" is a date, "3/3" without a lead word is not',
+      run: () => {
+        assert(parseTokens('Pay rent on 3/3').some(t => t.category === 'date'), 'Expected a date token after "on"');
+        assert(!parseTokens('Pay rent 3/3').some(t => t.category === 'date'), 'Expected no date token without a lead word');
+      },
+    },
+
+    {
+      id: 'nlc-date-numeric-fail-safe',
+      name: 'NLC parser: fractions, phone numbers, "24/7", versions and invalid dates are not dates',
+      run: () => {
+        for (const text of ['Buy 1/2 price shoes', 'Call 07700 900123', 'Shop open 24/7', 'Update to v2.1.3', 'Dentist 31/4/27', 'Call at 3.30pm']) {
+          assert(!parseTokens(text).some(t => t.category === 'date'), `Expected no date token in "${text}"`);
+        }
+      },
+    },
+
+    {
+      id: 'nlc-date-month-name-gaps',
+      name: 'NLC parser: recognises "3 Mar 27", "the 3rd of March" and "Sept 3"',
+      run: () => {
+        for (const [text, token] of [['Renew 3 Mar 27', '3 Mar 27'], ['Renew on the 3rd of March', 'the 3rd of March'], ['Renew Sept 3', 'Sept 3']]) {
+          const dateTokens = parseTokens(text).filter(t => t.category === 'date');
+          assert(dateTokens.length === 1 && dateTokens[0].text === token, `Expected date token "${token}" in "${text}"`);
+        }
+      },
+    },
+
+    {
+      id: 'nlc-date-weekday-with-date',
+      name: 'NLC parser: a weekday before a date joins it as one token',
+      run: () => {
+        const dateTokens = parseTokens('Call mum Wednesday 4 November').filter(t => t.category === 'date');
+        assert(dateTokens.length === 1 && dateTokens[0].text === 'Wednesday 4 November', `Expected one token "Wednesday 4 November"`);
+      },
+    },
+
+    {
+      id: 'nlc-repeats-one-word',
+      name: 'NLC parser: recognises daily, weekly, monthly, yearly and hourly as repeats',
+      run: () => {
+        for (const word of ['daily', 'weekly', 'monthly', 'yearly', 'hourly']) {
+          const repeatTokens = parseTokens(`Water plants ${word}`).filter(t => t.category === 'repeats');
+          assert(repeatTokens.length === 1 && repeatTokens[0].text === word, `Expected repeats token "${word}"`);
+        }
       },
     },
 

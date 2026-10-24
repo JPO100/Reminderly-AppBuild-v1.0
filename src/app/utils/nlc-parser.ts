@@ -38,14 +38,26 @@ export const MONTH_NAME_TO_NUMBER: Record<string, number> = {
   jun: 6, june: 6,
   jul: 7, july: 7,
   aug: 8, august: 8,
-  sep: 9, september: 9,
+  sep: 9, sept: 9, september: 9,
   oct: 10, october: 10,
   nov: 11, november: 11,
   dec: 12, december: 12,
 };
 
 // All month name variants as regex fragment (case-insensitive via /i flag)
-const MONTH_NAMES = '(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)';
+const MONTH_NAMES = '(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec)';
+
+// Weekday names that can lead a date ("Wednesday 4 November", "Wed, 4 Nov"); short forms only in this position
+export const LEADING_WEEKDAY = '(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tues|tue|weds|wed|thurs|thur|thu|fri|sat|sun)';
+
+// Words that must come before a numeric date with no year ("on 3/3"), so fractions and "24/7" never schedule
+const YEARLESS_NUMERIC_LEAD = /\b(?:on|by|before|until|from|due|for)\s+$/i;
+
+/** Two-digit years are 2000 + YY; four-digit years as given */
+export function fullYear(value: string): number {
+  const year = parseInt(value.replace(/^'/, ''), 10);
+  return value.replace(/^'/, '').length === 2 ? 2000 + year : year;
+}
 
 // Spoken numbers one to twelve (Siri may pass words rather than digits)
 export const NUMBER_WORD_TO_NUMBER: Record<string, number> = {
@@ -128,6 +140,9 @@ function isValidMonthDay(month: number, day: number, year: number): boolean {
  * - "on <weekday>" — the token is just the weekday, "on" is context
  * - (the) day after tomorrow
  * - in N days (N 1-99, digits, one…twelve or "a")
+ * - month-name dates either way round, optional ordinal, "of", "the", 4-digit or 2-digit year ("3rd of March '27")
+ * - numeric dates, day first: D/M/YY(YY), D-M-YY(YY), D.M.YY(YY), YYYY-MM-DD, and D/M after on/by/before/until/from/due/for
+ * - a weekday leading an absolute date joins it ("Wednesday 4 November"); the date decides the day
  *
  * Time tokens:
  * - Xam/pm, X:MMam/pm, X am/pm, X:MM am/pm, and number words ("four pm")
@@ -141,6 +156,7 @@ function isValidMonthDay(month: number, day: number, year: number): boolean {
  * - every N days, every N weeks, every N months, every N hours
  * - every <weekday>
  * - weekdays
+ * - daily, weekly, monthly, yearly, hourly
  * - Comma-separated short weekday lists: "Mon, Wed, Fri"
  */
 export function parseTokens(text: string, recognition: NlcRecognitionConfig = ALL_RECOGNITION_ENABLED): ParsedToken[] {
@@ -196,6 +212,9 @@ export function parseTokens(text: string, recognition: NlcRecognitionConfig = AL
   // "weekdays" (standalone word)
   collect(/\bweekdays\b/gi, 'repeats');
 
+  // "daily", "weekly", "monthly", "yearly", "hourly" (interval 1)
+  collect(/\b(?:daily|weekly|monthly|yearly|hourly)\b/gi, 'repeats');
+
   // Comma-separated short weekday lists: "Mon, Wed, Fri" (2+ items)
   // Build regex dynamically: shortDay(, shortDay)+
   const commaListRegex = new RegExp(
@@ -227,47 +246,89 @@ export function parseTokens(text: string, recognition: NlcRecognitionConfig = AL
   // Bare weekday names (will be deduplicated against repeats via overlap removal)
   collect(new RegExp(`\\b${WEEKDAY}\\b`, 'gi'), 'date');
 
-  // Month-name dates: "February 28th", "February 28", "Feb 28th", "Feb 28"
-  // Optionally with 4-digit year: "Feb 28 2027", "February 28th 2027"
-  // Validates month/day combination (rejects Feb 30, April 31, etc.)
-  collect(
-    new RegExp(`\\b(${MONTH_NAMES})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s+(\\d{4}))?\\b`, 'gi'),
-    'date',
-    (match) => {
-      const monthNum = MONTH_NAME_TO_NUMBER[match[1].toLowerCase()];
-      if (!monthNum) return false;
-      const day = parseInt(match[2], 10);
-      if (day < 1 || day > 31) return false;
-      if (match[3]) {
-        // Explicit year — validate against that year only
-        const year = parseInt(match[3], 10);
-        return isValidMonthDay(monthNum, day, year);
-      }
-      // No year — validate against current year and next year (for rollover)
-      const thisYear = new Date().getFullYear();
-      return isValidMonthDay(monthNum, day, thisYear) || isValidMonthDay(monthNum, day, thisYear + 1);
+  // Absolute dates (month-name and numeric), kept apart so a leading weekday can join them below
+  const absoluteDates: ParsedToken[] = [];
+  const pushAbsolute = (start: number, end: number) => {
+    const token: ParsedToken = { category: 'date', start, end, text: text.slice(start, end) };
+    candidates.push(token);
+    absoluteDates.push(token);
+  };
+
+  // A day and month, with an optional year, that exists on the calendar (no year: this year or next, for rollover)
+  const isRealDate = (day: number, month: number, year: number | null) => {
+    if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+    if (year !== null) return isValidMonthDay(month, day, year);
+    const thisYear = new Date().getFullYear();
+    return isValidMonthDay(month, day, thisYear) || isValidMonthDay(month, day, thisYear + 1);
+  };
+
+  // A two-digit year after a month-name date, not a time or count ("3 Mar 10am", "3 Mar 10:30" keep 10 out)
+  const TWO_DIGIT_YEAR = `'?(\\d{2})(?![\\d:]|\\s*(?:am|pm)\\b)`;
+
+  // Month-name dates, both orders, with an optional year. The year joins the token only when the date is real in
+  // that year; a two-digit year must not be in the past (so "3 Mar 20 people" is "3 Mar"). Rejects Feb 30, April 31.
+  const collectMonthNameDates = (pattern: string, datePart: RegExp, fields: (m: RegExpExecArray) => { day: number; month: number; fourDigit?: string; twoDigit?: string }) => {
+    const regex = new RegExp(pattern, 'gi');
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const { day, month, fourDigit, twoDigit } = fields(match);
+      const year = fourDigit ? parseInt(fourDigit, 10) : twoDigit ? 2000 + parseInt(twoDigit, 10) : null;
+      const yearOk = year !== null && isRealDate(day, month, year) && (!!fourDigit || year >= new Date().getFullYear());
+      if (yearOk) pushAbsolute(match.index, match.index + match[0].length);
+      else if (isRealDate(day, month, null)) pushAbsolute(match.index, match.index + datePart.exec(match[0])![0].length);
     }
+  };
+
+  // Month first: "February 28th", "Feb 28", "Feb 28 2027", "Mar 3rd 27", "Mar 3 '27", "Sept 3".
+  // A two-digit year needs an ordinal or an apostrophe ("Mar 3 27" stays "Mar 3").
+  collectMonthNameDates(
+    `\\b(${MONTH_NAMES})\\s+(\\d{1,2})(st|nd|rd|th)?(?:\\s+(?:(\\d{4})|${TWO_DIGIT_YEAR}))?\\b`,
+    new RegExp(`^${MONTH_NAMES}\\s+\\d{1,2}(?:st|nd|rd|th)?`, 'i'),
+    (m) => ({
+      day: parseInt(m[2], 10),
+      month: MONTH_NAME_TO_NUMBER[m[1].toLowerCase()],
+      fourDigit: m[4],
+      twoDigit: m[5] && (m[3] || m[0].includes("'")) ? m[5] : undefined,
+    }),
   );
 
-  // Day-first month-name dates: "28 Feb", "28th February", etc.
-  // Optionally with 4-digit year: "28 Feb 2027", "28th February 2027"
-  // Same validation as month-first; emits as date token.
-  collect(
-    new RegExp(`\\b(\\d{1,2})(?:st|nd|rd|th)?\\s+(${MONTH_NAMES})(?:\\s+(\\d{4}))?\\b`, 'gi'),
-    'date',
-    (match) => {
-      const day = parseInt(match[1], 10);
-      if (day < 1 || day > 31) return false;
-      const monthNum = MONTH_NAME_TO_NUMBER[match[2].toLowerCase()];
-      if (!monthNum) return false;
-      if (match[3]) {
-        const year = parseInt(match[3], 10);
-        return isValidMonthDay(monthNum, day, year);
-      }
-      const thisYear = new Date().getFullYear();
-      return isValidMonthDay(monthNum, day, thisYear) || isValidMonthDay(monthNum, day, thisYear + 1);
-    }
+  // Day first: "28 Feb", "28th February 2027", "3 Mar 27", "3rd March '27", "the 3rd of March"
+  collectMonthNameDates(
+    `\\b(?:the\\s+)?(\\d{1,2})(?:st|nd|rd|th)?\\s+(?:of\\s+)?(${MONTH_NAMES})(?:\\s+(?:(\\d{4})|${TWO_DIGIT_YEAR}))?\\b`,
+    new RegExp(`^(?:the\\s+)?\\d{1,2}(?:st|nd|rd|th)?\\s+(?:of\\s+)?${MONTH_NAMES}`, 'i'),
+    (m) => ({ day: parseInt(m[1], 10), month: MONTH_NAME_TO_NUMBER[m[2].toLowerCase()], fourDigit: m[3], twoDigit: m[4] }),
   );
+
+  // Numeric dates, day first: "3/3/27", "03/03/2027", "3-3-27", "3.3.27", "2027-03-03", and "on 3/3" with no year.
+  // Must start the text or follow a space or "(", and end before a space, punctuation or the end, so phone numbers,
+  // versions, times ("3.30pm", "19:00") and runs like "12/12/12/12" never match. Dots need a year; no year needs "/".
+  {
+    const regex = /(^|[\s(])(\d{1,2})([/.-])(\d{1,2})(?:\3(\d{4}|\d{2}))?(?=$|[\s,;!?)]|\.(?:\s|$))/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const start = match.index + match[1].length;
+      const day = parseInt(match[2], 10);
+      const month = parseInt(match[4], 10);
+      const year = match[5] ? fullYear(match[5]) : null;
+      if (year === null && (match[3] !== '/' || !YEARLESS_NUMERIC_LEAD.test(text.slice(0, start)))) continue;
+      if (!isRealDate(day, month, year)) continue;
+      pushAbsolute(start, match.index + match[0].length);
+    }
+    const iso = /(^|[\s(])(\d{4})-(\d{2})-(\d{2})(?=$|[\s,;!?)]|\.(?:\s|$))/g;
+    while ((match = iso.exec(text)) !== null) {
+      if (!isRealDate(parseInt(match[4], 10), parseInt(match[3], 10), parseInt(match[2], 10))) continue;
+      pushAbsolute(match.index + match[1].length, match.index + match[0].length);
+    }
+  }
+
+  // A weekday directly before an absolute date joins it as one token ("Wednesday 4 November", "Wed, 4/11/26").
+  // The date decides the day; the weekday is not checked against it.
+  for (const date of absoluteDates) {
+    const lead = new RegExp(`\\b${LEADING_WEEKDAY}\\s*,?\\s+$`, 'i').exec(text.slice(0, date.start));
+    if (lead) {
+      candidates.push({ category: 'date', start: lead.index, end: date.end, text: text.slice(lead.index, date.end) });
+    }
+  }
 
   } // end recognition.date
 

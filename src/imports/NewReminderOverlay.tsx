@@ -1618,9 +1618,11 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     return DEFAULT_HEIGHT;
   };
 
-  // Date on needs a time in every mode, now that no time is filled in for the user (docs/plans/no-auto-time.md)
+  // Date on needs a time in every mode, now that no time is filled in for the user; a new smart reminder also
+  // needs both, as handleSubmit already requires (docs/plans/no-auto-time.md, D5)
   const requiresScheduledReminder = true;
-  const isSubmitActive = canSubmitReminder({ text: reminderText, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime });
+  const isSubmitActive = canSubmitReminder({ text: reminderText, requiresScheduledReminder, isDateOn, selectedDate, isTimeOn, selectedTime })
+    && (!isSmartReminderCreate || (isDateOn && !!selectedDate && isTimeOn && !!selectedTime));
 
   return (
     <>

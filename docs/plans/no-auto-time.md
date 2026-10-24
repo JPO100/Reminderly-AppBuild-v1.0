@@ -145,3 +145,22 @@ John's iPhone (Siri, locked and unlocked; Stage 3 gate first):
 - "Call mum today at 3pm": no question, saved as now.
 - "Call mum": Sometime, as now.
 - Siri off: refusal unchanged.
+
+## 10. Simulator test list (manual, before the iPhone)
+
+| # | Scenario | Expected |
+|---|---|---|
+| S1 | New reminder, text, Date switch on | Date today, Time off, "Add a time" in blue, Save inactive |
+| S2 | Tap "Add a time" | Time on, picker opens at 12:00, Save active |
+| S3 | New reminder, Time switch on with Date off | Date today, Time 12:00 (unchanged, D2) |
+| S4 | Preset Tomorrow | Tomorrow at 8am (unchanged, D3) |
+| S5 | NLC auto: "Call mum tomorrow" | Date tomorrow, Time off, "Add a time", Save inactive; adding "at 3pm" sets 3pm |
+| S6 | NLC auto: "Take pills every morning" | Implied time kept (unchanged) |
+| S7 | NLC auto: "Call mum tomorrow at 4pm" | Tomorrow at 4pm (unchanged) |
+| S8 | Calendar, select a future day, New reminder | That date, Time off, "Add a time" |
+| S9 | Edit a Sometime reminder, Date switch on | Time off, Save inactive until a time is added |
+| S10 | Edit a timed reminder | Opens and saves as now |
+| S11 | List: smart reminders on, no due date | Reminders tab, panel with Date and Time off, Save inactive; both on and saved creates the smart reminder at the chosen time |
+| S12 | List: cancel the panel | List restored as before |
+| S13 | Existing smart reminder edited from the list | Unchanged |
+| S14 | New reminder, text only | Saves as Sometime |

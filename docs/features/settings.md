@@ -143,7 +143,8 @@ Reminders settings:
 
 Lists settings:
 
-- Sort items A to Z (toggle, `reminderly-pref-list-sort-az`, default off): item order for every list
+- Newest first, Oldest first, A to Z (linked toggles, exactly one on; `reminderly-pref-list-sort-az` and `reminderly-pref-list-oldest-first`, default Newest first): item order for every list (see [lists.md](./lists.md))
+- Hide ticked items (toggle, `reminderly-pref-list-hide-ticked`, default off): ticked items leave the list editor 1500ms after ticking
 - Ticked lists to Done (toggle, `reminderly-pref-list-auto-clear`, default off): fully ticked lists move to Done after midnight (see [lists.md](./lists.md))
 - Siri shortcuts (toggle, only once Siri for lists exists)
 - Sounds and haptics (page, shown while sounds or haptics are available): the Sounds on/off and its switches, a key line, then the Haptic feedback on/off and its switches; each group only while its feature is available. Rows scroll with the usual half-row glimpse

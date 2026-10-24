@@ -22,7 +22,7 @@ type ListItem = { id: string; text: string; completed: boolean; completedAt?: nu
 
 type CreatedList = {
   id: string; title: string; items: ListItem[];
-  sortMode?: 'alphabetical' | 'insertion'; // legacy, not read (see Lists settings > Sort items A to Z)
+  sortMode?: 'alphabetical' | 'insertion'; // legacy, not read (see Lists settings > Item order)
   pinnedAt?: number | null;
   smartReminders?: boolean; smartReminderDueDate?: string | null; smartReminderTime?: string | null;
   status?: 'active' | 'done' | 'deleted'; statusChangedAt?: number | null;
@@ -91,7 +91,8 @@ A list can own one smart reminder: a normal `Reminder` with `isSmartReminder: tr
 Bottom sheet for creating and editing lists and templates, with a 45px header and a tick submit button.
 
 - Title editing; add, edit and delete items (`AddListItemInput`, `EditableListItem`, swipe to reveal delete); item order follows the sort mode.
-- Sort modes: insertion (unchecked first, then checked items, most recently checked first) or alphabetical (`getDisplayListItems`). One setting for every list: Lists settings > Sort items A to Z (`reminderly-pref-list-sort-az`, default off), resolved by `resolveListSortMode`. A newly added item stays where it was typed briefly before moving into A to Z order. The per-list `sortMode` field is legacy: kept in saved data, never read or written.
+- Item order (`getDisplayListItems`), one setting for every list: Lists settings > Item order, three linked toggles with exactly one on (2026-10-24, feature/list-item-order, docs/plans/list-item-order.md). Newest first (default; stored order, new items prepended), Oldest first (unticked items in reverse stored order; display only, stored order unchanged) and A to Z. Ticked items sit below unticked items in every order (most recently ticked first, or A to Z). Stored as `reminderly-pref-list-sort-az` (A to Z, kept so existing users carry over) and `reminderly-pref-list-oldest-first`; `resolveListItemOrder`, `listItemOrderSettings` and `resolveListSortMode`. In A to Z and Oldest first a newly added item stays at the top with the highlight for 1500ms before moving into place; an edited item does so only in A to Z. Templates always edit A to Z.
+- Hide ticked items (`reminderly-pref-list-hide-ticked`, default off): the list editor leaves ticked items out. A newly ticked item stays in view for 1500ms (`createKeptTickedTracker`) and stays if unticked in that time. Item data, progress counts, list status and Ticked lists to Done are unchanged; turning the setting off shows ticked items again. Not applied in the template editor. The per-list `sortMode` field is legacy: kept in saved data, never read or written.
 - Creates or saves on backdrop close or the header tick.
 - A settings button opens the list settings overlay (`src/imports/InfoOverlay.tsx`): Uncheck all items, Create template, Set smart reminder, Delete list.
 - Template editing reuses the editor with alphabetical sort and no smart reminders, saving to the templates set.

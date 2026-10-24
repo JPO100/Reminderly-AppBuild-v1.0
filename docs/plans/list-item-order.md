@@ -1,6 +1,6 @@
 # List item order and Hide ticked items - plan
 
-Status: plan for Kai's review. Not implemented.
+Status: implementation authorised by Kai (2026-10-24) with John's D1-D3 below; implemented on feature/list-item-order, awaiting final Type C review. Not merged.
 
 Type C under Working Agreement v1.3: it replaces an existing setting (Sort items A to Z) and changes list editor behaviour. Branch `feature/list-item-order` from main fef1a96.
 
@@ -112,3 +112,18 @@ That is two more rows than today. The 450px card at 375 wide may then scroll; it
   - settings card and sub-page at 402 x 874 and 375 x 667
   - Re-run page rows
 - Deploy to the simulator and John's iPhone; John's on-device check.
+
+## 11. Confirmed decisions (John, relayed by Kai, 2026-10-24)
+
+These supersede sections 2-4 where they differ:
+
+- D1: Newest first, Oldest first and A to Z sit directly on the Lists settings page as linked toggles, exactly one on. No Item order sub-page. Existing A to Z preference preserved.
+- D2: Hide ticked items hides ticked items completely. No "N ticked" row. Turning the setting off shows them again. No change to item data, counts or list status.
+- D3: a newly ticked item stays visible for 1500ms, can be unticked in that time and then stays; with the setting off, ticked-item behaviour is unchanged.
+
+Lists settings page: Newest first, Oldest first, A to Z, Hide ticked items, Ticked lists to Done, Siri shortcuts (when available), Sounds and haptics >, Support >.
+
+## 12. Implementation notes
+
+- The order mapping (`resolveListItemOrder`, `listItemOrderSettings`) and the tick delay (`createKeptTickedTracker`, injectable timers) are small pure helpers in list-utils.ts so they are tested directly in Vitest and Self Check.
+- A list with every item ticked and Hide ticked items on shows only the add-item input and the list header with its progress ("5 of 5"), as decided in D2.

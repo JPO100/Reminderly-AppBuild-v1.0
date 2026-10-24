@@ -3,7 +3,7 @@
 // then turns on the Date and Time toggles (today at 9pm); NLC mode types a phrase the live parser recognises, so the demo matches the user's settings.
 
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { formatSelectedDate, formatSelectedTime } from "@/imports/NewReminderOverlay";
 import reminderOverlaySvgPaths from "@/imports/svg-k8owpv3rm6";
 import buttonSvgPaths from "@/imports/svg-b2700o3wr8";
@@ -20,7 +20,7 @@ import TutorialPhoneShell from "./TutorialPhoneShell";
 import { TutorialRemindersFilterRow } from "./TutorialReminderFilters";
 import TutorialStaticReminderList, { TUTORIAL_REMINDER_LIST_SCALE, type TutorialReminder } from "./TutorialStaticReminderList";
 
-const SHEET_TOP = 11 + 5.026 + 65 - 2;
+export const SHEET_TOP = 11 + 5.026 + 65 - 2;
 const SHEET_OPEN_DELAY = 1000;
 const TYPING_START_DELAY = 600;
 const TYPING_STEP_DELAY = 80;
@@ -65,7 +65,7 @@ type Phase =
   | "closing"
   | "inserted";
 
-type Rect = { left: number; top: number; width: number; height: number };
+export type Rect = { left: number; top: number; width: number; height: number };
 
 export type CreateReminderMode = { kind: "manual" } | { kind: "nlc"; demo: NlcTutorialDemo; autoMode: boolean };
 
@@ -104,7 +104,7 @@ export function OnboardingTypeNaturallyText() {
 }
 
 // Measures target relative to container, in the container's unscaled units
-function useRelativeRect(target: HTMLElement | null, container: HTMLElement | null, scale: number, key: unknown): Rect | null {
+export function useRelativeRect(target: HTMLElement | null, container: HTMLElement | null, scale: number, key: unknown): Rect | null {
   const [rect, setRect] = useState<Rect | null>(null);
   useLayoutEffect(() => {
     if (!target || !container) {
@@ -129,7 +129,7 @@ function useRelativeRect(target: HTMLElement | null, container: HTMLElement | nu
 }
 
 // Attention ring, same pulses as the other tutorial pages; quick is a single tap pulse for toggles
-function ThrobRing({ rect, padding, radius, strokeWidth = 3, quick = false }: { rect: Rect | null; padding: number; radius: number; strokeWidth?: number; quick?: boolean }) {
+export function ThrobRing({ rect, padding, radius, strokeWidth = 3, quick = false }: { rect: Rect | null; padding: number; radius: number; strokeWidth?: number; quick?: boolean }) {
   if (!rect) return null;
   return (
     <motion.div
@@ -152,7 +152,7 @@ function ThrobRing({ rect, padding, radius, strokeWidth = 3, quick = false }: { 
 }
 
 // Circular attention ring of a fixed size centred on a target (the recognised word), with the same pulses as ThrobRing
-function ThrobCircle({ rect, size, strokeWidth }: { rect: Rect | null; size: number; strokeWidth: number }) {
+export function ThrobCircle({ rect, size, strokeWidth }: { rect: Rect | null; size: number; strokeWidth: number }) {
   if (!rect) return null;
   return (
     <motion.div
@@ -206,7 +206,48 @@ function OptionRow({ label, value, isOn, icon, toggleRef }: { label: string; val
   );
 }
 
-function TutorialNewReminderSheet({
+// Live attachment button (NewReminderOverlay): 25px #E4E4E4 circle with the paperclip, 8px from the text field's
+// right and bottom edges, in a 44px tap area
+function AttachButton({ setElement }: { setElement?: (element: HTMLDivElement | null) => void }) {
+  return (
+    <div className="absolute z-20" style={{ width: 44, height: 44, right: 0, bottom: 0 }}>
+      <div ref={setElement} className="absolute" style={{ width: 25, height: 25, right: 8, bottom: 8 }}>
+        <svg width="25" height="25" viewBox="0 0 25 25" fill="none" className="block">
+          <rect width="25" height="25" rx="12.5" fill="#E4E4E4" />
+          <path d="M7.73806 12.1933L9.43037 9.26215C10.5987 7.23861 13.2044 6.55581 15.2504 7.73709C17.2964 8.91836 18.008 11.5164 16.8397 13.5399L14.5128 17.5703C13.9286 18.5821 12.6258 18.9234 11.6027 18.3328C10.5797 17.7422 10.224 16.4432 10.8081 15.4314L13.135 11.401" stroke="#939393" strokeWidth="1.45833" strokeLinecap="round" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// Live attached image tile (NewReminderOverlay): 45 x 58, 3px #ECECEC and 3px white borders, 7px corners, with the
+// remove X centred in its 44px tap area
+function AttachedTile({ image }: { image: ReactNode }) {
+  return (
+    <motion.div
+      className="absolute z-20"
+      style={{ right: 6, top: 6, width: 51, height: 63 }}
+      initial={{ opacity: 0, scale: 0.6 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+    >
+      <div style={{ position: "absolute", left: 0, top: 5, width: 45, height: 58, borderRadius: 7, border: "3px solid #ECECEC", overflow: "hidden", boxSizing: "border-box" }}>
+        <div style={{ width: "100%", height: "100%", border: "3px solid white", borderRadius: 4, overflow: "hidden", boxSizing: "border-box" }}>
+          {image}
+        </div>
+      </div>
+      <div className="absolute" style={{ width: 44, height: 44, top: -12, right: -9, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <svg width="21" height="21" viewBox="0 0 21 21" fill="none">
+          <rect width="20.3008" height="20.3008" rx="10.1504" fill="#BABABA" />
+          <path d="M12.5238 6.94045C12.7551 6.70935 13.1299 6.70926 13.3611 6.94045C13.5923 7.17164 13.5922 7.5465 13.3611 7.77776L10.988 10.1501L13.3611 12.5233C13.5923 12.7545 13.5922 13.1293 13.3611 13.3606C13.1299 13.5918 12.7551 13.5918 12.5238 13.3606L10.1507 10.9874L7.7783 13.3606C7.54706 13.5918 7.17223 13.5918 6.94099 13.3606C6.70976 13.1294 6.70978 12.7545 6.94099 12.5233L9.31337 10.1501L6.94099 7.77776C6.70993 7.5465 6.70981 7.17163 6.94099 6.94045C7.17219 6.70941 7.5471 6.70943 7.7783 6.94045L10.1507 9.31282L12.5238 6.94045Z" fill="#F7F7F7" />
+        </svg>
+      </div>
+    </motion.div>
+  );
+}
+
+export function TutorialNewReminderSheet({
   text,
   tokenRange,
   dateLabel,
@@ -216,6 +257,10 @@ function TutorialNewReminderSheet({
   setTokenElement,
   setDateToggleElement,
   setTimeToggleElement,
+  showAttachButton = false,
+  setAttachButtonElement,
+  attachedImage = null,
+  submitActive,
 }: {
   text: string;
   tokenRange: { start: number; end: number } | null;
@@ -226,8 +271,14 @@ function TutorialNewReminderSheet({
   setTokenElement: (element: HTMLSpanElement | null) => void;
   setDateToggleElement: (element: HTMLDivElement | null) => void;
   setTimeToggleElement: (element: HTMLDivElement | null) => void;
+  // Reminder attachments available: the paperclip, or the attached image tile in its place
+  showAttachButton?: boolean;
+  setAttachButtonElement?: (element: HTMLDivElement | null) => void;
+  attachedImage?: ReactNode | null;
+  // Tick colour when the page sets it (a reminder with no date or time cannot be saved yet)
+  submitActive?: boolean;
 }) {
-  const tickActive = text.trim().length > 0;
+  const tickActive = submitActive ?? text.trim().length > 0;
   const repeatsColor = "#D9D9D9";
   return (
     <div className="bg-white content-stretch flex flex-col items-center relative rounded-tl-[15px] rounded-tr-[15px] size-full">
@@ -243,7 +294,7 @@ function TutorialNewReminderSheet({
             </div>
           </div>
           <div className="relative bg-[#f7f7f7] rounded-[10px] shrink-0 w-full" style={{ height: 80 }}>
-            <div className="w-full h-full p-[12px] font-['Lato',sans-serif] text-[17px]" style={{ lineHeight: "normal", whiteSpace: "pre-wrap" }}>
+            <div className="w-full h-full p-[12px] font-['Lato',sans-serif] text-[17px]" style={{ lineHeight: "normal", whiteSpace: "pre-wrap", ...(attachedImage ? { paddingRight: 73 } : {}) }}>
               {text.length === 0 ? (
                 <span className="font-medium text-[#BABABA]">Don&apos;t forget...</span>
               ) : tokenRange ? (
@@ -256,6 +307,8 @@ function TutorialNewReminderSheet({
                 <span className="text-[#1C2C42]">{text}</span>
               )}
             </div>
+            {showAttachButton && !attachedImage && <AttachButton setElement={setAttachButtonElement} />}
+            {showAttachButton && attachedImage && <AttachedTile image={attachedImage} />}
           </div>
         </div>
         <div className="flex-1 min-h-0 flex flex-col px-[24px] pt-[24px] pb-[24px]">
@@ -322,12 +375,15 @@ export default function OnboardingCreateReminderPhone({
   settingsMenuEnabled,
   calendarEnabled,
   showRepeats,
+  attachmentsAvailable = false,
 }: {
   mode: CreateReminderMode;
   isListsEnabled: boolean;
   settingsMenuEnabled: boolean;
   calendarEnabled: boolean;
   showRepeats: boolean;
+  // Same gate as the Add an attachment page: the live sheet shows the paperclip while attachments are available
+  attachmentsAvailable?: boolean;
 }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [typedCount, setTypedCount] = useState(0);
@@ -477,6 +533,7 @@ export default function OnboardingCreateReminderPhone({
               setTokenElement={setTokenElement}
               setDateToggleElement={setDateToggleElement}
               setTimeToggleElement={setTimeToggleElement}
+              showAttachButton={attachmentsAvailable}
             />
             {phase === "token-tap" && <ThrobCircle key="token" rect={tokenRect} size={TUTORIAL_ATTENTION_TARGET_CIRCLE_SIZE / scale} strokeWidth={3 / scale} />}
             {phase === "date-tap" && <ThrobRing key="date" rect={dateToggleRect} padding={6} radius={21} quick />}

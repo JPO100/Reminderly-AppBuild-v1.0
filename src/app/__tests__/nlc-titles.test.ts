@@ -60,6 +60,17 @@ describe('titleFromAppliedTokens', () => {
     expect(titleFromAppliedTokens(text, [])).toBe(text);
     expect(titleFromAppliedTokens('Do it every so often', [])).toBe('Do it every so often');
   });
+
+  it('keeps an unrecognised repeat whole when Recognise repeats is off (settings testing, Kai)', () => {
+    const noRepeats = (text: string) => {
+      const tokens = parseTokens(text, { date: true, time: true, repeats: false });
+      return titleFromAppliedTokens(text, computeAutoApplyResult(tokens, { date: false, time: false, repeats: false }).map((a) => a.token));
+    };
+    expect(noRepeats('Gym every Monday at 7am')).toBe('Gym every Monday');
+    expect(noRepeats('Gym every Monday')).toBe('Gym every Monday');
+    expect(noRepeats('Call mum on Monday at 9pm')).toBe('Call mum');
+    expect(title('Gym every Monday at 7am')).toBe('Gym');
+  });
 });
 
 describe('Siri titles and times (condition 4)', () => {

@@ -612,14 +612,16 @@ var ReminderlySiri = (function(exports) {
   }
   const CONNECTOR_BEFORE = /\b(?:at|on|in)\s+$/i;
   const TOKEN_GAP = /^\s*,?\s*(?:(?:at|on|in)\s+)?$/i;
+  const EVERY_BEFORE = /\bevery\s+$/i;
   function titleFromAppliedTokens(text, applied) {
     const tokens = applied.filter((t) => t.start >= 0 && t.end <= text.length && t.end > t.start).sort((a, b) => a.start - b.start);
-    const removable = tokens.map((t) => CONNECTOR_BEFORE.test(text.slice(0, t.start)) || /^[\s,.;!?]*$/.test(text.slice(t.end)));
+    const kept = tokens.map((t) => EVERY_BEFORE.test(text.slice(0, t.start)));
+    const removable = tokens.map((t, i) => !kept[i] && (CONNECTOR_BEFORE.test(text.slice(0, t.start)) || /^[\s,.;!?]*$/.test(text.slice(t.end))));
     let changed = true;
     while (changed) {
       changed = false;
       tokens.forEach((t, i) => {
-        if (removable[i]) return;
+        if (removable[i] || kept[i]) return;
         const joinsPrevious = i > 0 && removable[i - 1] && TOKEN_GAP.test(text.slice(tokens[i - 1].end, t.start));
         const joinsNext = i < tokens.length - 1 && removable[i + 1] && TOKEN_GAP.test(text.slice(t.end, tokens[i + 1].start));
         if (joinsPrevious || joinsNext) {

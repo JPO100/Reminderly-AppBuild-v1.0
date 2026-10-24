@@ -261,7 +261,7 @@ With NLC active the saved title (`displayText`) is the task only; `originalText`
 Shared by the editor and Siri.
 
 - Removes only the tokens NLC applied (date, time and repeat), each with a directly preceding "at", "on" or "in". It never strips by word lists, so words that were not applied stay ("Parents evening at 6pm" is "Parents evening").
-- A token is removed only when it ends the text, follows at/on/in, or sits next to another removed token (spaces, a comma or a connector between). "Monday meeting notes" and "Buy flowers for Sunday lunch" keep the day.
+- A token is removed only when it ends the text, follows at/on/in, or sits next to another removed token (spaces, a comma or a connector between). "Monday meeting notes" and "Buy flowers for Sunday lunch" keep the day. A token directly after "every" is never removed, so with repeats not recognised "Gym every Monday at 7am" is "Gym every Monday" (Monday at 7am, no repeat).
 - After a removal the first letter is capitalised. If nothing would be left, the typed text is kept ("Tomorrow at 9pm").
 - Editor: the applied tokens, plus, when editing, the tokens the reminder was saved with while their row is still on, so the date does not come back on the next save. A date set by hand leaves the text alone. With NLC off, `displayText` is the typed text.
 - Siri: the auto-applied tokens; repeat words are removed only when a repeat rule is saved.

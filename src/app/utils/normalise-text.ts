@@ -22,25 +22,29 @@ const WEEKDAY_NAMES = [
 const CONNECTOR_BEFORE = /\b(?:at|on|in)\s+$/i;
 // What may sit between two tokens for them to count as next to each other: spaces, a comma, a connector
 const TOKEN_GAP = /^\s*,?\s*(?:(?:at|on|in)\s+)?$/i;
+// "every" directly before a token: an unrecognised repeat ("every Monday" with repeats off), so the token stays
+const EVERY_BEFORE = /\bevery\s+$/i;
 
 /**
  * The task-only title for text whose date, time and repeat tokens NLC applied (docs/plans/nlc-titles-and-dates.md,
  * 2.1). Only the applied tokens passed in are removed, each with a directly preceding at/on/in, and only when the
  * token ends the text, follows at/on/in, or sits next to another removed token, so "Monday meeting notes" and
- * "Sunday lunch" keep the day. The first letter is capitalised after a removal. If nothing would be left, the typed
- * text is kept. Never strips by word lists.
+ * "Sunday lunch" keep the day. A token directly after "every" stays, so with repeats off "Gym every Monday at 7am" is
+ * "Gym every Monday". The first letter is capitalised after a removal. If nothing would be left, the typed text is
+ * kept. Never strips by word lists.
  */
 export function titleFromAppliedTokens(text: string, applied: { start: number; end: number }[]): string {
   const tokens = applied
     .filter(t => t.start >= 0 && t.end <= text.length && t.end > t.start)
     .sort((a, b) => a.start - b.start);
 
-  const removable = tokens.map(t => CONNECTOR_BEFORE.test(text.slice(0, t.start)) || /^[\s,.;!?]*$/.test(text.slice(t.end)));
+  const kept = tokens.map(t => EVERY_BEFORE.test(text.slice(0, t.start)));
+  const removable = tokens.map((t, i) => !kept[i] && (CONNECTOR_BEFORE.test(text.slice(0, t.start)) || /^[\s,.;!?]*$/.test(text.slice(t.end))));
   let changed = true;
   while (changed) {
     changed = false;
     tokens.forEach((t, i) => {
-      if (removable[i]) return;
+      if (removable[i] || kept[i]) return;
       const joinsPrevious = i > 0 && removable[i - 1] && TOKEN_GAP.test(text.slice(tokens[i - 1].end, t.start));
       const joinsNext = i < tokens.length - 1 && removable[i + 1] && TOKEN_GAP.test(text.slice(t.end, tokens[i + 1].start));
       if (joinsPrevious || joinsNext) {

@@ -16,6 +16,7 @@ Type D under Working Agreement v1.3 (cross-component: reminder editor, calendar,
 - 2026-10-24, John: D1-D4, D6 and D7 approved as recommended (D5 approved earlier). Kai: implementation authorised on `feature/no-auto-time`; Stage 3 device gate retained; results and evidence for final CTO review.
 - 2026-10-24, Stage 3 device gate (John's iPhone 15 Pro, ea50398): G1-G5 passed, locked and unlocked. Kai accepted the gate. John: saying "cancel" at "What time?" gives the needs-time refusal; Kai supports handling cancel phrases separately, nothing saved, reply "Okay, cancelled." (awaiting John). Kai asked for the edit-mode deviation rationale (section 11) before assessing it.
 - 2026-10-24, Kai: edit-mode deviation approved (section 11). John: cancel reply "Okay, cancelled." confirmed. Cancel phrases (cancel, stop, never mind, forget it) at "What time?" end with that reply and save nothing (`isSiriCancelAnswer` in siri.ts, called by the intent through siri-core.js).
+- 2026-10-24, G3 re-check (John's iPhone 15 Pro, cb5e043): "cancel" and "never mind" give "Okay, cancelled." with nothing saved; an answer with no time gives the needs-time refusal. Passed locked and unlocked. Awaiting final Type D sign-off.
 - Supersedes: D7 in [nlc-titles-and-dates.md](./nlc-titles-and-dates.md) (Siri date-only at 12pm), the 12pm calendar prefill in [archive/calendar-view-plan.md](../archive/calendar-view-plan.md), and "Date ON auto-enables Time at 12:00" in the development history.
 
 ## 1. Problem

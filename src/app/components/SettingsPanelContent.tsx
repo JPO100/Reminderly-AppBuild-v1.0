@@ -217,20 +217,34 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
 
 export type NlcPrefs = { on: boolean; date: boolean; time: boolean; repeats: boolean; autoParsing: boolean };
 
-// Natural Language Capture sub-page: the on/off, a key line, the mode as two linked rows, then the recognise options,
-// always listed and inactive (#D9D9D9, not tappable) while NLC is off, keeping their saved choices; repeats only while
-// repeat reminders are available.
-function NlcSettings({ prefs, onChange, repeatsAvailable }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean }) {
+// Natural Language Capture sub-page: the on/off, a key line, then the recognise options, always listed and inactive
+// (#D9D9D9, not tappable) while NLC is off, keeping their saved choices; repeats only while repeat reminders are available.
+// Toggles first, then the Interactions click-through, inactive while NLC is off.
+function NlcSettings({ prefs, onChange, repeatsAvailable, onOpenInteractions }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; onOpenInteractions: () => void }) {
   return (
     <>
       <ToggleRow label="Natural Language Capture" isOn={prefs.on} onToggle={() => onChange('on', !prefs.on)} infoTitle="Picks out dates, times and repeats as you type a reminder, such as 'tomorrow at 3pm'." />
       <KeyLine />
-      {/* The two modes as linked rows, one always on, first so both stay in view: both read and flip the one auto-parsing setting */}
-      <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} disabled={!prefs.on} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
-      <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} disabled={!prefs.on} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
       <ToggleRow label="Recognise dates" isOn={prefs.date} disabled={!prefs.on} onToggle={() => onChange('date', !prefs.date)} infoTitle="Recognises dates such as 'tomorrow' or 'next Friday'." />
       <ToggleRow label="Recognise times" isOn={prefs.time} disabled={!prefs.on} onToggle={() => onChange('time', !prefs.time)} infoTitle="Recognises times such as 'at 3pm' or 'in the morning'." />
       {repeatsAvailable && <ToggleRow label="Recognise repeats" isOn={prefs.repeats} disabled={!prefs.on} onToggle={() => onChange('repeats', !prefs.repeats)} infoTitle="Recognises repeats such as 'every Monday' or 'daily'." />}
+      <MenuRow label="Interactions" disabled={!prefs.on} onClick={onOpenInteractions} infoTitle="Choose whether recognised dates, times and repeats are applied as you type, or when you tap them." />
+    </>
+  );
+}
+
+// Natural Language Capture > Interactions: the mode as two linked rows, one always on (both read and flip the one
+// auto-parsing setting), then a key line and the info text, laid out like Siri shortcuts.
+function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void }) {
+  return (
+    <>
+      <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
+      <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
+      <KeyLine />
+      {/* Two paragraphs with one blank line (23px) between */}
+      <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full whitespace-pre-line" style={{ color: '#939393' }}>
+        {"'Auto-fill as you type' applies recognised dates, times and repeats as you type.\n\n'Tap highlighted words' lets you choose which ones to apply by tapping on the highlighted text."}
+      </p>
     </>
   );
 }
@@ -663,8 +677,8 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       subUpdated={supportDoc?.lastUpdated}
       subTitleGap={supportTitleGap(subPage)}
       subText={supportDoc !== null}
-      onBack={() => setSubPage(supportBack(subPage))}
-      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
+      onBack={() => setSubPage(subPage === "Interactions" ? "Natural Language Capture" : supportBack(subPage))}
+      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
       {datePresetsAvailable && <ToggleRow label="Quick date buttons" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
       {oneMinuteAvailable && <ToggleRow label="1 minute time steps" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 15 minute steps." />}

@@ -687,6 +687,7 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
       <ToggleRow label="Newest first" isOn={itemOrder === 'newest'} onToggle={() => onItemOrderChange('newest')} infoTitle="New items appear at the top of every list." />
       <ToggleRow label="Oldest first" isOn={itemOrder === 'oldest'} onToggle={() => onItemOrderChange('oldest')} infoTitle="Items appear in the order you added them, with new items at the bottom." />
       <ToggleRow label="A to Z" isOn={itemOrder === 'az'} onToggle={() => onItemOrderChange('az')} infoTitle="Sorts the items in every list alphabetically." />
+      <KeyLine />
       <ToggleRow label="Hide ticked items" isOn={hideTickedOn} onToggle={() => onHideTickedChange(!hideTickedOn)} infoTitle="Ticked items disappear from your lists a moment after you tick them. Turn this off to see them again." />
       <ToggleRow label="Ticked lists to Done" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

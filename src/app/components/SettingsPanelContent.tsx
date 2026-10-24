@@ -442,7 +442,7 @@ const REMINDERS_FAQS: SupportDoc = {
 // Lists FAQs Version 1.0 (John and Kai, 2026-10-23).
 const LISTS_FAQS: SupportDoc = {
   version: "Version 1.0",
-  lastUpdated: "Last updated: 23 October 2026",
+  lastUpdated: "Last updated: 24 October 2026",
   topButton: true,
   sections: [
     { heading: "How do I create a list?", paragraphs: [
@@ -461,7 +461,7 @@ const LISTS_FAQS: SupportDoc = {
       "Tap the circle next to the list. Every item is ticked and the list moves to your done lists. Any smart reminder for it is completed too.",
     ] },
     { heading: "Can completed lists move to Done automatically?", paragraphs: [
-      "Yes. Turn on Ticked lists to Done in Lists settings. At midnight, any list with every item ticked moves to Done. Pinned lists stay where they are.",
+      "Yes. Turn on Tidy finished lists in Lists settings. At midnight, any list with every item ticked moves to Done. Pinned lists stay where they are.",
     ] },
     { heading: "Can I keep a list at the top?", paragraphs: [
       "Yes. Tap the three dots and choose Pin to top. Pinned lists stay at the top and aren't moved to Done automatically.",
@@ -695,7 +695,7 @@ export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsA
   return (
     <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
       <ToggleRow label="Hide ticked items" isOn={hideTickedOn} onToggle={() => onHideTickedChange(!hideTickedOn)} infoTitle="Ticked items disappear from your lists a moment after you tick them. Turn this off to see them again." />
-      <ToggleRow label="Ticked lists to Done" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
+      <ToggleRow label="Tidy finished lists" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}
       {/* Toggles first, then click-through rows */}
       <MenuRow label="Item order" onClick={() => setSubPage("Item order")} infoTitle="Choose whether list items show newest first, oldest first or A to Z." />

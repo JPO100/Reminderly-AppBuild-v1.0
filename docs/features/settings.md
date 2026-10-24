@@ -144,7 +144,7 @@ Reminders settings:
 Lists settings:
 
 - Hide ticked items (toggle, `reminderly-pref-list-hide-ticked`, default off): ticked items fade out of the list editor in place 1500ms after ticking
-- Ticked lists to Done (toggle, `reminderly-pref-list-auto-clear`, default off): fully ticked lists move to Done after midnight (see [lists.md](./lists.md))
+- Tidy finished lists (toggle, renamed from Ticked lists to Done 2026-10-24, `reminderly-pref-list-auto-clear`, default off): fully ticked lists move to Done after midnight (see [lists.md](./lists.md))
 - Siri shortcuts (toggle, only once Siri for lists exists)
 - Item order (page): Newest first, Oldest first, A to Z as linked toggles, exactly one on (`reminderly-pref-list-sort-az` and `reminderly-pref-list-oldest-first`, default Newest first): item order for every list (see [lists.md](./lists.md))
 - Sounds and haptics (page, shown while sounds or haptics are available): the Sounds on/off and its switches, a key line, then the Haptic feedback on/off and its switches; each group only while its feature is available. Rows scroll with the usual half-row glimpse

@@ -51,14 +51,14 @@ Templates: unchanged, always A to Z.
 - A list with every item ticked shows just the ticked row.
 - Not affected:
   - list progress ("2 of 5")
-  - Ticked lists to Done
+  - Tidy finished lists
   - the Done view
   - smart reminders
   - templates, which have no ticks
 
 ## 4. Main Lists settings page after the change
 
-Item order >, Hide ticked items, Ticked lists to Done, Siri shortcuts (when available), Sounds and haptics >, Support >.
+Item order >, Hide ticked items, Tidy finished lists, Siri shortcuts (when available), Sounds and haptics >, Support >.
 
 That is two more rows than today. The 450px card at 375 wide may then scroll; it follows the existing scroll-cut rules (measure every time).
 
@@ -121,7 +121,7 @@ These supersede sections 2-4 where they differ:
 - D2: Hide ticked items hides ticked items completely. No "N ticked" row. Turning the setting off shows them again. No change to item data, counts or list status.
 - D3: a newly ticked item stays visible for 1500ms, can be unticked in that time and then stays; with the setting off, ticked-item behaviour is unchanged.
 
-Lists settings page: Newest first, Oldest first, A to Z, Hide ticked items, Ticked lists to Done, Siri shortcuts (when available), Sounds and haptics >, Support >.
+Lists settings page: Newest first, Oldest first, A to Z, Hide ticked items, Tidy finished lists, Siri shortcuts (when available), Sounds and haptics >, Support >.
 
 ## 12. Implementation notes
 
@@ -130,4 +130,8 @@ Lists settings page: Newest first, Oldest first, A to Z, Hide ticked items, Tick
 
 ## 13. Change after implementation (John, 2026-10-24)
 
-D1 reversed on the device: with the three order toggles on the main page, a separator (key line) after them did not work visually. John chose the click-through from section 2 instead: an "Item order" row on Lists settings opens a sub-page with Newest first, Oldest first and A to Z. The separator is removed. Main page (toggles first, then click-throughs): Hide ticked items, Ticked lists to Done, Siri shortcuts (when available), Item order >, Sounds and haptics >, Support >. Ordering logic and storage unchanged.
+D1 reversed on the device: with the three order toggles on the main page, a separator (key line) after them did not work visually. John chose the click-through from section 2 instead: an "Item order" row on Lists settings opens a sub-page with Newest first, Oldest first and A to Z. The separator is removed. Main page (toggles first, then click-throughs): Hide ticked items, Tidy finished lists, Siri shortcuts (when available), Item order >, Sounds and haptics >, Support >. Ordering logic and storage unchanged.
+
+## 14. Label change (John, 2026-10-24)
+
+"Ticked lists to Done" renamed "Tidy finished lists" (same setting and behaviour; the info text still says lists move to Done at midnight). The Lists FAQ answer uses the new name; its Last updated date is now 24 October 2026.

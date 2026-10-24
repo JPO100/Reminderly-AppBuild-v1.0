@@ -12,7 +12,7 @@ Implemented:
 - Tap to open the reminder.
 - Reminders module off, or Notifications flag off: all Reminderly notifications cleared, badge cleared.
 - Phase 4 ([../plans/notifications-phase-4.md](../plans/notifications-phase-4.md)):
-  - User settings in Reminders settings > Notifications: Notifications (alerts), Alert sound, Overdue badge, Include due today ([settings.md](./settings.md)).
+  - User settings in Reminders settings > Notifications: Notifications (alerts), Alert sound, Show app icon badge, Include due today ([settings.md](./settings.md)).
   - Alerts and badge independent, including silent badge-only notifications.
   - Sound on or off, using the iOS default sound (sound name `default`). Off by default for all users.
   - In-app permission ask instead of an automatic iOS prompt (see Permission below).

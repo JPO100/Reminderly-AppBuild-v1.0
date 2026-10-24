@@ -136,7 +136,7 @@ Reminders settings:
 
 - 1 minute time steps (toggle)
 - Siri shortcuts (page): Siri shortcuts on/off, a key line, "To add a reminder with Siri just say...", "“Hey Siri...”" and the phrase "Add to Reminderly app" (both bold), then "...then when Siri replies, say your reminder.", inactive while Siri is off. The phrase is registered in `AppShortcuts.swift` and listed in `SIRI_PHRASES`; a test keeps them in step. Phrases containing "remind" or "reminder" were removed because Siri asked "Reminderly or Notes?" every time
-- Notifications (page): Notifications, Alert sound (inactive while Notifications is off), a key line, Overdue badge, Include due today (inactive while Overdue badge is off); "Allow in iOS Settings" at the top when iOS permission is denied
+- Notifications (page): Notifications, Alert sound (inactive while Notifications is off), a key line, Show app icon badge, Include due today (inactive while Show app icon badge is off); "Allow in iOS Settings" at the top when iOS permission is denied
 - Natural Language Capture (page, titled "Natural Lang. Capture" so it fits on one line): on/off, key line, Recognise dates, times, repeats (repeats only while repeat reminders are active), then the Interactions click-through (inactive while NLC is off)
   - Interactions (page; Back returns to Natural Language Capture): the mode as two linked toggles, Auto-fill as you type and Tap highlighted words (exactly one on), then a key line and info text
 - Sounds and haptics (page, shown while sounds or haptics are available): the Sounds on/off and its switches, a key line, then the Haptic feedback on/off and its switches; each group only while its feature is available. Rows scroll with the usual half-row glimpse

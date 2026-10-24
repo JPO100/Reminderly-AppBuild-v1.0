@@ -5151,12 +5151,12 @@ export default function App() {
                       );
                     })}
                     </AnimatePresence>
-                    {/* Hide ticked items on: note 30px under the last item (23px column gap + 7px), in the empty state text style */}
+                    {/* Hide ticked items on: note 40px under the last item (23px column gap + 17px), in the empty state text style */}
                     {listHideTicked && !isSavedListCreateOverlay && listItems.length > 0 && (
                       <motion.p
                         layout="position"
                         transition={{ layout: { type: 'spring', stiffness: 220, damping: 26, mass: 0.9 } }}
-                        className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full mt-[7px]"
+                        className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full mt-[17px]"
                       >
                         Done items are currently hidden
                       </motion.p>

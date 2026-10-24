@@ -1,6 +1,6 @@
 # Onboarding tutorial: Add an attachment page, filters page hidden - plan
 
-Status: plan approved by Kai (2026-10-24) with John's decisions; implemented on feature/onboarding-tutorial-updates, awaiting final Type C review. Not merged.
+Status: plan approved by Kai (2026-10-24) with John's decisions; implemented on feature/onboarding-tutorial-updates; John's iPhone check passed (2026-10-24, build 0a13bb6); awaiting final Type C review. Not merged.
 
 Branch `feature/onboarding-tutorial-updates` from main 59b33db.
 

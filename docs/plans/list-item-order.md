@@ -1,6 +1,6 @@
 # List item order and Hide ticked items - plan
 
-Status: implementation authorised by Kai (2026-10-24) with John's D1-D3 below (D1 layout later changed by John, section 13); implemented on feature/list-item-order; John's iPhone check passed (2026-10-24, build 8a9b75e); awaiting final Type C review. Not merged.
+Status: implementation authorised by Kai (2026-10-24) with John's D1-D3 below (D1 layout later changed by John, section 13); implemented on feature/list-item-order; John's iPhone check passed (2026-10-24, build 8a9b75e); Kai's final Type C sign-off at 7175bd1. Merged into main as a6cea14 (2026-10-24).
 
 Type C under Working Agreement v1.3: it replaces an existing setting (Sort items A to Z) and changes list editor behaviour. Branch `feature/list-item-order` from main fef1a96.
 

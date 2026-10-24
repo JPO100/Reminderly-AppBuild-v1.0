@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import svgPaths from "../../imports/svg-prkucc25l";
-import tickSvgPaths from "../../imports/svg-k8owpv3rm6";
 import repeatSvg from "../../imports/svg-upkw3rt5ea";
 import checkSvg from "../../imports/svg-w98xpyjjva";
 import type { RepeatConfig } from "../reminder-utils";
@@ -93,28 +92,28 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
       <div className="flex flex-col h-full relative w-full max-w-[768px]" data-name="repeats-content">
         <div className="flex flex-col items-start pt-[24px] px-[24px] pb-[24px] relative w-full flex-1 min-h-0">
           <div className="bg-white w-full flex-1 min-h-0 flex flex-col">
-            <div className="flex items-center justify-between w-full shrink-0">
+            <div className="flex items-center justify-between w-full h-[45px] shrink-0">
               <button
                 onClick={() => onClose()}
-                className="flex items-center gap-[10px] cursor-pointer shrink-0 bg-transparent border-none p-0"
+                className="flex items-center justify-center cursor-pointer shrink-0 bg-transparent border-none p-0 size-[45px]"
                 data-name="cancel-button"
               >
-                <svg width="18" height="33" viewBox="0 0 18 33" fill="none" xmlns="http://www.w3.org/2000/svg" className="block shrink-0">
-                  <path d="M6.13811 8.87479C6.6468 8.30085 7.47168 8.30085 7.98037 8.87479C8.48897 9.44872 8.48899 10.3791 7.98037 10.953L3.16754 16.3828L8.08913 21.9357C8.59774 22.5096 8.59774 23.44 8.08913 24.0139C7.58044 24.5878 6.75556 24.5878 6.24687 24.0139L0.60879 17.6526C0.528196 17.5953 0.451622 17.5273 0.381409 17.4481C-0.127153 16.8742 -0.12712 15.9438 0.381409 15.3699L6.13811 8.87479Z" fill="#1C2C42"/>
+                <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" className="block shrink-0">
+                  <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
+                  <path d="M24.1677 15.8766C24.6128 15.3745 25.3346 15.3745 25.7797 15.8766C26.2247 16.3788 26.2247 17.1929 25.7797 17.6951L21.5685 22.4462L25.8749 27.3049C26.3199 27.8071 26.3199 28.6212 25.8749 29.1234C25.4298 29.6256 24.708 29.6256 24.2629 29.1234L19.3296 23.5572C19.259 23.5071 19.192 23.4476 19.1306 23.3783C18.6856 22.8761 18.6856 22.062 19.1306 21.5599L24.1677 15.8766Z" fill="white"/>
                 </svg>
-                <span className="font-['Lato:Bold',sans-serif] not-italic text-[#1C2C42] text-[20px] whitespace-nowrap">Reminder repeats</span>
               </button>
+              <span className="flex-1 min-w-0 text-center font-['Lato:Bold',sans-serif] not-italic text-[#1C2C42] text-[20px] whitespace-nowrap">Reminder repeats</span>
               <button
                 onClick={getCurrentConfig() !== null ? () => onClose(getCurrentConfig()) : undefined}
                 disabled={getCurrentConfig() === null}
-                className={`flex items-center justify-center relative shrink-0 size-[50px] ${getCurrentConfig() !== null ? 'cursor-pointer' : 'cursor-default'}`}
+                className={`flex items-center justify-center relative shrink-0 size-[45px] bg-transparent border-none p-0 ${getCurrentConfig() !== null ? 'cursor-pointer' : 'cursor-default'}`}
                 data-name="done-button"
               >
-                <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 50 50">
-                  <g>
-                    <rect fill={getCurrentConfig() !== null ? "#4784F8" : "#D9D9D9"} height="50" rx="25" width="50" />
-                    <path d={tickSvgPaths.p1635b2f0} fill={getCurrentConfig() !== null ? "#F0FAFE" : "#FFFFFF"} id="tick-icon" />
-                  </g>
+                <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" className="block shrink-0">
+                  <rect x="0.9" y="0.9" width="43.2" height="43.2" rx="21.6" fill={getCurrentConfig() !== null ? "#4784F8" : "#D9D9D9"}/>
+                  <rect x="0.9" y="0.9" width="43.2" height="43.2" rx="21.6" stroke={getCurrentConfig() !== null ? "#4784F8" : "#D9D9D9"} strokeWidth="1.8"/>
+                  <path d="M27.7861 16.7139C28.4568 16.0291 29.5439 16.0285 30.2148 16.7129C30.8857 17.3979 30.8857 18.5093 30.2148 19.1943L21.3105 28.2871C20.9726 28.632 20.5288 28.8024 20.0859 28.7998C19.6441 28.8114 19.1982 28.6501 18.8535 28.3135L14.8203 24.375C14.1345 23.7052 14.1095 22.5943 14.7646 21.8945C15.4201 21.195 16.5075 21.171 17.1934 21.8408L20.041 24.6221L27.7861 16.7139Z" fill="white" id="tick-icon"/>
                 </svg>
               </button>
             </div>

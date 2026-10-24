@@ -116,7 +116,7 @@ Fixed at the bottom of the card, full width (max 768px), Reminderly blue `#4784F
    {
      id: crypto.randomUUID(),
      originalText: text,
-     displayText: normaliseReminderText(text, schedule, repeatRule, now, ...),
+     displayText: titleFromAppliedTokens(text, appliedTokens),  // NLC on: the task only; NLC off: text
      createdAt: Date.now(),
      schedule,                       // scheduled when a date is set, otherwise sometime
      repeatRule: repeatConfigToRule(repeatConfig),  // kept unchanged if repeat reminders are off

@@ -1,6 +1,6 @@
 # NLC titles, numeric dates and format gaps - plan
 
-Status: APPROVED by Kai (2026-10-24). John's decisions confirmed. Stages 1, 2 and 3 complete; next Stage 4 (verification and docs).
+Status: APPROVED by Kai (2026-10-24). John's decisions confirmed. Stages 1 to 4 complete; awaiting John's device tests and Kai's final review and merge approval.
 
 Type D under Working Agreement v1.3. It is cross-component (the shared NLC parser and title logic used by the in-app editor, the Siri intent through the bundled siri-core.js, and notification text) and touches protected areas (date handling, time handling, notification scheduling input). Kai approves this plan before implementation and signs off before merge.
 
@@ -18,6 +18,7 @@ Branch: `feature/nlc-titles-dates`, from main (a89da9f).
 - 2026-10-24, John: all six recommendations accepted (D1 yes, D2 yes, D4 yes with / only, D7 keep 12pm, D8 date wins, D9 yes).
 - 2026-10-24, John: a time with no date always means today, even once that time has passed; the reminder shows as overdue. This is the app's current behaviour. For Siri it is a deviation: Siri moves a past time to tomorrow (Stage 4, condition 4 here). Raised with Kai; it affects Stage 3 only, so Stages 1 and 2 proceed.
 - 2026-10-24, Kai: Stage 1 accepted. Siri deviation approved: a time without a date means today, even once passed, in Stage 3, matching the app.
+- 2026-10-24, Kai: Stage 2 accepted (a hand-switched Time keeps its protected 12pm). Stage 3 accepted; keep normaliseReminderText unchanged for now.
 - 2026-10-24, Stage 1 detail within condition 3: yearless numeric dates ("3/3") are recognised only after on, by, before, until, from, due or for ("Pay rent on 3/3"), so "1/2 price", "3/4 cup" and "open 24/7" never schedule. Numeric dates must start the text or follow a space or "(".
 
 ## 1. Current behaviour

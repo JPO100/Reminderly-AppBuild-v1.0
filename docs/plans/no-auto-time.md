@@ -1,6 +1,6 @@
 # No automatic 12pm - plan
 
-Status: plan for Kai's final review. Not implemented. No implementation or merge authorised.
+Status: approved by Kai (Type D), subject to John's confirmation of D1-D7. Not implemented. No merge to main authorised.
 
 Type D under Working Agreement v1.3 (cross-component: reminder editor, calendar, NLC, list smart reminders and the native Siri intent; protected areas: time handling, scheduling, notification scheduling). Branch `feature/no-auto-time` from main ca75bae.
 
@@ -10,6 +10,8 @@ Type D under Working Agreement v1.3 (cross-component: reminder editor, calendar,
 - 2026-10-24, John: Siri works the same way. A date with no time makes Siri ask "What time?". If the answer can't be used, Siri refuses with a spoken explanation and saves nothing.
 - 2026-10-24, Kai: conditional approval, Type D confirmed. Conditions: (1) all insertion paths covered, no remaining route that silently assigns a time to a new reminder; (2) the list-data 12pm read fallback cannot populate a new reminder's time; (3) editing, explicit time selection, preset times and NLC time handling preserved; (4) Stage 3 Siri test on John's iPhone, locked and unlocked, is a hard gate; (5) Siri cannot save a date-only reminder, quarter-hour validation intact; (6) `siri-core.js` rebuilt and validated. Kai supports the recommended D5 and D6, subject to John. Full plan requested for final review.
 - 2026-10-24, audit for conditions 1 and 2 (section 3): two routes added (the in-app Siri handoff and list smart reminder creation through the fallback). The fallback is not read-only today, so D5 is revised (section 7).
+- 2026-10-24, Kai: plan approved, Type D confirmed. Proceed with the staged implementation once John confirms D1-D7. D5: supports option (a), reusing the existing smart reminder editor, without unnecessarily interrupting list editing. The Stage 3 locked and unlocked iPhone `requestValue` test stays a mandatory hard gate. Keep the planned regression coverage and verify the rebuilt `siri-core.js`. Completion evidence and test results required for final Type D sign-off.
+- 2026-10-24, John: D5 revised (section 7). Keep the existing behaviour (switch to the Reminders tab and open the smart reminder panel); the only change is that Date and Time both start off. No new pickers or UI; navigation, panel behaviour and save validation preserved.
 - Supersedes: D7 in [nlc-titles-and-dates.md](./nlc-titles-and-dates.md) (Siri date-only at 12pm), the 12pm calendar prefill in [archive/calendar-view-plan.md](../archive/calendar-view-plan.md), and "Date ON auto-enables Time at 12:00" in the development history.
 
 ## 1. Problem
@@ -35,8 +37,8 @@ Method: every `setSelectedTime`, `setIsTimeOn(true)`, `applyToggleStateSilently(
 | 2 | Calendar day prefill (`getCalendarPrefill`, :104, used at :647) | Date and 12:00 | Date only; Time off |
 | 3 | NLC auto mode, date token with no time (:967) | Time on at 12:00 | Time stays off |
 | 4 | NLC auto mode, repeat token with no time (:1027) | Time on at 12:00 | Time stays off. Implied times ("every morning") unchanged |
-| 5 | Smart reminder from a list in the editor (initial state, :647) | Time 12:00 | Time off, as route 1 |
-| 6 | List settings and list info overlay due date (App.tsx:4952, 4955, 5157, 5161, 5183, 5201) | List time written as 12:00; these screens have a date picker only | Per D5 |
+| 5 | Smart reminder panel opened from a list (`openSmartReminderAddFlow`; initial state NewReminderOverlay.tsx:611-618, 632-649, 626-628) | Date on today, Time on at 12:00, date drawer open | Date and Time both off, no drawer open (D5) |
+| 6 | List settings and list info overlay (App.tsx:4952, 4955, 5157, 5161, 5183, 5201): smart reminders switched back on for a list with a saved due date, and the due date picker | `?? '12:00'` written when the list has no time | The list's own time is kept. A list with a due date but no time (older data only) opens the existing smart reminder panel instead of writing 12:00 (D5) |
 | 7 | List smart reminder creation and sync through `getSmartReminderTime` (list-utils.ts:149 `createSmartReminderForList`; App.tsx:1573, 1980, 1988, 2034, 2042, 3197, 3198) | A list with a due date and no time gets a 12:00 reminder | Per D5 and section 3.3 |
 | 8 | Siri, background intent (siri.ts:96 via `siri-core.js`) | 12:00, even when passed | Siri asks "What time?" (section 4) |
 | 9 | Siri, in-app handoff (`reminderly://add` in AppDelegate.swift:34, `handleSiriAdd` App.tsx:1918) | Same parser, 12:00 | Nothing saved when the text has a date and no time (no spoken reply is possible on this path) |
@@ -100,22 +102,22 @@ Safeguards (condition 5):
 
 ## 7. Decisions (John owns D1-D7)
 
-Status: recommendations; awaiting John's confirmation.
+Status: D5 confirmed by John (revised). D1-D4, D6, D7: recommendations awaiting John's confirmation.
 
 - D1. Date switch on: Time stays off and Save stays inactive until a time is added. Recommended.
 - D2. Time switch on by hand: picker starts at 12:00. Recommended (alternative: next quarter hour).
 - D3. Date presets keep their stated times. Recommended.
 - D4. NLC auto mode: no time after a date or repeat token. Recommended.
-- D5 (revised after the audit). List settings and list info overlay have a date picker only, and the fallback creates smart reminders at 12:00. The earlier option of keeping 12pm on these screens would leave routes 6 and 7 assigning a time silently, which does not meet Kai's conditions 1 and 2. Options:
-  - (a) After a due date is chosen on either list screen, the existing smart reminder editor opens with Time off to add the time (reuses `openSmartReminderEditFlow`; no new picker). Until a time is added the list has no smart reminder and shows "Add a time". Recommended.
-  - (b) Add a time picker to both list screens. More new UI and tutorial scope.
+- D5 (confirmed by John, 2026-10-24). List smart reminders keep the existing flow: switching smart reminders on for a list with no due date switches to the Reminders tab and opens the smart reminder panel, as now. The only change: Date and Time both start off (no date drawer open), and the user turns both on and chooses their values before saving. No new pickers or UI; navigation and panel behaviour unchanged. In smart reminder mode Date and Time still cannot be turned off once on, as now.
+  - Save validation: the existing smart reminder save (`handleSubmit`) already refuses without a date and a time. Today the Save button in smart reminder mode does not check this (`requiresScheduledReminder` is false there), because Date and Time always started on. With both starting off, the button would look active and do nothing, so its active state follows the existing save rule in smart reminder create mode. No new rule; the button matches what the save already does.
+  - List editing is not interrupted: lists that already have a due date and time keep them, and switching smart reminders back on reuses them, as now. Only a list with a due date and no time (older data only) opens the panel.
 - D6. What the user sees while Save is inactive for a missing time: the Time row label reads "Add a time" in reminderly blue (#4784F8), no fades. Recommended; John to confirm the visual.
 - D7. Siri wording: question "What time?"; refusal "Reminderly needs a time for that. Try again with a time, like today at 3pm."
 
 ## 8. Stages
 
-1. Editor: routes 1 to 5 and the D6 prompt. Tutorials checked for screens they mirror (tutorial-nlc-demo, onboarding pages).
-2. Lists: routes 6 and 7 per D5 and section 3.3.
+1. Editor: routes 1 to 4 and the D6 prompt. Tutorials checked for screens they mirror (tutorial-nlc-demo, onboarding pages).
+2. Lists: route 5 panel defaults, routes 6 and 7 per D5 and section 3.3.
 3. Siri: first the hard-gate test of the second `requestValue` on John's iPhone, locked and unlocked; stop and report if either fails. Then `needsTime` in siri.ts, the intent flow, `SiriNeedsTimeError`, the `createNow` and `handleSiriAdd` safeguards, and the `siri-core.js` rebuild.
 4. Docs: scheduling-and-nlc.md, reminders.md, ios.md, development history.
 
@@ -131,7 +133,8 @@ Automated:
 - Full Vitest suite and Self Check (expectations of a 12:00 default updated where they test this behaviour).
 
 Simulator:
-- Each route in 3.1 and each unchanged route in 3.2, edit mode, presets, calendar from a selected day, Time switch by hand, list screens per D5.
+- Each route in 3.1 and each unchanged route in 3.2, edit mode, presets, calendar from a selected day, Time switch by hand.
+- Lists (D5): smart reminders on from list settings and from list info open the panel with Date and Time off; Save inactive until both are set; cancel restores the list as now; saving creates the reminder at the chosen time; an existing smart reminder edits as now; a list with a saved date and time switched back on keeps its time.
 
 John's iPhone (Siri, locked and unlocked; Stage 3 gate first):
 - "Call mum today", answer "3pm": saved at 15:00 today, notification scheduled.

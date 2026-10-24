@@ -641,7 +641,7 @@ export function getListChecks(): Check[] {
 
     {
       id: 'list-display-items-hide-ticked-delay',
-      name: 'List ordering: a newly ticked item stays in view for the delay, then hides; unticking in the delay keeps it',
+      name: 'List ordering: a newly ticked item stays in place for the delay, then hides; unticking in the delay keeps it',
       run: () => {
         const scheduled: Array<{ callback: () => void; cleared: boolean }> = [];
         const timers = {
@@ -649,7 +649,12 @@ export function getListChecks(): Check[] {
           clear: (handle: unknown) => { (handle as { cleared: boolean }).cleared = true; },
         };
         let kept: ReadonlySet<string> = new Set();
-        const tracker = createKeptTickedTracker((ids) => { kept = ids; }, 1500, timers);
+        const tracker = createKeptTickedTracker(
+          (id) => { kept = new Set(kept).add(id); },
+          (id) => { const next = new Set(kept); next.delete(id); kept = next; },
+          1500,
+          timers,
+        );
         const runDue = () => scheduled.filter((entry) => !entry.cleared).forEach((entry) => { entry.cleared = true; entry.callback(); });
         const visible = (items: ListItem[]) => getDisplayListItems(items, 'insertion', null, 0, true, kept).map((item) => item.id);
 
@@ -660,6 +665,16 @@ export function getListChecks(): Check[] {
         runDue();
         assert(!visible(ticked).includes('a'), 'The ticked item should hide after the delay');
 
+        // While kept, the ticked item holds its place among the unticked items (it fades out in place)
+        tracker.tick('m', true);
+        const inPlace = [makeItem('n', 'New', false), makeItem('m', 'Milk', true), makeItem('o', 'Old', false)];
+        for (const mode of ['insertion', 'oldest', 'alphabetical'] as const) {
+          const kept_ = getDisplayListItems(inPlace, mode, null, 0, true, kept).map((item) => item.id).join(',');
+          const before = getDisplayListItems(inPlace.map((item) => ({ ...item, completed: false })), mode, null, 0).map((item) => item.id).join(',');
+          assert(kept_ === before, `${mode}: kept ticked item should stay in place, expected ${before} got ${kept_}`);
+        }
+        runDue();
+
         // Tick then untick within the delay: stays visible, and the pending hide is cancelled
         tracker.tick('b', true);
         tracker.tick('b', false);
@@ -667,7 +682,6 @@ export function getListChecks(): Check[] {
         runDue();
         const unticked = [makeItem('a', 'Apple', true), makeItem('b', 'Banana', false)];
         assert(visible(unticked).includes('b'), 'An item unticked in the delay should stay visible');
-        tracker.dispose();
       },
     },
 

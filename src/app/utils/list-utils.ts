@@ -253,7 +253,8 @@ export function listItemOrderSettings(order: ListItemOrder, oldestFirstOn: boole
 
 // Stored items are newest first. Ticked items sit below unticked ones in every order. A pinned item (just added, or
 // edited in A to Z) holds its position until the pin clears. Hide ticked items leaves out ticked items, except those
-// ticked in the last moment (keptTickedIds) so a mistaken tick can be undone.
+// ticked in the last moment (keptTickedIds) so a mistaken tick can be undone; those stay where they were (ordered as
+// unticked) so they fade out in place rather than dropping to the bottom first.
 export function getDisplayListItems(
   listItems: ListItem[],
   sortMode: ListItemSortMode,
@@ -262,38 +263,40 @@ export function getDisplayListItems(
   hideTicked = false,
   keptTickedIds: ReadonlySet<string> = new Set(),
 ): ListItem[] {
-  const ordered = orderListItems(listItems, sortMode, alphabeticalPinnedListItemId, alphabeticalPinnedListItemIndex);
-  return hideTicked ? ordered.filter((item) => !item.completed || keptTickedIds.has(item.id)) : ordered;
+  if (!hideTicked) {
+    return orderListItems(listItems, sortMode, alphabeticalPinnedListItemId, alphabeticalPinnedListItemIndex);
+  }
+  const byId = new Map(listItems.map((item) => [item.id, item]));
+  const forOrdering = listItems.map((item) => (item.completed && keptTickedIds.has(item.id) ? { ...item, completed: false } : item));
+  return orderListItems(forOrdering, sortMode, alphabeticalPinnedListItemId, alphabeticalPinnedListItemIndex)
+    .map((item) => byId.get(item.id) ?? item)
+    .filter((item) => !item.completed || keptTickedIds.has(item.id));
 }
 
 type TickTimers = { set: (callback: () => void, ms: number) => unknown; clear: (handle: unknown) => void };
 
 // Hide ticked items: keeps a newly ticked item in view for delayMs so a mistaken tick can be undone. Unticking within
-// the delay releases it at once (an unticked item always shows). onChange gets the ids currently kept.
+// the delay releases it at once (an unticked item always shows). onKeep and onRelease add and remove one id, so the
+// caller's kept set is updated per id and a release can never be lost.
 export function createKeptTickedTracker(
-  onChange: (ids: ReadonlySet<string>) => void,
+  onKeep: (id: string) => void,
+  onRelease: (id: string) => void,
   delayMs: number,
   timers: TickTimers = { set: (callback, ms) => globalThis.setTimeout(callback, ms), clear: (handle) => globalThis.clearTimeout(handle as ReturnType<typeof setTimeout>) },
 ) {
   const pending = new Map<string, unknown>();
-  const kept = new Set<string>();
   const release = (id: string) => {
     const handle = pending.get(id);
     if (handle !== undefined) timers.clear(handle);
     pending.delete(id);
-    if (kept.delete(id)) onChange(new Set(kept));
+    onRelease(id);
   };
   return {
     tick(id: string, ticked: boolean) {
       release(id);
       if (!ticked) return;
-      kept.add(id);
-      onChange(new Set(kept));
+      onKeep(id);
       pending.set(id, timers.set(() => release(id), delayMs));
-    },
-    dispose() {
-      pending.forEach((handle) => timers.clear(handle));
-      pending.clear();
     },
   };
 }

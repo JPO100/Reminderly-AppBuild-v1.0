@@ -679,7 +679,16 @@ export default function App() {
   };
   // Hide ticked items: a newly ticked item stays in view for LIST_TICK_HIDE_DELAY_MS so a mistaken tick can be undone
   const [keptTickedListItemIds, setKeptTickedListItemIds] = useState<ReadonlySet<string>>(() => new Set());
-  const [keptTickedTracker] = useState(() => createKeptTickedTracker(setKeptTickedListItemIds, LIST_TICK_HIDE_DELAY_MS));
+  const [keptTickedTracker] = useState(() => createKeptTickedTracker(
+    (id) => setKeptTickedListItemIds((current) => new Set(current).add(id)),
+    (id) => setKeptTickedListItemIds((current) => {
+      if (!current.has(id)) return current;
+      const next = new Set(current);
+      next.delete(id);
+      return next;
+    }),
+    LIST_TICK_HIDE_DELAY_MS,
+  ));
   const [listSmartReminders, setListSmartReminders] = useState(false);
   const [listSmartReminderDueDate, setListSmartReminderDueDate] = useState<string | null>(null);
   const [listSmartReminderTime, setListSmartReminderTime] = useState<string | null>(null);
@@ -904,7 +913,6 @@ export default function App() {
     keptTickedListItemIds,
   );
 
-  useEffect(() => () => keptTickedTracker.dispose(), [keptTickedTracker]);
 
   // The add-item pin is used by A to Z and Oldest first (new items move away from the top); Newest first never pins
   useEffect(() => {

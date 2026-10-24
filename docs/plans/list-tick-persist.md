@@ -1,6 +1,6 @@
 # List item ticks and deletes saved immediately - plan
 
-Status: plan approved by Kai (2026-10-24); implemented on fix/list-tick-persist, awaiting final Type C review. Not merged.
+Status: merged into main as 59b33db (2026-10-24, Kai final Type C sign-off at 9160d68, John confirmed).
 
 Type C under Working Agreement v1.3: it changes existing logic in a protected area (local storage persistence of lists). Branch `fix/list-tick-persist` from main 62958f1.
 

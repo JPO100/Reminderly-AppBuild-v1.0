@@ -194,9 +194,9 @@ describe('calendar month navigation (option A)', () => {
 });
 
 describe('New reminder date from the calendar', () => {
-  it('prefills the selected day with the usual 12pm time', () => {
+  it('prefills the selected day with no time', () => {
     const prefill = getCalendarPrefill('2026-01-22');
-    expect(prefill?.time).toEqual({ hour: 12, minute: 0 });
+    expect(prefill).not.toHaveProperty('time');
     expect(toDateKey(prefill!.date)).toBe('2026-01-22');
     expect(formatSelectedDate(prefill!.date, NOW)).toBe('Jan 22nd');
   });
@@ -205,11 +205,13 @@ describe('New reminder date from the calendar', () => {
     expect(getCalendarPrefill(null)).toBeNull();
   });
 
-  it('can be saved once text is entered, as a new scheduled reminder', () => {
+  it('needs a time before it can be saved, then saves as a new scheduled reminder', () => {
     const prefill = getCalendarPrefill('2026-01-22')!;
-    const base = { requiresScheduledReminder: true, isDateOn: true, selectedDate: prefill.date, isTimeOn: true, selectedTime: prefill.time };
-    expect(canSubmitReminder({ ...base, text: '' })).toBe(false);
-    expect(canSubmitReminder({ ...base, text: 'Pick up parcel' })).toBe(true);
+    const base = { requiresScheduledReminder: true, isDateOn: true, selectedDate: prefill.date, isTimeOn: false, selectedTime: null };
+    expect(canSubmitReminder({ ...base, text: 'Pick up parcel' })).toBe(false);
+    const withTime = { ...base, isTimeOn: true, selectedTime: { hour: 15, minute: 0 } };
+    expect(canSubmitReminder({ ...withTime, text: '' })).toBe(false);
+    expect(canSubmitReminder({ ...withTime, text: 'Pick up parcel' })).toBe(true);
   });
 });
 

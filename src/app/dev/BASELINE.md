@@ -232,7 +232,7 @@ Persistence and hydration
 ✓ Calendar: filter ranges match Today, This week and Later, past days never in range
 ✓ Calendar: today lists due today plus overdue; another day lists only that date
 ✓ Calendar: month navigation crosses year boundaries, returning to the current month follows today
-✓ Calendar: New reminder from a selected day prefills that local date at 12pm, nothing without a day
+✓ Calendar: New reminder from a selected day prefills that local date with no time, nothing without a day
 
 Natural language parsing
 

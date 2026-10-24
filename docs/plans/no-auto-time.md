@@ -1,6 +1,6 @@
 # No automatic 12pm - plan
 
-Status: approved by Kai (Type D), subject to John's confirmation of D1-D7. Not implemented. No merge to main authorised.
+Status: approved by Kai (Type D); D1-D7 confirmed by John. Implementation authorised (Kai, 2026-10-24). Merge to main subject to separate CTO approval.
 
 Type D under Working Agreement v1.3 (cross-component: reminder editor, calendar, NLC, list smart reminders and the native Siri intent; protected areas: time handling, scheduling, notification scheduling). Branch `feature/no-auto-time` from main ca75bae.
 
@@ -13,6 +13,7 @@ Type D under Working Agreement v1.3 (cross-component: reminder editor, calendar,
 - 2026-10-24, Kai: plan approved, Type D confirmed. Proceed with the staged implementation once John confirms D1-D7. D5: supports option (a), reusing the existing smart reminder editor, without unnecessarily interrupting list editing. The Stage 3 locked and unlocked iPhone `requestValue` test stays a mandatory hard gate. Keep the planned regression coverage and verify the rebuilt `siri-core.js`. Completion evidence and test results required for final Type D sign-off.
 - 2026-10-24, John: D5 revised (section 7). Keep the existing behaviour (switch to the Reminders tab and open the smart reminder panel); the only change is that Date and Time both start off. No new pickers or UI; navigation, panel behaviour and save validation preserved.
 - 2026-10-24, Kai: revised D5 and the Save button adjustment approved; no further technical changes. Proceed once John confirms D1-D4, D6 and D7. Stage 3 device gate and regression evidence required for final sign-off. No merge to main authorised.
+- 2026-10-24, John: D1-D4, D6 and D7 approved as recommended (D5 approved earlier). Kai: implementation authorised on `feature/no-auto-time`; Stage 3 device gate retained; results and evidence for final CTO review.
 - Supersedes: D7 in [nlc-titles-and-dates.md](./nlc-titles-and-dates.md) (Siri date-only at 12pm), the 12pm calendar prefill in [archive/calendar-view-plan.md](../archive/calendar-view-plan.md), and "Date ON auto-enables Time at 12:00" in the development history.
 
 ## 1. Problem
@@ -103,7 +104,7 @@ Safeguards (condition 5):
 
 ## 7. Decisions (John owns D1-D7)
 
-Status: D5 confirmed by John (revised). D1-D4, D6, D7: recommendations awaiting John's confirmation.
+Status: all confirmed by John, 2026-10-24.
 
 - D1. Date switch on: Time stays off and Save stays inactive until a time is added. Recommended.
 - D2. Time switch on by hand: picker starts at 12:00. Recommended (alternative: next quarter hour).

@@ -234,15 +234,20 @@ function NlcSettings({ prefs, onChange, repeatsAvailable, onOpenInteractions }: 
 }
 
 // Natural Language Capture > Interactions: the mode as two linked rows, one always on (both read and flip the one
-// auto-parsing setting), each with its description underneath, left aligned (no key line).
+// auto-parsing setting), each grouped with its description underneath, left aligned (no key line). 8px within a
+// group; the page's usual 30px between groups.
 function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void }) {
   const descriptionClassName = "font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-left w-full";
   return (
     <>
-      <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
-      <p className={descriptionClassName} style={{ color: '#939393' }}>Applies recognised dates, times and repeats as you type.</p>
-      <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
-      <p className={descriptionClassName} style={{ color: '#939393' }}>Lets you choose which ones to apply by tapping on the highlighted text.</p>
+      <div className="flex flex-col gap-[8px] w-full">
+        <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
+        <p className={descriptionClassName} style={{ color: '#939393' }}>Applies recognised dates, times and repeats as you type.</p>
+      </div>
+      <div className="flex flex-col gap-[8px] w-full">
+        <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
+        <p className={descriptionClassName} style={{ color: '#939393' }}>Lets you choose which ones to apply by tapping on the highlighted text.</p>
+      </div>
     </>
   );
 }

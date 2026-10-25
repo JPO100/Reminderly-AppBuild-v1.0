@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getTutorialPageIds, getTutorialTestPageIds, shouldAutoOpenTutorial, tutorialTestModeKey, tutorialTestPageKey, TUTORIAL_TEST_PAGES, type TutorialPageConfig } from '../utils/tutorial-pages';
+import { getTutorialLivePageIds, getTutorialPageIds, getTutorialTestPageIds, shouldAutoOpenTutorial, tutorialLivePageKey, tutorialTestModeKey, tutorialTestPageKey, TUTORIAL_TEST_PAGES, type TutorialPageConfig } from '../utils/tutorial-pages';
 
 function config(overrides: Partial<TutorialPageConfig> = {}): TutorialPageConfig {
   return {
@@ -135,5 +135,44 @@ describe('Onboarding testing mode', () => {
   it('replaces the normal rules, including the notification ask page', () => {
     expect(getTutorialPageIds(config({ testPageIds: [8] }))).toEqual([8]);
     expect(getTutorialPageIds(config({ testPageIds: null }))).toEqual(getTutorialPageIds(config()));
+  });
+});
+
+describe('Tutorial live page config', () => {
+  function storage(values: Record<string, string>) {
+    return { getItem: (key: string) => values[key] ?? null, setItem: () => {} };
+  }
+  const allReminders = TUTORIAL_TEST_PAGES.reminders.map((page) => page.id);
+
+  it('reads missing and malformed live keys as on (R1)', () => {
+    expect(getTutorialLivePageIds('reminders', storage({}))).toEqual(allReminders);
+    expect(getTutorialLivePageIds('lists', storage({ [tutorialLivePageKey('lists', 2)]: 'maybe' }))).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(getTutorialLivePageIds('reminders', storage({ [tutorialLivePageKey('reminders', 9)]: 'false' }))).toEqual(allReminders.filter((id) => id !== 9));
+  });
+
+  it('keeps the normal result when every page is live', () => {
+    const full = config({ settingsMenuEnabled: true, siriAvailable: true, attachmentsAvailable: true, nlcDemoAvailable: true, notificationAskEligible: true });
+    expect(getTutorialPageIds({ ...full, livePageIds: allReminders })).toEqual(getTutorialPageIds(full));
+  });
+
+  it('removes pages switched off but never adds pages the rules exclude (R2)', () => {
+    // Siri, attachments, NLC and the ask are not available, so live config cannot bring them in
+    expect(getTutorialPageIds(config({ livePageIds: allReminders }))).toEqual([0, 6, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ notificationAskEligible: true, livePageIds: allReminders.filter((id) => id !== 8) }))).toEqual([0, 6, 2, 3, 4]);
+    expect(getTutorialPageIds(config({ variant: 'lists', smartRemindersEnabled: true, livePageIds: [0, 2, 3, 4] }))).toEqual([0, 2, 3]);
+  });
+
+  it('shows the first page the rules allow when live config removes them all', () => {
+    expect(getTutorialPageIds(config({ livePageIds: [9] }))).toEqual([0]);
+    expect(getTutorialPageIds(config({ variant: 'lists', livePageIds: [] }))).toEqual([0]);
+  });
+
+  it('ignores live config in testing mode', () => {
+    expect(getTutorialPageIds(config({ testPageIds: [8, 9], livePageIds: [0] }))).toEqual([8, 9]);
+  });
+
+  it('is unaffected by the testing mode keys', () => {
+    const values = { [tutorialTestModeKey('reminders')]: 'true', [tutorialTestPageKey('reminders', 0)]: 'false' };
+    expect(getTutorialLivePageIds('reminders', storage(values))).toEqual(allReminders);
   });
 });

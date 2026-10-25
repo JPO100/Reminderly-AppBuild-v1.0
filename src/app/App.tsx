@@ -24,7 +24,7 @@ import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMo
 import { formatTime12h } from "./utils/normalise-text";
 import { scheduleEquality } from "./utils/schedule";
 import { hapticTap } from "./utils/haptics";
-import { getTutorialTestPageIds, shouldAutoOpenTutorial, TUTORIAL_PAGE_TYPE_NATURALLY } from "./utils/tutorial-pages";
+import { getTutorialLivePageIds, getTutorialTestPageIds, shouldAutoOpenTutorial, TUTORIAL_PAGE_TYPE_NATURALLY } from "./utils/tutorial-pages";
 import { getNlcTutorialDemo } from "./utils/tutorial-nlc-demo";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
 import { LocalNotifications } from "@capacitor/local-notifications";
@@ -1705,6 +1705,8 @@ export default function App() {
 
   // Onboarding testing mode: pages fixed when the tutorial opens (null uses the normal rules)
   const [tutorialTestPageIds, setTutorialTestPageIds] = useState<number[] | null>(null);
+  // Live page config: pages switched on, read when the tutorial opens (docs/plans/tutorial-live-page-config.md)
+  const [tutorialLivePageIds, setTutorialLivePageIds] = useState<number[] | null>(null);
 
   const openTutorial = useCallback((variant: TutorialVariant) => {
     tutorialVariantsShownThisSessionRef.current.add(variant);
@@ -1712,6 +1714,7 @@ export default function App() {
     tutorialNotifAllowedRef.current = false;
     setTutorialNotifAskEligible(false);
     setTutorialTestPageIds(getTutorialTestPageIds(variant));
+    setTutorialLivePageIds(getTutorialLivePageIds(variant));
     const flags = notifAskFlagsRef.current;
     if (variant === 'reminders' && flags.isRemindersEnabled && flags.notificationsFlag) {
       void refreshNotifPermission().then((permission) => {
@@ -5779,7 +5782,7 @@ export default function App() {
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} siriAvailable={isSiriRemindersAvailable} attachmentsAvailable={isReminderAttachmentsEnabled} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} testPageIds={tutorialTestPageIds} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} siriAvailable={isSiriRemindersAvailable} attachmentsAvailable={isReminderAttachmentsEnabled} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} testPageIds={tutorialTestPageIds} livePageIds={tutorialLivePageIds} />
                 </ShowInfoIconsContext.Provider>
               </motion.div>
             </motion.div>

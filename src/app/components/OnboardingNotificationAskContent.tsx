@@ -1,11 +1,10 @@
 // Reminders tutorial page "Never miss a reminder" (docs/plans/onboarding-gaps.md, section 4). The in-app
-// notification ask, before the Re-run this tutorial page. Turn on and Skip sit in the tutorial footer while iOS
-// has not decided (TutorialOnboardingContent); afterwards the page shows the granted or denied result instead.
+// notification ask, before the Re-run this tutorial page. Turn on and Skip sit in the tutorial footer
+// (TutorialOnboardingContent) until notifications are on; then the page shows "Notifications are on".
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { isPermissionUndecided } from "../notification-ask";
 import { TUTORIAL_BODY_CLASSNAME, TUTORIAL_TITLE_CLASSNAME } from "./tutorialTokens";
 
 const BANNER_SHOW_DELAY = 800;
@@ -129,17 +128,12 @@ export default function OnboardingNotificationAskPhone() {
 }
 
 /**
- * In the page body once iOS has decided: the granted or denied result. While iOS has not decided, nothing shows
- * here; Turn on and Skip are in the footer. permission is the live iOS permission (prompt, granted or denied).
+ * In the page body once notifications are on. Otherwise Turn on and Skip are in the footer: Turn on asks iOS while
+ * it has not decided, and opens Reminderly's page in iOS Settings once notifications are turned off.
  */
 export function OnboardingNotificationAskResult({ permission }: { permission: string | null }) {
-  if (isPermissionUndecided(permission)) return null;
-  if (permission === "granted") {
-    return (
-      <p className="font-['Lato',sans-serif] font-bold text-[17px] text-[#4784F8] text-center leading-[45px]">Notifications are on</p>
-    );
-  }
+  if (permission !== "granted") return null;
   return (
-    <p className="font-['Lato',sans-serif] font-bold text-[15px] text-[#939393] text-center leading-[45px]">You can turn on notifications later in Settings</p>
+    <p className="font-['Lato',sans-serif] font-bold text-[17px] text-[#4784F8] text-center leading-[45px]">Notifications are on</p>
   );
 }

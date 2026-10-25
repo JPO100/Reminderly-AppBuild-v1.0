@@ -28,7 +28,7 @@ import { getTutorialLivePageIds, getTutorialTestPageIds, shouldAutoOpenTutorial,
 import { getNlcTutorialDemo } from "./utils/tutorial-nlc-demo";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { ASK_STATE_ACCEPTED, askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
+import { ASK_STATE_ACCEPTED, askStateAfterNotNow, isPermissionUndecided, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
 import type { AskSource, AskTrigger } from "./notification-ask";
 import NotificationAskDialog from "./components/NotificationAskDialog";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
@@ -1742,11 +1742,24 @@ export default function App() {
   // even back on the page, does not count again.
   const handleTutorialNotifSkip = useCallback(() => {
     if (tutorialNotifSkippedRef.current || tutorialNotifAllowedRef.current) return;
+    // Not now only means something while iOS is undecided; with notifications turned off, Skip just moves on
+    if (!isPermissionUndecided(notifPermission)) return;
     tutorialNotifSkippedRef.current = true;
     const state = readAskState();
     const next = askStateAfterNotNow(state, 'automatic');
     if (next !== state) writeAskState(next);
-  }, []);
+  }, [notifPermission]);
+
+  // Turn on while iOS has notifications turned off: iOS cannot ask again, so open Reminderly's page in iOS Settings.
+  // Reminder alerts and the app badge are switched on, as Allow does, so notifications arrive once iOS allows them.
+  // The foreground listener re-reads permission when the user comes back.
+  const handleTutorialNotifOpenSettings = () => {
+    tutorialNotifAllowedRef.current = true;
+    writeAskState(ASK_STATE_ACCEPTED);
+    setNotifReminderAlerts(true);
+    setNotifAppBadge(true);
+    window.location.href = 'app-settings:';
+  };
 
   const handleTutorialNotifAllow = () => {
     tutorialNotifAllowedRef.current = true;
@@ -5794,7 +5807,7 @@ export default function App() {
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} onNotificationSkip={handleTutorialNotifSkip} siriAvailable={isSiriRemindersAvailable} attachmentsAvailable={isReminderAttachmentsEnabled} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} testPageIds={tutorialTestPageIds} livePageIds={tutorialLivePageIds} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} onNotificationSkip={handleTutorialNotifSkip} onNotificationOpenSettings={handleTutorialNotifOpenSettings} siriAvailable={isSiriRemindersAvailable} attachmentsAvailable={isReminderAttachmentsEnabled} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} testPageIds={tutorialTestPageIds} livePageIds={tutorialLivePageIds} />
                 </ShowInfoIconsContext.Provider>
               </motion.div>
             </motion.div>

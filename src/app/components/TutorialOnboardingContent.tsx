@@ -61,6 +61,8 @@ interface TutorialOnboardingContentProps {
   onNotificationAskPageChange?: (isOnPage: boolean) => void;
   // Skip on the Never miss a reminder page: Not now, then the next page
   onNotificationSkip?: () => void;
+  // Turn on while iOS has notifications turned off: open Reminderly's page in iOS Settings (stays on the page)
+  onNotificationOpenSettings?: () => void;
   // Reminders tutorial: Add reminders with Siri page (Siri for reminders available)
   siriAvailable?: boolean;
   // Reminder attachments available: the Add an attachment page and the paperclip on the New reminder mock
@@ -1531,6 +1533,7 @@ export default function TutorialOnboardingContent({
   onNotificationAllow,
   onNotificationAskPageChange,
   onNotificationSkip,
+  onNotificationOpenSettings,
   siriAvailable = false,
   attachmentsAvailable = false,
   remindersSettings,
@@ -1696,7 +1699,8 @@ export default function TutorialOnboardingContent({
 
   const isFirstPage = currentStep === 0;
   const isLastPage = currentStep === totalPages - 1;
-  const showNotificationAskButtons = isNotificationAskPage && isPermissionUndecided(notificationPermission);
+  // Turn on and Skip unless notifications are already on: undecided asks iOS, turned off opens iOS Settings
+  const showNotificationAskButtons = isNotificationAskPage && notificationPermission !== 'granted';
   const activePaginationColor = isListsTutorial ? LIST_BLUE : REMINDERLY_LIGHT_BLUE;
   const nextButtonColor = isListsTutorial ? LIST_BLUE : "#4784f8";
   // Pagination dots: 10px apart, closing up only when they would not fit the navigation row's width
@@ -1797,10 +1801,10 @@ export default function TutorialOnboardingContent({
         {isNotificationAskPage && (
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
             <OnboardingNotificationAskText />
-            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${isPermissionUndecided(notificationPermission) ? TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME : "pb-[16px]"}`}>
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${notificationPermission !== 'granted' ? TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME : "pb-[16px]"}`}>
               <OnboardingNotificationAskPhone />
             </div>
-            {!isPermissionUndecided(notificationPermission) && (
+            {notificationPermission === 'granted' && (
               <div className="shrink-0 flex items-center justify-center h-[45px] mb-[16px]">
                 <OnboardingNotificationAskResult permission={notificationPermission} />
               </div>
@@ -1977,6 +1981,10 @@ export default function TutorialOnboardingContent({
                 disabled={notificationRequesting}
                 className="rounded-[100px] flex items-center justify-center px-[20px] cursor-pointer"
                 onClick={() => {
+                  if (!isPermissionUndecided(notificationPermission)) {
+                    onNotificationOpenSettings?.();
+                    return;
+                  }
                   setNotificationRequesting(true);
                   void Promise.resolve(onNotificationAllow?.()).finally(() => {
                     setNotificationRequesting(false);

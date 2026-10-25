@@ -193,6 +193,19 @@ Header observation: the accepted Reminders header (three filters plus settings, 
 - Browser check at 466 x 678: Reminders tab and header pass (calendar hidden by the 852pt rule), Reminders settings pass. The tutorial will behave as at 667, so the full-height tutorial panel must apply here too. Screenshots: `docs/usability/screens/466x678/`.
 - Inner screen (7.6-inch, 1878 x 2670) remains out of scope.
 
+### Fixes implemented (fix/screen-size-fixes, 2026-10-25)
+
+Plan: [plans/screen-size-fixes.md](../plans/screen-size-fixes.md), approved by Kai with D1-D4. Evidence: `docs/usability/screens/fixes/before/` and `fixes/after/`.
+
+| Fix | Result |
+|-----|--------|
+| F3 list options and list info cards | `width: 100%`, `maxWidth: 340`. 360: card 20 to 340 (320 wide), page scroll width 360, no element outside the card, no clipped label ("Added to your templates!" fits; the due line wraps to two lines, no truncation). 375: centred, 20px each side (was 5px off). 393 and 440: 340 wide at the same position as before |
+| F4 custom days | Buttons `min(45px, (100% - 12px) / 7)`, square, 2px minimum gap. 360: 42.8px, gaps 2.0-2.1px, last button ends at the content edge, no overflow; selection colours correct. 375 and 393: 45px, positions unchanged |
+| F2 tutorial sheet | Under 740pt tall the tutorial sheet starts at the safe area top. 375 x 667 browser: every page of both tutorials shows its demo, including the attachment sequence (typed text and paperclip, Add an attachment overlay now fully visible, Photos grid); Back navigation and drag-close work. SE 3rd gen simulator: panel below the status bar, demo visible on every page checked, notification ask page fits. 466 x 678 (iPhone Duo outer): applies. 393 x 852 and 440 x 956: sheet top 140.6px, as before |
+
+- F9 keyboard on the SE 3rd gen simulator (outstanding check, now done): the title, tick and text field stay visible; the keyboard bar covers the Date row and Time and Repeats sit behind the keyboard. Usable (the keyboard closes with its tick). Not changed.
+- Test artefact only: resizing the browser with the custom days panel open from 360 to 393 hid the divider under the day row (the panel keeps the height it measured at 360). Opened fresh at 393 it matches the before screenshot. Phones do not resize, so no change.
+
 ### Milestone 1 recommendation (for John and Kai)
 
 - Minimum width: 360pt. 320pt fails across tutorials, date picker and settings (F1, F6, F7, F8) and is confirmed unsupported. 360 needs two contained fixes: F3 (list options card) and F4 (custom days).

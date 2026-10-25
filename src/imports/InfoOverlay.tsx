@@ -253,7 +253,7 @@ export default function InfoOverlay({ listTitle, onUncheckAll, onCreateTemplate,
   };
 
   return (
-    <div className="bg-white content-stretch flex flex-col gap-[40px] items-center justify-start px-[30px] py-[40px] relative rounded-[32px] mx-auto" style={{ width: 340 }} data-name="info-overlay">
+    <div className="bg-white content-stretch flex flex-col gap-[40px] items-center justify-start px-[30px] py-[40px] relative rounded-[32px] mx-auto" style={{ width: "100%", maxWidth: 340 }} data-name="info-overlay">
       <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center w-full">
         <p className="leading-[normal] whitespace-pre-wrap break-words" style={{ fontWeight: 700 }}>{listTitle}</p>
       </div>

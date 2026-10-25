@@ -1,6 +1,6 @@
 # Tutorial notifications page in every permission state
 
-Status: proposal for Kai's review (2026-10-25, revised the same day). Not implemented.
+Status: implemented on John's instruction (2026-10-25, CEO authority) ahead of Kai's review; D1 as proposed, D2 no ask state change, D3 existing Not now rule. Awaiting Kai's review; not merged.
 Requested by John, 2026-10-25. Changes the eligibility rule for the Never miss a reminder page, which Kai's R2 (docs/plans/tutorial-live-page-config.md) keeps authoritative, so it comes to Kai before implementation.
 Branch: feature/tutorial-notification-page (stacked on feature/tutorial-live-page-config).
 

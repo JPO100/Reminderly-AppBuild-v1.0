@@ -1694,9 +1694,9 @@ export default function App() {
 
   const tutorialVariantsShownThisSessionRef = useRef<Set<TutorialVariant>>(new Set());
 
-  // Never miss a reminder page: eligibility is decided once per opening, with the existing tutorial ask rule,
-  // so the page list stays fixed after Allow. Closing on the page without Allow counts as Not now; closing
-  // before reaching it leaves the ask state unchanged for the timed-reminder ask.
+  // Never miss a reminder page: included whenever the Reminders and Notifications flags are on, decided once per
+  // opening so the page list stays fixed after Allow. Closing on the page without Allow or Skip counts as Not now;
+  // closing before reaching it leaves the ask state unchanged for the timed-reminder ask.
   const [tutorialNotifAskEligible, setTutorialNotifAskEligible] = useState(false);
   const tutorialOnNotifAskPageRef = useRef(false);
   const tutorialNotifAllowedRef = useRef(false);
@@ -1719,9 +1719,10 @@ export default function App() {
     setTutorialLivePageIds(getTutorialLivePageIds(variant));
     const flags = notifAskFlagsRef.current;
     if (variant === 'reminders' && flags.isRemindersEnabled && flags.notificationsFlag) {
-      void refreshNotifPermission().then((permission) => {
-        setTutorialNotifAskEligible(shouldAskAutomatically(readAskState(), 'tutorial', permission));
-      });
+      // Never miss a reminder shows in every permission state (John, 2026-10-25; docs/plans/tutorial-notification-page-turned-off.md):
+      // Turn on and Skip until notifications are on, then "Notifications are on". The live page config can still remove it.
+      setTutorialNotifAskEligible(true);
+      void refreshNotifPermission();
     }
     setTutorialVariant(variant);
     setIsTutorialOpen(true);

@@ -25,6 +25,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 | Monetisation: 5 for Free with Reminderly Premium, £9 a year (D1) | 2026-10-14, John and CTO | Annual auto-renewing subscription through StoreKit 2; no trial, offer or Family Sharing. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 | No default templates for new users | 2026-10-14, John and CTO | `config-templates-in-clean-state` stays off; all templates count towards the free limit |
 | Natural language capture ships in the release | 2026-10-23, John | A key differentiator against competitor apps. A separate ticket will review NLC and make it release-ready. Free or Premium not yet decided |
+| Release header layouts | 2026-10-25, John | Reminders header with reduced filters, calendar icon and settings icon, and the current Lists header, ship in v1. Release defaults must match. Non-critical header elements (filters, calendar) may be hidden on small screens; the settings button never is. See [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
 
 ## Pending product decisions
 
@@ -34,6 +35,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 | D3 | Release scope for unfinished features (notification preferences, Siri for lists, NLC phone and contacts, attachments) | Unfinished features must be hidden or complete (2.1, 2.3.1) |
 | D4 | Privacy policy, terms of use and support site: content, owner and hosting | Needed whether or not the app is paid. Privacy policy Version 1.0 text in the app (feature/reminder-list-settings, not merged); terms of use and FAQs still placeholders; neatlymade.co does not resolve (2026-10-23), so no hosted policy URL yet |
 | D5 | Countries and storefronts, and seller details (individual or company) | Affects EU trader status and pricing |
+| D6 | Supported screen sizes and minimum iOS | Proposal: 375 x 667pt smallest supported iPhone, 320pt not supported (raise minimum iOS from 15.0 to 16 or later, CTO decision). Confirmed by screen size testing milestone 1. See [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
 
 ## Recommended release defaults (for John's review)
 
@@ -93,6 +95,8 @@ With developer tools excluded, these values are what users get. Development defa
 | Signing, distribution profiles and App Group for app and widget | Verify before submission | | `group.com.reminderly.app` on both bundle ids |
 | Version and build numbers | Outstanding | | Currently 1.0 (1); increment the build for each upload |
 | App icon (1024 single size) and launch screen | Complete | | `AppIcon.appiconset`, `LaunchScreen.storyboard` |
+| Minimum iOS raised from 15.0 (app) to match supported screen sizes | Outstanding | | Depends on D6; iOS 15 allows 320pt-wide devices |
+| Screen size testing (agreed test set, usable at every size) | Outstanding | 2.4.1 | [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
 | UIScene lifecycle | Complete | Required in the release after iOS 26 | Already adopted |
 | No debug configuration in release builds | Verify before submission | | `debug.xcconfig` applies to Debug only |
 
@@ -187,6 +191,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-10-25 | Decision: release header layouts (John). Pending decision D6 (supported screen sizes and minimum iOS) and screen size testing added |
 | 2026-10-23 | Decision: natural language capture ships in the release (John). Release readiness review to follow in a separate ticket |
 | 2026-10-23 | Global distribution legal review added for the Privacy Policy and Terms of Use (US priority market; US, UK and EU requirements, enforceability, country-specific App Store requirements) |
 | 2026-10-23 | Lato bundled with the app; the Google Fonts request is removed, so the app makes no third-party requests found in the privacy audit |

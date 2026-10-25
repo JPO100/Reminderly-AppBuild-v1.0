@@ -204,7 +204,7 @@ Plan: [plans/screen-size-fixes.md](../plans/screen-size-fixes.md), approved by K
 | F2 tutorial sheet | Under 740pt tall the tutorial sheet starts at the safe area top. 375 x 667 browser: every page of both tutorials shows its demo, including the attachment sequence (typed text and paperclip, Add an attachment overlay now fully visible, Photos grid); Back navigation and drag-close work. SE 3rd gen simulator: panel below the status bar, demo visible on every page checked, notification ask page fits. 466 x 678 (iPhone Duo outer): applies. 393 x 852 and 440 x 956: sheet top 140.6px, as before |
 
 - F9 keyboard on the SE 3rd gen simulator (outstanding check, now done): the title, tick and text field stay visible; the keyboard bar covers the Date row and Time and Repeats sit behind the keyboard. Usable (the keyboard closes with its tick). Not changed.
-- Test artefact only: resizing the browser with the custom days panel open from 360 to 393 hid the divider under the day row (the panel keeps the height it measured at 360). Opened fresh at 393 it matches the before screenshot. Phones do not resize, so no change.
+- Non-blocking observation (recorded at Kai's request, 2026-10-25): resizing the browser with the custom days panel open from 360 to 393 hid the divider under the day row (the panel keeps the height it measured at 360). Opened fresh at 393 it matches the before screenshot. Phones do not resize; no fix required.
 
 ### Milestone 1 recommendation (for John and Kai)
 

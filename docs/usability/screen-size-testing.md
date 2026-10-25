@@ -166,7 +166,19 @@ Screenshots: `docs/usability/screens/<size>/`. Files ending `-simulator` come fr
 | F9 | Keyboard open: on the 13 mini the keyboard and its accessory bar cover the Time and Repeats rows; the text field and Date stay visible | 375 x 812 | Usable |
 | F10 | Calendar is hidden at all four sizes by the 852pt height rule, as designed; whether it should show at 812 to 844 is for the polish pass | All | Decision later |
 
+### Combined worst case: 360 x 667 (2026-10-25)
+
+Checked after the first pass to confirm the width and height findings combine without anything new (browser pane, `docs/usability/screens/360x667/`). Reminders tab and header: pass (4.5 rows, all header controls fit). Reminder options card: usable with a scroll (F5). Date picker: usable with a scroll (F6). Custom days: overlap (F4). List options card: clipped on the right (F3). Tutorial: mock-up mostly out of view (F2). No new issues: F2, F3 and F4 are the only items that cripple a screen, and all three are contained fixes.
+
 Header observation: the accepted Reminders header (three filters plus settings, calendar hidden by height) and the Lists header (three filters plus two buttons) both fit at 360 without hiding anything. At 320 the Lists header already drops the Started pill. Filter hiding is not needed at any supported width found so far.
+
+### Device support alignment (2026-10-25)
+
+- iOS 26 runs on iPhone 11 and later plus iPhone SE 2nd and 3rd gen. The iPhone 11 is 414 x 896pt (828 x 1792 pixels at 2x), but the SE 2 / 3 (375 x 667) and the 12 / 13 mini (375 x 812) are also current. So even when aligned with Apple's current support, the smallest iPhone screen is 375 x 667.
+- No iPhone that runs iOS 16 or later has a 4-inch (320 x 568) screen; the last ones (1st-gen SE, iPod touch) stop at iOS 15. Every iPhone from iOS 16 to iOS 26 has the same smallest screen, 375 x 667 (iPhone 8, SE 2, SE 3).
+- So going further back than Apple's current support costs nothing in screen size. Moving the minimum from iOS 15 to iOS 16 removes the 320pt devices; going further (17, 18, 26) removes no further screen sizes, only older phones.
+- What older iOS versions do cost: WebKit compatibility testing (no iOS 16-18 simulator runtimes are installed today), and native feature gates. Siri (App Intents) already needs iOS 16 (`@available(iOS 16.0)` in the native code); one iOS 17 code path is already conditional. The widget extension targets iOS 16.
+- Recommendation for D6 (CTO decision): minimum iOS 16. It matches the 375 x 667 screen floor, keeps Siri available on every supported phone, and includes the iPhone 8, X, XS and XR, part of the roughly 100 million phones Apple no longer updates. Condition: one WebKit smoke test on an iOS 16 simulator runtime before release. Choosing iOS 18 instead would reduce the test surface but drop the iPhone 8 and X, with no screen size benefit.
 
 ### Milestone 1 recommendation (for John and Kai)
 

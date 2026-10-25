@@ -35,7 +35,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 | D3 | Release scope for unfinished features (notification preferences, Siri for lists, NLC phone and contacts, attachments) | Unfinished features must be hidden or complete (2.1, 2.3.1) |
 | D4 | Privacy policy, terms of use and support site: content, owner and hosting | Needed whether or not the app is paid. Privacy policy Version 1.0 text in the app (feature/reminder-list-settings, not merged); terms of use and FAQs still placeholders; neatlymade.co does not resolve (2026-10-23), so no hosted policy URL yet |
 | D5 | Countries and storefronts, and seller details (individual or company) | Affects EU trader status and pricing |
-| D6 | Supported screen sizes and minimum iOS | Proposal: 375 x 667pt smallest supported iPhone, 320pt not supported (raise minimum iOS from 15.0 to 16 or later, CTO decision). Confirmed by screen size testing milestone 1. See [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
+| D6 | Supported screen sizes and minimum iOS | Proposal: 375 x 667pt smallest supported iPhone, 360pt design floor for Android, 320pt not supported. Milestone 1 (2026-10-25) recommends minimum 360 x 667 and minimum iOS 16 (iOS 16 to 26 share the 375 x 667 screen floor; Siri needs iOS 16), with an iOS 16 WebKit smoke test before release. CTO decision. See [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
 
 ## Recommended release defaults (for John's review)
 

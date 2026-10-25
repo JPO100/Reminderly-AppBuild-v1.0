@@ -137,17 +137,18 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
                 >
                   <div ref={customDaysRef}>
                     <div className="content-stretch flex flex-col items-center justify-center relative w-full" data-name="container-frame">
-                      <div className="flex items-center justify-between py-[40px] w-full" data-name="weekdays">
+                      <div className="flex items-center justify-between gap-[2px] py-[40px] w-full" data-name="weekdays">
                         {WEEKDAYS.map(day => {
                           const isChecked = selectedDays.has(day);
+                          // 45px circles; below 375pt wide they shrink so all seven fit with 2px gaps
                           return (
                             <button
                               key={day}
                               onClick={() => toggleDay(day)}
                               aria-label={day}
                               aria-pressed={isChecked}
-                              className="flex items-center justify-center shrink-0 size-[45px] rounded-full cursor-pointer border-none p-0"
-                              style={{ backgroundColor: isChecked ? "#4784F8" : "#D9D9D9" }}
+                              className="flex items-center justify-center shrink-0 aspect-square rounded-full cursor-pointer border-none p-0"
+                              style={{ width: "min(45px, calc((100% - 12px) / 7))", backgroundColor: isChecked ? "#4784F8" : "#D9D9D9" }}
                               data-name="Weekday"
                             >
                               <span className="font-['Lato:Bold',sans-serif] not-italic text-[17px] text-white leading-[normal]">{day[0]}</span>

@@ -210,6 +210,17 @@ const APP_TEXT_DARK_BLUE = "#1C2C42";
 // Calendar view: shortest supported screen, the iPhone 15 Pro (product owner decision). 5-row months leave
 // two reminder rows below the calendar; 6-row months leave about one, with the rest scrolling.
 const CALENDAR_MIN_VIEWPORT_HEIGHT = 852;
+// Tutorial sheet: screens shorter than this start the sheet just below the status bar, covering the logo
+// header, so the tutorial mock-up has room (docs/plans/screen-size-fixes.md, D1 and D2)
+const TUTORIAL_FULL_HEIGHT_MAX_VIEWPORT_HEIGHT = 740;
+function getSafeAreaTopInset() {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:fixed;top:0;height:env(safe-area-inset-top, 0px);visibility:hidden;pointer-events:none';
+  document.body.appendChild(probe);
+  const inset = probe.getBoundingClientRect().height;
+  probe.remove();
+  return inset;
+}
 const DONE_LIST_COLOUR = "#404040";
 type TutorialVariant = 'reminders' | 'lists';
 
@@ -2156,6 +2167,11 @@ export default function App() {
       return logoBottom + 28;
     }
     return getOverlayTopPosition();
+  };
+
+  const getTutorialSheetTopPosition = () => {
+    if (viewportHeight < TUTORIAL_FULL_HEIGHT_MAX_VIEWPORT_HEIGHT) return getSafeAreaTopInset();
+    return getBottomSheetTopPosition();
   };
 
   const reminderSheetDragControls = useDragControls();
@@ -5730,7 +5746,7 @@ export default function App() {
             {/* Overlay sliding from bottom */}
             <motion.div
               initial={{ y: "100%" }}
-              animate={{ y: 0, top: getBottomSheetTopPosition() }}
+              animate={{ y: 0, top: getTutorialSheetTopPosition() }}
               exit={{ y: "100%" }}
               transition={{ duration: 0.25, ease: "easeInOut" }}
               className="fixed left-0 right-0 z-50 mx-auto w-full"

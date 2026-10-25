@@ -422,6 +422,18 @@ export function getNotificationChecks(): Check[] {
       },
     },
     {
+      id: 'notif-ask-tutorial-skip',
+      name: 'Onboarding ask page: Skip is the first Not now; closing later does not count again; the timed reminder backup ask remains',
+      run: () => {
+        const afterSkip = askStateAfterNotNow(null, 'automatic');
+        assert(afterSkip === 'not-now-1', 'Skip should be the first Not now');
+        // App passes closedOnAskPage false once Skip has counted, even if the user goes Back to the page
+        assert(askStateOnTutorialClose(afterSkip, false, false) === 'not-now-1', 'Closing after Skip should not count again');
+        assert(shouldAskAutomatically(afterSkip, 'timed-reminder', 'prompt'), 'The next timed reminder should still ask after Skip');
+        assert(!shouldAskAutomatically(afterSkip, 'tutorial', 'prompt'), 'The tutorial should not offer the page again after Skip');
+      },
+    },
+    {
       id: 'notif-ask-tutorial-live-page-off',
       name: 'Onboarding ask page: switched off in the live page config, the first timed reminder still asks',
       run: () => {

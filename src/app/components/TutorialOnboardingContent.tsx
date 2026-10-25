@@ -35,10 +35,12 @@ import TutorialReminderFilters, {
   UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS,
 } from '@/app/components/TutorialReminderFilters';
 import OnboardingCreateReminderPhone, { OnboardingCreateReminderText, OnboardingTypeNaturallyText } from '@/app/components/OnboardingCreateReminderContent';
-import OnboardingNotificationAskPhone, { OnboardingNotificationAskAction, OnboardingNotificationAskText } from '@/app/components/OnboardingNotificationAskContent';
+import OnboardingLockScreenWidgetPhone, { OnboardingLockScreenWidgetText } from '@/app/components/OnboardingLockScreenWidgetContent';
+import OnboardingNotificationAskPhone, { OnboardingNotificationAskResult, OnboardingNotificationAskText } from '@/app/components/OnboardingNotificationAskContent';
+import { isPermissionUndecided } from '@/app/notification-ask';
 import OnboardingSiriPhone, { OnboardingSiriText } from '@/app/components/OnboardingSiriContent';
 import OnboardingAttachmentPhone, { OnboardingAttachmentText } from '@/app/components/OnboardingAttachmentContent';
-import { getTutorialPageIds, TUTORIAL_PAGE_ATTACHMENT, TUTORIAL_PAGE_CREATE_REMINDER, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_PAGE_SIRI, TUTORIAL_PAGE_TYPE_NATURALLY } from '@/app/utils/tutorial-pages';
+import { getTutorialPageIds, TUTORIAL_PAGE_ATTACHMENT, TUTORIAL_PAGE_LOCK_SCREEN_WIDGET, TUTORIAL_PAGE_CREATE_REMINDER, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_PAGE_SIRI, TUTORIAL_PAGE_TYPE_NATURALLY } from '@/app/utils/tutorial-pages';
 import type { NlcTutorialDemo } from '@/app/utils/tutorial-nlc-demo';
 
 interface TutorialOnboardingContentProps {
@@ -58,10 +60,16 @@ interface TutorialOnboardingContentProps {
   notificationPermission?: string | null;
   onNotificationAllow?: () => Promise<unknown> | void;
   onNotificationAskPageChange?: (isOnPage: boolean) => void;
+  // Skip on the Never miss a reminder page: Not now, then the next page
+  onNotificationSkip?: () => void;
+  // Turn on while iOS has notifications turned off: open Reminderly's page in iOS Settings (stays on the page)
+  onNotificationOpenSettings?: () => void;
   // Reminders tutorial: Add reminders with Siri page (Siri for reminders available)
   siriAvailable?: boolean;
   // Reminder attachments available: the Add an attachment page and the paperclip on the New reminder mock
   attachmentsAvailable?: boolean;
+  // Lock screen widget available: the Reminders at a glance page
+  lockScreenWidgetAvailable?: boolean;
   // Reminders tutorial: Re-run this tutorial page shows the settings rows the app shows
   remindersSettings?: TutorialRemindersSettings;
   // Lists tutorial: Re-run this tutorial page shows the Lists settings rows the app shows
@@ -75,6 +83,8 @@ interface TutorialOnboardingContentProps {
 const LIST_BLUE = "#4784F8";
 const REMINDERLY_LIGHT_BLUE = "#4784F8";
 const TUTORIAL_PHONE_GAP_TOP_CLASSNAME = "mt-[35px]";
+// Standard footer button height (Next, Okay got it, Turn on and Skip)
+const TUTORIAL_FOOTER_BUTTON_HEIGHT = "clamp(40px, calc(20vh - 73.6px), 54px)";
 const TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME = "pb-[45px]";
 const TUTORIAL_LIST_OVERLAY_TOP = 11 + 5.026 + 65 - 2;
 const LISTS_PAGE_3_TARGET_LIST_ID = "list-2";
@@ -1511,6 +1521,24 @@ function ListsTutorialPlaceholderPage({
   );
 }
 
+// Onboarding testing mode is on for this tutorial: the Dev tools icon, top right of the tutorial card
+function TutorialTestingModeIcon() {
+  return (
+    <div className="absolute top-[20px] right-[20px] z-10 pointer-events-none" role="img" aria-label="Onboarding testing mode" data-name="tutorial-testing-mode-icon">
+      <svg width="27" height="27" viewBox="0 0 27 27" fill="none" aria-hidden="true">
+        <path d="M22.1875 15.9375V18.4375C22.1875 21.973 22.1875 23.7408 21.0892 24.8392C19.9908 25.9375 18.223 25.9375 14.6875 25.9375H12.1875C8.65197 25.9375 6.8842 25.9375 5.78585 24.8392C4.6875 23.7408 4.6875 21.973 4.6875 18.4375V15.9375C4.6875 12.402 4.6875 10.6342 5.78585 9.53585C6.8842 8.4375 8.65197 8.4375 12.1875 8.4375H14.6875C18.223 8.4375 19.9908 8.4375 21.0892 9.53585C22.1875 10.6342 22.1875 12.402 22.1875 15.9375Z" strokeWidth="1.875" strokeLinejoin="round" stroke="#141B34" />
+        <path d="M22.1875 20.9375C23.9553 20.9375 24.8392 20.9375 25.3883 20.3883C25.9375 19.8392 25.9375 18.9553 25.9375 17.1875C25.9375 15.4197 25.9375 14.5358 25.3883 13.9867C24.8392 13.4375 23.9553 13.4375 22.1875 13.4375" strokeWidth="1.875" strokeLinejoin="round" stroke="#141B34" />
+        <path d="M4.6875 20.9375C2.91973 20.9375 2.03585 20.9375 1.48667 20.3883C0.9375 19.8392 0.9375 18.9553 0.9375 17.1875C0.9375 15.4197 0.9375 14.5358 1.48667 13.9867C2.03585 13.4375 2.91973 13.4375 4.6875 13.4375" strokeWidth="1.875" strokeLinejoin="round" stroke="#141B34" />
+        <path d="M15.3125 2.8125C15.3125 3.84803 14.473 4.6875 13.4375 4.6875C12.402 4.6875 11.5625 3.84803 11.5625 2.8125C11.5625 1.77697 12.402 0.9375 13.4375 0.9375C14.473 0.9375 15.3125 1.77697 15.3125 2.8125Z" strokeWidth="1.875" stroke="#141B34" />
+        <path d="M13.4375 4.6875V8.4375" strokeWidth="1.875" strokeLinecap="round" strokeLinejoin="round" stroke="#141B34" />
+        <path d="M9.6875 14.6875V15.9375" strokeWidth="1.875" strokeLinecap="round" strokeLinejoin="round" stroke="#141B34" />
+        <path d="M17.1875 14.6875V15.9375" strokeWidth="1.875" strokeLinecap="round" strokeLinejoin="round" stroke="#141B34" />
+        <path d="M10.9375 20.3125C10.9375 20.3125 11.7708 20.9375 13.4375 20.9375C15.1042 20.9375 15.9375 20.3125 15.9375 20.3125" strokeWidth="1.875" strokeLinecap="round" stroke="#141B34" />
+      </svg>
+    </div>
+  );
+}
+
 export default function TutorialOnboardingContent({
   onComplete,
   variant,
@@ -1525,8 +1553,11 @@ export default function TutorialOnboardingContent({
   notificationPermission = null,
   onNotificationAllow,
   onNotificationAskPageChange,
+  onNotificationSkip,
+  onNotificationOpenSettings,
   siriAvailable = false,
   attachmentsAvailable = false,
+  lockScreenWidgetAvailable = false,
   remindersSettings,
   listsSettings,
   testPageIds = null,
@@ -1536,8 +1567,8 @@ export default function TutorialOnboardingContent({
   const [currentStep, setCurrentStep] = useState(0);
   const nlcDemoAvailable = nlcDemo != null;
   const pageIds = useMemo(
-    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, testPageIds, livePageIds }),
-    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, testPageIds, livePageIds],
+    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, lockScreenWidgetAvailable, testPageIds, livePageIds }),
+    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, lockScreenWidgetAvailable, testPageIds, livePageIds],
   );
   const totalPages = pageIds.length;
   const currentPage = pageIds[Math.min(currentStep, totalPages - 1)];
@@ -1664,6 +1695,8 @@ export default function TutorialOnboardingContent({
     }
   }, [currentStep, totalPages]);
 
+  const [notificationRequesting, setNotificationRequesting] = useState(false);
+
   const handleNext = () => {
     if (currentStep < totalPages - 1) {
       setCurrentStep(currentStep + 1);
@@ -1688,6 +1721,8 @@ export default function TutorialOnboardingContent({
 
   const isFirstPage = currentStep === 0;
   const isLastPage = currentStep === totalPages - 1;
+  // Turn on and Skip unless notifications are already on: undecided asks iOS, turned off opens iOS Settings
+  const showNotificationAskButtons = isNotificationAskPage && notificationPermission !== 'granted';
   const activePaginationColor = isListsTutorial ? LIST_BLUE : REMINDERLY_LIGHT_BLUE;
   const nextButtonColor = isListsTutorial ? LIST_BLUE : "#4784f8";
   // Pagination dots: 10px apart, closing up only when they would not fit the navigation row's width
@@ -1697,7 +1732,7 @@ export default function TutorialOnboardingContent({
   return (
     <div
       data-testid="onboarding-root"
-      className="bg-white flex flex-col h-full [@media(max-height:570px)]:!h-full [@media(max-height:570px)]:!pb-0"
+      className="bg-white flex flex-col h-full relative [@media(max-height:570px)]:!h-full [@media(max-height:570px)]:!pb-0"
       style={{
         borderTopLeftRadius: '30px',
         borderTopRightRadius: '30px',
@@ -1707,6 +1742,7 @@ export default function TutorialOnboardingContent({
         paddingBottom: '34px',
       }}
     >
+      {testPageIds && <TutorialTestingModeIcon />}
       <div className="flex-1 [@media(max-height:570px)]:flex-none relative overflow-hidden">
         {!isListsTutorial && currentPage === 0 && (
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
@@ -1788,11 +1824,22 @@ export default function TutorialOnboardingContent({
         {isNotificationAskPage && (
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
             <OnboardingNotificationAskText />
-            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} pb-[16px]`}>
-              <OnboardingNotificationAskPhone isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${notificationPermission !== 'granted' ? TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME : "pb-[16px]"}`}>
+              <OnboardingNotificationAskPhone />
             </div>
-            <div className="shrink-0 flex items-center justify-center h-[45px] mb-[16px]">
-              <OnboardingNotificationAskAction permission={notificationPermission} onAllow={() => onNotificationAllow?.()} />
+            {notificationPermission === 'granted' && (
+              <div className="shrink-0 flex items-center justify-center h-[45px] mb-[16px]">
+                <OnboardingNotificationAskResult permission={notificationPermission} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {!isListsTutorial && currentPage === TUTORIAL_PAGE_LOCK_SCREEN_WIDGET && (
+          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
+            <OnboardingLockScreenWidgetText />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
+              <OnboardingLockScreenWidgetPhone />
             </div>
           </div>
         )}
@@ -1958,15 +2005,52 @@ export default function TutorialOnboardingContent({
             <div className="absolute left-0 h-[45px] w-[35px]" />
           )}
           
+          {showNotificationAskButtons ? (
+            // Never miss a reminder while iOS has not decided: Turn on and Skip, both moving on to the next page
+            <div className="flex items-center gap-[16px]" data-name="tutorial-notification-ask-buttons">
+              <button
+                type="button"
+                disabled={notificationRequesting}
+                className="rounded-[100px] flex items-center justify-center px-[20px] cursor-pointer"
+                onClick={() => {
+                  if (!isPermissionUndecided(notificationPermission)) {
+                    onNotificationOpenSettings?.();
+                    return;
+                  }
+                  setNotificationRequesting(true);
+                  void Promise.resolve(onNotificationAllow?.()).finally(() => {
+                    setNotificationRequesting(false);
+                    handleNext();
+                  });
+                }}
+                style={{ height: TUTORIAL_FOOTER_BUTTON_HEIGHT, backgroundColor: nextButtonColor, opacity: notificationRequesting ? 0.5 : 1 }}
+              >
+                <span className="font-['Lato',sans-serif] font-bold text-[17px] text-white leading-[normal] whitespace-nowrap">Turn on</span>
+              </button>
+              <button
+                type="button"
+                disabled={notificationRequesting}
+                className="rounded-[100px] flex items-center justify-center px-[20px] cursor-pointer"
+                onClick={() => {
+                  onNotificationSkip?.();
+                  handleNext();
+                }}
+                style={{ height: TUTORIAL_FOOTER_BUTTON_HEIGHT, backgroundColor: "#D9D9D9" }}
+              >
+                <span className="font-['Lato',sans-serif] font-bold text-[17px] text-white leading-[normal] whitespace-nowrap">Skip</span>
+              </button>
+            </div>
+          ) : (
           <button 
             className="w-[180px] rounded-[100px] flex items-center justify-center cursor-pointer"
             onClick={handleNext}
-            style={{ height: 'clamp(40px, calc(20vh - 73.6px), 54px)', backgroundColor: nextButtonColor }}
+            style={{ height: TUTORIAL_FOOTER_BUTTON_HEIGHT, backgroundColor: nextButtonColor }}
           >
             <span className="font-['Lato',sans-serif] font-bold text-[17px] text-white leading-[normal]">
               {isLastPage ? (isListsTutorial ? 'Okay, got it!' : 'Okay, got it') : 'Next'}
             </span>
           </button>
+          )}
           
           {isLastPage ? (
             <div className="absolute right-0 flex h-[45px] w-[35px] items-center justify-center">

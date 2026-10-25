@@ -12,10 +12,10 @@ export default function NotificationAskDialog({ onAllow, onNotNow }: { onAllow: 
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-            <p className="leading-[normal] whitespace-pre-wrap">Get reminder alerts?</p>
+            <p className="leading-[normal] whitespace-pre-wrap">Turn on notifications?</p>
           </div>
           <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-            <p className="leading-[normal] whitespace-pre-wrap">Reminderly can alert you when a reminder is due and show a count on the app icon.</p>
+            <p className="leading-[normal] whitespace-pre-wrap">Reminderly can notify you when a reminder is due and show a count on the app icon.</p>
           </div>
           <div className="flex gap-[30px] w-full justify-between">
             <button onClick={onNotNow} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]" style={{ backgroundColor: '#BABABA' }}>

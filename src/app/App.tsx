@@ -28,7 +28,7 @@ import { getTutorialLivePageIds, getTutorialTestPageIds, shouldAutoOpenTutorial,
 import { getNlcTutorialDemo } from "./utils/tutorial-nlc-demo";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { ASK_STATE_ACCEPTED, askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
+import { ASK_STATE_ACCEPTED, askStateAfterNotNow, isPermissionUndecided, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
 import type { AskSource, AskTrigger } from "./notification-ask";
 import NotificationAskDialog from "./components/NotificationAskDialog";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
@@ -1694,12 +1694,13 @@ export default function App() {
 
   const tutorialVariantsShownThisSessionRef = useRef<Set<TutorialVariant>>(new Set());
 
-  // Never miss a reminder page: eligibility is decided once per opening, with the existing tutorial ask rule,
-  // so the page list stays fixed after Allow. Closing on the page without Allow counts as Not now; closing
-  // before reaching it leaves the ask state unchanged for the timed-reminder ask.
+  // Never miss a reminder page: included whenever the Reminders and Notifications flags are on, decided once per
+  // opening so the page list stays fixed after Allow. Closing on the page without Allow or Skip counts as Not now;
+  // closing before reaching it leaves the ask state unchanged for the timed-reminder ask.
   const [tutorialNotifAskEligible, setTutorialNotifAskEligible] = useState(false);
   const tutorialOnNotifAskPageRef = useRef(false);
   const tutorialNotifAllowedRef = useRef(false);
+  const tutorialNotifSkippedRef = useRef(false);
   const notifAskFlagsRef = useRef({ isRemindersEnabled, notificationsFlag });
   notifAskFlagsRef.current = { isRemindersEnabled, notificationsFlag };
 
@@ -1712,14 +1713,16 @@ export default function App() {
     tutorialVariantsShownThisSessionRef.current.add(variant);
     tutorialOnNotifAskPageRef.current = false;
     tutorialNotifAllowedRef.current = false;
+    tutorialNotifSkippedRef.current = false;
     setTutorialNotifAskEligible(false);
     setTutorialTestPageIds(getTutorialTestPageIds(variant));
     setTutorialLivePageIds(getTutorialLivePageIds(variant));
     const flags = notifAskFlagsRef.current;
     if (variant === 'reminders' && flags.isRemindersEnabled && flags.notificationsFlag) {
-      void refreshNotifPermission().then((permission) => {
-        setTutorialNotifAskEligible(shouldAskAutomatically(readAskState(), 'tutorial', permission));
-      });
+      // Never miss a reminder shows in every permission state (John, 2026-10-25; docs/plans/tutorial-notification-page-turned-off.md):
+      // Turn on and Skip until notifications are on, then "Notifications are on". The live page config can still remove it.
+      setTutorialNotifAskEligible(true);
+      void refreshNotifPermission();
     }
     setTutorialVariant(variant);
     setIsTutorialOpen(true);
@@ -1730,11 +1733,34 @@ export default function App() {
     setIsTutorialOpen(false);
     if (tutorialVariant === 'reminders') {
       const state = readAskState();
-      const next = askStateOnTutorialClose(state, tutorialOnNotifAskPageRef.current, tutorialNotifAllowedRef.current);
+      const next = askStateOnTutorialClose(state, tutorialOnNotifAskPageRef.current && !tutorialNotifSkippedRef.current, tutorialNotifAllowedRef.current);
       if (next !== state) writeAskState(next);
     }
     tutorialOnNotifAskPageRef.current = false;
   }, [tutorialVariant]);
+
+  // Skip on the Never miss a reminder page: Not now (automatic source), once per tutorial opening. Closing later,
+  // even back on the page, does not count again.
+  const handleTutorialNotifSkip = useCallback(() => {
+    if (tutorialNotifSkippedRef.current || tutorialNotifAllowedRef.current) return;
+    // Not now only means something while iOS is undecided; with notifications turned off, Skip just moves on
+    if (!isPermissionUndecided(notifPermission)) return;
+    tutorialNotifSkippedRef.current = true;
+    const state = readAskState();
+    const next = askStateAfterNotNow(state, 'automatic');
+    if (next !== state) writeAskState(next);
+  }, [notifPermission]);
+
+  // Turn on while iOS has notifications turned off: iOS cannot ask again, so open Reminderly's page in iOS Settings.
+  // Reminder alerts and the app badge are switched on, as Allow does, so notifications arrive once iOS allows them.
+  // The foreground listener re-reads permission when the user comes back.
+  const handleTutorialNotifOpenSettings = () => {
+    tutorialNotifAllowedRef.current = true;
+    writeAskState(ASK_STATE_ACCEPTED);
+    setNotifReminderAlerts(true);
+    setNotifAppBadge(true);
+    window.location.href = 'app-settings:';
+  };
 
   const handleTutorialNotifAllow = () => {
     tutorialNotifAllowedRef.current = true;
@@ -5782,7 +5808,7 @@ export default function App() {
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} siriAvailable={isSiriRemindersAvailable} attachmentsAvailable={isReminderAttachmentsEnabled} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} testPageIds={tutorialTestPageIds} livePageIds={tutorialLivePageIds} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} onNotificationSkip={handleTutorialNotifSkip} onNotificationOpenSettings={handleTutorialNotifOpenSettings} siriAvailable={isSiriRemindersAvailable} attachmentsAvailable={isReminderAttachmentsEnabled} lockScreenWidgetAvailable={isRemindersEnabled && lockScreenWidgetFlag} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} testPageIds={tutorialTestPageIds} livePageIds={tutorialLivePageIds} />
                 </ShowInfoIconsContext.Provider>
               </motion.div>
             </motion.div>

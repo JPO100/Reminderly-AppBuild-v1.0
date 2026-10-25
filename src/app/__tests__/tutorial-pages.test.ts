@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getTutorialLivePageIds, getTutorialPageIds, getTutorialTestPageIds, shouldAutoOpenTutorial, tutorialLivePageKey, tutorialTestModeKey, tutorialTestPageKey, TUTORIAL_TEST_PAGES, type TutorialPageConfig } from '../utils/tutorial-pages';
+import { TUTORIAL_PAGE_LOCK_SCREEN_WIDGET, getTutorialLivePageIds, getTutorialPageIds, getTutorialTestPageIds, shouldAutoOpenTutorial, tutorialLivePageKey, tutorialTestModeKey, tutorialTestPageKey, TUTORIAL_TEST_PAGES, type TutorialPageConfig } from '../utils/tutorial-pages';
 
 function config(overrides: Partial<TutorialPageConfig> = {}): TutorialPageConfig {
   return {
@@ -44,14 +44,14 @@ describe('getTutorialPageIds - reminders tutorial', () => {
     expect(getTutorialPageIds(config({ variant: 'lists', siriAvailable: true }))).toEqual([0, 1, 2]);
   });
 
-  it('adds the notification ask as the last page only when eligible', () => {
+  it('adds the notification ask only when eligible, before the re-run page', () => {
     expect(getTutorialPageIds(config({ notificationAskEligible: true }))).toEqual([0, 6, 2, 3, 4, 8]);
-    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, notificationAskEligible: true }))).toEqual([0, 6, 2, 3, 4, 5, 8]);
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, notificationAskEligible: true }))).toEqual([0, 6, 2, 3, 4, 8, 5]);
   });
 
   it('shows all 8 pages when every optional page is on', () => {
-    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true }))).toEqual([0, 6, 7, 2, 3, 4, 5, 8]);
-    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true, siriAvailable: true, attachmentsAvailable: true }))).toEqual([0, 6, 10, 9, 7, 2, 3, 4, 5, 8]);
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true }))).toEqual([0, 6, 7, 2, 3, 4, 8, 5]);
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, nlcDemoAvailable: true, notificationAskEligible: true, siriAvailable: true, attachmentsAvailable: true }))).toEqual([0, 6, 10, 9, 7, 2, 3, 4, 8, 5]);
   });
 
   it('ignores list-only features', () => {
@@ -121,13 +121,13 @@ describe('Onboarding testing mode', () => {
   });
 
   it('shows every page in the normal order when testing mode is on and nothing is switched off', () => {
-    expect(getTutorialTestPageIds('reminders', storage({ [tutorialTestModeKey('reminders')]: 'true' }))).toEqual([0, 6, 10, 9, 7, 2, 3, 4, 5, 8]);
+    expect(getTutorialTestPageIds('reminders', storage({ [tutorialTestModeKey('reminders')]: 'true' }))).toEqual([0, 6, 10, 9, 7, 2, 3, 4, 8, 11, 5]);
     expect(getTutorialTestPageIds('lists', storage({ [tutorialTestModeKey('lists')]: 'true' }))).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
   it('leaves out pages switched off, and shows the first page when all are off', () => {
     const on = { [tutorialTestModeKey('reminders')]: 'true' };
-    expect(getTutorialTestPageIds('reminders', storage({ ...on, [tutorialTestPageKey('reminders', 0)]: 'false', [tutorialTestPageKey('reminders', 9)]: 'false' }))).toEqual([6, 10, 7, 2, 3, 4, 5, 8]);
+    expect(getTutorialTestPageIds('reminders', storage({ ...on, [tutorialTestPageKey('reminders', 0)]: 'false', [tutorialTestPageKey('reminders', 9)]: 'false' }))).toEqual([6, 10, 7, 2, 3, 4, 8, 11, 5]);
     const allOff = Object.fromEntries(TUTORIAL_TEST_PAGES.reminders.map((page) => [tutorialTestPageKey('reminders', page.id), 'false']));
     expect(getTutorialTestPageIds('reminders', storage({ ...on, ...allOff }))).toEqual([0]);
   });
@@ -174,5 +174,21 @@ describe('Tutorial live page config', () => {
   it('is unaffected by the testing mode keys', () => {
     const values = { [tutorialTestModeKey('reminders')]: 'true', [tutorialTestPageKey('reminders', 0)]: 'false' };
     expect(getTutorialLivePageIds('reminders', storage(values))).toEqual(allReminders);
+  });
+});
+
+describe('Reminders at a glance page', () => {
+  it('shows only when the lock screen widget is available, after the notification ask and before re-run', () => {
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, notificationAskEligible: true }))).toEqual([0, 6, 2, 3, 4, 8, 5]);
+    expect(getTutorialPageIds(config({ settingsMenuEnabled: true, notificationAskEligible: true, lockScreenWidgetAvailable: true }))).toEqual([0, 6, 2, 3, 4, 8, TUTORIAL_PAGE_LOCK_SCREEN_WIDGET, 5]);
+    expect(getTutorialPageIds(config({ lockScreenWidgetAvailable: true }))).toEqual([0, 6, 2, 3, 4, TUTORIAL_PAGE_LOCK_SCREEN_WIDGET]);
+  });
+
+  it('never shows in the lists tutorial', () => {
+    expect(getTutorialPageIds(config({ variant: 'lists', lockScreenWidgetAvailable: true }))).toEqual([0, 1, 2]);
+  });
+
+  it('can be removed by the live page config', () => {
+    expect(getTutorialPageIds(config({ lockScreenWidgetAvailable: true, livePageIds: [0, 6, 2, 3, 4] }))).toEqual([0, 6, 2, 3, 4]);
   });
 });

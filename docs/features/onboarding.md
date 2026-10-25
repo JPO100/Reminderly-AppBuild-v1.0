@@ -44,7 +44,7 @@ Render path:
 | `TutorialStaticReminderList` | Default reminder mini-list data and rendering |
 | `OnboardingPage1Content` ... `OnboardingPage6Content` | Reminders pages 0-5 (content only) |
 | `OnboardingCreateReminderContent` | Reminders pages 6 (Create a reminder) and 7 (Natural Language Capture): phone, mock New reminder sheet and animation |
-| `OnboardingNotificationAskContent` | Reminders page 8 (Never miss a reminder): bottom of a locked iPhone (illustrated wallpaper after the standard iOS wallpaper: sky blue, rounded blue shape, white sliver, navy sweep, flat and hard-edged; torch and camera, home indicator) with the alert rising into place, and the result once iOS has decided. Turn on and Skip are in the tutorial footer |
+| `OnboardingNotificationAskContent` | Reminders page 8 (Never miss a reminder): bottom of a locked iPhone (illustrated wallpaper, torch and camera, home indicator) with the alert rising into place, and the result once iOS has decided. Turn on and Skip are in the tutorial footer |
 | `OnboardingSiriContent` | Reminders page 9 (Add reminders with Siri): home screen, Siri orb and panel, Reminderly opening and the reminder inserted |
 
 `OnboardingPage7Content`, `OnboardingPage8Content` and `OnboardingPage9Content` are not part of the active flow. `src/imports/tutorial-onboarding-content.tsx` is an unused earlier version.

@@ -1905,3 +1905,5 @@ NLC Interactions descriptions (2026-10-25, John, Type A under Working Agreement 
 NLC Interactions descriptions shortened (2026-10-25, John, Type A, same branch): the repeated toggle name is dropped, so the descriptions read "Applies recognised dates, times and repeats as you type." and "Lets you choose which ones to apply by tapping on the highlighted text.".
 
 NLC Interactions spacing (2026-10-25, John, Type A, same branch): each toggle and its description are grouped with 8px between them (was the page's 30px); 30px between the two groups is unchanged. Browser at 402 x 874: 8px, 30px, 8px measured; the page now fits without scrolling.
+
+NLC Interactions spacing revised (2026-10-25, John): 16px between each toggle and its description; 30px between toggle groups unchanged.

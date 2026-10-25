@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { canChangeModuleFlag } from "../settings/resolver";
 import { useStoredSetting } from "../settings/useStoredSetting";
 import { CALENDAR_SWIPE_HINT_EVERY_VISIT_KEY } from "../utils/calendar-swipe-hint";
+import { NOTIF_ASK_TUTORIAL_PAGE_ALWAYS_KEY } from "../notification-ask";
 import { runChecks, formatReportAsText, groupResultsBySection } from "../dev/check-system";
 import type { RunReport } from "../dev/check-system";
 import { getScheduleChecks } from "../dev/schedule-checks";
@@ -1036,6 +1037,8 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
   const [page, setPage] = useState<DevToolsPage>('home');
   // Read by the calendar each time it opens, so it is saved here rather than passed down from App
   const [calendarSwipeHintEveryVisit, setCalendarSwipeHintEveryVisit] = useStoredSetting(CALENDAR_SWIPE_HINT_EVERY_VISIT_KEY);
+  // Read by App each time the Reminders tutorial opens
+  const [notifAskPageAlways, setNotifAskPageAlways] = useStoredSetting(NOTIF_ASK_TUTORIAL_PAGE_ALWAYS_KEY);
   const enableReminders = remindersFlag;
   const setEnableReminders = onRemindersFlagChange;
   const enableNotifications = notificationsFlag;
@@ -1132,6 +1135,7 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
         <DevMenuRow label="Dummy reminders" onClick={() => setPage('dummy-reminders')} disabled={!enableReminders} infoTitle="Opens the Dummy Reminders page where you can generate test reminders across all time categories (overdue, today, this week, later, sometime, done), configure repeat flags, and clear all reminders. Requires Reminders to be on." />
         <DevMenuRow label="Dummy lists" onClick={() => setPage('dummy-lists')} disabled={!isListsEnabled} infoTitle="Opens the Dummy Lists page where you can generate test lists with configurable item counts, choose to include done items, smart reminder lists, and saved list templates, then clear or regenerate. Requires Lists to be on." />
         <DevToggleRow label="Show tutorial on every app start" isOn={showTutorialOnEveryStart} onToggle={() => { const next = !showTutorialOnEveryStart; onShowTutorialOnEveryStartChange(next); if (next) onShowTutorialOnFirstLaunchChange(false); }} disabled={!isOnboardingTutorialEnabled} infoTitle="Shows the onboarding tutorial every time the app is opened, regardless of whether it has been seen before. Enabling this turns off 'Show tutorial on first launch' in Feature flags > Onboarding. Only one launch trigger can be active. Requires Onboarding to be on." />
+        <DevToggleRow label="Always show tutorial notification page" isOn={notifAskPageAlways} onToggle={() => setNotifAskPageAlways(!notifAskPageAlways)} disabled={!isOnboardingTutorialEnabled || !enableReminders || !enableNotifications} infoTitle="Adds the Never miss a reminder page to the end of the Reminders tutorial every time it opens. Normally it only shows while iOS has not asked for notification permission and the in-app ask has never been answered. Allow alerts only shows the iOS prompt if iOS has not asked yet; otherwise the page shows the current result. Requires Onboarding, Reminders and the Notifications flag to be on." />
         <DevToggleRow label="Show calendar swipe hint on every visit" isOn={calendarSwipeHintEveryVisit} onToggle={() => setCalendarSwipeHintEveryVisit(!calendarSwipeHintEveryVisit)} disabled={!enableReminders || !calendarFlag} infoTitle="The calendar dates nudge left and right to show the month can be swiped. Users see this once, the first time the calendar opens. When on, it plays every time the calendar opens. Requires Reminders and the Calendar flag to be on." />
         </DevCard>
       </PageShell>

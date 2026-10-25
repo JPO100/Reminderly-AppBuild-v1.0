@@ -369,7 +369,7 @@ Phase 2 as delivered:
 | Feature flags | Onboarding | Enable onboarding, Show tutorial on first launch |
 | Feature flags | System | Settings menu, Show info icons |
 | Config | Config | Use template set in clean state |
-| Testing tools | Testing tools | Self checks, Dummy reminders (with Hide overdue), Dummy lists, Show tutorial on every app start |
+| Testing tools | Testing tools | Self checks, Dummy reminders (with Hide overdue), Dummy lists, Show tutorial on every app start, Always show tutorial notification page |
 | Access and diagnostics | Dev tools password | Password required, password reset |
 
 - The home page keeps its existing rows, grouped under four headings. Master toggles stay on the home page with their existing confirmation dialogs.

@@ -8,6 +8,8 @@ import type { SettingsStorage } from './settings/keys';
 
 export const NOTIF_ASK_STATE_KEY = 'reminderly-notif-ask-state';
 export const ASK_STATE_ACCEPTED = 'accepted';
+// Testing tools: always include the tutorial's Never miss a reminder page, whatever the permission or ask state
+export const NOTIF_ASK_TUTORIAL_PAGE_ALWAYS_KEY = 'reminderly-test-notif-ask-tutorial-page-always';
 
 export type AskTrigger = 'tutorial' | 'timed-reminder';
 export type AskSource = 'automatic' | 'settings';
@@ -40,6 +42,19 @@ export function askStateAfterNotNow(state: string | null, source: AskSource): st
 export function askStateOnTutorialClose(state: string | null, closedOnAskPage: boolean, allowed: boolean): string | null {
   if (!closedOnAskPage || allowed) return state;
   return askStateAfterNotNow(state, 'automatic');
+}
+
+/** Tutorial page list: the normal tutorial ask rule, or always when the testing tool is on. */
+export function isTutorialAskPageEligible(state: string | null, permission: string | null | undefined, forced: boolean): boolean {
+  return forced || shouldAskAutomatically(state, 'tutorial', permission);
+}
+
+export function isTutorialAskPageForced(storage: SettingsStorage = localStorage): boolean {
+  try {
+    return storage.getItem(NOTIF_ASK_TUTORIAL_PAGE_ALWAYS_KEY) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 /** Existing installs that already have permission are marked accepted, so they are never asked. */

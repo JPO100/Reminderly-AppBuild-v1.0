@@ -9,6 +9,7 @@ The animated tutorial for Reminders and Lists, shown in a slide-up overlay with 
 | `reminderly-ff-onboarding-tutorial` | on | Tutorial available. Off: `TutorialOverlay` renders nothing |
 | `reminderly-config-tutorial-first-launch` | on | Open automatically on launch |
 | `reminderly-test-tutorial-every-start` | off | Open on every start (testing; mutually exclusive with first launch) |
+| `reminderly-test-notif-ask-tutorial-page-always` | off | Testing tools > Always show tutorial notification page: the Never miss a reminder page is added to the Reminders tutorial whatever the permission or ask state (Reminders and Notifications flags still required) |
 
 - Automatic opening: on mount, unless a notification tap is pending, if either launch setting is on, the tutorial for the visible tab opens. Switching to the other tab later in the session opens that tab's tutorial once.
 - Manual: Reminders settings > Reminders tutorial, or Lists settings > Lists tutorial (settings menu on). Always starts at the first page.

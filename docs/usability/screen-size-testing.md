@@ -8,8 +8,8 @@ Usability testing of Reminderly across supported screen sizes, before upgrades a
 |-------|--------|
 | 1. Current state review and support proposal | Complete (2026-10-25) |
 | 2. Test set, method and documentation | Complete (2026-10-25, this document) |
-| 3. Milestone 1: smallest supported screen (minimum width and minimum height) | First pass complete (2026-10-25); recommendation below, decision pending. SE simulator keyboard check outstanding |
-| 4. Screen-by-screen visual review and fixes | Not started |
+| 3. Milestone 1: smallest supported screen (minimum width and minimum height) | Complete (2026-10-25); SE simulator keyboard check done |
+| 4. Screen-by-screen visual review and fixes | Fixes F2, F3 and F4 merged (cc8f95f, 2026-10-25). Pre-release cross-device screen support passed at this stage (John, 2026-10-25, after the iPhone 17 Pro Max visual check). Remaining: the release-candidate screen pass after the paywall, and the open items (iPhone only, D6 iOS 16, calendar 852pt rule, Dynamic Type, Display Zoom) |
 
 ## Current state (2026-10-25)
 

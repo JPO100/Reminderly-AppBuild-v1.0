@@ -28,7 +28,7 @@ import { shouldAutoOpenTutorial } from "./utils/tutorial-pages";
 import { getNlcTutorialDemo } from "./utils/tutorial-nlc-demo";
 import { PENDING_NOTIFICATION_REMINDER_ID_KEY, clearReminderNotifications, syncReminderNotifications } from "./notifications";
 import { LocalNotifications } from "@capacitor/local-notifications";
-import { ASK_STATE_ACCEPTED, askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
+import { ASK_STATE_ACCEPTED, askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, isTutorialAskPageEligible, isTutorialAskPageForced, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from "./notification-ask";
 import type { AskSource, AskTrigger } from "./notification-ask";
 import NotificationAskDialog from "./components/NotificationAskDialog";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
@@ -1711,7 +1711,7 @@ export default function App() {
     const flags = notifAskFlagsRef.current;
     if (variant === 'reminders' && flags.isRemindersEnabled && flags.notificationsFlag) {
       void refreshNotifPermission().then((permission) => {
-        setTutorialNotifAskEligible(shouldAskAutomatically(readAskState(), 'tutorial', permission));
+        setTutorialNotifAskEligible(isTutorialAskPageEligible(readAskState(), permission, isTutorialAskPageForced()));
       });
     }
     setTutorialVariant(variant);

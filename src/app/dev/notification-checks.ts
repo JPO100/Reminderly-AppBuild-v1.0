@@ -2,7 +2,7 @@ import type { Check } from './check-system';
 import type { Reminder } from '../reminder-utils';
 import { computeBadgeCount, getNextTimeRefreshBoundary, getTodayProgress } from '../reminder-utils';
 import { MIDNIGHT_BADGE_FIRST_ID, buildScheduledNotifications } from '../notifications';
-import { askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from '../notification-ask';
+import { NOTIF_ASK_TUTORIAL_PAGE_ALWAYS_KEY, askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, isTutorialAskPageEligible, isTutorialAskPageForced, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from '../notification-ask';
 
 function assert(condition: boolean, message: string): void {
   if (!condition) {
@@ -418,6 +418,23 @@ export function getNotificationChecks(): Check[] {
         assert(askStateOnTutorialClose(null, true, true) === null, 'Allow writes its own state; close should not change it');
         assert(shouldAskAutomatically(askStateOnTutorialClose(null, false, false), 'timed-reminder', 'prompt'), 'Skipping the page should keep the timed-reminder ask');
         assert(shouldAskAutomatically(askStateOnTutorialClose(null, true, false), 'timed-reminder', 'prompt'), 'Not now on the page should still allow the timed-reminder backup ask');
+      },
+    },
+    {
+      id: 'notif-ask-tutorial-page-forced',
+      name: 'Onboarding ask page: the testing tool always includes the page; off keeps the normal tutorial rule',
+      run: () => {
+        assert(isTutorialAskPageEligible(null, 'prompt', false), 'Never asked and undecided should include the page');
+        assert(!isTutorialAskPageEligible(null, 'granted', false), 'Granted should not include the page');
+        assert(!isTutorialAskPageEligible('not-now-1', 'prompt', false), 'not-now-1 should not include the page');
+        for (const [state, permission] of [[null, 'granted'], [null, 'denied'], ['accepted', 'granted'], ['not-now-2', 'prompt']] as const) {
+          assert(isTutorialAskPageEligible(state, permission, true), `Forced should include the page for ${state} and ${permission}`);
+        }
+        const map = new Map<string, string>();
+        const storage = { getItem: (k: string) => map.get(k) ?? null, setItem: (k: string, v: string) => { map.set(k, v); } };
+        assert(!isTutorialAskPageForced(storage), 'Missing testing flag should read as off');
+        map.set(NOTIF_ASK_TUTORIAL_PAGE_ALWAYS_KEY, 'true');
+        assert(isTutorialAskPageForced(storage), 'Saved testing flag should read as on');
       },
     },
     {

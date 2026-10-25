@@ -49,9 +49,10 @@ function TutorialAlertBanner() {
 }
 
 // Illustrated version of a standard iPhone wallpaper: flat, hard-edged waves (no gradients)
-function LockScreenWallpaper() {
+// Shared with the Reminders at a glance page, which shows the top of the lock screen (anchor "top")
+export function LockScreenWallpaper({ anchor = "bottom" }: { anchor?: "top" | "bottom" }) {
   return (
-    <svg className="absolute inset-0 size-full" viewBox="0 0 280 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <svg className="absolute inset-0 size-full" viewBox="0 0 280 400" preserveAspectRatio={anchor === "top" ? "xMidYMin slice" : "xMidYMax slice"} aria-hidden="true">
       <rect width="280" height="400" fill="#1C2C42" />
       <path d="M0 40 C 80 10 170 90 280 50 L280 400 L0 400 Z" fill="#24407A" />
       <path d="M0 120 C 90 80 180 170 280 120 L280 400 L0 400 Z" fill="#2F5BB8" />

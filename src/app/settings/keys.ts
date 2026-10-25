@@ -86,6 +86,7 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-config-tutorial-reminders-page-3': 'true',
   'reminderly-config-tutorial-reminders-page-4': 'true',
   'reminderly-config-tutorial-reminders-page-8': 'true',
+  'reminderly-config-tutorial-reminders-page-11': 'true',
   'reminderly-config-tutorial-reminders-page-5': 'true',
   'reminderly-config-tutorial-lists-page-0': 'true',
   'reminderly-config-tutorial-lists-page-1': 'true',

@@ -12,6 +12,8 @@ export type TutorialPageConfig = {
   siriAvailable?: boolean;
   // Reminder attachments available (flag and Reminders module on)
   attachmentsAvailable?: boolean;
+  // Lock screen widget available (flag and Reminders module on): the Reminders at a glance page
+  lockScreenWidgetAvailable?: boolean;
   // Onboarding testing mode: the pages to show, replacing the rules below (null when testing mode is off)
   testPageIds?: number[] | null;
   // Live page config: the pages switched on (null or missing keeps every page the rules allow)
@@ -23,11 +25,12 @@ export const TUTORIAL_PAGE_TYPE_NATURALLY = 7;
 export const TUTORIAL_PAGE_NOTIFICATION_ASK = 8;
 export const TUTORIAL_PAGE_SIRI = 9;
 export const TUTORIAL_PAGE_ATTACHMENT = 10;
+export const TUTORIAL_PAGE_LOCK_SCREEN_WIDGET = 11;
 
 // Reminders tutorial pages: 0 tour, 1 filters, 2 manage, 3 mark done, 4 see done, 5 re-run from settings,
 // 6 create a reminder, 7 type it naturally (NLC demo available), 8 notification ask (eligible when opened),
 // 9 add reminders with Siri (Siri available), 10 add an attachment (attachments available), straight after create a
-// reminder and before Siri.
+// reminder and before Siri. 11 reminders at a glance (lock screen widget available), after the notification ask.
 // Page 1 (filters) is retired: page 0 now clicks through the filters, as the lists tour does (John, 2026-10-24).
 // Lists tutorial pages: 0 tour, 1 completed lists, 2 view and edit, 3 smart reminders, 4 list templates,
 // 5 re-run from settings.
@@ -58,6 +61,7 @@ function getRulePageIds(config: TutorialPageConfig): number[] {
   pages.push(2, 3, 4);
   // Never miss a reminder comes before Re-run this tutorial, which stays the last page (John, 2026-10-25)
   if (config.notificationAskEligible) pages.push(TUTORIAL_PAGE_NOTIFICATION_ASK);
+  if (config.lockScreenWidgetAvailable) pages.push(TUTORIAL_PAGE_LOCK_SCREEN_WIDGET);
   if (config.settingsMenuEnabled) pages.push(5);
   return pages;
 }
@@ -77,6 +81,7 @@ export const TUTORIAL_TEST_PAGES: Record<TutorialVariantId, { id: number; label:
     { id: 3, label: "Mark reminders as 'done'" },
     { id: 4, label: "See what you've done" },
     { id: TUTORIAL_PAGE_NOTIFICATION_ASK, label: 'Never miss a reminder' },
+    { id: TUTORIAL_PAGE_LOCK_SCREEN_WIDGET, label: 'Reminders at a glance' },
     { id: 5, label: 'Re-run this tutorial' },
   ],
   lists: [

@@ -35,11 +35,12 @@ import TutorialReminderFilters, {
   UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS,
 } from '@/app/components/TutorialReminderFilters';
 import OnboardingCreateReminderPhone, { OnboardingCreateReminderText, OnboardingTypeNaturallyText } from '@/app/components/OnboardingCreateReminderContent';
+import OnboardingLockScreenWidgetPhone, { OnboardingLockScreenWidgetText } from '@/app/components/OnboardingLockScreenWidgetContent';
 import OnboardingNotificationAskPhone, { OnboardingNotificationAskResult, OnboardingNotificationAskText } from '@/app/components/OnboardingNotificationAskContent';
 import { isPermissionUndecided } from '@/app/notification-ask';
 import OnboardingSiriPhone, { OnboardingSiriText } from '@/app/components/OnboardingSiriContent';
 import OnboardingAttachmentPhone, { OnboardingAttachmentText } from '@/app/components/OnboardingAttachmentContent';
-import { getTutorialPageIds, TUTORIAL_PAGE_ATTACHMENT, TUTORIAL_PAGE_CREATE_REMINDER, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_PAGE_SIRI, TUTORIAL_PAGE_TYPE_NATURALLY } from '@/app/utils/tutorial-pages';
+import { getTutorialPageIds, TUTORIAL_PAGE_ATTACHMENT, TUTORIAL_PAGE_LOCK_SCREEN_WIDGET, TUTORIAL_PAGE_CREATE_REMINDER, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_PAGE_SIRI, TUTORIAL_PAGE_TYPE_NATURALLY } from '@/app/utils/tutorial-pages';
 import type { NlcTutorialDemo } from '@/app/utils/tutorial-nlc-demo';
 
 interface TutorialOnboardingContentProps {
@@ -67,6 +68,8 @@ interface TutorialOnboardingContentProps {
   siriAvailable?: boolean;
   // Reminder attachments available: the Add an attachment page and the paperclip on the New reminder mock
   attachmentsAvailable?: boolean;
+  // Lock screen widget available: the Reminders at a glance page
+  lockScreenWidgetAvailable?: boolean;
   // Reminders tutorial: Re-run this tutorial page shows the settings rows the app shows
   remindersSettings?: TutorialRemindersSettings;
   // Lists tutorial: Re-run this tutorial page shows the Lists settings rows the app shows
@@ -1554,6 +1557,7 @@ export default function TutorialOnboardingContent({
   onNotificationOpenSettings,
   siriAvailable = false,
   attachmentsAvailable = false,
+  lockScreenWidgetAvailable = false,
   remindersSettings,
   listsSettings,
   testPageIds = null,
@@ -1563,8 +1567,8 @@ export default function TutorialOnboardingContent({
   const [currentStep, setCurrentStep] = useState(0);
   const nlcDemoAvailable = nlcDemo != null;
   const pageIds = useMemo(
-    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, testPageIds, livePageIds }),
-    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, testPageIds, livePageIds],
+    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, lockScreenWidgetAvailable, testPageIds, livePageIds }),
+    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, lockScreenWidgetAvailable, testPageIds, livePageIds],
   );
   const totalPages = pageIds.length;
   const currentPage = pageIds[Math.min(currentStep, totalPages - 1)];
@@ -1828,6 +1832,15 @@ export default function TutorialOnboardingContent({
                 <OnboardingNotificationAskResult permission={notificationPermission} />
               </div>
             )}
+          </div>
+        )}
+
+        {!isListsTutorial && currentPage === TUTORIAL_PAGE_LOCK_SCREEN_WIDGET && (
+          <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
+            <OnboardingLockScreenWidgetText />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME}`}>
+              <OnboardingLockScreenWidgetPhone />
+            </div>
           </div>
         )}
 

@@ -9,7 +9,7 @@ The animated tutorial for Reminders and Lists, shown in a slide-up overlay with 
 | `reminderly-ff-onboarding-tutorial` | on | Tutorial available. Off: `TutorialOverlay` renders nothing |
 | `reminderly-config-tutorial-first-launch` | on | Open automatically on launch |
 | `reminderly-test-tutorial-every-start` | off | Open on every start (testing; mutually exclusive with first launch) |
-| `reminderly-test-tutorial-<reminders or lists>-mode` | off | Testing tools > Onboarding testing > Reminders or Lists tutorial > Testing mode: the tutorial shows exactly the pages switched on below, in the normal order, ignoring flags, feature availability and the notification ask state. None on shows the first page |
+| `reminderly-test-tutorial-<reminders or lists>-mode` | off | Testing tools > Onboarding testing > Reminders or Lists tutorial > Testing mode: the tutorial shows exactly the pages switched on below, in the normal order, ignoring flags, feature availability and the notification ask state. None on shows the first page. While on, the Dev tools icon (27px, #141B34) shows at the top right of that tutorial's card |
 | `reminderly-test-tutorial-<reminders or lists>-page-<page id>` | on | One per page on the same screen; only read while testing mode is on |
 | `reminderly-config-tutorial-<reminders or lists>-page-<page id>` | on | Live page config. Set by Push to live (and Reset live to all pages) on the same screen. With testing mode off, the rules pick the pages and pages switched off here are removed; never adds a page. If none remain, the first page the rules allow is shown. Missing or malformed values read as on. Release values decided in the launch defaults review |
 

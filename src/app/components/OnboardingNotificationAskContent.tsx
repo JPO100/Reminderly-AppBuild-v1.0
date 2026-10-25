@@ -48,16 +48,20 @@ function TutorialAlertBanner() {
   );
 }
 
-// Illustrated version of a standard iPhone wallpaper: flat, hard-edged waves (no gradients)
+// Illustrated version of a standard iPhone wallpaper (sky blue, a rounded blue shape, a white sliver and a deep
+// navy sweep), drawn as flat, hard-edged shapes: no gradients or fades. Centred, so the phone shows the middle.
 function LockScreenWallpaper() {
   return (
-    <svg className="absolute inset-0 size-full" viewBox="0 0 280 400" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-      <rect width="280" height="400" fill="#1C2C42" />
-      <path d="M0 40 C 80 10 170 90 280 50 L280 400 L0 400 Z" fill="#24407A" />
-      <path d="M0 120 C 90 80 180 170 280 120 L280 400 L0 400 Z" fill="#2F5BB8" />
-      <path d="M0 200 C 70 160 190 250 280 190 L280 400 L0 400 Z" fill="#4784F8" />
-      <path d="M0 270 C 100 230 170 320 280 260 L280 400 L0 400 Z" fill="#7FA6FA" />
-      <path d="M0 330 C 80 300 200 380 280 320 L280 400 L0 400 Z" fill="#B9CDFC" />
+    <svg className="absolute inset-0 size-full" viewBox="0 0 376 749" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect width="376" height="749" fill="#8DD1F8" />
+      <path d="M0 0 H376 V120 C 280 90 140 150 0 130 Z" fill="#A9DDFA" />
+      <path d="M0 450 C 30 470 58 510 72 560 C 50 610 24 650 0 680 Z" fill="#F4D8CF" />
+      <path d="M186 360 C 182 230 196 140 248 86 C 286 50 334 36 376 32 V 340 Z" fill="#2E86EE" />
+      <path d="M60 545 C 92 455 136 382 190 326 C 188 402 168 470 130 532 C 108 548 82 552 60 545 Z" fill="#EEF4FB" />
+      <path d="M0 700 C 64 646 108 604 136 540 C 166 470 178 390 190 326 C 250 290 320 250 376 196 V 749 H 0 Z" fill="#123B8F" />
+      <path d="M190 326 C 250 290 320 250 376 196 V 300 C 312 332 252 352 188 366 Z" fill="#1F5FD6" />
+      <path d="M40 749 C 130 640 190 560 250 500 C 300 450 340 420 376 400 V 749 Z" fill="#0A1F55" />
+      <path d="M150 749 C 220 680 290 620 376 570 V 749 Z" fill="#050D2E" />
     </svg>
   );
 }

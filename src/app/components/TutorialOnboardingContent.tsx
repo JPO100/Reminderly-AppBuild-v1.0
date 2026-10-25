@@ -1687,11 +1687,9 @@ export default function TutorialOnboardingContent({
   const isLastPage = currentStep === totalPages - 1;
   const activePaginationColor = isListsTutorial ? LIST_BLUE : REMINDERLY_LIGHT_BLUE;
   const nextButtonColor = isListsTutorial ? LIST_BLUE : "#4784f8";
-  const paginationWidth = 115.542;
-  const paginationDotRadius = 3.96729;
-  const paginationDotSpacing = totalPages <= 7 ? 17.93461 : (paginationWidth - paginationDotRadius * 2) / (totalPages - 1);
-  const paginationDotsWidth = (totalPages - 1) * paginationDotSpacing + paginationDotRadius * 2;
-  const paginationStartX = (paginationWidth - paginationDotsWidth) / 2 + paginationDotRadius;
+  // Pagination dots: 10px apart, closing up only when they would not fit the navigation row's width
+  const paginationDotSize = 7.935;
+  const paginationGap = totalPages > 1 ? `min(10px, calc((100% - ${totalPages * paginationDotSize}px) / ${totalPages - 1}))` : '0px';
 
   return (
     <div
@@ -1931,20 +1929,14 @@ export default function TutorialOnboardingContent({
       </div>
       
       <div className="shrink-0 flex flex-col items-center gap-[36px] [@media(max-height:570px)]:pt-[30px] [@media(max-height:570px)]:pb-[30px]">
-        <div className="h-[7.935px] w-[115.542px] [@media(max-height:570px)]:hidden">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 115.542 7.93457">
-            <g>
-              {Array.from({ length: totalPages }, (_, index) => (
-                <circle
-                  key={index}
-                  cx={paginationStartX + index * paginationDotSpacing}
-                  cy="3.96729"
-                  fill={currentStep === index ? activePaginationColor : "#D9D9D9"}
-                  r={paginationDotRadius}
-                />
-              ))}
-            </g>
-          </svg>
+        <div className="flex justify-center w-full max-w-[322px] h-[7.935px] [@media(max-height:570px)]:hidden" style={{ columnGap: paginationGap }} data-name="tutorial-pagination">
+          {Array.from({ length: totalPages }, (_, index) => (
+            <div
+              key={index}
+              className="shrink-0 rounded-full"
+              style={{ width: paginationDotSize, height: paginationDotSize, backgroundColor: currentStep === index ? activePaginationColor : "#D9D9D9" }}
+            />
+          ))}
         </div>
         
         <div className="relative flex items-center justify-center w-full max-w-[322px] h-[45px]">

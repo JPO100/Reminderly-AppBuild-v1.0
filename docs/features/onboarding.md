@@ -92,7 +92,7 @@ Subtitles have no trailing full stop. Page 3 subtitle: "Add a reminder that trac
 
 ## Navigation
 
-- Page dots, centred for the visible count.
+- Page dots (7.9px), centred for the visible count, 10px apart; the gap closes up only if the dots would not fit the navigation row (up to 322px). Set by John, 2026-10-25.
 - Back (hidden on the first page), Next, and "Okay, got it" on the last page, which closes the overlay.
 - Restart returns to the first page (shown on the last page).
 

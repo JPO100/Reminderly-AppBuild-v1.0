@@ -75,6 +75,24 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-onboarding-tutorial': 'true',
   'reminderly-config-tutorial-first-launch': 'true',
   'reminderly-test-tutorial-every-start': 'false',
+  // Tutorial live page config, one key per page id (docs/plans/tutorial-live-page-config.md). Release values are
+  // decided in the launch defaults review (docs/release-readiness.md, Recommended release defaults).
+  'reminderly-config-tutorial-reminders-page-0': 'true',
+  'reminderly-config-tutorial-reminders-page-6': 'true',
+  'reminderly-config-tutorial-reminders-page-10': 'true',
+  'reminderly-config-tutorial-reminders-page-9': 'true',
+  'reminderly-config-tutorial-reminders-page-7': 'true',
+  'reminderly-config-tutorial-reminders-page-2': 'true',
+  'reminderly-config-tutorial-reminders-page-3': 'true',
+  'reminderly-config-tutorial-reminders-page-4': 'true',
+  'reminderly-config-tutorial-reminders-page-5': 'true',
+  'reminderly-config-tutorial-reminders-page-8': 'true',
+  'reminderly-config-tutorial-lists-page-0': 'true',
+  'reminderly-config-tutorial-lists-page-1': 'true',
+  'reminderly-config-tutorial-lists-page-2': 'true',
+  'reminderly-config-tutorial-lists-page-3': 'true',
+  'reminderly-config-tutorial-lists-page-4': 'true',
+  'reminderly-config-tutorial-lists-page-5': 'true',
 
   // System
   'reminderly-ff-settings-menu-v2': 'true',

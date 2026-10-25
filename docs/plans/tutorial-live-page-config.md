@@ -1,6 +1,6 @@
 # Tutorial live page config ("Push to live")
 
-Status: D1-D3 approved in principle by Kai (2026-10-25), with requirements R1-R5 (section 10). This revision is for final Type C plan approval. Not implemented.
+Status: plan approved by Kai (2026-10-25, D1-D3 and R1-R5). Implemented on feature/tutorial-live-page-config; awaiting Kai's final Type C review. Not merged.
 Requested by John, 2026-10-25. Type C under Working Agreement v1.3: it changes the rule that picks the tutorial pages users see.
 Repository: github.com/JPO100/Reminderly-AppBuild-v1.0. Plan on feature/dev-force-notification-ask-page; implementation on feature/tutorial-live-page-config (D3).
 

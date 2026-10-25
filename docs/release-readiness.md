@@ -60,6 +60,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Natural language capture | `ff-nlc`, `pref-nlc` | off, off | on (decided 2026-10-23, John); default preference set in the NLC release-readiness ticket | Major feature; free or Premium not yet decided |
 | NLC phone, contacts | `ff-nlc-phone`, `ff-nlc-contacts` | off | off | Not built |
 | Onboarding tutorial | `ff-onboarding-tutorial`, `config-tutorial-first-launch` | on, on | on, on (after the first-launch fix) | |
+| Tutorial live pages | `config-tutorial-<reminders or lists>-page-<id>` (16) | all on | Decision | John's set pushed from Dev tools > Testing tools > Onboarding testing; normal eligibility rules still apply. See [plans/tutorial-live-page-config.md](./plans/tutorial-live-page-config.md) |
 | Settings menu | `ff-settings-menu-v2` | on | on | Only settings entry point |
 | Info icons | `ff-info-icons` | off | Decision | Explanatory text in settings |
 | Lock screen widget | `ff-lock-screen-widget` | on | on | |

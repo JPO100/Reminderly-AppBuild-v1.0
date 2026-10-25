@@ -2,6 +2,7 @@ import type { Check } from './check-system';
 import type { Reminder } from '../reminder-utils';
 import { computeBadgeCount, getNextTimeRefreshBoundary, getTodayProgress } from '../reminder-utils';
 import { MIDNIGHT_BADGE_FIRST_ID, buildScheduledNotifications } from '../notifications';
+import { getTutorialPageIds, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_TEST_PAGES } from '../utils/tutorial-pages';
 import { askStateAfterNotNow, askStateOnLaunch, askStateOnTutorialClose, readAskState, settingsToggleNeedsAsk, shouldAskAutomatically, writeAskState } from '../notification-ask';
 
 function assert(condition: boolean, message: string): void {
@@ -418,6 +419,18 @@ export function getNotificationChecks(): Check[] {
         assert(askStateOnTutorialClose(null, true, true) === null, 'Allow writes its own state; close should not change it');
         assert(shouldAskAutomatically(askStateOnTutorialClose(null, false, false), 'timed-reminder', 'prompt'), 'Skipping the page should keep the timed-reminder ask');
         assert(shouldAskAutomatically(askStateOnTutorialClose(null, true, false), 'timed-reminder', 'prompt'), 'Not now on the page should still allow the timed-reminder backup ask');
+      },
+    },
+    {
+      id: 'notif-ask-tutorial-live-page-off',
+      name: 'Onboarding ask page: switched off in the live page config, the first timed reminder still asks',
+      run: () => {
+        const livePageIds = TUTORIAL_TEST_PAGES.reminders.map((page) => page.id).filter((id) => id !== TUTORIAL_PAGE_NOTIFICATION_ASK);
+        const pages = getTutorialPageIds({ variant: 'reminders', settingsMenuEnabled: true, smartRemindersEnabled: false, savedListsEnabled: false, notificationAskEligible: true, livePageIds });
+        assert(!pages.includes(TUTORIAL_PAGE_NOTIFICATION_ASK), 'The ask page should not be shown when live config switches it off');
+        const state = askStateOnTutorialClose(null, false, false);
+        assert(state === null, 'Closing the tutorial should leave the ask state unasked');
+        assert(shouldAskAutomatically(state, 'timed-reminder', 'prompt'), 'The first timed reminder should still ask');
       },
     },
     {

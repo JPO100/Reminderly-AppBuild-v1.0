@@ -1,3 +1,6 @@
+import { readStoredBool } from '../settings/useStoredSetting';
+import type { SettingsStorage } from '../settings/keys';
+
 export type TutorialPageConfig = {
   variant: 'reminders' | 'lists';
   settingsMenuEnabled: boolean;
@@ -11,6 +14,8 @@ export type TutorialPageConfig = {
   attachmentsAvailable?: boolean;
   // Onboarding testing mode: the pages to show, replacing the rules below (null when testing mode is off)
   testPageIds?: number[] | null;
+  // Live page config: the pages switched on (null or missing keeps every page the rules allow)
+  livePageIds?: number[] | null;
 };
 
 export const TUTORIAL_PAGE_CREATE_REMINDER = 6;
@@ -27,8 +32,17 @@ export const TUTORIAL_PAGE_ATTACHMENT = 10;
 // Lists tutorial pages: 0 tour, 1 completed lists, 2 view and edit, 3 smart reminders, 4 list templates,
 // 5 re-run from settings.
 // Page ids are stable so each page keeps its own content; only the visible sequence changes.
+// Testing mode replaces everything. Otherwise the rules pick the pages and the live config can only remove them
+// (docs/plans/tutorial-live-page-config.md); if it removes them all, the first page the rules allow is shown.
 export function getTutorialPageIds(config: TutorialPageConfig): number[] {
   if (config.testPageIds && config.testPageIds.length > 0) return config.testPageIds;
+  const pages = getRulePageIds(config);
+  if (!config.livePageIds) return pages;
+  const livePages = pages.filter((id) => config.livePageIds!.includes(id));
+  return livePages.length > 0 ? livePages : [pages[0]];
+}
+
+function getRulePageIds(config: TutorialPageConfig): number[] {
   if (config.variant === 'lists') {
     const pages = [0, 1, 2];
     if (config.smartRemindersEnabled) pages.push(3);
@@ -91,6 +105,16 @@ export function getTutorialTestPageIds(variant: TutorialVariantId, storage: Pick
   } catch {
     return null;
   }
+}
+
+// Live page config ("Push to live"): one config key per page, on by default (SETTINGS_DEFAULTS), decided for the
+// golden master in the launch defaults review. Missing or malformed values read as on.
+export function tutorialLivePageKey(variant: TutorialVariantId, pageId: number): string {
+  return `reminderly-config-tutorial-${variant}-page-${pageId}`;
+}
+
+export function getTutorialLivePageIds(variant: TutorialVariantId, storage: SettingsStorage = localStorage): number[] {
+  return TUTORIAL_TEST_PAGES[variant].map((page) => page.id).filter((id) => readStoredBool(tutorialLivePageKey(variant, id), true, storage));
 }
 
 export type TutorialAutoOpenConfig = {

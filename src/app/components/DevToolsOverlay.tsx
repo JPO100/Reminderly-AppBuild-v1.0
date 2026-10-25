@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { canChangeModuleFlag } from "../settings/resolver";
 import { readStoredBool, useStoredSetting, writeStoredBool } from "../settings/useStoredSetting";
-import { TUTORIAL_TEST_PAGES, tutorialTestModeKey, tutorialTestPageKey } from "../utils/tutorial-pages";
+import { getTutorialLivePageIds, TUTORIAL_TEST_PAGES, tutorialLivePageKey, tutorialTestModeKey, tutorialTestPageKey } from "../utils/tutorial-pages";
 import type { TutorialVariantId } from "../utils/tutorial-pages";
 import { CALENDAR_SWIPE_HINT_EVERY_VISIT_KEY } from "../utils/calendar-swipe-hint";
 import { runChecks, formatReportAsText, groupResultsBySection } from "../dev/check-system";
@@ -1040,7 +1040,15 @@ function OnboardingTestingPage({ variant, onBack, onClose }: { variant: Tutorial
   const [testingMode, setTestingMode] = useState(() => readStoredBool(tutorialTestModeKey(variant), false));
   const [pagesOn, setPagesOn] = useState<Record<number, boolean>>(() => Object.fromEntries(pages.map((page) => [page.id, readStoredBool(tutorialTestPageKey(variant, page.id), true)])));
   const name = variant === 'reminders' ? 'Reminders' : 'Lists';
+  // Live page config ("Push to live", docs/plans/tutorial-live-page-config.md)
+  const [livePageIds, setLivePageIds] = useState(() => getTutorialLivePageIds(variant));
+  const [confirmPush, setConfirmPush] = useState(false);
+  const saveLive = (onIds: number[]) => {
+    for (const page of pages) writeStoredBool(tutorialLivePageKey(variant, page.id), onIds.includes(page.id));
+    setLivePageIds(getTutorialLivePageIds(variant));
+  };
   return (
+    <>
     <PageShell title={`${name} tutorial`} onBack={onBack} onClose={onClose}>
       <DevCard>
       <DevToggleRow label="Testing mode" isOn={testingMode} onToggle={() => { setTestingMode(!testingMode); writeStoredBool(tutorialTestModeKey(variant), !testingMode); }} infoTitle={`When on, the ${name} tutorial shows exactly the pages switched on below, in the normal order, each time it opens (from settings or on app start). Flags, feature availability and the notification ask state are ignored. With every page off, the first page is shown. When off, the normal rules apply and these choices are kept.`} />
@@ -1050,7 +1058,41 @@ function OnboardingTestingPage({ variant, onBack, onClose }: { variant: Tutorial
         <DevToggleRow key={page.id} label={page.label} isOn={pagesOn[page.id]} disabled={!testingMode} onToggle={() => { const next = !pagesOn[page.id]; setPagesOn({ ...pagesOn, [page.id]: next }); writeStoredBool(tutorialTestPageKey(variant, page.id), next); }} />
       ))}
       </DevCard>
+      <DevCard title="Live journey">
+      <DevCardBody>
+        <div className="flex items-center gap-[16px] w-full">
+          <p className={devRowLabelClass} style={{ color: '#1C2C42' }}>Live: {livePageIds.length} of {pages.length} pages</p>
+          <InfoIconWithOverlay header="Live pages" title={`The pages the ${name} tutorial can show with testing mode off. The normal rules still decide, so a page only shows when its feature is available (and Never miss a reminder only while the notification ask is unanswered).\n\n${pages.filter((page) => livePageIds.includes(page.id)).map((page) => page.label).join('\n')}`} />
+        </div>
+        <button type="button" onClick={() => setConfirmPush(true)} className="h-[50px] rounded-[100px] shrink-0 w-full cursor-pointer bg-[#4784F8]">
+          <span className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]">Push to live</span>
+        </button>
+        <button type="button" onClick={() => saveLive(pages.map((page) => page.id))} className="h-[50px] rounded-[100px] shrink-0 w-full cursor-pointer bg-[#BABABA]">
+          <span className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]">Reset live to all pages</span>
+        </button>
+      </DevCardBody>
+      </DevCard>
     </PageShell>
+      {confirmPush && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setConfirmPush(false)} />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+            <div className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card" style={{ width: 340 }} onClick={(e) => e.stopPropagation()}>
+              <p className="font-['Lato:Bold',sans-serif] text-[#1C2C42] text-[20px] text-center leading-[normal]">Push this page set to the live {name} tutorial?</p>
+              <p className="font-['Lato:SemiBold',sans-serif] text-[#939393] text-[17px] text-center leading-[normal]">{pages.filter((page) => pagesOn[page.id]).length} of {pages.length} pages. With testing mode off, the tutorial shows these pages where the normal rules allow.</p>
+              <div className="flex gap-[30px] w-full justify-between">
+                <button type="button" onClick={() => setConfirmPush(false)} className="h-[50px] rounded-[100px] cursor-pointer px-[16px] bg-[#BABABA]">
+                  <span className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal] whitespace-nowrap">Cancel</span>
+                </button>
+                <button type="button" onClick={() => { saveLive(pages.filter((page) => pagesOn[page.id]).map((page) => page.id)); setConfirmPush(false); }} className="h-[50px] rounded-[100px] cursor-pointer px-[16px] bg-[#4784F8]">
+                  <span className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal] whitespace-nowrap">Yes, push</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 }
 

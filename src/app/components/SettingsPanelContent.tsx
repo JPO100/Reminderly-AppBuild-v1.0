@@ -510,7 +510,7 @@ const TERMS_OF_USE: SupportDoc = {
   topButton: true,
   sections: [
     { paragraphs: [
-      "Reminderly is developed and operated by Neatly Made Limited, a company registered in the United Kingdom.",
+      "Reminderly is developed and operated by NeatlyMade Ltd., a company registered in the United Kingdom.",
       "By using Reminderly, you agree to these Terms of Use.",
     ] },
     { heading: "Using Reminderly", paragraphs: [
@@ -531,13 +531,13 @@ const TERMS_OF_USE: SupportDoc = {
       "You agree not to misuse Reminderly, interfere with its operation or use it for unlawful purposes.",
     ] },
     { heading: "Ownership", paragraphs: [
-      "Reminderly, including its design, software, branding and associated intellectual property, belongs to Neatly Made Limited or its licensors.",
+      "Reminderly, including its design, software, branding and associated intellectual property, belongs to NeatlyMade Ltd. or its licensors.",
       "You are granted permission to use the app in accordance with these terms and Apple's applicable licence agreement.",
     ] },
     { heading: "Availability and liability", paragraphs: [
       "We may update, improve or discontinue features of Reminderly.",
       "While we take reasonable care to provide a reliable app, we cannot guarantee uninterrupted or error-free operation.",
-      "To the extent permitted by law, Neatly Made Limited is not responsible for losses arising from missed reminders, delayed notifications or unavailable features.",
+      "To the extent permitted by law, NeatlyMade Ltd. is not responsible for losses arising from missed reminders, delayed notifications or unavailable features.",
       "Nothing in these terms excludes or limits liability where doing so would be unlawful, or affects your statutory consumer rights.",
     ] },
     { heading: "Changes to these terms", paragraphs: [
@@ -559,7 +559,7 @@ const PRIVACY_POLICY: SupportDoc = {
   topButton: true,
   sections: [
     { paragraphs: [
-      "Reminderly is developed and operated by Neatly Made Limited, a company registered in the United Kingdom.",
+      "Reminderly is developed and operated by NeatlyMade Ltd., a company registered in the United Kingdom.",
       "We believe your reminders are your business. This policy explains how we handle your information.",
     ] },
     { heading: "Your information", paragraphs: [

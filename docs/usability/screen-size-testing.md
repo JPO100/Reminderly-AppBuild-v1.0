@@ -180,6 +180,19 @@ Header observation: the accepted Reminders header (three filters plus settings, 
 - What older iOS versions do cost: WebKit compatibility testing (no iOS 16-18 simulator runtimes are installed today), and native feature gates. Siri (App Intents) already needs iOS 16 (`@available(iOS 16.0)` in the native code); one iOS 17 code path is already conditional. The widget extension targets iOS 16.
 - Recommendation for D6 (CTO decision; John agreed 2026-10-25): minimum iOS 16. It matches the 375 x 667 screen floor, keeps Siri available on every supported phone, and includes the iPhone 8, X, XS and XR, part of the roughly 100 million phones Apple no longer updates. Condition: one WebKit smoke test on an iOS 16 simulator runtime before release. Choosing iOS 18 instead would reduce the test surface but drop the iPhone 8 and X, with no screen size benefit.
 
+### Decisions and follow-up checks (John, 2026-10-25)
+
+- Vertical scrolling is accepted: content that runs below the screen (F5 reminder options card, F6 date picker) is fine as long as it fits the width. F5 and F6 need no change.
+- Horizontal overflow is not acceptable: nothing may run off the side of the screen. This covers F3 (list options card), F4 (custom days) and, below the floor only, F7.
+  - F3 cause: `src/imports/InfoOverlay.tsx` and `src/imports/list-info-overlay.tsx` fix the card at `width: 340` inside a full-width wrapper, so the card cannot shrink. Other overlays also set `width: 340` but sit directly in a flex wrapper and shrink, which is why the reminder options card fits at 360. Fix: `width: 100%` with a 340px maximum on those two cards.
+- Tutorials: on smaller screens the tutorial panel may fill the screen vertically (covering the blue logo header), only where needed. Prototype (browser, CSS injected, no code change) at 375 x 667: the panel starts below the status bar, the mock-up window grows from about 175px to 295px, and every page checked shows its demo (filter row and 2.5 reminder rows, the New reminder text field with Date and Time, the done tick). This is comparable to the 13 mini at 812, which passes. Screenshots: `375x667/prototype-full-height-tutorial-*.png`. The trigger height must include the iPhone Duo outer screen (678).
+
+### iPhone Duo outer screen (2026-10-25)
+
+- Apple's spec sheet: 5.4-inch outer display, 1398 x 2034 pixels at 460 ppi. At 3x this is about 466 x 678pt (Apple does not publish points; to confirm on a simulator when one is available, none is installed). Wider than a Pro Max, about as short as the SE.
+- Browser check at 466 x 678: Reminders tab and header pass (calendar hidden by the 852pt rule), Reminders settings pass. The tutorial will behave as at 667, so the full-height tutorial panel must apply here too. Screenshots: `docs/usability/screens/466x678/`.
+- Inner screen (7.6-inch, 1878 x 2670) remains out of scope.
+
 ### Milestone 1 recommendation (for John and Kai)
 
 - Minimum width: 360pt. 320pt fails across tutorials, date picker and settings (F1, F6, F7, F8) and is confirmed unsupported. 360 needs two contained fixes: F3 (list options card) and F4 (custom days).

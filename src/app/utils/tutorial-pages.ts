@@ -56,8 +56,9 @@ function getRulePageIds(config: TutorialPageConfig): number[] {
   if (config.siriAvailable) pages.push(TUTORIAL_PAGE_SIRI);
   if (config.nlcDemoAvailable) pages.push(TUTORIAL_PAGE_TYPE_NATURALLY);
   pages.push(2, 3, 4);
-  if (config.settingsMenuEnabled) pages.push(5);
+  // Never miss a reminder comes before Re-run this tutorial, which stays the last page (John, 2026-10-25)
   if (config.notificationAskEligible) pages.push(TUTORIAL_PAGE_NOTIFICATION_ASK);
+  if (config.settingsMenuEnabled) pages.push(5);
   return pages;
 }
 
@@ -75,8 +76,8 @@ export const TUTORIAL_TEST_PAGES: Record<TutorialVariantId, { id: number; label:
     { id: 2, label: 'Manage your reminders' },
     { id: 3, label: "Mark reminders as 'done'" },
     { id: 4, label: "See what you've done" },
-    { id: 5, label: 'Re-run this tutorial' },
     { id: TUTORIAL_PAGE_NOTIFICATION_ASK, label: 'Never miss a reminder' },
+    { id: 5, label: 'Re-run this tutorial' },
   ],
   lists: [
     { id: 0, label: 'A tour of lists' },

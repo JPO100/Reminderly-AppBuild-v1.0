@@ -1700,6 +1700,7 @@ export default function App() {
   const [tutorialNotifAskEligible, setTutorialNotifAskEligible] = useState(false);
   const tutorialOnNotifAskPageRef = useRef(false);
   const tutorialNotifAllowedRef = useRef(false);
+  const tutorialNotifSkippedRef = useRef(false);
   const notifAskFlagsRef = useRef({ isRemindersEnabled, notificationsFlag });
   notifAskFlagsRef.current = { isRemindersEnabled, notificationsFlag };
 
@@ -1712,6 +1713,7 @@ export default function App() {
     tutorialVariantsShownThisSessionRef.current.add(variant);
     tutorialOnNotifAskPageRef.current = false;
     tutorialNotifAllowedRef.current = false;
+    tutorialNotifSkippedRef.current = false;
     setTutorialNotifAskEligible(false);
     setTutorialTestPageIds(getTutorialTestPageIds(variant));
     setTutorialLivePageIds(getTutorialLivePageIds(variant));
@@ -1730,11 +1732,21 @@ export default function App() {
     setIsTutorialOpen(false);
     if (tutorialVariant === 'reminders') {
       const state = readAskState();
-      const next = askStateOnTutorialClose(state, tutorialOnNotifAskPageRef.current, tutorialNotifAllowedRef.current);
+      const next = askStateOnTutorialClose(state, tutorialOnNotifAskPageRef.current && !tutorialNotifSkippedRef.current, tutorialNotifAllowedRef.current);
       if (next !== state) writeAskState(next);
     }
     tutorialOnNotifAskPageRef.current = false;
   }, [tutorialVariant]);
+
+  // Skip on the Never miss a reminder page: Not now (automatic source), once per tutorial opening. Closing later,
+  // even back on the page, does not count again.
+  const handleTutorialNotifSkip = useCallback(() => {
+    if (tutorialNotifSkippedRef.current || tutorialNotifAllowedRef.current) return;
+    tutorialNotifSkippedRef.current = true;
+    const state = readAskState();
+    const next = askStateAfterNotNow(state, 'automatic');
+    if (next !== state) writeAskState(next);
+  }, []);
 
   const handleTutorialNotifAllow = () => {
     tutorialNotifAllowedRef.current = true;
@@ -5782,7 +5794,7 @@ export default function App() {
                   onPointerDown={(event) => tutorialSheetDragControls.start(event)}
                 />
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} siriAvailable={isSiriRemindersAvailable} attachmentsAvailable={isReminderAttachmentsEnabled} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} testPageIds={tutorialTestPageIds} livePageIds={tutorialLivePageIds} />
+                <TutorialOverlay onClose={closeTutorial} isEnabled={isOnboardingTutorialEnabled} variant={tutorialVariant} isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} smartRemindersEnabled={isSmartRemindersEnabled} savedListsEnabled={savedListsFeatureEnabled} calendarEnabled={isCalendarButtonShown} repeatsEnabled={isRepeatRemindersActive} nlcDemo={tutorialNlcDemo} notificationAskEligible={tutorialNotifAskEligible} notificationPermission={notifPermission} onNotificationAllow={handleTutorialNotifAllow} onNotificationAskPageChange={handleTutorialNotifAskPageChange} onNotificationSkip={handleTutorialNotifSkip} siriAvailable={isSiriRemindersAvailable} attachmentsAvailable={isReminderAttachmentsEnabled} remindersSettings={tutorialRemindersSettings} listsSettings={tutorialListsSettings} testPageIds={tutorialTestPageIds} livePageIds={tutorialLivePageIds} />
                 </ShowInfoIconsContext.Provider>
               </motion.div>
             </motion.div>

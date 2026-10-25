@@ -35,7 +35,8 @@ import TutorialReminderFilters, {
   UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS,
 } from '@/app/components/TutorialReminderFilters';
 import OnboardingCreateReminderPhone, { OnboardingCreateReminderText, OnboardingTypeNaturallyText } from '@/app/components/OnboardingCreateReminderContent';
-import OnboardingNotificationAskPhone, { OnboardingNotificationAskAction, OnboardingNotificationAskText } from '@/app/components/OnboardingNotificationAskContent';
+import OnboardingNotificationAskPhone, { OnboardingNotificationAskResult, OnboardingNotificationAskText } from '@/app/components/OnboardingNotificationAskContent';
+import { isPermissionUndecided } from '@/app/notification-ask';
 import OnboardingSiriPhone, { OnboardingSiriText } from '@/app/components/OnboardingSiriContent';
 import OnboardingAttachmentPhone, { OnboardingAttachmentText } from '@/app/components/OnboardingAttachmentContent';
 import { getTutorialPageIds, TUTORIAL_PAGE_ATTACHMENT, TUTORIAL_PAGE_CREATE_REMINDER, TUTORIAL_PAGE_NOTIFICATION_ASK, TUTORIAL_PAGE_SIRI, TUTORIAL_PAGE_TYPE_NATURALLY } from '@/app/utils/tutorial-pages';
@@ -58,6 +59,8 @@ interface TutorialOnboardingContentProps {
   notificationPermission?: string | null;
   onNotificationAllow?: () => Promise<unknown> | void;
   onNotificationAskPageChange?: (isOnPage: boolean) => void;
+  // Skip on the Never miss a reminder page: Not now, then the next page
+  onNotificationSkip?: () => void;
   // Reminders tutorial: Add reminders with Siri page (Siri for reminders available)
   siriAvailable?: boolean;
   // Reminder attachments available: the Add an attachment page and the paperclip on the New reminder mock
@@ -75,6 +78,8 @@ interface TutorialOnboardingContentProps {
 const LIST_BLUE = "#4784F8";
 const REMINDERLY_LIGHT_BLUE = "#4784F8";
 const TUTORIAL_PHONE_GAP_TOP_CLASSNAME = "mt-[35px]";
+// Standard footer button height (Next, Okay got it, Turn on and Skip)
+const TUTORIAL_FOOTER_BUTTON_HEIGHT = "clamp(40px, calc(20vh - 73.6px), 54px)";
 const TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME = "pb-[45px]";
 const TUTORIAL_LIST_OVERLAY_TOP = 11 + 5.026 + 65 - 2;
 const LISTS_PAGE_3_TARGET_LIST_ID = "list-2";
@@ -1525,6 +1530,7 @@ export default function TutorialOnboardingContent({
   notificationPermission = null,
   onNotificationAllow,
   onNotificationAskPageChange,
+  onNotificationSkip,
   siriAvailable = false,
   attachmentsAvailable = false,
   remindersSettings,
@@ -1664,6 +1670,8 @@ export default function TutorialOnboardingContent({
     }
   }, [currentStep, totalPages]);
 
+  const [notificationRequesting, setNotificationRequesting] = useState(false);
+
   const handleNext = () => {
     if (currentStep < totalPages - 1) {
       setCurrentStep(currentStep + 1);
@@ -1688,6 +1696,7 @@ export default function TutorialOnboardingContent({
 
   const isFirstPage = currentStep === 0;
   const isLastPage = currentStep === totalPages - 1;
+  const showNotificationAskButtons = isNotificationAskPage && isPermissionUndecided(notificationPermission);
   const activePaginationColor = isListsTutorial ? LIST_BLUE : REMINDERLY_LIGHT_BLUE;
   const nextButtonColor = isListsTutorial ? LIST_BLUE : "#4784f8";
   // Pagination dots: 10px apart, closing up only when they would not fit the navigation row's width
@@ -1788,12 +1797,14 @@ export default function TutorialOnboardingContent({
         {isNotificationAskPage && (
           <div className="content-stretch flex flex-col items-center relative w-full h-full min-h-0">
             <OnboardingNotificationAskText />
-            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} pb-[16px]`}>
-              <OnboardingNotificationAskPhone isListsEnabled={isListsEnabled} settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
+            <div className={`flex min-h-0 flex-1 items-center justify-center w-full ${TUTORIAL_PHONE_GAP_TOP_CLASSNAME} ${isPermissionUndecided(notificationPermission) ? TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME : "pb-[16px]"}`}>
+              <OnboardingNotificationAskPhone />
             </div>
-            <div className="shrink-0 flex items-center justify-center h-[45px] mb-[16px]">
-              <OnboardingNotificationAskAction permission={notificationPermission} onAllow={() => onNotificationAllow?.()} />
-            </div>
+            {!isPermissionUndecided(notificationPermission) && (
+              <div className="shrink-0 flex items-center justify-center h-[45px] mb-[16px]">
+                <OnboardingNotificationAskResult permission={notificationPermission} />
+              </div>
+            )}
           </div>
         )}
 
@@ -1958,15 +1969,48 @@ export default function TutorialOnboardingContent({
             <div className="absolute left-0 h-[45px] w-[35px]" />
           )}
           
+          {showNotificationAskButtons ? (
+            // Never miss a reminder while iOS has not decided: Turn on and Skip, both moving on to the next page
+            <div className="flex items-center gap-[16px]" data-name="tutorial-notification-ask-buttons">
+              <button
+                type="button"
+                disabled={notificationRequesting}
+                className="rounded-[100px] flex items-center justify-center px-[20px] cursor-pointer"
+                onClick={() => {
+                  setNotificationRequesting(true);
+                  void Promise.resolve(onNotificationAllow?.()).finally(() => {
+                    setNotificationRequesting(false);
+                    handleNext();
+                  });
+                }}
+                style={{ height: TUTORIAL_FOOTER_BUTTON_HEIGHT, backgroundColor: nextButtonColor, opacity: notificationRequesting ? 0.5 : 1 }}
+              >
+                <span className="font-['Lato',sans-serif] font-bold text-[17px] text-white leading-[normal] whitespace-nowrap">Turn on</span>
+              </button>
+              <button
+                type="button"
+                disabled={notificationRequesting}
+                className="rounded-[100px] flex items-center justify-center px-[20px] cursor-pointer"
+                onClick={() => {
+                  onNotificationSkip?.();
+                  handleNext();
+                }}
+                style={{ height: TUTORIAL_FOOTER_BUTTON_HEIGHT, backgroundColor: "#D9D9D9" }}
+              >
+                <span className="font-['Lato',sans-serif] font-bold text-[17px] text-white leading-[normal] whitespace-nowrap">Skip</span>
+              </button>
+            </div>
+          ) : (
           <button 
             className="w-[180px] rounded-[100px] flex items-center justify-center cursor-pointer"
             onClick={handleNext}
-            style={{ height: 'clamp(40px, calc(20vh - 73.6px), 54px)', backgroundColor: nextButtonColor }}
+            style={{ height: TUTORIAL_FOOTER_BUTTON_HEIGHT, backgroundColor: nextButtonColor }}
           >
             <span className="font-['Lato',sans-serif] font-bold text-[17px] text-white leading-[normal]">
               {isLastPage ? (isListsTutorial ? 'Okay, got it!' : 'Okay, got it') : 'Next'}
             </span>
           </button>
+          )}
           
           {isLastPage ? (
             <div className="absolute right-0 flex h-[45px] w-[35px] items-center justify-center">

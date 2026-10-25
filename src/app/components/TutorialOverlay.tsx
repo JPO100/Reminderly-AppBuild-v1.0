@@ -3,7 +3,7 @@ import TutorialOnboardingContent from "@/app/components/TutorialOnboardingConten
 
 // Tutorial extras (calendar button, create reminder, NLC demo, notification ask, settings rows), passed straight through
 type TutorialExtraProps = Pick<ComponentProps<typeof TutorialOnboardingContent>,
-  "calendarEnabled" | "repeatsEnabled" | "nlcDemo" | "notificationAskEligible" | "notificationPermission" | "onNotificationAllow" | "onNotificationAskPageChange" | "siriAvailable" | "attachmentsAvailable" | "remindersSettings" | "listsSettings" | "testPageIds" | "livePageIds">;
+  "calendarEnabled" | "repeatsEnabled" | "nlcDemo" | "notificationAskEligible" | "notificationPermission" | "onNotificationAllow" | "onNotificationAskPageChange" | "onNotificationSkip" | "siriAvailable" | "attachmentsAvailable" | "remindersSettings" | "listsSettings" | "testPageIds" | "livePageIds">;
 
 export default function TutorialOverlay({
   onClose,

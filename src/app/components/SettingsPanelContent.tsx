@@ -234,17 +234,15 @@ function NlcSettings({ prefs, onChange, repeatsAvailable, onOpenInteractions }: 
 }
 
 // Natural Language Capture > Interactions: the mode as two linked rows, one always on (both read and flip the one
-// auto-parsing setting), then a key line and the info text, laid out like Siri shortcuts.
+// auto-parsing setting), each with its description underneath (no key line).
 function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void }) {
+  const descriptionClassName = "font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full";
   return (
     <>
       <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
+      <p className={descriptionClassName} style={{ color: '#939393' }}>'Auto-fill as you type' applies recognised dates, times and repeats as you type.</p>
       <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
-      <KeyLine />
-      {/* Two paragraphs with one blank line (23px) between */}
-      <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full whitespace-pre-line" style={{ color: '#939393' }}>
-        {"'Auto-fill as you type' applies recognised dates, times and repeats as you type.\n\n'Tap highlighted words' lets you choose which ones to apply by tapping on the highlighted text."}
-      </p>
+      <p className={descriptionClassName} style={{ color: '#939393' }}>'Tap highlighted words' lets you choose which ones to apply by tapping on the highlighted text.</p>
     </>
   );
 }

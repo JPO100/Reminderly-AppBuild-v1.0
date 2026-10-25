@@ -8,7 +8,7 @@ Usability testing of Reminderly across supported screen sizes, before upgrades a
 |-------|--------|
 | 1. Current state review and support proposal | Complete (2026-10-25) |
 | 2. Test set, method and documentation | Complete (2026-10-25, this document) |
-| 3. Milestone 1: smallest supported screen (minimum width and minimum height) | Not started |
+| 3. Milestone 1: smallest supported screen (minimum width and minimum height) | First pass complete (2026-10-25); recommendation below, decision pending. SE simulator keyboard check outstanding |
 | 4. Screen-by-screen visual review and fixes | Not started |
 
 ## Current state (2026-10-25)
@@ -119,4 +119,58 @@ Whether Reminderly follows iOS text size (Dynamic Type) and Android font scaling
 
 ## Findings
 
-None yet.
+### Milestone 1 run (2026-10-25)
+
+Build: main c239465 (docs/screen-size-testing has no code changes). Configuration: development defaults plus the calendar flag (accepted header) and natural language capture (confirmed for release); the simulators used development defaults only. Test data: Dev tools dummy generators (21 reminders, 8 lists, templates) plus one long title.
+
+How each size was run:
+
+- 320 x 568 and 360 x 780: browser pane (web build).
+- 375 x 667: browser pane. The SE 3rd gen simulator launch screen matched the browser capture exactly, so the browser is a valid stand-in at this size (the SE has no notch or home indicator). Simulator taps on the SE were not available (panel access not granted), so the SE keyboard check is outstanding.
+- 375 x 812: iPhone 13 mini simulator (iOS 26.4) for safe areas, the tutorial and the keyboard; browser pane for height-sensitive pages.
+
+Screenshots: `docs/usability/screens/<size>/`. Files ending `-simulator` come from the simulators; the rest come from the browser pane.
+
+### Results by screen
+
+| Screen | 320 x 568 | 360 x 780 | 375 x 667 | 375 x 812 |
+|--------|-----------|-----------|-----------|-----------|
+| Reminders tab and header | Usable, 3 rows | Pass | Pass, 4.5 rows | Pass |
+| Lists tab and header | Pass (Started pill drops out) | Pass, tight | Pass | Pass (width as 375 x 667) |
+| Open list | Not checked | Pass | Not checked | Not checked |
+| List options card | Not checked | Fail (F3) | Polish (F3) | Polish (F3, same width) |
+| Reminder options card | Usable, scroll (F5) | Pass | Usable, scroll (F5) | Pass |
+| Reminder editor, no keyboard | Pass | Pass | Pass | Pass |
+| Keyboard open | Not possible in browser | Not possible in browser | Outstanding (SE access) | Usable (F9) |
+| Date picker | Fail (F6) | Pass | Usable, scroll (F6) | Not checked |
+| Time picker, repeats | Not checked | Pass | Pass | Not checked |
+| Custom days | Not checked | Fail (F4) | Pass, tight (F4) | Pass, tight (same width) |
+| Reminders and Lists settings | Polish (F8) | Pass | Pass | Not checked |
+| Natural Language Capture settings | Fail (F7) | Polish (F7) | Polish (F7) | Not checked |
+| Done view | Not checked | Pass | Not checked | Not checked |
+| Reminders and Lists tutorials | Fail (F1) | Pass | Fail (F2) | Pass |
+| Calendar | Hidden (852pt rule) | Hidden | Hidden | Hidden |
+
+### Findings
+
+| # | Finding | Sizes | Level |
+|---|---------|-------|-------|
+| F1 | Tutorials: at 570px height or less the phone mock-up and page dots are hidden completely; only the title, text and buttons remain | 320 x 568 | Fail (below floor) |
+| F2 | Tutorials: the mock-up window is about 175px tall, so each page's demo is mostly out of view (the list, the New reminder text field, the done tick and the Done view cannot be seen) | 375 x 667 | Fail at a supported size |
+| F3 | List options card sizes to its content (280px plus 30px padding each side, 340px) inside a slot of screen width minus 40px: clipped 20px on the right at 360, 5px off-centre at 375 | 360, 375 | Fail at 360; polish at 375 |
+| F4 | Custom days: seven 45px day buttons need about 327px; they overlap and the last is clipped at 360, and almost touch at 375 | 360, 375 | Fail at 360; pass at 375 |
+| F5 | Reminder options card is capped at screen height minus 200px: Delete reminder is cut at 667 and Edit and Delete are hidden at 568 until you scroll; there is no scroll cue | 568, 667 | Usable, not polished |
+| F6 | Date picker: the month grid runs below the screen at 667 (scroll needed); at 320 the MON and SUN columns and the next-month arrow are clipped | 320, 667 | Fail at 320; usable at 667 |
+| F7 | Natural Language Capture settings: at 320 the title wraps to two lines and the main toggle is pushed half off the card; at 360 and 375 the row label runs right up to its toggle | 320, 360, 375 | Fail at 320; polish at 360 and 375 |
+| F8 | Reminders settings: the "Natural Language Capture" row label runs into its chevron | 320 | Polish (below floor) |
+| F9 | Keyboard open: on the 13 mini the keyboard and its accessory bar cover the Time and Repeats rows; the text field and Date stay visible | 375 x 812 | Usable |
+| F10 | Calendar is hidden at all four sizes by the 852pt height rule, as designed; whether it should show at 812 to 844 is for the polish pass | All | Decision later |
+
+Header observation: the accepted Reminders header (three filters plus settings, calendar hidden by height) and the Lists header (three filters plus two buttons) both fit at 360 without hiding anything. At 320 the Lists header already drops the Started pill. Filter hiding is not needed at any supported width found so far.
+
+### Milestone 1 recommendation (for John and Kai)
+
+- Minimum width: 360pt. 320pt fails across tutorials, date picker and settings (F1, F6, F7, F8) and is confirmed unsupported. 360 needs two contained fixes: F3 (list options card) and F4 (custom days).
+- Minimum height: 667pt. It needs F2 (tutorial mock-up) fixed to pass; F5 and F6 are usable with a scroll. 568 is below the floor.
+- This keeps the proposed iPhone floor (375 x 667, SE 2 / 3) and the Android design floor (360dp). 360 x 640 (older Android) is 27pt shorter than anything tested; check it when Android work starts.
+- Before sign-off: run the keyboard check on the SE 3rd gen simulator (panel access needed).

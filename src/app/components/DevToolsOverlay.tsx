@@ -2,9 +2,10 @@ import { useState, useRef, useEffect, createContext, useContext } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
 import { canChangeModuleFlag } from "../settings/resolver";
-import { useStoredSetting } from "../settings/useStoredSetting";
+import { readStoredBool, useStoredSetting, writeStoredBool } from "../settings/useStoredSetting";
+import { TUTORIAL_TEST_PAGES, tutorialTestModeKey, tutorialTestPageKey } from "../utils/tutorial-pages";
+import type { TutorialVariantId } from "../utils/tutorial-pages";
 import { CALENDAR_SWIPE_HINT_EVERY_VISIT_KEY } from "../utils/calendar-swipe-hint";
-import { NOTIF_ASK_TUTORIAL_PAGE_ALWAYS_KEY } from "../notification-ask";
 import { runChecks, formatReportAsText, groupResultsBySection } from "../dev/check-system";
 import type { RunReport } from "../dev/check-system";
 import { getScheduleChecks } from "../dev/schedule-checks";
@@ -35,7 +36,7 @@ import passwordResetSvgPaths from "../../imports/svg-p8ebad7jx7";
 
 const DEV_TOOLS_PASSWORD = '123';
 
-type DevToolsPage = 'home' | 'dummy-reminders' | 'dummy-lists' | 'dev-tools-password' | 'system' | 'natural-language' | 'onboarding' | 'testing' | 'reminders' | 'lists' | 'siri' | 'testing-tools';
+type DevToolsPage = 'home' | 'dummy-reminders' | 'dummy-lists' | 'dev-tools-password' | 'system' | 'natural-language' | 'onboarding' | 'testing' | 'reminders' | 'lists' | 'siri' | 'testing-tools' | 'onboarding-testing' | 'onboarding-testing-reminders' | 'onboarding-testing-lists';
 
 // Dev tools look: #F7F7F7 page with 20px side and 24px top margins, a 45px header, and white cards
 // (6px corners) 24px apart. Card rows are 60px with 20px side padding and a full-width 1px #F7F7F7 line between rows.
@@ -1033,12 +1034,30 @@ function LoginScreen({ onUnlock, passwordRequired }: { onUnlock: () => void; pas
   );
 }
 
+// Testing tools > Onboarding testing > Reminders or Lists. Saved here and read by App each time the tutorial opens.
+function OnboardingTestingPage({ variant, onBack, onClose }: { variant: TutorialVariantId; onBack: () => void; onClose: () => void }) {
+  const pages = TUTORIAL_TEST_PAGES[variant];
+  const [testingMode, setTestingMode] = useState(() => readStoredBool(tutorialTestModeKey(variant), false));
+  const [pagesOn, setPagesOn] = useState<Record<number, boolean>>(() => Object.fromEntries(pages.map((page) => [page.id, readStoredBool(tutorialTestPageKey(variant, page.id), true)])));
+  const name = variant === 'reminders' ? 'Reminders' : 'Lists';
+  return (
+    <PageShell title={`${name} tutorial`} onBack={onBack} onClose={onClose}>
+      <DevCard>
+      <DevToggleRow label="Testing mode" isOn={testingMode} onToggle={() => { setTestingMode(!testingMode); writeStoredBool(tutorialTestModeKey(variant), !testingMode); }} infoTitle={`When on, the ${name} tutorial shows exactly the pages switched on below, in the normal order, each time it opens (from settings or on app start). Flags, feature availability and the notification ask state are ignored. With every page off, the first page is shown. When off, the normal rules apply and these choices are kept.`} />
+      </DevCard>
+      <DevCard title="Pages">
+      {pages.map((page) => (
+        <DevToggleRow key={page.id} label={page.label} isOn={pagesOn[page.id]} disabled={!testingMode} onToggle={() => { const next = !pagesOn[page.id]; setPagesOn({ ...pagesOn, [page.id]: next }); writeStoredBool(tutorialTestPageKey(variant, page.id), next); }} />
+      ))}
+      </DevCard>
+    </PageShell>
+  );
+}
+
 function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag, onSoundsFlagChange, lockScreenWidgetFlag, onLockScreenWidgetFlagChange, remindersFlag, onRemindersFlagChange, notificationsFlag, onNotificationsFlagChange, repeatFlag, onRepeatFlagChange, oneMinuteFlag, onOneMinuteFlagChange, calendarFlag, onCalendarFlagChange, attachmentsFlag, onAttachmentsFlagChange, datePresetsFlag, onDatePresetsFlagChange, onClearReminders, addReminder, addReminders, nlcMode, onNlcModeChange, nlcEnabled, onNlcEnabledChange, nlcRecognition, onNlcRecognitionChange, hideOverdue, onHideOverdueChange, isOnboardingTutorialEnabled, onOnboardingTutorialEnabledChange, isListsEnabled, onListsEnabledChange, showTutorialOnFirstLaunch, onShowTutorialOnFirstLaunchChange, showTutorialOnEveryStart, onShowTutorialOnEveryStartChange, isDevToolsUnlocked, onDevToolsUnlock, isDevToolsPasswordRequired, onDevToolsPasswordRequiredChange, useOneMinuteIncrements, onUseOneMinuteIncrementsChange, smartRemindersEnabled, onSmartRemindersEnabledChange, savedListsEnabled, onSavedListsEnabledChange, pinnedListsEnabled, onPinnedListsEnabledChange, settingsMenuEnabled, onSettingsMenuEnabledChange, showInfoIcons, onShowInfoIconsChange, notifReminderAlerts, onNotifReminderAlertsChange, notifAppBadge, onNotifAppBadgeChange, notifIncludeTodayInBadge, onNotifIncludeTodayInBadgeChange, siriShortcutsEnabled, onSiriShortcutsEnabledChange, useDefaultTemplatesInCleanState, onUseDefaultTemplatesInCleanStateChange, onClearLists, onGenerateLists }: { onClose: () => void; hapticsFlag: boolean; onHapticsFlagChange: (value: boolean) => void; soundsFlag: boolean; onSoundsFlagChange: (value: boolean) => void; lockScreenWidgetFlag: boolean; onLockScreenWidgetFlagChange: (value: boolean) => void; remindersFlag: boolean; onRemindersFlagChange: (value: boolean) => void; notificationsFlag: boolean; onNotificationsFlagChange: (value: boolean) => void; repeatFlag: boolean; onRepeatFlagChange: (value: boolean) => void; oneMinuteFlag: boolean; onOneMinuteFlagChange: (value: boolean) => void; calendarFlag: boolean; onCalendarFlagChange: (value: boolean) => void; attachmentsFlag: boolean; onAttachmentsFlagChange: (value: boolean) => void; datePresetsFlag: boolean; onDatePresetsFlagChange: (value: boolean) => void; onClearReminders: () => void; addReminder: (reminder: Reminder) => void; addReminders: (reminders: Reminder[]) => void; nlcMode: NlcMode; onNlcModeChange: (mode: NlcMode) => void; nlcEnabled: boolean; onNlcEnabledChange: (enabled: boolean) => void; nlcRecognition: NlcRecognitionConfig; onNlcRecognitionChange: (config: NlcRecognitionConfig) => void; hideOverdue: boolean; onHideOverdueChange: (value: boolean) => void; isOnboardingTutorialEnabled: boolean; onOnboardingTutorialEnabledChange: (next: boolean) => void; isListsEnabled: boolean; onListsEnabledChange: (enabled: boolean) => void; showTutorialOnFirstLaunch: boolean; onShowTutorialOnFirstLaunchChange: (value: boolean) => void; showTutorialOnEveryStart: boolean; onShowTutorialOnEveryStartChange: (value: boolean) => void; isDevToolsUnlocked: boolean; onDevToolsUnlock: () => void; isDevToolsPasswordRequired: boolean; onDevToolsPasswordRequiredChange: (value: boolean) => void; useOneMinuteIncrements: boolean; onUseOneMinuteIncrementsChange: (value: boolean) => void; smartRemindersEnabled: boolean; onSmartRemindersEnabledChange: (value: boolean) => void; savedListsEnabled: boolean; onSavedListsEnabledChange: (value: boolean) => void; pinnedListsEnabled: boolean; onPinnedListsEnabledChange: (value: boolean) => void; settingsMenuEnabled: boolean; onSettingsMenuEnabledChange: (value: boolean) => void; showInfoIcons: boolean; onShowInfoIconsChange: (value: boolean) => void; notifReminderAlerts: boolean; onNotifReminderAlertsChange: (value: boolean) => void; notifAppBadge: boolean; onNotifAppBadgeChange: (value: boolean) => void; notifIncludeTodayInBadge: boolean; onNotifIncludeTodayInBadgeChange: (value: boolean) => void; siriShortcutsEnabled: boolean; onSiriShortcutsEnabledChange: (value: boolean) => void; useDefaultTemplatesInCleanState: boolean; onUseDefaultTemplatesInCleanStateChange: (value: boolean) => void; onClearLists: (useDefaultTemplatesInCleanState: boolean) => void; onGenerateLists: (payload: GeneratedDummyListsPayload) => void }) {
   const [page, setPage] = useState<DevToolsPage>('home');
   // Read by the calendar each time it opens, so it is saved here rather than passed down from App
   const [calendarSwipeHintEveryVisit, setCalendarSwipeHintEveryVisit] = useStoredSetting(CALENDAR_SWIPE_HINT_EVERY_VISIT_KEY);
-  // Read by App each time the Reminders tutorial opens
-  const [notifAskPageAlways, setNotifAskPageAlways] = useStoredSetting(NOTIF_ASK_TUTORIAL_PAGE_ALWAYS_KEY);
   const enableReminders = remindersFlag;
   const setEnableReminders = onRemindersFlagChange;
   const enableNotifications = notificationsFlag;
@@ -1135,11 +1154,22 @@ function DevToolsContent({ onClose, hapticsFlag, onHapticsFlagChange, soundsFlag
         <DevMenuRow label="Dummy reminders" onClick={() => setPage('dummy-reminders')} disabled={!enableReminders} infoTitle="Opens the Dummy Reminders page where you can generate test reminders across all time categories (overdue, today, this week, later, sometime, done), configure repeat flags, and clear all reminders. Requires Reminders to be on." />
         <DevMenuRow label="Dummy lists" onClick={() => setPage('dummy-lists')} disabled={!isListsEnabled} infoTitle="Opens the Dummy Lists page where you can generate test lists with configurable item counts, choose to include done items, smart reminder lists, and saved list templates, then clear or regenerate. Requires Lists to be on." />
         <DevToggleRow label="Show tutorial on every app start" isOn={showTutorialOnEveryStart} onToggle={() => { const next = !showTutorialOnEveryStart; onShowTutorialOnEveryStartChange(next); if (next) onShowTutorialOnFirstLaunchChange(false); }} disabled={!isOnboardingTutorialEnabled} infoTitle="Shows the onboarding tutorial every time the app is opened, regardless of whether it has been seen before. Enabling this turns off 'Show tutorial on first launch' in Feature flags > Onboarding. Only one launch trigger can be active. Requires Onboarding to be on." />
-        <DevToggleRow label="Always show tutorial notification page" isOn={notifAskPageAlways} onToggle={() => setNotifAskPageAlways(!notifAskPageAlways)} disabled={!isOnboardingTutorialEnabled || !enableReminders || !enableNotifications} infoTitle="Adds the Never miss a reminder page to the end of the Reminders tutorial every time it opens. Normally it only shows while iOS has not asked for notification permission and the in-app ask has never been answered. Allow alerts only shows the iOS prompt if iOS has not asked yet; otherwise the page shows the current result. Requires Onboarding, Reminders and the Notifications flag to be on." />
         <DevToggleRow label="Show calendar swipe hint on every visit" isOn={calendarSwipeHintEveryVisit} onToggle={() => setCalendarSwipeHintEveryVisit(!calendarSwipeHintEveryVisit)} disabled={!enableReminders || !calendarFlag} infoTitle="The calendar dates nudge left and right to show the month can be swiped. Users see this once, the first time the calendar opens. When on, it plays every time the calendar opens. Requires Reminders and the Calendar flag to be on." />
+        <DevMenuRow label="Onboarding testing" onClick={() => setPage('onboarding-testing')} disabled={!isOnboardingTutorialEnabled} infoTitle="Choose exactly which tutorial pages show, for the Reminders and Lists tutorials separately. Requires Onboarding to be on." />
         </DevCard>
       </PageShell>
     );
+  } else if (page === 'onboarding-testing') {
+    content = (
+      <PageShell title="Onboarding testing" onBack={() => setPage('testing-tools')} onClose={onClose}>
+        <DevCard>
+        <DevMenuRow label="Reminders tutorial" onClick={() => setPage('onboarding-testing-reminders')} disabled={!enableReminders} infoTitle="Testing mode and page choices for the Reminders tutorial. Requires Reminders to be on." />
+        <DevMenuRow label="Lists tutorial" onClick={() => setPage('onboarding-testing-lists')} disabled={!isListsEnabled} infoTitle="Testing mode and page choices for the Lists tutorial. Requires Lists to be on." />
+        </DevCard>
+      </PageShell>
+    );
+  } else if (page === 'onboarding-testing-reminders' || page === 'onboarding-testing-lists') {
+    content = <OnboardingTestingPage variant={page === 'onboarding-testing-reminders' ? 'reminders' : 'lists'} onBack={() => setPage('onboarding-testing')} onClose={onClose} />;
   }
 
   return (

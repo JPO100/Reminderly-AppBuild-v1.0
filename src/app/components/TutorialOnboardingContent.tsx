@@ -66,6 +66,8 @@ interface TutorialOnboardingContentProps {
   remindersSettings?: TutorialRemindersSettings;
   // Lists tutorial: Re-run this tutorial page shows the Lists settings rows the app shows
   listsSettings?: TutorialListsSettings;
+  // Onboarding testing mode: the pages to show, fixed when the tutorial opens (null uses the normal rules)
+  testPageIds?: number[] | null;
 }
 
 const LIST_BLUE = "#4784F8";
@@ -1525,13 +1527,14 @@ export default function TutorialOnboardingContent({
   attachmentsAvailable = false,
   remindersSettings,
   listsSettings,
+  testPageIds = null,
 }: TutorialOnboardingContentProps) {
   // currentStep is the position in the visible sequence; currentPage is the page id being shown
   const [currentStep, setCurrentStep] = useState(0);
   const nlcDemoAvailable = nlcDemo != null;
   const pageIds = useMemo(
-    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable }),
-    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable],
+    () => getTutorialPageIds({ variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, testPageIds }),
+    [variant, settingsMenuEnabled, smartRemindersEnabled, savedListsEnabled, nlcDemoAvailable, notificationAskEligible, siriAvailable, attachmentsAvailable, testPageIds],
   );
   const totalPages = pageIds.length;
   const currentPage = pageIds[Math.min(currentStep, totalPages - 1)];

@@ -42,7 +42,6 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
 
   // Notifications
   'reminderly-ff-notifications': 'true',
-  'reminderly-test-notif-ask-tutorial-page-always': 'false',
   'reminderly-pref-notif-alerts': 'false',
   'reminderly-pref-notif-badge': 'false',
   'reminderly-pref-notif-include-today': 'true',

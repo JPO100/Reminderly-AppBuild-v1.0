@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getTutorialPageIds, shouldAutoOpenTutorial, type TutorialPageConfig } from '../utils/tutorial-pages';
+import { getTutorialPageIds, getTutorialTestPageIds, shouldAutoOpenTutorial, tutorialTestModeKey, tutorialTestPageKey, TUTORIAL_TEST_PAGES, type TutorialPageConfig } from '../utils/tutorial-pages';
 
 function config(overrides: Partial<TutorialPageConfig> = {}): TutorialPageConfig {
   return {
@@ -107,5 +107,33 @@ describe('shouldAutoOpenTutorial', () => {
 
   it('never opens when both triggers are off', () => {
     expect(shouldAutoOpenTutorial({ showOnFirstLaunch: false, showOnEveryStart: false, hasSeenVariant: false })).toBe(false);
+  });
+});
+
+describe('Onboarding testing mode', () => {
+  function storage(values: Record<string, string>) {
+    return { getItem: (key: string) => values[key] ?? null };
+  }
+
+  it('uses the normal rules while testing mode is off', () => {
+    expect(getTutorialTestPageIds('reminders', storage({}))).toBeNull();
+    expect(getTutorialTestPageIds('lists', storage({ [tutorialTestModeKey('lists')]: 'false' }))).toBeNull();
+  });
+
+  it('shows every page in the normal order when testing mode is on and nothing is switched off', () => {
+    expect(getTutorialTestPageIds('reminders', storage({ [tutorialTestModeKey('reminders')]: 'true' }))).toEqual([0, 6, 10, 9, 7, 2, 3, 4, 5, 8]);
+    expect(getTutorialTestPageIds('lists', storage({ [tutorialTestModeKey('lists')]: 'true' }))).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it('leaves out pages switched off, and shows the first page when all are off', () => {
+    const on = { [tutorialTestModeKey('reminders')]: 'true' };
+    expect(getTutorialTestPageIds('reminders', storage({ ...on, [tutorialTestPageKey('reminders', 0)]: 'false', [tutorialTestPageKey('reminders', 9)]: 'false' }))).toEqual([6, 10, 7, 2, 3, 4, 5, 8]);
+    const allOff = Object.fromEntries(TUTORIAL_TEST_PAGES.reminders.map((page) => [tutorialTestPageKey('reminders', page.id), 'false']));
+    expect(getTutorialTestPageIds('reminders', storage({ ...on, ...allOff }))).toEqual([0]);
+  });
+
+  it('replaces the normal rules, including the notification ask page', () => {
+    expect(getTutorialPageIds(config({ testPageIds: [8] }))).toEqual([8]);
+    expect(getTutorialPageIds(config({ testPageIds: null }))).toEqual(getTutorialPageIds(config()));
   });
 });

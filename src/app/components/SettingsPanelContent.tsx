@@ -234,9 +234,9 @@ function NlcSettings({ prefs, onChange, repeatsAvailable, onOpenInteractions }: 
 }
 
 // Natural Language Capture > Interactions: the mode as two linked rows, one always on (both read and flip the one
-// auto-parsing setting), each with its description underneath (no key line).
+// auto-parsing setting), each with its description underneath, left aligned (no key line).
 function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void }) {
-  const descriptionClassName = "font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full";
+  const descriptionClassName = "font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-left w-full";
   return (
     <>
       <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />

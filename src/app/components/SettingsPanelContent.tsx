@@ -616,9 +616,10 @@ function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial }: { onOpen: (p
 }
 
 // A paragraph's text, with any links in Reminderly blue.
-function renderParagraph(paragraph: DocParagraph) {
+// linkColour: Contact links use the NeatlyMade heart red (trial, John, 2026-10-25).
+function renderParagraph(paragraph: DocParagraph, linkColour = "#4784F8") {
   return typeof paragraph === "string" ? paragraph : paragraph.map((part, partIndex) => typeof part === "string" ? part : (
-    <a key={partIndex} href={part.href} className="text-[#4784F8] no-underline">{part.text}</a>
+    <a key={partIndex} href={part.href} className="no-underline" style={{ color: linkColour }}>{part.text}</a>
   ));
 }
 
@@ -659,7 +660,7 @@ function SupportDocPage({ doc }: { doc: SupportDoc }) {
           {section.logo && <NeatlyMadeLogo />}
           {section.paragraphs.map((paragraph, index) => (
             <p key={index} className="font-['Lato:Medium',sans-serif] leading-[24px] text-[17px] text-[#BABABA] text-center w-full whitespace-pre-line">
-              {renderParagraph(paragraph)}
+              {renderParagraph(paragraph, section.logo ? "#FF0000" : undefined)}
             </p>
           ))}
         </div>

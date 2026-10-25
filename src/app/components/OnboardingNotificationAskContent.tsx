@@ -21,7 +21,7 @@ export function OnboardingNotificationAskText() {
         </div>
       </div>
       <div className={TUTORIAL_BODY_CLASSNAME}>
-        <p className="css-4hzbpn leading-[30px]">Reminderly can alert you when a reminder<br />is due and show a count on the app icon</p>
+        <p className="css-4hzbpn leading-[30px]">Reminderly can notify you when a reminder<br />is due and show a count on the app icon</p>
       </div>
     </div>
   );
@@ -136,10 +136,10 @@ export function OnboardingNotificationAskResult({ permission }: { permission: st
   if (isPermissionUndecided(permission)) return null;
   if (permission === "granted") {
     return (
-      <p className="font-['Lato',sans-serif] font-bold text-[17px] text-[#4784F8] text-center leading-[45px]">Alerts are on</p>
+      <p className="font-['Lato',sans-serif] font-bold text-[17px] text-[#4784F8] text-center leading-[45px]">Notifications are on</p>
     );
   }
   return (
-    <p className="font-['Lato',sans-serif] font-bold text-[15px] text-[#939393] text-center leading-[45px]">You can turn alerts on later in Settings</p>
+    <p className="font-['Lato',sans-serif] font-bold text-[15px] text-[#939393] text-center leading-[45px]">You can turn on notifications later in Settings</p>
   );
 }

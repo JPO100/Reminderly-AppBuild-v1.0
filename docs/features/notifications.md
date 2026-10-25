@@ -99,7 +99,7 @@ An effect in `App.tsx` runs on changes to `reminders`, any notification preferen
 The app never triggers the iOS prompt by itself. Permission is read from iOS on launch and on each return to the foreground.
 
 - Reminders tutorial: the last page, Never miss a reminder, is the tutorial ask ("Allow alerts"), shown only while iOS has not decided and the ask has never been answered. Allow is the same as Allow below. Closing on that page without Allow counts as Not now; closing before reaching it changes nothing (`askStateOnTutorialClose`). The dialog is no longer shown after the tutorial closes.
-- In-app ask dialog ("Get reminder alerts?", Not now or Allow) when a reminder with a time is saved, only while iOS has not decided.
+- In-app ask dialog ("Turn on notifications?", Not now or Allow) when a reminder with a time is saved, only while iOS has not decided.
 - Allow: alerts and badge preferences on (sound unchanged), then the iOS prompt. Not now: asked once more on the next timed reminder, then not again.
 - Turning Notifications or App badge on in settings while iOS has not decided shows the in-app ask first; Allow turns on only that preference. Not now from settings changes nothing.
 - Existing installs with permission already granted are marked accepted on launch and never asked.

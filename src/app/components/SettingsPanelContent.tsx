@@ -240,9 +240,9 @@ function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChang
   return (
     <>
       <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
-      <p className={descriptionClassName} style={{ color: '#939393' }}>'Auto-fill as you type' applies recognised dates, times and repeats as you type.</p>
+      <p className={descriptionClassName} style={{ color: '#939393' }}>Applies recognised dates, times and repeats as you type.</p>
       <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
-      <p className={descriptionClassName} style={{ color: '#939393' }}>'Tap highlighted words' lets you choose which ones to apply by tapping on the highlighted text.</p>
+      <p className={descriptionClassName} style={{ color: '#939393' }}>Lets you choose which ones to apply by tapping on the highlighted text.</p>
     </>
   );
 }

@@ -45,106 +45,67 @@ function PanelHeader({ title, version, updated, onBack }: { title: string; versi
   );
 }
 
-// The settings cards' 40px bottom padding. Rows that scroll can run into it, up to the card's edge.
+// The settings cards' 40px bottom padding: the footer below content that fits.
 const SCROLL_PEEK = 40;
-// On sub-pages that scroll, the cut row's middle sits this far above the card's edge (John, 2026-10-22).
-const SUB_PAGE_GLIMPSE_GAP = 24;
+// Footer below content that overflows: the scroll area ends this far above the card's edge, as a hard edge, with the
+// scroll indicator centred in it (John, 2026-10-26; docs/plans/overlay-scrolling.md).
+const OVERFLOW_FOOTER = 30;
+// Overflow must exceed this before the indicator shows, so rounding at the threshold never makes it flicker.
+const OVERFLOW_TOLERANCE = 1;
 
-// cap: on a main page that scrolls, the area's height is capped at the cut row's middle so the card shrinks to put that
-// middle SUB_PAGE_GLIMPSE_GAP above its edge, as on sub-pages; base is the height measured before the cap.
-type ScrollFit = { cut: number | null; pad: number; grow: number; cap?: number; base?: number };
+// Down arrow shown in the footer while there is more content below (John's SVG, #D9D9D9). Visual only: not tappable.
+function ScrollIndicator({ visible }: { visible: boolean }) {
+  return (
+    <div data-scroll-indicator aria-hidden="true" className="absolute left-1/2 -translate-x-1/2 pointer-events-none" style={{ bottom: -(SCROLL_PEEK - (OVERFLOW_FOOTER - 7) / 2), visibility: visible ? "visible" : "hidden" }}>
+      <svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg" className="block">
+        <path d="M0.322842 1.74896C-0.107614 1.36744 -0.107614 0.748782 0.322842 0.367263C0.75329 -0.0141897 1.45106 -0.0142031 1.88149 0.367263L5.95385 3.97689L10.1185 0.285692C10.5489 -0.0957689 11.2467 -0.0957661 11.6772 0.285692C12.1076 0.667211 12.1076 1.28587 11.6772 1.66739L6.90621 5.89595C6.8632 5.95639 6.81223 6.01382 6.75282 6.06648C6.3224 6.4479 5.62461 6.44788 5.19417 6.06648L0.322842 1.74896Z" fill="#D9D9D9" />
+      </svg>
+    </div>
+  );
+}
 
-// Rows with 30px between them. When they do not fit they scroll, and the area's bottom edge moves so it cuts through the
-// middle of a row (not a divider): the lowest row whose middle falls within the card's bottom padding (clipped by the card), or, when none
-// does, the row above it (the area ends higher and the card shrinks with it, keeping the 40px bottom padding; John, 2026-10-23). Half a row always shows, as a hard edge. Space after the last row lets it
-// scroll clear, ending 40px above the card's edge as usual. Rows that fit are unchanged.
-// With onGrow (sub-pages), the card instead grows or shrinks by up to 30px so the cut row's middle is always
-// SUB_PAGE_GLIMPSE_GAP above the card's edge, whatever the main page's height. baseHeight is the area's height on the
-// main page; measuring from it, not the rendered height, keeps the growth from feeding back into itself.
-// mainHeaderHeight is the main page's header height: a sub-page header that is taller (a title on two lines, a version
-// line) leaves that much less room, measured from the header itself (docs/plans/settings-scroll-peek.md).
-function ScrollArea({ children, onGrow, baseHeight, mainHeaderHeight }: { children: ReactNode; onGrow?: (grow: number) => void; baseHeight?: number; mainHeaderHeight?: number }) {
+// Content below the page title, 30px between rows. It takes whatever height the card leaves it and never changes the
+// card's height. When the content overflows, the area ends OVERFLOW_FOOTER above the card's edge instead of SCROLL_PEEK
+// and the indicator shows until the content is scrolled to its end. Whether it overflows is measured against the 40px
+// footer height, which does not depend on the result, so the two states never feed back into each other.
+function ScrollArea({ children }: { children: ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
-  // cut: how far the bottom edge moves down (negative: up), null while the rows fit. pad: space after the last row.
-  // grow: how much taller the card is made (negative: shorter); the area already grows with the card, so its margin
-  // covers only the rest of the cut.
-  const [fit, setFit] = useState<ScrollFit>({ cut: null, pad: 0, grow: 0 });
-  const fitRef = useRef<ScrollFit>(fit);
-  const onGrowRef = useRef(onGrow);
-  onGrowRef.current = onGrow;
-  const baseHeightRef = useRef(baseHeight);
-  baseHeightRef.current = baseHeight;
-  const mainHeaderHeightRef = useRef(mainHeaderHeight);
-  mainHeaderHeightRef.current = mainHeaderHeight;
+  const [overflows, setOverflows] = useState(false);
+  const [atEnd, setAtEnd] = useState(false);
+  const overflowsRef = useRef(overflows);
   useLayoutEffect(() => {
     const scroll = scrollRef.current;
     const rows = rowsRef.current;
     if (!scroll || !rows) return;
     const measure = () => {
-      const current = fitRef.current;
-      // Sizes as they would be without the cut and growth, so the result never depends on itself
-      // A capped area keeps the height it was measured from (base), as its rendered height depends on the cap
-      const header = scroll.parentElement?.firstElementChild as HTMLElement | null;
-      const headerExtra = baseHeightRef.current !== undefined && mainHeaderHeightRef.current !== undefined && header ? header.offsetHeight - mainHeaderHeightRef.current : 0;
-      const visible = baseHeightRef.current !== undefined ? baseHeightRef.current - headerExtra : current.base ?? scroll.clientHeight - (current.cut ?? 0) - current.grow;
-      const content = rows.offsetHeight - current.pad;
-      let next: ScrollFit = { cut: null, pad: 0, grow: 0 };
-      if (content > visible + 1) {
-        // A group marked data-glimpse-rows (a toggle with its description) offers its toggle row for the cut, not its own
-        // middle: a cut through a description falls between its lines and shows no glimpse (John, 2026-10-26)
-        const middles = (Array.from(rows.children) as HTMLElement[])
-          .map((row) => (row.hasAttribute("data-glimpse-rows") ? (row.firstElementChild as HTMLElement | null) ?? row : row))
-          .filter((row) => row.offsetHeight >= 10) // not dividers
-          .map((row) => Math.round(row.offsetTop + row.offsetHeight / 2 - visible));
-        if (onGrowRef.current && baseHeightRef.current !== undefined) {
-          // The row whose middle needs the least growth to sit the gap above the card's edge
-          const target = SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP;
-          const middle = middles.reduce((best, m) => (Math.abs(m - target) < Math.abs(best - target) ? m : best), middles[0]);
-          next = { cut: middle, pad: target, grow: middle - target };
-        } else {
-          let cut = 0;
-          for (const middle of middles) {
-            if (middle > SCROLL_PEEK) break;
-            cut = middle;
-          }
-          // As on sub-pages, the cut row's middle sits SUB_PAGE_GLIMPSE_GAP above the card's edge: the lowest row whose middle
-          // is no lower than that, with the area capped so the card shrinks to fit it (John, 2026-10-23)
-          const target = SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP;
-          const fitting = middles.filter((m) => m <= target);
-          cut = fitting.length > 0 ? fitting[fitting.length - 1] : cut;
-          next = { cut: target, pad: target, grow: 0, cap: visible + cut, base: visible };
-        }
+      const fitsHeight = scroll.clientHeight - (overflowsRef.current ? SCROLL_PEEK - OVERFLOW_FOOTER : 0);
+      const next = rows.offsetHeight > fitsHeight + OVERFLOW_TOLERANCE;
+      if (next !== overflowsRef.current) {
+        overflowsRef.current = next;
+        setOverflows(next);
       }
-      if (next.cut !== current.cut || next.pad !== current.pad || next.grow !== current.grow || next.cap !== current.cap || next.base !== current.base) {
-        fitRef.current = next;
-        setFit(next);
-      }
-      // Reported every time, so a growth kept from an earlier visit is always replaced
-      onGrowRef.current?.(next.grow);
+      setAtEnd(scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - OVERFLOW_TOLERANCE);
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(scroll);
     observer.observe(rows);
-    // A capped area does not grow with the card, so on resize start again uncapped and measure afresh
-    const reset = () => {
-      if (fitRef.current.cap === undefined) return;
-      fitRef.current = { cut: null, pad: 0, grow: 0 };
-      setFit(fitRef.current);
-    };
-    window.addEventListener("resize", reset);
+    scroll.addEventListener("scroll", measure, { passive: true });
     return () => {
       observer.disconnect();
-      window.removeEventListener("resize", reset);
+      scroll.removeEventListener("scroll", measure);
     };
   }, []);
   return (
-    <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={fit.cut !== null ? { marginBottom: fit.grow - fit.cut, ...(fit.cap !== undefined ? { maxHeight: fit.cap } : {}) } : undefined}>
-      <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={fit.pad > 0 ? { paddingBottom: fit.pad } : undefined}>
-        {children}
+    <>
+      <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={overflows ? { marginBottom: OVERFLOW_FOOTER - SCROLL_PEEK } : undefined}>
+        <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full">
+          {children}
+        </div>
       </div>
-    </div>
+      {overflows && <ScrollIndicator visible={!atEnd} />}
+    </>
   );
 }
 
@@ -330,50 +291,29 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
 // Sub-page titles that differ from their row label, shortened to fit on one line (John, 2026-10-24)
 const SUB_PAGE_TITLES: Record<string, string> = { 'Natural Language Capture': 'Natural Lang. Capture', 'Feedback sent': 'Feedback' };
 
-// Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
-// Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged; a sub-page that
-// scrolls grows or shrinks by up to 30px so its bottom glimpse matches on every panel.
+// Overlay standard: 40px from title to content, 30px between rows. The title stays put; content scrolls when it does not fit.
+// Every sub-page keeps the main page's height, so each panel stays one size (John, 2026-10-26).
 // Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
-// A sub-page with a taller header (a version line, a title on two lines) measures its scroll area from that much less.
-// Support pages sit 30px under the title, not 40px (John, 2026-10-23); their scroll area measures from that much more.
-// subFits: the sub-page sizes the card to its own content, as a main page does, and scrolls only when the screen is too
-// short for it (Interactions, John, 2026-10-26).
-function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, subText = false, subFits = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subUpdated?: string; subTitleGap?: number; subText?: boolean; subFits?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
+// Support pages sit 30px under the title, not 40px (John, 2026-10-23).
+function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subUpdated?: string; subTitleGap?: number; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
+  // The main page's height, measured while it shows; sub-pages take it. It is the card's own height for the main page's
+  // content (or the screen's limit on it), never a sub-page's, so it does not depend on what a sub-page shows.
   const [mainHeight, setMainHeight] = useState<number | null>(null);
-  // The scroll area's height on the main page (below the title and its 40px gap); sub-pages measure from it
-  const [mainAreaHeight, setMainAreaHeight] = useState<number | undefined>(undefined);
-  const [mainHeaderHeight, setMainHeaderHeight] = useState<number | undefined>(undefined);
   const [info, setInfo] = useState<{ header: string; title: string } | null>(null);
-  // Growth reported by the sub-page's scroll area, kept per page so another page's growth never applies
-  const [growth, setGrowth] = useState<{ page: string; grow: number } | null>(null);
-  const grow = subPage && growth?.page === subPage ? growth.grow : 0;
   useLayoutEffect(() => {
     const root = rootRef.current;
-    if (subPage === null && info === null && root) {
-      setMainHeight(root.offsetHeight);
-      const header = root.firstElementChild as HTMLElement | null;
-      if (header) {
-        setMainAreaHeight(root.offsetHeight - header.offsetHeight - 40);
-        setMainHeaderHeight(header.offsetHeight);
-      }
-    }
+    if (subPage === null && info === null && root) setMainHeight(root.offsetHeight);
   });
   if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
-      <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && !subFits && mainHeight ? { height: mainHeight + grow } : {}) }}>
+      {/* grow: fills a fixed-height card (narrow screens), so the footer is measured from the card's edge, not the content's */}
+      <div ref={rootRef} className="content-stretch flex flex-col grow items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight } : {}) }}>
         <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
-        {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
-        {/* Text pages (Support documents) scroll freely within the page's height: their tall blocks have no row middles to cut through */}
-        {/* Like every scrolling page, they use the reduced footer: the area ends SUB_PAGE_GLIMPSE_GAP above the card's edge, and space after the text lets it scroll clear, ending 40px above the edge (John, 2026-10-23) */}
-        {content && subPage && subText && (
-          <div key={subPage} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={{ marginBottom: SUB_PAGE_GLIMPSE_GAP - SCROLL_PEEK }}>
-            <div style={{ paddingBottom: SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP }}>{content}</div>
-          </div>
-        )}
-        {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && !subFits && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) : undefined} mainHeaderHeight={subPage && !subFits ? mainHeaderHeight : undefined} onGrow={subPage && !subFits ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
+        {/* Keyed by page so each page measures its own overflow from scratch */}
+        {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>
   );
@@ -405,11 +345,11 @@ function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChang
   return (
     <>
       <InteractionsImage />
-      <div data-glimpse-rows className="flex flex-col gap-[16px] w-full">
+      <div className="flex flex-col gap-[16px] w-full">
         <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
         <p className={descriptionClassName} style={{ color: '#939393' }}>Applies recognised dates, times and repeats as you type.</p>
       </div>
-      <div data-glimpse-rows className="flex flex-col gap-[16px] w-full">
+      <div className="flex flex-col gap-[16px] w-full">
         <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
         <p className={descriptionClassName} style={{ color: '#939393' }}>Lets you choose which ones to apply by tapping on the highlighted text.</p>
       </div>
@@ -845,7 +785,7 @@ function FeedbackPage({ onSend }: { onSend: () => void }) {
 }
 
 // Feedback confirmation (John's design, 2026-10-26): speech bubble icon (John's SVG, medium grey), 20px, the message in
-// medium grey, 40px, then Done, which closes the settings panel. 40px below the title; the card fits its content.
+// medium grey, 40px, then Done, which closes the settings panel. 40px below the title.
 function FeedbackSentPage({ onDone }: { onDone?: () => void }) {
   return (
     <div className="flex flex-col items-center w-full">
@@ -938,8 +878,6 @@ export function RemindersSettingsContent({ onOpenTutorial, onClose, feedbackAvai
       subVersion={supportDoc?.version}
       subUpdated={supportDoc?.lastUpdated}
       subTitleGap={supportTitleGap(subPage)}
-      subText={supportDoc !== null || subPage === "Feedback"}
-      subFits={subPage === "Interactions" || subPage === "Feedback sent"}
       onBack={() => setSubPage(subPage === "Interactions" ? "Natural Language Capture" : supportBack(subPage))}
       subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage onSend={() => setSubPage("Feedback sent")} /> : subPage === "Feedback sent" ? <FeedbackSentPage onDone={onClose} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
@@ -970,7 +908,7 @@ export function ListsSettingsContent({ onOpenTutorial, onClose, feedbackAvailabl
   const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} subFits={subPage === "Feedback sent"} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null || subPage === "Feedback"} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage onSend={() => setSubPage("Feedback sent")} /> : subPage === "Feedback sent" ? <FeedbackSentPage onDone={onClose} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage onSend={() => setSubPage("Feedback sent")} /> : subPage === "Feedback sent" ? <FeedbackSentPage onDone={onClose} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
       <ToggleRow label="Hide ticked items" isOn={hideTickedOn} onToggle={() => onHideTickedChange(!hideTickedOn)} infoTitle="Ticked items disappear from your lists a moment after you tick them. Turn this off to see them again." />
       <ToggleRow label="Tidy finished lists" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

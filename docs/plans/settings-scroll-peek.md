@@ -1,3 +1,5 @@
+Superseded (2026-10-26) by docs/plans/overlay-scrolling.md: the glimpse growth rule is retired.
+
 # Settings scroll cut: always half a row - plan
 
 Status: plan approved by Kai (2026-10-24); implemented on fix/settings-scroll-peek, awaiting final CTO review. Not merged.

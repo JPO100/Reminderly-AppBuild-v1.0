@@ -91,9 +91,10 @@ function ScrollArea({ children, onGrow, baseHeight, mainHeaderHeight }: { childr
       const content = rows.offsetHeight - current.pad;
       let next: ScrollFit = { cut: null, pad: 0, grow: 0 };
       if (content > visible + 1) {
-        // A group marked data-glimpse-rows (a toggle with its description) offers each of its rows for the cut, not its own middle
+        // A group marked data-glimpse-rows (a toggle with its description) offers its toggle row for the cut, not its own
+        // middle: a cut through a description falls between its lines and shows no glimpse (John, 2026-10-26)
         const middles = (Array.from(rows.children) as HTMLElement[])
-          .flatMap((row) => (row.hasAttribute("data-glimpse-rows") ? (Array.from(row.children) as HTMLElement[]) : [row]))
+          .map((row) => (row.hasAttribute("data-glimpse-rows") ? (row.firstElementChild as HTMLElement | null) ?? row : row))
           .filter((row) => row.offsetHeight >= 10) // not dividers
           .map((row) => Math.round(row.offsetTop + row.offsetHeight / 2 - visible));
         if (onGrowRef.current && baseHeightRef.current !== undefined) {

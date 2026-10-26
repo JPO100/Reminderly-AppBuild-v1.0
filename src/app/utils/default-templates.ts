@@ -6,8 +6,8 @@ export const DEFAULT_TEMPLATE_SEED: Array<{ title: string; items: string[] }> = 
     items: ["Neck rolls", "Shoulder rolls", "Hamstring stretch", "Jumping jacks", "Squats", "Push-ups", "Lunges", "Plank"],
   },
   {
-    title: "Spaghetti bolognese",
-    items: ["Minced beef", "Onion", "Garlic", "Chopped tomatoes", "Tomato purée", "Spaghetti"],
+    title: "Vegetarian lasagne",
+    items: ["Lasagne sheets", "Onion", "Garlic", "Courgette", "Red pepper", "Chopped tomatoes", "White sauce", "Mozzarella"],
   },
   {
     title: "Films to watch",

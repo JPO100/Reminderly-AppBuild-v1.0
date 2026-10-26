@@ -117,21 +117,23 @@ const NEW_REMINDER_INSERT_DELAY = 500;
 type Page5Phase = "none" | "templates-throb" | "templates-open" | "template-row-throb" | "editor-open" | "typing" | "add-throb" | "item-added" | "menu-throb" | "settings-overlay";
 const PAGE_5_TEMPLATES = [
   { id: "tpl-1", title: "Morning workout", itemCount: 8 },
-  { id: "tpl-2", title: "Spaghetti bolognese", itemCount: 6 },
+  { id: "tpl-2", title: "Vegetarian lasagne", itemCount: 8 },
   { id: "tpl-3", title: "Films to watch", itemCount: 10 },
   { id: "tpl-4", title: "Holiday destination ideas", itemCount: 10 },
 ] as const;
 const PAGE_5_TARGET_TEMPLATE_ID = "tpl-2";
 const PAGE_5_EDITOR_ITEMS = [
-  { id: "bolognese-1", text: "Minced beef", completed: false },
-  { id: "bolognese-2", text: "Onion", completed: false },
-  { id: "bolognese-3", text: "Garlic", completed: false },
-  { id: "bolognese-4", text: "Chopped tomatoes", completed: false },
-  { id: "bolognese-5", text: "Tomato purée", completed: false },
-  { id: "bolognese-6", text: "Spaghetti", completed: false },
+  { id: "lasagne-1", text: "Lasagne sheets", completed: false },
+  { id: "lasagne-2", text: "Onion", completed: false },
+  { id: "lasagne-3", text: "Garlic", completed: false },
+  { id: "lasagne-4", text: "Courgette", completed: false },
+  { id: "lasagne-5", text: "Red pepper", completed: false },
+  { id: "lasagne-6", text: "Chopped tomatoes", completed: false },
+  { id: "lasagne-7", text: "White sauce", completed: false },
+  { id: "lasagne-8", text: "Mozzarella", completed: false },
 ] as const;
 const PAGE_5_DEMO_ITEM = "Parmesan";
-const PAGE_5_DEMO_ITEM_ID = "bolognese-parmesan";
+const PAGE_5_DEMO_ITEM_ID = "lasagne-parmesan";
 const PAGE_5_THROB_TOTAL_MS = (TUTORIAL_ATTENTION_THROB_DELAY + TUTORIAL_ATTENTION_THROB_DURATION) * 1000;
 
 function TutorialSavedListTemplateIcon() {
@@ -1215,7 +1217,7 @@ function ListsTutorialPlaceholderPage({
                     <div ref={setPage5EditorHostElement} className="relative w-full h-full flex flex-col mx-auto">
                       <div className="content-stretch flex flex-col gap-[26px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
                         <ListsHeader
-                          value="Spaghetti bolognese"
+                          value="Vegetarian lasagne"
                           onChange={() => {}}
                           active
                           isEditMode
@@ -1324,7 +1326,7 @@ function ListsTutorialPlaceholderPage({
               {page5Phase === "settings-overlay" && (
                 <TutorialMiniOverlayShell>
                   <TutorialOverlayCard>
-                    <TutorialOverlayTitle>Spaghetti bolognese</TutorialOverlayTitle>
+                    <TutorialOverlayTitle>Vegetarian lasagne</TutorialOverlayTitle>
                     <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
                       <div className="h-[50px] relative rounded-[100px] shrink-0 w-full" style={{ backgroundColor: '#4784F8' }}>
                         <div className="flex flex-row items-center justify-center size-full">

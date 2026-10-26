@@ -787,9 +787,61 @@ function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial, feedbackAvaila
   );
 }
 
-// Feedback page: the title only for now (stage 1). Content comes in stage 2; nothing is sent anywhere.
+// Feedback faces, saddest to happiest, as supplied by John (2026-10-26): mouth paths only; the circle and eyes are shared.
+const FEEDBACK_MOUTHS = [
+  "M15.3984 30.9991C19.5114 24.9992 25.5437 25.1386 29.2598 30.9991",
+  "M15.3984 28.8368C20.6009 25.8346 24.0509 25.8667 29.2598 28.8368",
+  "M15.404 27.137L29.2654 27.137",
+  "M15.4062 26.6797C19.3096 29.7356 25.4426 29.434 29.2676 26.6797",
+  "M15.3984 26.6797C18.0946 32.6281 26.2008 32.5148 29.2598 26.6797",
+];
+
+// Inactive grey #ECECEC, active Reminderly later #FDB146; eyes and mouth dark blue.
+function FeedbackFace({ index, isActive, onSelect }: { index: number; isActive: boolean; onSelect: () => void }) {
+  return (
+    <button type="button" onClick={onSelect} aria-pressed={isActive} aria-label={`Rating ${index + 1} of 5`} className="block shrink-0 p-0 bg-transparent border-none cursor-pointer">
+      <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" className="block">
+        <rect width="44.6645" height="44.6645" rx="22.3322" fill={isActive ? "#FDB146" : "#ECECEC"} />
+        <rect x="11.9141" y="16.1714" width="5.85259" height="5.85259" rx="2.92629" fill="#1C2C42" />
+        <rect x="26.8984" y="16.1714" width="5.85259" height="5.85259" rx="2.92629" fill="#1C2C42" />
+        <path d={FEEDBACK_MOUTHS[index]} stroke="#1C2C42" strokeWidth="2.46425" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+}
+
+const FEEDBACK_SECTIONS = [
+  { title: "Look and feel", subtitle: "How polished is Reminderly?" },
+  { title: "Ease of use", subtitle: "How easy is it to do the things you need to do?" },
+  { title: "Getting started", subtitle: "How easy was it to start using the app?" },
+  { title: "Features", subtitle: "Does Reminderly do all the things you need?" },
+];
+
+// Feedback page (stage 2, John's design 2026-10-26): four rated sections, a text box and Send feedback. One face per row
+// can be active. Not connected: Send feedback does nothing and nothing is saved, so the page starts empty each time.
+// Gaps: title to subtitle 14px, subtitle to faces 16px, 30px between sections, to the text box and to the button.
+// The outer faces sit 5px in from each edge.
 function FeedbackPage() {
-  return null;
+  const [ratings, setRatings] = useState<(number | null)[]>(() => FEEDBACK_SECTIONS.map(() => null));
+  return (
+    <div className="flex flex-col gap-[30px] w-full">
+      {FEEDBACK_SECTIONS.map((section, sectionIndex) => (
+        <div key={section.title} className="flex flex-col w-full">
+          <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>{section.title}</p>
+          <p className="font-['Lato:Medium',sans-serif] text-[14px] text-[#BABABA] leading-[normal] mt-[14px]">{section.subtitle}</p>
+          <div className="flex items-center justify-between px-[5px] mt-[16px] w-full">
+            {FEEDBACK_MOUTHS.map((_, faceIndex) => (
+              <FeedbackFace key={faceIndex} index={faceIndex} isActive={ratings[sectionIndex] === faceIndex} onSelect={() => setRatings((current) => current.map((rating, i) => (i === sectionIndex ? faceIndex : rating)))} />
+            ))}
+          </div>
+        </div>
+      ))}
+      <textarea placeholder="Tell us what you think..." className="block w-full h-[192px] resize-none rounded-[15px] bg-[#F7F7F7] p-[20px] border-none outline-none font-['Lato:Medium',sans-serif] text-[17px] text-[#1C2C42] leading-[24px] placeholder:text-[#BABABA]" />
+      <button type="button" className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
+        <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Send feedback</p>
+      </button>
+    </div>
+  );
 }
 
 // A paragraph's text, with any links in Reminderly blue.
@@ -869,7 +921,7 @@ export function RemindersSettingsContent({ onOpenTutorial, feedbackAvailable = f
       subVersion={supportDoc?.version}
       subUpdated={supportDoc?.lastUpdated}
       subTitleGap={supportTitleGap(subPage)}
-      subText={supportDoc !== null}
+      subText={supportDoc !== null || subPage === "Feedback"}
       subFits={subPage === "Interactions"}
       onBack={() => setSubPage(subPage === "Interactions" ? "Natural Language Capture" : supportBack(subPage))}
       subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
@@ -901,7 +953,7 @@ export function ListsSettingsContent({ onOpenTutorial, feedbackAvailable = false
   const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null || subPage === "Feedback"} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
       <ToggleRow label="Hide ticked items" isOn={hideTickedOn} onToggle={() => onHideTickedChange(!hideTickedOn)} infoTitle="Ticked items disappear from your lists a moment after you tick them. Turn this off to see them again." />
       <ToggleRow label="Tidy finished lists" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

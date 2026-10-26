@@ -1725,6 +1725,12 @@ export default function TutorialOnboardingContent({
   const isLastPage = currentStep === totalPages - 1;
   // Turn on and Skip unless notifications are already on: undecided asks iOS, turned off opens iOS Settings
   const showNotificationAskButtons = isNotificationAskPage && notificationPermission !== 'granted';
+
+  // Close (x) on every page but the last; on the Never miss a reminder page it counts as Skip
+  const handleClose = () => {
+    if (showNotificationAskButtons) onNotificationSkip?.();
+    onComplete();
+  };
   const activePaginationColor = isListsTutorial ? LIST_BLUE : REMINDERLY_LIGHT_BLUE;
   const nextButtonColor = isListsTutorial ? LIST_BLUE : "#4784f8";
   // Pagination dots: 10px apart, closing up only when they would not fit the navigation row's width
@@ -2068,7 +2074,20 @@ export default function TutorialOnboardingContent({
               </button>
             </div>
           ) : (
-            <div className="absolute right-0 h-[45px] w-[35px]" />
+            <div className="absolute right-0 flex h-[45px] w-[35px] items-center justify-center">
+              <button
+                type="button"
+                aria-label="Close tutorial"
+                data-name="tutorial-close-button"
+                disabled={notificationRequesting}
+                className="flex size-full items-center justify-center cursor-pointer"
+                onClick={handleClose}
+              >
+                <svg className="block h-[23px] w-[23px]" fill="none" viewBox="0 0 21 20">
+                  <path d="M16.8887 0.537952C17.6093 -0.179383 18.7782 -0.179251 19.4989 0.537952C20.2194 1.25536 20.2194 2.41898 19.4989 3.13637L12.6809 9.92305L19.6528 16.8644C20.3733 17.5818 20.3733 18.7446 19.6528 19.4621C18.9322 20.1793 17.764 20.1793 17.0434 19.4621L10.0966 12.5465L3.14976 19.4621C2.42914 20.1793 1.26101 20.1793 0.540397 19.4621C-0.18013 18.7446 -0.180135 17.5818 0.540397 16.8644L7.51223 9.92305L0.694302 3.13637C-0.02624 2.41898 -0.0262144 1.25536 0.694302 0.537952C1.41496 -0.179251 2.58387 -0.179383 3.30444 0.537952L10.0966 7.30041L16.8887 0.537952Z" fill="#D9D9D9" />
+                </svg>
+              </button>
+            </div>
           )}
         </div>
       </div>

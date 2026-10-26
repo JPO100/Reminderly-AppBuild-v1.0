@@ -328,7 +328,7 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
 }
 
 // Sub-page titles that differ from their row label, shortened to fit on one line (John, 2026-10-24)
-const SUB_PAGE_TITLES: Record<string, string> = { 'Natural Language Capture': 'Natural Lang. Capture' };
+const SUB_PAGE_TITLES: Record<string, string> = { 'Natural Language Capture': 'Natural Lang. Capture', 'Feedback sent': 'Feedback' };
 
 // Overlay standard: 40px from title to content, 30px between rows. The title stays put; rows scroll when they do not fit.
 // Sub-pages keep the main page's height, so each panel stays one size while its main rows are unchanged; a sub-page that
@@ -758,7 +758,7 @@ const PRIVACY_POLICY: SupportDoc = {
 };
 
 // The pages opened from Support; Back from these returns to Support
-const SUPPORT_DOC_PAGES = ["FAQs", "Privacy policy", "Terms of use"];
+const SUPPORT_DOC_PAGES = ["FAQs", "Privacy policy", "Terms of use", "Feedback"];
 
 function supportDocFor(page: string | null, faqs: SupportDoc): SupportDoc | null {
   if (page === "FAQs") return faqs;
@@ -768,7 +768,8 @@ function supportDocFor(page: string | null, faqs: SupportDoc): SupportDoc | null
 }
 
 // Support sub-page: FAQs and the panel's tutorial (John, 2026-10-23), a key line, then the legal pages.
-function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial }: { onOpen: (page: string) => void; tutorialLabel: string; onOpenTutorial?: () => void }) {
+// Feedback follows under its own key line while Dev tools > System > Collect feedback is on (John, 2026-10-26).
+function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial, feedbackAvailable = false }: { onOpen: (page: string) => void; tutorialLabel: string; onOpenTutorial?: () => void; feedbackAvailable?: boolean }) {
   return (
     <>
       <MenuRow label="FAQs" onClick={() => onOpen("FAQs")} />
@@ -776,7 +777,87 @@ function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial }: { onOpen: (p
       <KeyLine />
       <MenuRow label="Privacy policy" onClick={() => onOpen("Privacy policy")} />
       <MenuRow label="Terms of use" onClick={() => onOpen("Terms of use")} />
+      {feedbackAvailable && (
+        <>
+          <KeyLine />
+          <MenuRow label="Feedback" onClick={() => onOpen("Feedback")} />
+        </>
+      )}
     </>
+  );
+}
+
+// Feedback faces, saddest to happiest, as supplied by John (2026-10-26): mouth paths only; the circle and eyes are shared.
+const FEEDBACK_MOUTHS = [
+  "M15.3984 30.9991C19.5114 24.9992 25.5437 25.1386 29.2598 30.9991",
+  "M15.3984 28.8368C20.6009 25.8346 24.0509 25.8667 29.2598 28.8368",
+  "M15.404 27.137L29.2654 27.137",
+  "M15.4062 26.6797C19.3096 29.7356 25.4426 29.434 29.2676 26.6797",
+  "M15.3984 26.6797C18.0946 32.6281 26.2008 32.5148 29.2598 26.6797",
+];
+
+// Inactive grey #ECECEC, active Reminderly later #FDB146; eyes and mouth dark blue.
+function FeedbackFace({ index, isActive, onSelect }: { index: number; isActive: boolean; onSelect: () => void }) {
+  return (
+    <button type="button" onClick={onSelect} aria-pressed={isActive} aria-label={`Rating ${index + 1} of 5`} className="block shrink-0 p-0 bg-transparent border-none cursor-pointer">
+      <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" className="block">
+        <rect width="44.6645" height="44.6645" rx="22.3322" fill={isActive ? "#FDB146" : "#ECECEC"} />
+        <rect x="11.9141" y="16.1714" width="5.85259" height="5.85259" rx="2.92629" fill="#1C2C42" />
+        <rect x="26.8984" y="16.1714" width="5.85259" height="5.85259" rx="2.92629" fill="#1C2C42" />
+        <path d={FEEDBACK_MOUTHS[index]} stroke="#1C2C42" strokeWidth="2.46425" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+}
+
+const FEEDBACK_SECTIONS = [
+  { title: "Look and feel", subtitle: "How polished is Reminderly?" },
+  { title: "Ease of use", subtitle: "How easy is it to do the things you need to do?" },
+  { title: "Getting started", subtitle: "How easy was it to start using the app?" },
+  { title: "Features", subtitle: "Does Reminderly do all the things you need?" },
+];
+
+// Feedback page (stage 2, John's design 2026-10-26): four rated sections, a text box and Send feedback. One face per row
+// can be active; tapping the active face clears it. Not connected: Send feedback opens the confirmation and nothing is sent or saved, so the page starts empty each time.
+// Gaps: title to subtitle 14px, subtitle to faces 16px, 30px between sections, to the text box and to the button.
+// The outer faces sit 5px in from each edge.
+function FeedbackPage({ onSend }: { onSend: () => void }) {
+  const [ratings, setRatings] = useState<(number | null)[]>(() => FEEDBACK_SECTIONS.map(() => null));
+  return (
+    <div className="flex flex-col gap-[30px] w-full">
+      {FEEDBACK_SECTIONS.map((section, sectionIndex) => (
+        <div key={section.title} className="flex flex-col w-full">
+          <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>{section.title}</p>
+          <p className="font-['Lato:Medium',sans-serif] text-[14px] text-[#BABABA] leading-[normal] mt-[14px]">{section.subtitle}</p>
+          <div className="flex items-center justify-between px-[5px] mt-[16px] w-full">
+            {FEEDBACK_MOUTHS.map((_, faceIndex) => (
+              <FeedbackFace key={faceIndex} index={faceIndex} isActive={ratings[sectionIndex] === faceIndex} onSelect={() => setRatings((current) => current.map((rating, i) => (i === sectionIndex ? (rating === faceIndex ? null : faceIndex) : rating)))} />
+            ))}
+          </div>
+        </div>
+      ))}
+      <textarea placeholder="Tell us what you think..." className="block w-full h-[192px] resize-none rounded-[15px] bg-[#F7F7F7] p-[20px] border-none outline-none font-['Lato:Medium',sans-serif] text-[17px] text-[#1C2C42] leading-[24px] placeholder:text-[#BABABA]" />
+      <button type="button" onClick={onSend} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
+        <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Send feedback</p>
+      </button>
+    </div>
+  );
+}
+
+// Feedback confirmation (John's design, 2026-10-26): speech bubble icon (John's SVG, medium grey), 20px, the message in
+// medium grey, 40px, then Done, which closes the settings panel. 40px below the title; the card fits its content.
+function FeedbackSentPage({ onDone }: { onDone?: () => void }) {
+  return (
+    <div className="flex flex-col items-center w-full">
+      <svg width="34" height="33" viewBox="0 0 34 33" fill="none" xmlns="http://www.w3.org/2000/svg" className="block shrink-0">
+        <path d="M32.7029 17.7486C32.27 24.4471 27.009 29.7827 20.4042 30.2218C18.151 30.3715 15.7984 30.3712 13.5497 30.2218C12.7753 30.1703 11.9313 29.9855 11.2044 29.6861C10.3956 29.353 9.99108 29.1864 9.78556 29.2117C9.58003 29.237 9.28182 29.4569 8.68541 29.8967C7.63384 30.6721 6.30908 31.229 4.34449 31.1812C3.35107 31.157 2.85436 31.1449 2.63199 30.7658C2.40962 30.3867 2.68657 29.8619 3.24047 28.8122C4.00867 27.3565 4.49541 25.6898 3.75788 24.3545C2.48766 22.4471 1.4087 20.1883 1.25104 17.7486C1.16632 16.4378 1.16632 15.0803 1.25104 13.7694C1.68394 7.07099 6.94495 1.73534 13.5497 1.29631C15.7984 1.14683 18.151 1.14652 20.4042 1.29631C27.009 1.73534 32.27 7.07099 32.7029 13.7694C32.7876 15.0803 32.7876 16.4378 32.7029 17.7486Z" stroke="#BABABA" strokeWidth="2.36842" strokeLinejoin="round" />
+        <path d="M16.9728 16.1841H16.9869M23.2815 16.1841H23.2956M10.6641 16.1841H10.6782" stroke="#BABABA" strokeWidth="3.15789" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] leading-[normal] text-center mt-[20px]" style={{ fontWeight: 700 }}>Feedback received, thanks!</p>
+      <button type="button" onClick={onDone} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none mt-[40px]">
+        <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Done</p>
+      </button>
+    </div>
   );
 }
 
@@ -843,10 +924,10 @@ function SupportRow({ onClick }: { onClick: () => void }) {
   );
 }
 
-const supportBack = (subPage: string | null) => (subPage && SUPPORT_DOC_PAGES.includes(subPage) ? "Support" : null);
+const supportBack = (subPage: string | null) => (subPage && (SUPPORT_DOC_PAGES.includes(subPage) || subPage === "Feedback sent") ? "Support" : null);
 const supportTitleGap = (subPage: string | null) => (subPage === "Support" || (subPage && SUPPORT_DOC_PAGES.includes(subPage)) ? 30 : 40);
 
-export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailable, notifPrefs, notifPermissionDenied, onNotifChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; notifPermissionDenied: boolean; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
+export function RemindersSettingsContent({ onOpenTutorial, onClose, feedbackAvailable = false, notificationsAvailable, notifPrefs, notifPermissionDenied, onNotifChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; notifPermissionDenied: boolean; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; feedbackAvailable?: boolean; onClose?: () => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
   const supportDoc = supportDocFor(subPage, REMINDERS_FAQS);
 
@@ -857,10 +938,10 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       subVersion={supportDoc?.version}
       subUpdated={supportDoc?.lastUpdated}
       subTitleGap={supportTitleGap(subPage)}
-      subText={supportDoc !== null}
-      subFits={subPage === "Interactions"}
+      subText={supportDoc !== null || subPage === "Feedback"}
+      subFits={subPage === "Interactions" || subPage === "Feedback sent"}
       onBack={() => setSubPage(subPage === "Interactions" ? "Natural Language Capture" : supportBack(subPage))}
-      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
+      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage onSend={() => setSubPage("Feedback sent")} /> : subPage === "Feedback sent" ? <FeedbackSentPage onDone={onClose} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
       {datePresetsAvailable && <ToggleRow label="Quick date buttons" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
       {oneMinuteAvailable && <ToggleRow label="1 minute time steps" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 15 minute steps." />}
@@ -884,12 +965,12 @@ function ItemOrderSettings({ itemOrder, onItemOrderChange }: { itemOrder: ListIt
   );
 }
 
-export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsAvailable, templatesAvailable, siriAvailable, siriOn, onSiriChange, itemOrder, onItemOrderChange, hideTickedOn, onHideTickedChange, autoClearOn, onAutoClearChange }: { onOpenTutorial?: () => void; soundsAvailable: boolean; hapticsAvailable: boolean; templatesAvailable: boolean; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; itemOrder: ListItemOrder; onItemOrderChange: (value: ListItemOrder) => void; hideTickedOn: boolean; onHideTickedChange: (value: boolean) => void; autoClearOn: boolean; onAutoClearChange: (value: boolean) => void }) {
+export function ListsSettingsContent({ onOpenTutorial, onClose, feedbackAvailable = false, soundsAvailable, hapticsAvailable, templatesAvailable, siriAvailable, siriOn, onSiriChange, itemOrder, onItemOrderChange, hideTickedOn, onHideTickedChange, autoClearOn, onAutoClearChange }: { onOpenTutorial?: () => void; soundsAvailable: boolean; hapticsAvailable: boolean; templatesAvailable: boolean; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; itemOrder: ListItemOrder; onItemOrderChange: (value: ListItemOrder) => void; hideTickedOn: boolean; onHideTickedChange: (value: boolean) => void; autoClearOn: boolean; onAutoClearChange: (value: boolean) => void; feedbackAvailable?: boolean; onClose?: () => void }) {
   const [subPage, setSubPage] = useState<string | null>(null);
   const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} subFits={subPage === "Feedback sent"} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null || subPage === "Feedback"} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage onSend={() => setSubPage("Feedback sent")} /> : subPage === "Feedback sent" ? <FeedbackSentPage onDone={onClose} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
       <ToggleRow label="Hide ticked items" isOn={hideTickedOn} onToggle={() => onHideTickedChange(!hideTickedOn)} infoTitle="Ticked items disappear from your lists a moment after you tick them. Turn this off to see them again." />
       <ToggleRow label="Tidy finished lists" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

@@ -818,7 +818,7 @@ const FEEDBACK_SECTIONS = [
 ];
 
 // Feedback page (stage 2, John's design 2026-10-26): four rated sections, a text box and Send feedback. One face per row
-// can be active. Not connected: Send feedback does nothing and nothing is saved, so the page starts empty each time.
+// can be active; tapping the active face clears it. Not connected: Send feedback does nothing and nothing is saved, so the page starts empty each time.
 // Gaps: title to subtitle 14px, subtitle to faces 16px, 30px between sections, to the text box and to the button.
 // The outer faces sit 5px in from each edge.
 function FeedbackPage() {
@@ -831,7 +831,7 @@ function FeedbackPage() {
           <p className="font-['Lato:Medium',sans-serif] text-[14px] text-[#BABABA] leading-[normal] mt-[14px]">{section.subtitle}</p>
           <div className="flex items-center justify-between px-[5px] mt-[16px] w-full">
             {FEEDBACK_MOUTHS.map((_, faceIndex) => (
-              <FeedbackFace key={faceIndex} index={faceIndex} isActive={ratings[sectionIndex] === faceIndex} onSelect={() => setRatings((current) => current.map((rating, i) => (i === sectionIndex ? faceIndex : rating)))} />
+              <FeedbackFace key={faceIndex} index={faceIndex} isActive={ratings[sectionIndex] === faceIndex} onSelect={() => setRatings((current) => current.map((rating, i) => (i === sectionIndex ? (rating === faceIndex ? null : faceIndex) : rating)))} />
             ))}
           </div>
         </div>

@@ -5731,6 +5731,7 @@ export default function App() {
                   siriOn={remindersSettingsSiriOn}
                   onSiriChange={setRemindersSettingsSiriOn}
                   feedbackAvailable={feedbackFlag}
+                  onClose={() => setIsRemindersSettingsPanelOpen(false)}
                   onOpenTutorial={isOnboardingTutorialEnabled ? handleRemindersSettingsTutorialOpen : undefined}
                 />
                 </ShowInfoIconsContext.Provider>
@@ -5751,6 +5752,7 @@ export default function App() {
                 <ShowInfoIconsContext.Provider value={showInfoIcons}>
                 <ListsSettingsContent
                   feedbackAvailable={feedbackFlag}
+                  onClose={() => setIsListsSettingsPanelOpen(false)}
                   soundsAvailable={soundsFlag}
                   hapticsAvailable={hapticsFlag}
                   templatesAvailable={savedListsFeatureEnabled}

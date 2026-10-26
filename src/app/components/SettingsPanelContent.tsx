@@ -270,8 +270,38 @@ function OneMinuteTimeStepsImage() {
   );
 }
 
+// Info page image: three active lists as the Lists tab shows them (to do, started, complete), the complete one with its
+// "Clears tonight" text, in the same 216px frame (John, 2026-10-26).
+function TidyFinishedListsImage() {
+  const lists = [
+    { title: "Workout routine", detail: "0 of 2", colour: "#939393" },
+    { title: "Weekend trip packing", detail: "2 of 7", colour: "#60C1E7" },
+    { title: "New apartment to-do", detail: "6 of 6. Clears tonight", colour: "#8168D5" },
+  ];
+  return (
+    <div className="relative shrink-0 w-[216px] overflow-hidden rounded-[11px] p-[15px] flex flex-col gap-[14px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Active lists, one complete and clearing tonight">
+      {lists.map(({ title, detail, colour }) => (
+        <div key={title} className="flex items-start gap-[9px] w-full">
+          <svg width="14" height="14" viewBox="0 0 25 25" fill="none" className="shrink-0 mt-[1px]">
+            <path d="M12.5 0C19.4036 0 25 5.59644 25 12.5C25 19.4036 19.4036 25 12.5 25C5.59644 25 0 19.4036 0 12.5C0 5.59644 5.59644 0 12.5 0ZM12.5 2C6.70101 2 2 6.70101 2 12.5C2 18.299 6.70101 23 12.5 23C18.299 23 23 18.299 23 12.5C23 6.70101 18.299 2 12.5 2Z" fill={colour} />
+          </svg>
+          <div className="flex flex-col gap-[5px] flex-1 min-w-0">
+            <p className="font-['Lato:Bold',sans-serif] text-[9.5px] text-[#1C2C42] leading-[normal] whitespace-nowrap" style={{ fontWeight: 700 }}>{title}</p>
+            <p className="font-['Lato',sans-serif] font-bold text-[7.5px] text-[#BABABA] leading-[normal] whitespace-nowrap">{detail}</p>
+          </div>
+          <svg width="12" height="3" viewBox="0 0 12 3" fill="none" className="shrink-0 mt-[6px]">
+            <circle cx="1.5" cy="1.5" r="1.25" fill="#BABABA" />
+            <circle cx="6" cy="1.5" r="1.25" fill="#BABABA" />
+            <circle cx="10.5" cy="1.5" r="1.25" fill="#BABABA" />
+          </svg>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // Images shown on info pages between the title and the text, by info header. 40px from the title, 30px to the text.
-const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons": QuickDateButtonsImage, "1 minute time steps": OneMinuteTimeStepsImage };
+const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons": QuickDateButtonsImage, "1 minute time steps": OneMinuteTimeStepsImage, "Tidy finished lists": TidyFinishedListsImage };
 
 function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
   const Image = INFO_PAGE_IMAGES[header];

@@ -148,7 +148,90 @@ function ScrollArea({ children, onGrow, baseHeight, mainHeaderHeight }: { childr
 // Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
 // with Back returning to the page it was opened from. The card fits its height to the text.
 // The title has the info icon before it, in dark blue, 10px from the text, 1px below centre (John, 2026-10-22).
+// Info page image: a mock-up of the New reminder panel with its quick date buttons, in a 216px frame with 15px padding,
+// cut off at the bottom through the Date row (John, 2026-10-26).
+function QuickDateButtonsImage() {
+  return (
+    <div className="relative shrink-0 w-[216px] h-[156px] overflow-hidden rounded-[11px] p-[15px] flex flex-col gap-[14px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="New reminder with quick date buttons">
+      <div className="flex items-center justify-between h-[24px] shrink-0">
+        <p className="font-['Lato:Bold',sans-serif] text-[10px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>New reminder</p>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="shrink-0">
+          <circle cx="12" cy="12" r="12" fill="#4784F8" />
+          <path d="M7.5 12.3L10.6 15.3L16.5 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <div className="relative h-[40px] shrink-0 rounded-[6px] bg-[#F2F2F2] px-[8px] pt-[7px]">
+        <p className="font-['Lato:Medium',sans-serif] text-[8.5px] text-[#1C2C42] leading-[normal]">Pick up milk</p>
+        <svg className="absolute right-[7px] bottom-[6px]" width="7" height="10" viewBox="0 0 7 10" fill="none">
+          <rect x="1.75" y="0.5" width="3.5" height="5.5" rx="1.75" stroke="#BABABA" strokeWidth="1" />
+          <path d="M0.5 4.5C0.5 6.2 1.8 7.5 3.5 7.5C5.2 7.5 6.5 6.2 6.5 4.5M3.5 7.5V9.5" stroke="#BABABA" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+      </div>
+      <div className="flex items-center justify-between shrink-0">
+        {["Tomorrow morning", "Tonight", "Next week"].map((label) => (
+          <div key={label} className="flex items-center justify-center h-[23px] px-[7px] rounded-[100px]" style={{ boxShadow: "inset 0 0 0 1px #B7B7B7" }}>
+            <p className="font-['Lato',sans-serif] font-bold text-[7px] text-[#B7B7B7] whitespace-nowrap">{label}</p>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between h-[20px] shrink-0">
+        <div className="flex items-center gap-[6px]">
+          <svg width="10" height="10" viewBox="0 0 17 17" fill="none" className="shrink-0">
+            <circle cx="8.25" cy="8.25" r="7.5" stroke="#1C2C42" strokeWidth="1.5" />
+            <path d="M8.25 7.5V12M8.25 5.25H8.26" stroke="#1C2C42" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <p className="font-['Lato:Bold',sans-serif] text-[10px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>Date</p>
+        </div>
+        <div className="flex items-center justify-start h-[16px] w-[30px] p-[2px] rounded-[20px] bg-[#BABABA]">
+          <div className="size-[12px] rounded-full bg-white" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Info page image: the Time row on, with the time wheels at 12:30 stepping by the minute, in the same 216px frame,
+// cut off at the bottom through the next row (John, 2026-10-26).
+function OneMinuteTimeStepsImage() {
+  const wheels = [
+    { centre: 71, values: ["09", "10", "11", "12", "13"] },
+    { centre: 146, values: ["27", "28", "29", "30", "31"] },
+  ];
+  const rowCentres = [58, 77.5, 97, 117, 137];
+  const rowColours = ["#D9D9D9", "#BABABA", "#BABABA", "#1C2C42", "#BABABA"];
+  return (
+    <div className="relative shrink-0 w-[216px] h-[138px] overflow-hidden rounded-[11px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Time picker stepping by the minute">
+      <div className="absolute left-[15px] right-[15px] top-[15px] h-[22px] flex items-center">
+        <div className="flex items-center gap-[8px] w-[71px] shrink-0">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" className="shrink-0">
+            <circle cx="6.5" cy="6.5" r="5.75" stroke="#1C2C42" strokeWidth="1.3" />
+            <path d="M6.5 3.5V6.5L8.5 8" stroke="#1C2C42" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <p className="font-['Lato:Bold',sans-serif] text-[8.5px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>Time</p>
+        </div>
+        <p className="flex-1 font-['Lato:Bold',sans-serif] text-[8.5px] text-[#4784F8] leading-[normal]" style={{ fontWeight: 700 }}>12:30pm</p>
+        <div className="flex items-center justify-end h-[15px] w-[29px] p-[2px] rounded-[20px] bg-[#4784F8] shrink-0">
+          <div className="size-[11px] rounded-full bg-white" />
+        </div>
+      </div>
+      <div className="absolute left-[15px] right-[15px] top-[44px] h-px bg-[#EEEEEE]" />
+      {wheels.map(({ centre, values }) =>
+        values.map((value, index) => (
+          <div key={value} className={`absolute flex items-center justify-center w-[42px] h-[20px] rounded-[7px] ${index === 3 ? "bg-[#F2F2F2]" : ""}`} style={{ left: centre - 21, top: rowCentres[index] - 10 }}>
+            <p className="font-['Lato:Bold',sans-serif] text-[8.5px] leading-[normal]" style={{ fontWeight: 700, color: rowColours[index] }}>{value}</p>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+// Images shown on info pages between the title and the text, by info header. 40px from the title, 30px to the text.
+const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons": QuickDateButtonsImage, "1 minute time steps": OneMinuteTimeStepsImage };
+
 function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
+  const Image = INFO_PAGE_IMAGES[header];
+  const text = <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>;
   return (
     <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
       <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
@@ -157,7 +240,12 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
           {header}
         </p>
       </div>
-      <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>
+      {Image ? (
+        <div className="flex flex-col gap-[30px] items-center w-full">
+          <Image />
+          {text}
+        </div>
+      ) : text}
       <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
         <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
       </button>

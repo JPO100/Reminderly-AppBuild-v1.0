@@ -306,7 +306,9 @@ const SUB_PAGE_TITLES: Record<string, string> = { 'Natural Language Capture': 'N
 // Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
 // A sub-page with a taller header (a version line, a title on two lines) measures its scroll area from that much less.
 // Support pages sit 30px under the title, not 40px (John, 2026-10-23); their scroll area measures from that much more.
-function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, subText = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subUpdated?: string; subTitleGap?: number; subText?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
+// subFits: the sub-page sizes the card to its own content, as a main page does, and scrolls only when the screen is too
+// short for it (Interactions, John, 2026-10-26).
+function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, subText = false, subFits = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subUpdated?: string; subTitleGap?: number; subText?: boolean; subFits?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
@@ -331,7 +333,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
   if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
-      <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight + grow } : {}) }}>
+      <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && !subFits && mainHeight ? { height: mainHeight + grow } : {}) }}>
         <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
         {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
         {/* Text pages (Support documents) scroll freely within the page's height: their tall blocks have no row middles to cut through */}
@@ -341,7 +343,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
             <div style={{ paddingBottom: SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP }}>{content}</div>
           </div>
         )}
-        {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) : undefined} mainHeaderHeight={subPage ? mainHeaderHeight : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
+        {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && !subFits && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) : undefined} mainHeaderHeight={subPage && !subFits ? mainHeaderHeight : undefined} onGrow={subPage && !subFits ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>
   );
@@ -826,6 +828,7 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       subUpdated={supportDoc?.lastUpdated}
       subTitleGap={supportTitleGap(subPage)}
       subText={supportDoc !== null}
+      subFits={subPage === "Interactions"}
       onBack={() => setSubPage(subPage === "Interactions" ? "Natural Language Capture" : supportBack(subPage))}
       subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >

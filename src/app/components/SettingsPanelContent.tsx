@@ -91,7 +91,9 @@ function ScrollArea({ children, onGrow, baseHeight, mainHeaderHeight }: { childr
       const content = rows.offsetHeight - current.pad;
       let next: ScrollFit = { cut: null, pad: 0, grow: 0 };
       if (content > visible + 1) {
+        // A group marked data-glimpse-rows (a toggle with its description) offers each of its rows for the cut, not its own middle
         const middles = (Array.from(rows.children) as HTMLElement[])
+          .flatMap((row) => (row.hasAttribute("data-glimpse-rows") ? (Array.from(row.children) as HTMLElement[]) : [row]))
           .filter((row) => row.offsetHeight >= 10) // not dividers
           .map((row) => Math.round(row.offsetTop + row.offsetHeight / 2 - visible));
         if (onGrowRef.current && baseHeightRef.current !== undefined) {
@@ -370,11 +372,11 @@ function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChang
   return (
     <>
       <InteractionsImage />
-      <div className="flex flex-col gap-[16px] w-full">
+      <div data-glimpse-rows className="flex flex-col gap-[16px] w-full">
         <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
         <p className={descriptionClassName} style={{ color: '#939393' }}>Applies recognised dates, times and repeats as you type.</p>
       </div>
-      <div className="flex flex-col gap-[16px] w-full">
+      <div data-glimpse-rows className="flex flex-col gap-[16px] w-full">
         <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
         <p className={descriptionClassName} style={{ color: '#939393' }}>Lets you choose which ones to apply by tapping on the highlighted text.</p>
       </div>

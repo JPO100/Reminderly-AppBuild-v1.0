@@ -1907,3 +1907,9 @@ NLC Interactions descriptions shortened (2026-10-25, John, Type A, same branch):
 NLC Interactions spacing (2026-10-25, John, Type A, same branch): each toggle and its description are grouped with 8px between them (was the page's 30px); 30px between the two groups is unchanged. Browser at 402 x 874: 8px, 30px, 8px measured; the page now fits without scrolling.
 
 NLC Interactions spacing revised (2026-10-25, John): 16px between each toggle and its description; 30px between toggle groups unchanged.
+
+Merge - 2026-10-25: fix/nlc-interactions-descriptions (d62096c) into main as 35fc67f, --no-ff. Merged on John's CEO authority ("signed off - merge on my authority"). CTO merge approval was not obtained for this merge; Kai is informed through this record. Checks on main: Vitest 469 passed, Self Check 432 passed 0 failed, web build succeeded. Devices were already on d62096c (code-identical).
+
+Merge - 2026-10-25: fix/support-contact-logo (c69d2f9, ef4b95c: NeatlyMade logo under the Contact heading on the Support pages, 140px wide; company name "NeatlyMade Ltd.") into main as 5e938a1, --no-ff, with Kai's sign-off and John's approval ("signed off - merge approved"). Checks on main: Vitest 469 passed, web build succeeded. Devices were already on ef4b95c (code-identical).
+
+Merge - 2026-10-25: fix/company-name-neatlymade-ltd (ea2a13d: company name "NeatlyMade Ltd." throughout the Terms of use and Privacy policy; 5db2087: Contact links in NeatlyMade red as a trial, reverted at John's request by 81abf87) into main as 12d013a, --no-ff, with Kai's sign-off and John's approval. Checks on main: Vitest 469 passed, web build succeeded. Devices were already on 81abf87 (code-identical).

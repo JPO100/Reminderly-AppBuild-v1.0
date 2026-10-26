@@ -91,7 +91,10 @@ function ScrollArea({ children, onGrow, baseHeight, mainHeaderHeight }: { childr
       const content = rows.offsetHeight - current.pad;
       let next: ScrollFit = { cut: null, pad: 0, grow: 0 };
       if (content > visible + 1) {
+        // A group marked data-glimpse-rows (a toggle with its description) offers its toggle row for the cut, not its own
+        // middle: a cut through a description falls between its lines and shows no glimpse (John, 2026-10-26)
         const middles = (Array.from(rows.children) as HTMLElement[])
+          .map((row) => (row.hasAttribute("data-glimpse-rows") ? (row.firstElementChild as HTMLElement | null) ?? row : row))
           .filter((row) => row.offsetHeight >= 10) // not dividers
           .map((row) => Math.round(row.offsetTop + row.offsetHeight / 2 - visible));
         if (onGrowRef.current && baseHeightRef.current !== undefined) {
@@ -148,7 +151,161 @@ function ScrollArea({ children, onGrow, baseHeight, mainHeaderHeight }: { childr
 // Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
 // with Back returning to the page it was opened from. The card fits its height to the text.
 // The title has the info icon before it, in dark blue, 10px from the text, 1px below centre (John, 2026-10-22).
+// Info page image: a mock-up of the New reminder panel with its quick date buttons, in a 216px frame with 15px padding,
+// cut off at the bottom through the Date row (John, 2026-10-26).
+function QuickDateButtonsImage() {
+  return (
+    <div className="relative shrink-0 w-[216px] h-[156px] overflow-hidden rounded-[11px] p-[15px] flex flex-col gap-[14px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="New reminder with quick date buttons">
+      <div className="flex items-center justify-between h-[24px] shrink-0">
+        <p className="font-['Lato:Bold',sans-serif] text-[10px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>New reminder</p>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="shrink-0">
+          <circle cx="12" cy="12" r="12" fill="#4784F8" />
+          <path d="M7.5 12.3L10.6 15.3L16.5 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <div className="relative h-[40px] shrink-0 rounded-[6px] bg-[#F2F2F2] px-[8px] pt-[7px]">
+        <p className="font-['Lato:Medium',sans-serif] text-[8.5px] text-[#1C2C42] leading-[normal]">Pick up milk</p>
+        <svg className="absolute right-[7px] bottom-[6px]" width="7" height="10" viewBox="0 0 7 10" fill="none">
+          <rect x="1.75" y="0.5" width="3.5" height="5.5" rx="1.75" stroke="#BABABA" strokeWidth="1" />
+          <path d="M0.5 4.5C0.5 6.2 1.8 7.5 3.5 7.5C5.2 7.5 6.5 6.2 6.5 4.5M3.5 7.5V9.5" stroke="#BABABA" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+      </div>
+      <div className="flex items-center justify-between shrink-0">
+        {["Tomorrow morning", "Tonight", "Next week"].map((label) => (
+          <div key={label} className="flex items-center justify-center h-[23px] px-[7px] rounded-[100px]" style={{ boxShadow: "inset 0 0 0 1px #B7B7B7" }}>
+            <p className="font-['Lato',sans-serif] font-bold text-[7px] text-[#B7B7B7] whitespace-nowrap">{label}</p>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center justify-between h-[20px] shrink-0">
+        <div className="flex items-center gap-[6px]">
+          <svg width="10" height="10" viewBox="0 0 17 17" fill="none" className="shrink-0">
+            <circle cx="8.25" cy="8.25" r="7.5" stroke="#1C2C42" strokeWidth="1.5" />
+            <path d="M8.25 7.5V12M8.25 5.25H8.26" stroke="#1C2C42" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          <p className="font-['Lato:Bold',sans-serif] text-[10px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>Date</p>
+        </div>
+        <div className="flex items-center justify-start h-[16px] w-[30px] p-[2px] rounded-[20px] bg-[#BABABA]">
+          <div className="size-[12px] rounded-full bg-white" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Info page image: the Time row on, with the time wheels at 12:30 stepping by the minute, in the same 216px frame,
+// cut off at the bottom through the next row (John, 2026-10-26).
+function MiniClockIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" className="shrink-0">
+      <circle cx="6.5" cy="6.5" r="5.75" stroke="#1C2C42" strokeWidth="1.3" />
+      <path d="M6.5 3.5V6.5L8.5 8" stroke="#1C2C42" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Interactions page image: a typed reminder with its recognised date and time in blue, applied to the Date and Time rows,
+// in the same 216px frame (John, 2026-10-26).
+function InteractionsImage() {
+  const rows = [
+    { label: "Date", value: "Tomorrow", centre: 81 },
+    { label: "Time", value: "3pm", centre: 107 },
+  ];
+  const textClassName = "font-['Lato:Bold',sans-serif] text-[8.5px] leading-[normal]";
+  return (
+    <div className="relative shrink-0 w-[216px] h-[132px] overflow-hidden rounded-[11px] bg-white mx-auto" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Typed reminder with its date and time applied">
+      <div className="absolute left-[15px] right-[15px] top-[15px] h-[51px] rounded-[6px] bg-[#F2F2F2] px-[8px] pt-[9px]">
+        <p className="font-['Lato:Medium',sans-serif] text-[8.5px] text-[#1C2C42] leading-[normal]">
+          Call mum <span className="text-[#4784F8]">tomorrow</span> at <span className="text-[#4784F8]">3pm</span>
+        </p>
+        <svg className="absolute right-[7px] bottom-[6px]" width="7" height="10" viewBox="0 0 7 10" fill="none">
+          <rect x="1.75" y="0.5" width="3.5" height="5.5" rx="1.75" stroke="#BABABA" strokeWidth="1" />
+          <path d="M0.5 4.5C0.5 6.2 1.8 7.5 3.5 7.5C5.2 7.5 6.5 6.2 6.5 4.5M3.5 7.5V9.5" stroke="#BABABA" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+      </div>
+      {rows.map(({ label, value, centre }) => (
+        <div key={label} className="absolute left-[21px] right-[20px] h-[15px] flex items-center" style={{ top: centre - 7.5 }}>
+          <div className="flex items-center gap-[7px] w-[65px] shrink-0">
+            <MiniClockIcon />
+            <p className={`${textClassName} text-[#1C2C42]`} style={{ fontWeight: 700 }}>{label}</p>
+          </div>
+          <p className={`flex-1 ${textClassName} text-[#4784F8]`} style={{ fontWeight: 700 }}>{value}</p>
+          <div className="flex items-center justify-end h-[15px] w-[29px] p-[2px] rounded-[20px] bg-[#4784F8] shrink-0">
+            <div className="size-[11px] rounded-full bg-white" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OneMinuteTimeStepsImage() {
+  const wheels = [
+    { centre: 71, values: ["09", "10", "11", "12", "13"] },
+    { centre: 146, values: ["27", "28", "29", "30", "31"] },
+  ];
+  const rowCentres = [58, 77.5, 97, 117, 137];
+  const rowColours = ["#D9D9D9", "#BABABA", "#BABABA", "#1C2C42", "#BABABA"];
+  return (
+    <div className="relative shrink-0 w-[216px] h-[138px] overflow-hidden rounded-[11px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Time picker stepping by the minute">
+      <div className="absolute left-[15px] right-[15px] top-[15px] h-[22px] flex items-center">
+        <div className="flex items-center gap-[8px] w-[71px] shrink-0">
+          <MiniClockIcon />
+          <p className="font-['Lato:Bold',sans-serif] text-[8.5px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>Time</p>
+        </div>
+        <p className="flex-1 font-['Lato:Bold',sans-serif] text-[8.5px] text-[#4784F8] leading-[normal]" style={{ fontWeight: 700 }}>12:30pm</p>
+        <div className="flex items-center justify-end h-[15px] w-[29px] p-[2px] rounded-[20px] bg-[#4784F8] shrink-0">
+          <div className="size-[11px] rounded-full bg-white" />
+        </div>
+      </div>
+      <div className="absolute left-[15px] right-[15px] top-[44px] h-px bg-[#EEEEEE]" />
+      {wheels.map(({ centre, values }) =>
+        values.map((value, index) => (
+          <div key={value} className={`absolute flex items-center justify-center w-[42px] h-[20px] rounded-[7px] ${index === 3 ? "bg-[#F2F2F2]" : ""}`} style={{ left: centre - 21, top: rowCentres[index] - 10 }}>
+            <p className="font-['Lato:Bold',sans-serif] text-[8.5px] leading-[normal]" style={{ fontWeight: 700, color: rowColours[index] }}>{value}</p>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+// Info page image: three active lists as the Lists tab shows them (to do, started, complete), the complete one with its
+// "Clears tonight" text, in the same 216px frame (John, 2026-10-26).
+function TidyFinishedListsImage() {
+  const lists = [
+    { title: "Workout routine", detail: "0 of 2", colour: "#939393" },
+    { title: "Weekend trip packing", detail: "2 of 7", colour: "#60C1E7" },
+    { title: "New apartment to-do", detail: "6 of 6. Clears tonight", colour: "#8168D5" },
+  ];
+  return (
+    <div className="relative shrink-0 w-[216px] overflow-hidden rounded-[11px] p-[15px] flex flex-col gap-[14px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Active lists, one complete and clearing tonight">
+      {lists.map(({ title, detail, colour }) => (
+        <div key={title} className="flex items-start gap-[9px] w-full">
+          <svg width="14" height="14" viewBox="0 0 25 25" fill="none" className="shrink-0 mt-[1px]">
+            <path d="M12.5 0C19.4036 0 25 5.59644 25 12.5C25 19.4036 19.4036 25 12.5 25C5.59644 25 0 19.4036 0 12.5C0 5.59644 5.59644 0 12.5 0ZM12.5 2C6.70101 2 2 6.70101 2 12.5C2 18.299 6.70101 23 12.5 23C18.299 23 23 18.299 23 12.5C23 6.70101 18.299 2 12.5 2Z" fill={colour} />
+          </svg>
+          <div className="flex flex-col gap-[5px] flex-1 min-w-0">
+            <p className="font-['Lato:Bold',sans-serif] text-[9.5px] text-[#1C2C42] leading-[normal] whitespace-nowrap" style={{ fontWeight: 700 }}>{title}</p>
+            <p className="font-['Lato',sans-serif] font-bold text-[7.5px] text-[#BABABA] leading-[normal] whitespace-nowrap">{detail}</p>
+          </div>
+          <svg width="12" height="3" viewBox="0 0 12 3" fill="none" className="shrink-0 mt-[6px]">
+            <circle cx="1.5" cy="1.5" r="1.25" fill="#BABABA" />
+            <circle cx="6" cy="1.5" r="1.25" fill="#BABABA" />
+            <circle cx="10.5" cy="1.5" r="1.25" fill="#BABABA" />
+          </svg>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Images shown on info pages between the title and the text, by info header. 40px from the title, 30px to the text.
+const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons": QuickDateButtonsImage, "1 minute time steps": OneMinuteTimeStepsImage, "Tidy finished lists": TidyFinishedListsImage };
+
 function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
+  const Image = INFO_PAGE_IMAGES[header];
+  const text = <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>;
   return (
     <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
       <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
@@ -157,7 +314,12 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
           {header}
         </p>
       </div>
-      <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>
+      {Image ? (
+        <div className="flex flex-col gap-[30px] items-center w-full">
+          <Image />
+          {text}
+        </div>
+      ) : text}
       <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
         <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
       </button>
@@ -174,7 +336,9 @@ const SUB_PAGE_TITLES: Record<string, string> = { 'Natural Language Capture': 'N
 // Info icons are hidden on sub-pages for now; their infoTitle copy is kept so they can come back.
 // A sub-page with a taller header (a version line, a title on two lines) measures its scroll area from that much less.
 // Support pages sit 30px under the title, not 40px (John, 2026-10-23); their scroll area measures from that much more.
-function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, subText = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subUpdated?: string; subTitleGap?: number; subText?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
+// subFits: the sub-page sizes the card to its own content, as a main page does, and scrolls only when the screen is too
+// short for it (Interactions, John, 2026-10-26).
+function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, subText = false, subFits = false, onBack, subContent, children }: { title: string; subPage: string | null; subVersion?: string; subUpdated?: string; subTitleGap?: number; subText?: boolean; subFits?: boolean; onBack: () => void; subContent?: ReactNode; children: ReactNode }) {
   const content = subPage ? subContent && <ShowInfoIconsContext.Provider value={false}>{subContent}</ShowInfoIconsContext.Provider> : children;
   const rootRef = useRef<HTMLDivElement>(null);
   const [mainHeight, setMainHeight] = useState<number | null>(null);
@@ -199,7 +363,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
   if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
-      <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight + grow } : {}) }}>
+      <div ref={rootRef} className="content-stretch flex flex-col items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && !subFits && mainHeight ? { height: mainHeight + grow } : {}) }}>
         <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
         {/* Keyed by page so each page measures its own scroll cut from scratch; a cut carried over from another page skews the height */}
         {/* Text pages (Support documents) scroll freely within the page's height: their tall blocks have no row middles to cut through */}
@@ -209,7 +373,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
             <div style={{ paddingBottom: SCROLL_PEEK - SUB_PAGE_GLIMPSE_GAP }}>{content}</div>
           </div>
         )}
-        {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) : undefined} mainHeaderHeight={subPage ? mainHeaderHeight : undefined} onGrow={subPage ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
+        {content && !(subPage && subText) && <ScrollArea key={subPage ?? ""} baseHeight={subPage && !subFits && mainAreaHeight !== undefined ? mainAreaHeight + (40 - subTitleGap) : undefined} mainHeaderHeight={subPage && !subFits ? mainHeaderHeight : undefined} onGrow={subPage && !subFits ? (next) => setGrowth({ page: subPage, grow: next }) : undefined}>{content}</ScrollArea>}
       </div>
     </InfoPageContext.Provider>
   );
@@ -240,11 +404,12 @@ function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChang
   const descriptionClassName = "font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-left w-full";
   return (
     <>
-      <div className="flex flex-col gap-[16px] w-full">
+      <InteractionsImage />
+      <div data-glimpse-rows className="flex flex-col gap-[16px] w-full">
         <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
         <p className={descriptionClassName} style={{ color: '#939393' }}>Applies recognised dates, times and repeats as you type.</p>
       </div>
-      <div className="flex flex-col gap-[16px] w-full">
+      <div data-glimpse-rows className="flex flex-col gap-[16px] w-full">
         <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
         <p className={descriptionClassName} style={{ color: '#939393' }}>Lets you choose which ones to apply by tapping on the highlighted text.</p>
       </div>
@@ -385,16 +550,16 @@ function SiriSettings({ siriOn, onSiriChange }: { siriOn: boolean; onSiriChange:
     <>
       <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />
       <KeyLine />
-      <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
+      <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-left w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
         To add a reminder with Siri just say
       </p>
       {/* "Hey Siri..." runs straight into each registered phrase, which carries on in lower case */}
       {SIRI_PHRASES.map((phrase) => (
-        <p key={phrase} className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
+        <p key={phrase} className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-left w-full" style={{ color: siriOn ? '#1C2C42' : '#D9D9D9' }}>
           {`\u201CHey Siri... ${phrase.charAt(0).toLowerCase()}${phrase.slice(1)}\u201D`}
         </p>
       ))}
-      <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-center w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
+      <p className="font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-left w-full" style={{ color: siriOn ? '#939393' : '#D9D9D9' }}>
         Then when Siri replies, say your reminder.
       </p>
     </>
@@ -693,6 +858,7 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       subUpdated={supportDoc?.lastUpdated}
       subTitleGap={supportTitleGap(subPage)}
       subText={supportDoc !== null}
+      subFits={subPage === "Interactions"}
       onBack={() => setSubPage(subPage === "Interactions" ? "Natural Language Capture" : supportBack(subPage))}
       subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >

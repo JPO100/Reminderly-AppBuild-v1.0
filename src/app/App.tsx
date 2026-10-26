@@ -5206,13 +5206,16 @@ export default function App() {
                     })}
                     </AnimatePresence>
                     {/* Hide ticked items on: note 40px under the last item (23px column gap + 17px), in the empty state text style */}
+                    {/* Every item ticked and hidden: the note leads with the count, e.g. "3 of 3 items complete" (John, 2026-10-26) */}
                     {listHideTicked && !isSavedListCreateOverlay && listItems.length > 0 && (
                       <motion.p
                         layout="position"
                         transition={{ layout: { type: 'spring', stiffness: 220, damping: 26, mass: 0.9 } }}
-                        className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full mt-[17px]"
+                        className="font-['Lato',sans-serif] text-[17px] text-[#CCCCCC] text-center w-full mt-[17px] whitespace-pre-line"
                       >
-                        Done items are currently hidden
+                        {overlayDisplayListItems.length === 0
+                          ? `${formatListProgress(listItems.length, listItems.length)} ${listItems.length === 1 ? 'item' : 'items'} complete\nDone items are currently hidden`
+                          : 'Done items are currently hidden'}
                       </motion.p>
                     )}
                   </div>

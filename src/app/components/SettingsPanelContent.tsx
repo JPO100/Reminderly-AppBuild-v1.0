@@ -758,7 +758,7 @@ const PRIVACY_POLICY: SupportDoc = {
 };
 
 // The pages opened from Support; Back from these returns to Support
-const SUPPORT_DOC_PAGES = ["FAQs", "Privacy policy", "Terms of use"];
+const SUPPORT_DOC_PAGES = ["FAQs", "Privacy policy", "Terms of use", "Feedback"];
 
 function supportDocFor(page: string | null, faqs: SupportDoc): SupportDoc | null {
   if (page === "FAQs") return faqs;
@@ -768,7 +768,8 @@ function supportDocFor(page: string | null, faqs: SupportDoc): SupportDoc | null
 }
 
 // Support sub-page: FAQs and the panel's tutorial (John, 2026-10-23), a key line, then the legal pages.
-function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial }: { onOpen: (page: string) => void; tutorialLabel: string; onOpenTutorial?: () => void }) {
+// Feedback follows under its own key line while Dev tools > System > Collect feedback is on (John, 2026-10-26).
+function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial, feedbackAvailable = false }: { onOpen: (page: string) => void; tutorialLabel: string; onOpenTutorial?: () => void; feedbackAvailable?: boolean }) {
   return (
     <>
       <MenuRow label="FAQs" onClick={() => onOpen("FAQs")} />
@@ -776,8 +777,19 @@ function SupportSettings({ onOpen, tutorialLabel, onOpenTutorial }: { onOpen: (p
       <KeyLine />
       <MenuRow label="Privacy policy" onClick={() => onOpen("Privacy policy")} />
       <MenuRow label="Terms of use" onClick={() => onOpen("Terms of use")} />
+      {feedbackAvailable && (
+        <>
+          <KeyLine />
+          <MenuRow label="Feedback" onClick={() => onOpen("Feedback")} />
+        </>
+      )}
     </>
   );
+}
+
+// Feedback page: the title only for now (stage 1). Content comes in stage 2; nothing is sent anywhere.
+function FeedbackPage() {
+  return null;
 }
 
 // A paragraph's text, with any links in Reminderly blue.
@@ -846,7 +858,7 @@ function SupportRow({ onClick }: { onClick: () => void }) {
 const supportBack = (subPage: string | null) => (subPage && SUPPORT_DOC_PAGES.includes(subPage) ? "Support" : null);
 const supportTitleGap = (subPage: string | null) => (subPage === "Support" || (subPage && SUPPORT_DOC_PAGES.includes(subPage)) ? 30 : 40);
 
-export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailable, notifPrefs, notifPermissionDenied, onNotifChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; notifPermissionDenied: boolean; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void }) {
+export function RemindersSettingsContent({ onOpenTutorial, feedbackAvailable = false, notificationsAvailable, notifPrefs, notifPermissionDenied, onNotifChange, datePresetsAvailable, datePresetsOn, onDatePresetsChange, soundsAvailable, nlcAvailable, nlcPrefs, onNlcChange, repeatsAvailable, hapticsAvailable, oneMinuteAvailable, oneMinuteOn, onOneMinuteChange, siriAvailable, siriOn, onSiriChange }: { onOpenTutorial?: () => void; notificationsAvailable: boolean; notifPrefs: NotifPrefs; notifPermissionDenied: boolean; onNotifChange: (key: keyof NotifPrefs, value: boolean) => void; datePresetsAvailable: boolean; datePresetsOn: boolean; onDatePresetsChange: (value: boolean) => void; soundsAvailable: boolean; nlcAvailable: boolean; nlcPrefs: NlcPrefs; onNlcChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; hapticsAvailable: boolean; oneMinuteAvailable: boolean; oneMinuteOn: boolean; onOneMinuteChange: (value: boolean) => void; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; feedbackAvailable?: boolean }) {
   const [subPage, setSubPage] = useState<string | null>(null);
   const supportDoc = supportDocFor(subPage, REMINDERS_FAQS);
 
@@ -860,7 +872,7 @@ export function RemindersSettingsContent({ onOpenTutorial, notificationsAvailabl
       subText={supportDoc !== null}
       subFits={subPage === "Interactions"}
       onBack={() => setSubPage(subPage === "Interactions" ? "Natural Language Capture" : supportBack(subPage))}
-      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
+      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
       {datePresetsAvailable && <ToggleRow label="Quick date buttons" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
       {oneMinuteAvailable && <ToggleRow label="1 minute time steps" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 15 minute steps." />}
@@ -884,12 +896,12 @@ function ItemOrderSettings({ itemOrder, onItemOrderChange }: { itemOrder: ListIt
   );
 }
 
-export function ListsSettingsContent({ onOpenTutorial, soundsAvailable, hapticsAvailable, templatesAvailable, siriAvailable, siriOn, onSiriChange, itemOrder, onItemOrderChange, hideTickedOn, onHideTickedChange, autoClearOn, onAutoClearChange }: { onOpenTutorial?: () => void; soundsAvailable: boolean; hapticsAvailable: boolean; templatesAvailable: boolean; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; itemOrder: ListItemOrder; onItemOrderChange: (value: ListItemOrder) => void; hideTickedOn: boolean; onHideTickedChange: (value: boolean) => void; autoClearOn: boolean; onAutoClearChange: (value: boolean) => void }) {
+export function ListsSettingsContent({ onOpenTutorial, feedbackAvailable = false, soundsAvailable, hapticsAvailable, templatesAvailable, siriAvailable, siriOn, onSiriChange, itemOrder, onItemOrderChange, hideTickedOn, onHideTickedChange, autoClearOn, onAutoClearChange }: { onOpenTutorial?: () => void; soundsAvailable: boolean; hapticsAvailable: boolean; templatesAvailable: boolean; siriAvailable: boolean; siriOn: boolean; onSiriChange: (value: boolean) => void; itemOrder: ListItemOrder; onItemOrderChange: (value: ListItemOrder) => void; hideTickedOn: boolean; onHideTickedChange: (value: boolean) => void; autoClearOn: boolean; onAutoClearChange: (value: boolean) => void; feedbackAvailable?: boolean }) {
   const [subPage, setSubPage] = useState<string | null>(null);
   const supportDoc = supportDocFor(subPage, LISTS_FAQS);
 
   return (
-    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
+    <PanelShell title="Lists settings" subPage={subPage} subVersion={supportDoc?.version} subUpdated={supportDoc?.lastUpdated} subTitleGap={supportTitleGap(subPage)} subText={supportDoc !== null} onBack={() => setSubPage(supportBack(subPage))} subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Lists tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="lists" templatesAvailable={templatesAvailable} soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Item order" ? <ItemOrderSettings itemOrder={itemOrder} onItemOrderChange={onItemOrderChange} /> : null}>
       <ToggleRow label="Hide ticked items" isOn={hideTickedOn} onToggle={() => onHideTickedChange(!hideTickedOn)} infoTitle="Ticked items disappear from your lists a moment after you tick them. Turn this off to see them again." />
       <ToggleRow label="Tidy finished lists" isOn={autoClearOn} onToggle={() => onAutoClearChange(!autoClearOn)} infoTitle="At midnight, lists with every item ticked move to Done." />
       {siriAvailable && <ToggleRow label="Siri shortcuts" isOn={siriOn} onToggle={() => onSiriChange(!siriOn)} infoTitle={SIRI_INFO} />}

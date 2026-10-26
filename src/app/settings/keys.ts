@@ -98,6 +98,7 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   // System
   'reminderly-ff-settings-menu-v2': 'true',
   'reminderly-ff-info-icons': 'false',
+  'reminderly-ff-feedback': 'false',
   'reminderly-ff-paywall': 'false',
   'reminderly-ff-lock-screen-widget': 'true',
 };

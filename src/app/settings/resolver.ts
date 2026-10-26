@@ -28,6 +28,7 @@ export type Feature =
   | 'onboarding'
   | 'settingsMenu'
   | 'infoIcons'
+  | 'feedback'
   | 'paywall'
   | 'lockScreenWidget';
 
@@ -61,6 +62,7 @@ const FEATURES: Record<Feature, FeatureDef> = {
   onboarding: { flag: 'reminderly-ff-onboarding-tutorial' },
   settingsMenu: { flag: 'reminderly-ff-settings-menu-v2' },
   infoIcons: { flag: 'reminderly-ff-info-icons' },
+  feedback: { flag: 'reminderly-ff-feedback' },
   paywall: { flag: 'reminderly-ff-paywall' },
   lockScreenWidget: { flag: 'reminderly-ff-lock-screen-widget' },
 };

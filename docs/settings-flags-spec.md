@@ -264,6 +264,7 @@ Resync (the existing cancel-and-reschedule-if-different logic) runs when:
 Phase 3 change: the NLC mode and recognition preferences are stored as boolean keys (above) instead of a mode string and a JSON object, so they use the same `useStoredSetting` path as every other preference. No build ever wrote the original keys, so there is nothing to migrate.
 | `reminderly-ff-settings-menu-v2` | Unchanged | Off | Kept |
 | `reminderly-ff-info-icons` | Unchanged | Off | Kept |
+| - | `reminderly-ff-feedback` | Off (Dev tools > System > Collect feedback). On shows Feedback under Support in both settings panels | - |
 | - | `reminderly-ff-calendar` | Off (Dev tools > Reminders > Calendar). With `reminderly-pref-calendar` (Show calendar, off) shows the calendar view on screens at least 852pt tall | - |
 | - | `reminderly-ff-sounds` | Off (turn on in Dev tools > System > Sounds) | - |
 | - | `reminderly-ff-lock-screen-widget` | On (Dev tools > System > Lock screen widget). Off stops publishing and clears shared widget data | - |

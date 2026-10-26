@@ -192,6 +192,50 @@ function QuickDateButtonsImage() {
 
 // Info page image: the Time row on, with the time wheels at 12:30 stepping by the minute, in the same 216px frame,
 // cut off at the bottom through the next row (John, 2026-10-26).
+function MiniClockIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" className="shrink-0">
+      <circle cx="6.5" cy="6.5" r="5.75" stroke="#1C2C42" strokeWidth="1.3" />
+      <path d="M6.5 3.5V6.5L8.5 8" stroke="#1C2C42" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// Interactions page image: a typed reminder with its recognised date and time in blue, applied to the Date and Time rows,
+// in the same 216px frame (John, 2026-10-26).
+function InteractionsImage() {
+  const rows = [
+    { label: "Date", value: "Tomorrow", centre: 81 },
+    { label: "Time", value: "3pm", centre: 107 },
+  ];
+  const textClassName = "font-['Lato:Bold',sans-serif] text-[8.5px] leading-[normal]";
+  return (
+    <div className="relative shrink-0 w-[216px] h-[132px] overflow-hidden rounded-[11px] bg-white mx-auto" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Typed reminder with its date and time applied">
+      <div className="absolute left-[15px] right-[15px] top-[15px] h-[51px] rounded-[6px] bg-[#F2F2F2] px-[8px] pt-[9px]">
+        <p className="font-['Lato:Medium',sans-serif] text-[8.5px] text-[#1C2C42] leading-[normal]">
+          Call mum <span className="text-[#4784F8]">tomorrow</span> at <span className="text-[#4784F8]">3pm</span>
+        </p>
+        <svg className="absolute right-[7px] bottom-[6px]" width="7" height="10" viewBox="0 0 7 10" fill="none">
+          <rect x="1.75" y="0.5" width="3.5" height="5.5" rx="1.75" stroke="#BABABA" strokeWidth="1" />
+          <path d="M0.5 4.5C0.5 6.2 1.8 7.5 3.5 7.5C5.2 7.5 6.5 6.2 6.5 4.5M3.5 7.5V9.5" stroke="#BABABA" strokeWidth="1" strokeLinecap="round" />
+        </svg>
+      </div>
+      {rows.map(({ label, value, centre }) => (
+        <div key={label} className="absolute left-[21px] right-[20px] h-[15px] flex items-center" style={{ top: centre - 7.5 }}>
+          <div className="flex items-center gap-[7px] w-[65px] shrink-0">
+            <MiniClockIcon />
+            <p className={`${textClassName} text-[#1C2C42]`} style={{ fontWeight: 700 }}>{label}</p>
+          </div>
+          <p className={`flex-1 ${textClassName} text-[#4784F8]`} style={{ fontWeight: 700 }}>{value}</p>
+          <div className="flex items-center justify-end h-[15px] w-[29px] p-[2px] rounded-[20px] bg-[#4784F8] shrink-0">
+            <div className="size-[11px] rounded-full bg-white" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function OneMinuteTimeStepsImage() {
   const wheels = [
     { centre: 71, values: ["09", "10", "11", "12", "13"] },
@@ -203,10 +247,7 @@ function OneMinuteTimeStepsImage() {
     <div className="relative shrink-0 w-[216px] h-[138px] overflow-hidden rounded-[11px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Time picker stepping by the minute">
       <div className="absolute left-[15px] right-[15px] top-[15px] h-[22px] flex items-center">
         <div className="flex items-center gap-[8px] w-[71px] shrink-0">
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" className="shrink-0">
-            <circle cx="6.5" cy="6.5" r="5.75" stroke="#1C2C42" strokeWidth="1.3" />
-            <path d="M6.5 3.5V6.5L8.5 8" stroke="#1C2C42" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <MiniClockIcon />
           <p className="font-['Lato:Bold',sans-serif] text-[8.5px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>Time</p>
         </div>
         <p className="flex-1 font-['Lato:Bold',sans-serif] text-[8.5px] text-[#4784F8] leading-[normal]" style={{ fontWeight: 700 }}>12:30pm</p>
@@ -328,6 +369,7 @@ function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChang
   const descriptionClassName = "font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-left w-full";
   return (
     <>
+      <InteractionsImage />
       <div className="flex flex-col gap-[16px] w-full">
         <ToggleRow label="Auto-fill as you type" isOn={prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised dates, times and repeats are applied as you type." />
         <p className={descriptionClassName} style={{ color: '#939393' }}>Applies recognised dates, times and repeats as you type.</p>

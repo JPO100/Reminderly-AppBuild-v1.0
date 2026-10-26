@@ -173,14 +173,14 @@ Layouts:
 | Dev tools info | Title, 40, body, 40, Close |
 | Dev tools confirmations | Title, 40, body, 40, Cancel and Confirm |
 
-Scrolling settings pages (reduced footer standard, John, 2026-10-23):
+Scrolling settings pages (overlay scrolling standard, John, 2026-10-26; replaces the 2026-10-23 reduced footer and glimpse rules, docs/plans/overlay-scrolling.md):
 
-- Any Reminders or Lists settings page whose content does not fit (main pages, row sub-pages, and text pages such as FAQs, Privacy policy and Terms of use) uses the reduced footer: the scroll area ends 24px above the card's bottom edge instead of the usual 40px, as a hard edge (no fade), so the content visibly falls away. On row pages the cut runs through the middle of a row, so part of the next row always shows; sub-pages measure their own header, so a title on two lines or a version line does not move the cut into a gap (docs/plans/settings-scroll-peek.md).
-- Space after the content lets it scroll clear, so the last item ends 40px above the card's edge when scrolled to the end.
-- Pages that fit keep the standard 40px bottom padding.
-- Exception (John, 2026-10-26): the Interactions sub-page sizes the card to its own content, as a main page does, and scrolls only when the screen is too short for it (`subFits` on `PanelShell`). When it scrolls, the cut runs through the middle of a toggle row, never a description (`data-glimpse-rows`). Other sub-pages keep the main page's height.
-- Constants: `SCROLL_PEEK` (40) and `SUB_PAGE_GLIMPSE_GAP` (24) in `SettingsPanelContent.tsx`. Every scrolling page uses them; none sets its own footer.
-- The tutorial Re-run pages show the live settings content, so they inherit the same footer. Any tutorial page that mirrors a settings page must match it exactly.
+- Every sub-page takes its panel's home page height (Reminders settings or Lists settings). No page resizes the card, and no page sizes the card to its own content.
+- Content that fits: the standard 40px bottom margin, no indicator.
+- Content that overflows: the scroll area ends 30px above the card's bottom edge, as a hard edge (no fade), and a down arrow (12 x 7, #D9D9D9) sits centred in that footer. The arrow is visual only, shows while there is more content below and hides at the end, switching instantly.
+- Home pages that overflow (short screens) follow the same rule.
+- Constants: `SCROLL_PEEK` (40) and `OVERFLOW_FOOTER` (30) in `SettingsPanelContent.tsx`, indicator `ScrollIndicator`. Every page uses `ScrollArea`; none sets its own footer.
+- The tutorial Re-run pages show the live settings content, so they inherit the same rule.
 
 Toggle rows in centred overlays:
 

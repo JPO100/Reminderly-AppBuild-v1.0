@@ -468,6 +468,25 @@ export function formatRepeatLabel(repeatRule: RepeatRule | null | undefined, tim
   return label;
 }
 
+// Repeats overlay custom days summary. days are full names ("Monday"); output is in week order from Monday.
+// 1 or 2 days: full names. 3 or more: short names with "and" before the last, unless fits() says that
+// line is too long, then commas only. Monday to Friday reads "Every weekday", all seven "Every day".
+const CUSTOM_DAY_ORDER = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+export function formatCustomDaysSummary(days: Iterable<string>, fits: (text: string) => boolean = () => true): string | null {
+  const selected = new Set(days);
+  const ordered = CUSTOM_DAY_ORDER.filter((d) => selected.has(d));
+  if (ordered.length === 0) return null;
+  if (ordered.length === 7) return 'Every day';
+  if (ordered.length === 5 && !selected.has('Saturday') && !selected.has('Sunday')) return 'Every weekday';
+  if (ordered.length === 1) return `Every ${ordered[0]}`;
+  if (ordered.length === 2) return `Every ${ordered[0]} and ${ordered[1]}`;
+
+  const short = ordered.map((d) => d.slice(0, 3));
+  const withAnd = `Every ${short.slice(0, -1).join(', ')} and ${short[short.length - 1]}`;
+  return fits(withAnd) ? withAnd : `Every ${short.join(', ')}`;
+}
+
 // Calendar view (docs/features/scheduling-and-nlc.md). Pure helpers: dates are local "YYYY-MM-DD" keys,
 // the same format as schedule.date, so no time zone conversion is involved.
 

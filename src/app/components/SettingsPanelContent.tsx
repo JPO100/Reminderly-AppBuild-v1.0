@@ -7,6 +7,7 @@ import type { HapticAction, HapticPanel, HapticsConfig } from "../utils/haptics"
 import { getSoundsConfig, setSoundsConfig, SOUND_GROUPS, panelMasterKey as soundsMasterKey } from "../utils/sounds";
 import type { SoundsConfig } from "../utils/sounds";
 import type { ListItemOrder } from "../utils/list-utils";
+import { parseTokens } from "../utils/nlc-parser";
 
 // Settings panel content. App owns and saves the values; rows show only when their feature is available.
 // Each panel has its own Siri preference, saved by App. Each row shows only when its Siri flag is on.
@@ -323,8 +324,8 @@ export type NlcPrefs = { on: boolean; date: boolean; time: boolean; repeats: boo
 
 // Natural Language Capture sub-page: the on/off, a key line, then the recognise options, always listed and inactive
 // (#D9D9D9, not tappable) while NLC is off, keeping their saved choices; repeats only while repeat reminders are available.
-// Toggles first, then the Interactions click-through, inactive while NLC is off.
-function NlcSettings({ prefs, onChange, repeatsAvailable, onOpenInteractions }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; onOpenInteractions: () => void }) {
+// Toggles first, then the Interactions and Examples click-throughs, inactive while NLC is off.
+function NlcSettings({ prefs, onChange, repeatsAvailable, onOpenInteractions, onOpenExamples }: { prefs: NlcPrefs; onChange: (key: keyof NlcPrefs, value: boolean) => void; repeatsAvailable: boolean; onOpenInteractions: () => void; onOpenExamples: () => void }) {
   return (
     <>
       <ToggleRow label="Natural Language Capture" isOn={prefs.on} onToggle={() => onChange('on', !prefs.on)} infoTitle="Picks out dates, times and repeats as you type a reminder, such as 'tomorrow at 3pm'." />
@@ -333,6 +334,7 @@ function NlcSettings({ prefs, onChange, repeatsAvailable, onOpenInteractions }: 
       <ToggleRow label="Recognise times" isOn={prefs.time} disabled={!prefs.on} onToggle={() => onChange('time', !prefs.time)} infoTitle="Recognises times such as 'at 3pm' or 'in the morning'." />
       {repeatsAvailable && <ToggleRow label="Recognise repeats" isOn={prefs.repeats} disabled={!prefs.on} onToggle={() => onChange('repeats', !prefs.repeats)} infoTitle="Recognises repeats such as 'every Monday' or 'daily'." />}
       <MenuRow label="Interactions" disabled={!prefs.on} onClick={onOpenInteractions} infoTitle="Choose whether recognised dates, times and repeats are applied as you type, or when you tap them." />
+      <MenuRow label="Examples" disabled={!prefs.on} onClick={onOpenExamples} infoTitle="See a few example reminders, with the words Reminderly picks up shown in blue." />
     </>
   );
 }
@@ -353,6 +355,46 @@ function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChang
         <ToggleRow label="Tap highlighted words" isOn={!prefs.autoParsing} onToggle={() => onChange('autoParsing', !prefs.autoParsing)} infoTitle="Recognised words are highlighted; tap one to apply its date, time or repeat." />
         <p className={descriptionClassName} style={{ color: '#939393' }}>Lets you choose which ones to apply by tapping on the highlighted text.</p>
       </div>
+    </>
+  );
+}
+
+// Natural Language Capture > Examples: a few example reminders (John, 2026-10-28), each grouped with what it shows underneath,
+// laid out like Interactions. The blue words come from parseTokens, so they always match what is recognised.
+// Repeat examples only while repeat reminders are available.
+const NLC_EXAMPLES: { text: string; note: string; repeats?: boolean }[] = [
+  { text: 'Call mum tomorrow at 3pm', note: "Just add when, the way you'd say it." },
+  { text: 'Dentist next Friday at 10:30am', note: 'Days of the week and exact times work too.' },
+  { text: 'Put the bins out every Tuesday evening', note: "Start with 'every' to make it repeat.", repeats: true },
+  { text: 'Gym Mon, Wed, Fri at 7am', note: 'Pick a few days, with commas in between.', repeats: true },
+  { text: 'Take the bread out in 20 minutes', note: 'Handy for a quick nudge later on.' },
+  { text: 'Pay rent on 1/12', note: "Numbers work for dates, with 'on' or 'by' in front." },
+  { text: 'Renew passport Wed 4 Nov', note: 'Or write the date out, with or without the day.' },
+];
+
+function NlcExampleText({ text }: { text: string }) {
+  const parts: ReactNode[] = [];
+  let at = 0;
+  for (const token of parseTokens(text)) {
+    if (token.start > at) parts.push(text.slice(at, token.start));
+    parts.push(<span key={token.start} className="text-[#4784F8]">{text.slice(token.start, token.end)}</span>);
+    at = token.end;
+  }
+  if (at < text.length) parts.push(text.slice(at));
+  return <p className="font-['Lato:Bold',sans-serif] leading-[23px] text-[17px] text-left w-full text-[#1C2C42]" style={{ fontWeight: 700 }}>{parts}</p>;
+}
+
+function NlcExamplesPage({ repeatsAvailable }: { repeatsAvailable: boolean }) {
+  const descriptionClassName = "font-['Lato:Medium',sans-serif] leading-[23px] text-[17px] text-left w-full";
+  return (
+    <>
+      <p className={descriptionClassName} style={{ color: '#939393' }}>Here are a few ideas to get you started. There are lots of other ways to say it too. Anything in blue is picked up for you.</p>
+      {NLC_EXAMPLES.filter((example) => repeatsAvailable || !example.repeats).map((example) => (
+        <div key={example.text} className="flex flex-col gap-[16px] w-full">
+          <NlcExampleText text={example.text} />
+          <p className={descriptionClassName} style={{ color: '#939393' }}>{example.note}</p>
+        </div>
+      ))}
     </>
   );
 }
@@ -878,8 +920,8 @@ export function RemindersSettingsContent({ onOpenTutorial, onClose, feedbackAvai
       subVersion={supportDoc?.version}
       subUpdated={supportDoc?.lastUpdated}
       subTitleGap={supportTitleGap(subPage)}
-      onBack={() => setSubPage(subPage === "Interactions" ? "Natural Language Capture" : supportBack(subPage))}
-      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage onSend={() => setSubPage("Feedback sent")} /> : subPage === "Feedback sent" ? <FeedbackSentPage onDone={onClose} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
+      onBack={() => setSubPage(subPage === "Interactions" || subPage === "Examples" ? "Natural Language Capture" : supportBack(subPage))}
+      subContent={supportDoc ? <SupportDocPage doc={supportDoc} /> : subPage === "Support" ? <SupportSettings onOpen={setSubPage} tutorialLabel="Reminders tutorial" onOpenTutorial={onOpenTutorial} feedbackAvailable={feedbackAvailable} /> : subPage === "Feedback" ? <FeedbackPage onSend={() => setSubPage("Feedback sent")} /> : subPage === "Feedback sent" ? <FeedbackSentPage onDone={onClose} /> : subPage === "Natural Language Capture" ? <NlcSettings prefs={nlcPrefs} onChange={onNlcChange} repeatsAvailable={repeatsAvailable} onOpenInteractions={() => setSubPage("Interactions")} onOpenExamples={() => setSubPage("Examples")} /> : subPage === "Interactions" ? <NlcInteractionsSettings prefs={nlcPrefs} onChange={onNlcChange} /> : subPage === "Examples" ? <NlcExamplesPage repeatsAvailable={repeatsAvailable} /> : subPage === "Sounds and haptics" ? <SoundsAndHapticsSettings panel="reminders" soundsAvailable={soundsAvailable} hapticsAvailable={hapticsAvailable} /> : subPage === "Notifications" ? <NotificationSettings prefs={notifPrefs} isDenied={notifPermissionDenied} onChange={onNotifChange} /> : subPage === "Siri shortcuts" ? <SiriSettings siriOn={siriOn} onSiriChange={onSiriChange} /> : null}
     >
       {datePresetsAvailable && <ToggleRow label="Quick date buttons" isOn={datePresetsOn} onToggle={() => onDatePresetsChange(!datePresetsOn)} infoTitle="Shows quick date buttons, such as Tomorrow and Tonight, when you add or edit a reminder." />}
       {oneMinuteAvailable && <ToggleRow label="1 minute time steps" isOn={oneMinuteOn} onToggle={() => onOneMinuteChange(!oneMinuteOn)} infoTitle="Lets you set reminder times to the exact minute. When off, the time picker moves in 15 minute steps." />}

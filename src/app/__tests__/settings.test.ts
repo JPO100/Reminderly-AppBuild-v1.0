@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { describe, it, expect } from 'vitest';
 import { getSettingsChecks } from '../dev/settings-checks';
+import { parseTokens } from '../utils/nlc-parser';
 
 // The settings foundation checks use in-memory storage, so they run the same in Vitest and Self Check.
 describe('settings foundation', () => {
@@ -72,5 +73,28 @@ describe('dev tools controls', () => {
 
   it.each(controls)('%s appears exactly once', (label) => {
     expect(files.split(`label="${label}"`).length - 1).toBe(1);
+  });
+});
+
+// Natural Language Capture > Examples: each example shows the words John approved in blue (2026-10-28).
+describe('NLC examples page', () => {
+  const source = fs.readFileSync(path.resolve(__dirname, '../components/SettingsPanelContent.tsx'), 'utf8');
+  const examples = [...source.match(/NLC_EXAMPLES[^=]*= \[([\s\S]*?)\n\];/)![1].matchAll(/text: '([^']+)'/g)].map((m) => m[1]);
+  const expected: Record<string, string[]> = {
+    'Call mum tomorrow at 3pm': ['tomorrow', '3pm'],
+    'Dentist next Friday at 10:30am': ['next Friday', '10:30am'],
+    'Put the bins out every Tuesday evening': ['every Tuesday', 'evening'],
+    'Gym Mon, Wed, Fri at 7am': ['Mon, Wed, Fri', '7am'],
+    'Take the bread out in 20 minutes': ['in 20 minutes'],
+    'Pay rent on 1/12': ['1/12'],
+    'Renew passport Wed 4 Nov': ['Wed 4 Nov'],
+  };
+
+  it('lists the approved examples', () => {
+    expect(examples).toEqual(Object.keys(expected));
+  });
+
+  it.each(Object.entries(expected))('%s highlights the expected words', (text, words) => {
+    expect(parseTokens(text).map((token) => token.text)).toEqual(words);
   });
 });

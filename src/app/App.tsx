@@ -350,7 +350,7 @@ function SavedListOverlayAddItemFocusedIcon() {
   );
 }
 
-function SmartRemindersIndicator({ color = "#BABABA" }: { color?: string }) {
+function SmartRemindersIndicator({ color = "#939393" }: { color?: string }) {
   return (
     <svg
       width="13"
@@ -368,7 +368,7 @@ function SmartRemindersIndicator({ color = "#BABABA" }: { color?: string }) {
   );
 }
 
-function SmartReminderReminderIndicator({ color = "#BABABA" }: { color?: string }) {
+function SmartReminderReminderIndicator({ color = "#939393" }: { color?: string }) {
   return (
     <svg
       width="13"
@@ -386,7 +386,7 @@ function SmartReminderReminderIndicator({ color = "#BABABA" }: { color?: string 
   );
 }
 
-function RepeatReminderIndicator({ color = "#BABABA" }: { color?: string }) {
+function RepeatReminderIndicator({ color = "#939393" }: { color?: string }) {
   return (
     <svg
       width="15"
@@ -4224,12 +4224,12 @@ export default function App() {
                                       <p style={{ display: 'block', width: '100%', minWidth: 0, fontSize: '17px', fontWeight: 700, lineHeight: '17px', transform: 'translateY(-1px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingBottom: '2px', boxSizing: 'content-box' }}>{list.title}</p>
                                     )}
                                   </div>
-                                  <div className={`flex items-center overflow-visible cursor-pointer${isPendingAwayList ? ' line-through' : ''} min-w-0`} style={{ textDecorationColor: isPendingAwayList ? DELETED_GREY : '#BABABA' }} onClick={() => openListEditor(list)}>
-                                    <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: isPendingAwayList ? DELETED_GREY : '#BABABA', textDecorationColor: isPendingAwayList ? DELETED_GREY : '#BABABA' }}>
+                                  <div className={`flex items-center overflow-visible cursor-pointer${isPendingAwayList ? ' line-through' : ''} min-w-0`} style={{ textDecorationColor: isPendingAwayList ? DELETED_GREY : '#939393' }} onClick={() => openListEditor(list)}>
+                                    <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: isPendingAwayList ? DELETED_GREY : '#939393', textDecorationColor: isPendingAwayList ? DELETED_GREY : '#939393' }}>
                                       {formatListProgress(visibleCompletedCount, list.items.length)}
                                       {listAutoClear && !isPendingAwayList && isListClearingTonight(list, pinnedListsFeatureEnabled) ? '. Clears tonight' : null}
                                       {isSmartRemindersEnabled && (list.smartReminders ?? false) ? (
-                                        <span style={{ color: isPendingAwayList ? DELETED_GREY : '#BABABA' }}>
+                                        <span style={{ color: isPendingAwayList ? DELETED_GREY : '#939393' }}>
                                           {`. ${formatSmartReminderDueBy(list.smartReminderDueDate, list.smartReminderTime)}`}
                                         </span>
                                       ) : null}
@@ -4721,8 +4721,8 @@ export default function App() {
                                     <p style={{ display: 'block', width: '100%', minWidth: 0, fontSize: '17px', fontWeight: 700, lineHeight: '17px', transform: 'translateY(-1px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingBottom: '2px', boxSizing: 'content-box' }}>{getDisplayTitle(reminder)}</p>
                                   )}
                                 </div>
-                                  <div className={`flex items-center overflow-visible${isPendingAway ? ' line-through' : ''}`} style={{ textDecorationColor: isPendingAway ? pendingColour : '#BABABA' }}>
-                                    <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: isPendingAway ? pendingColour : '#BABABA' }}>{(() => {
+                                  <div className={`flex items-center overflow-visible${isPendingAway ? ' line-through' : ''}`} style={{ textDecorationColor: isPendingAway ? pendingColour : '#939393' }}>
+                                    <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: isPendingAway ? pendingColour : '#939393' }}>{(() => {
                                       if (isSmartReminder && reminder.linkedListId && reminder.schedule.kind === 'scheduled' && reminder.schedule.date) {
                                         const linkedList = createdLists.find((list) => list.id === reminder.linkedListId);
                                         if (linkedList) {

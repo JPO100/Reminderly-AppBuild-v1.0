@@ -1445,9 +1445,9 @@ function ListsTutorialPlaceholderPage({
                                                 </div>
                                                 <div
                                                   className="flex items-center overflow-visible min-w-0"
-                                                  style={{ textDecorationColor: '#BABABA' }}
+                                                  style={{ textDecorationColor: '#939393' }}
                                                 >
-                                                  <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: '#BABABA' }}>
+                                                  <p className="overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontSize: '14px', fontWeight: 700, fontFamily: "'Lato', sans-serif", lineHeight: 1, paddingBottom: '4px', marginBottom: '-4px', color: '#939393' }}>
                                                     {tpl.itemCount} {tpl.itemCount === 1 ? 'item' : 'items'}
                                                   </p>
                                                 </div>

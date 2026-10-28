@@ -33,7 +33,8 @@ Done `#8168D5`, Started `#60C1E7`, Todo `#939393` (pinned lists show a navy `#1C
 | Use | Value |
 |-----|-------|
 | Description text, everywhere including Dev tools: info overlays, page and section descriptions, Support pages, confirmation and error messages, reminder info metadata lines | `#939393` (standard, John, 2026-10-28) |
-| Row and toggle subtitles, sub-headers, toggle off track (medium grey) | `#BABABA` |
+| Row and toggle subtitles and their indicator icons | `#939393` (John, 2026-10-28) |
+| Sub-headers, toggle off track (medium grey) | `#BABABA` |
 | Deleted reminder | `#939393` |
 | Deleted list | `#898989` |
 | Done archive pill | `#404040` |
@@ -53,7 +54,7 @@ Lato throughout (`src/styles/fonts.css`), bold (700) unless stated.
 | Panel and overlay title | 20px | `#1C2C42` |
 | Row title, setting label, button label | 17px | `#1C2C42` (buttons white) |
 | Description text | 17px Lato Medium (14px for section subtitles) | `#939393` |
-| Row subtitle | 14px | `#BABABA` |
+| Row subtitle | 14px | `#939393` |
 | Filter pill | 14px | Category colour |
 | Sub-header | 15px | `#BABABA` |
 | Empty state | 17px | `#CCCCCC` (`#BABABA` for the calendar empty day) |
@@ -94,7 +95,7 @@ Where a container gap also spaces other content, header spacing is adjusted with
   - On: text and row icon `#1C2C42`, track `#4784F8`.
   - Off: text and row icon `#1C2C42`, track `#BABABA`.
   - Inactive (unavailable): text, row icon and track `#D9D9D9`, not tappable.
-  - Subtitles `#BABABA` on and off. Info icons follow the text: normal on and off, `#D9D9D9` only when inactive.
+  - Subtitles `#939393` on and off. Info icons follow the text: normal on and off, `#D9D9D9` only when inactive.
 
 ### Tutorial phone
 
@@ -189,7 +190,7 @@ Toggle rows in centred overlays:
 - Row: full width, `flex gap-[16px] items-start`, whole row tappable; the toggle stops propagation to avoid double firing.
 - Rows wrapper: `flex-col gap-[30px]`.
 - Label block fills the remaining width: title 17px / 17px line height, single line with ellipsis; subtitle 14px / 14px, wraps; 9px between them.
-- On: title and icon `#1C2C42`, subtitle `#BABABA`, track `#4784F8`. Off: title and icon `#1C2C42`, subtitle `#BABABA`, track `#BABABA` (toggle standard). No hover, focus or disabled states.
+- On: title and icon `#1C2C42`, subtitle `#939393`, track `#4784F8`. Off: title and icon `#1C2C42`, subtitle `#939393`, track `#BABABA` (toggle standard). No hover, focus or disabled states.
 - Left icons: smart reminder bell 19.5 x 21.5 (1px top offset), insertion order 20.83 x 20.82, alphabetical 22.39 x 20.81. Info-line icons: bell 19 x 21, repeats 21 x 21, both `#939393` to match their text, 8px from text. Copy feedback icon 20 x 20 white, 12px from text.
 - `ToggleButton` and `SmartRemindersLabel` are duplicated identically in `src/imports/InfoOverlay.tsx` and `src/imports/list-info-overlay.tsx`; list info shows only the smart reminder row.
 

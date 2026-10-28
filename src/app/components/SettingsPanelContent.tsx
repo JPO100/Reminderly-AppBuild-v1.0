@@ -263,11 +263,11 @@ function TidyFinishedListsImage() {
 }
 
 // Images shown on info pages between the title and the text, by info header. 40px from the title, 30px to the text.
-const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons": QuickDateButtonsImage, "1 minute time steps": OneMinuteTimeStepsImage, "Tidy finished lists": TidyFinishedListsImage };
+const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons": QuickDateButtonsImage, "Natural Language Capture": InteractionsImage, "1 minute time steps": OneMinuteTimeStepsImage, "Tidy finished lists": TidyFinishedListsImage };
 
 function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
   const Image = INFO_PAGE_IMAGES[header];
-  const text = <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>;
+  const text = <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>;
   return (
     <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
       <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
@@ -810,7 +810,7 @@ function FeedbackPage({ onSend }: { onSend: () => void }) {
       {FEEDBACK_SECTIONS.map((section, sectionIndex) => (
         <div key={section.title} className="flex flex-col w-full">
           <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>{section.title}</p>
-          <p className="font-['Lato:Medium',sans-serif] text-[14px] text-[#BABABA] leading-[normal] mt-[14px]">{section.subtitle}</p>
+          <p className="font-['Lato:Medium',sans-serif] text-[14px] text-[#939393] leading-[normal] mt-[14px]">{section.subtitle}</p>
           <div className="flex items-center justify-between px-[5px] mt-[16px] w-full">
             {FEEDBACK_MOUTHS.map((_, faceIndex) => (
               <FeedbackFace key={faceIndex} index={faceIndex} isActive={ratings[sectionIndex] === faceIndex} onSelect={() => setRatings((current) => current.map((rating, i) => (i === sectionIndex ? (rating === faceIndex ? null : faceIndex) : rating)))} />
@@ -835,7 +835,7 @@ function FeedbackSentPage({ onDone }: { onDone?: () => void }) {
         <path d="M32.7029 17.7486C32.27 24.4471 27.009 29.7827 20.4042 30.2218C18.151 30.3715 15.7984 30.3712 13.5497 30.2218C12.7753 30.1703 11.9313 29.9855 11.2044 29.6861C10.3956 29.353 9.99108 29.1864 9.78556 29.2117C9.58003 29.237 9.28182 29.4569 8.68541 29.8967C7.63384 30.6721 6.30908 31.229 4.34449 31.1812C3.35107 31.157 2.85436 31.1449 2.63199 30.7658C2.40962 30.3867 2.68657 29.8619 3.24047 28.8122C4.00867 27.3565 4.49541 25.6898 3.75788 24.3545C2.48766 22.4471 1.4087 20.1883 1.25104 17.7486C1.16632 16.4378 1.16632 15.0803 1.25104 13.7694C1.68394 7.07099 6.94495 1.73534 13.5497 1.29631C15.7984 1.14683 18.151 1.14652 20.4042 1.29631C27.009 1.73534 32.27 7.07099 32.7029 13.7694C32.7876 15.0803 32.7876 16.4378 32.7029 17.7486Z" stroke="#BABABA" strokeWidth="2.36842" strokeLinejoin="round" />
         <path d="M16.9728 16.1841H16.9869M23.2815 16.1841H23.2956M10.6641 16.1841H10.6782" stroke="#BABABA" strokeWidth="3.15789" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] leading-[normal] text-center mt-[20px]" style={{ fontWeight: 700 }}>Feedback received, thanks!</p>
+      <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] leading-[normal] text-center mt-[20px]">Feedback received, thanks!</p>
       <button type="button" onClick={onDone} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none mt-[40px]">
         <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Done</p>
       </button>
@@ -886,7 +886,7 @@ function SupportDocPage({ doc }: { doc: SupportDoc }) {
           )}
           {section.logo && <NeatlyMadeLogo />}
           {section.paragraphs.map((paragraph, index) => (
-            <p key={index} className="font-['Lato:Medium',sans-serif] leading-[24px] text-[17px] text-[#BABABA] text-center w-full whitespace-pre-line">
+            <p key={index} className="font-['Lato:Medium',sans-serif] leading-[24px] text-[17px] text-[#939393] text-center w-full whitespace-pre-line">
               {renderParagraph(paragraph)}
             </p>
           ))}

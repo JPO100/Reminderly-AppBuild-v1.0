@@ -193,7 +193,7 @@ function getTutorialReminderSubtitle(reminder: TutorialReminder): string {
   return "No date / time set";
 }
 
-function SmartReminderIndicator({ color = "#939393" }: { color?: string }) {
+function SmartReminderIndicator({ color = "#BABABA" }: { color?: string }) {
   return (
     <svg
       width="13"
@@ -211,7 +211,7 @@ function SmartReminderIndicator({ color = "#939393" }: { color?: string }) {
   );
 }
 
-function RepeatReminderIndicator({ color = "#939393" }: { color?: string }) {
+function RepeatReminderIndicator({ color = "#BABABA" }: { color?: string }) {
   return (
     <svg
       width="15"
@@ -277,7 +277,7 @@ function TutorialStaticReminderRow({
 }) {
   const isPendingAway = isDone || isPendingDone;
   const effectiveTitleColor = isPendingAway ? doneColor : titleColor;
-  const subtitleColor = isPendingAway ? doneColor : "#939393";
+  const subtitleColor = isPendingAway ? doneColor : "#BABABA";
 
   return (
     <div className="content-stretch flex items-start justify-between px-px relative w-full">

@@ -82,7 +82,7 @@ function TutorialOverlayToggleRow({ title, subtitle, active, icon, highlight = f
         <div className="flex flex-col justify-start overflow-hidden relative shrink-0 text-[17px] text-ellipsis w-full whitespace-nowrap" style={{ color: textColor }}>
           <p className="leading-[17px] overflow-hidden text-ellipsis" style={{ fontWeight: 700 }}>{title}</p>
         </div>
-        <div className="flex flex-col justify-start relative shrink-0 text-[14px] w-full" style={{ color: "#939393" }}>
+        <div className="flex flex-col justify-start relative shrink-0 text-[14px] w-full" style={{ color: "#bababa" }}>
           <p className="leading-[14px]" style={{ fontWeight: 700 }}>{subtitle}</p>
         </div>
       </div>

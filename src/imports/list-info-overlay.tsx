@@ -9,8 +9,8 @@ function SmartRemindersLabel({ active, smartReminderDueDate, smartReminderTime, 
       <div className={`flex flex-col justify-start overflow-hidden relative shrink-0 text-[17px] text-ellipsis w-full whitespace-nowrap text-[#1C2C42]`}>
         <p className="leading-[17px] overflow-hidden text-ellipsis" style={{ fontWeight: 700 }}>Set smart reminder</p>
       </div>
-      <div className={`flex flex-col justify-start relative shrink-0 text-[14px] w-full text-[#939393]`}>
-        <p className="leading-[14px]" style={{ fontWeight: 700, color: active ? (highlightDueDate ? '#1C2C42' : '#939393') : undefined, transition: animateFadeOut ? 'color 300ms' : 'none' }}>{formatSmartReminderDueByFromDate(smartReminderDueDate, smartReminderTime)}</p>
+      <div className={`flex flex-col justify-start relative shrink-0 text-[14px] w-full text-[#bababa]`}>
+        <p className="leading-[14px]" style={{ fontWeight: 700, color: active ? (highlightDueDate ? '#1C2C42' : '#BABABA') : undefined, transition: animateFadeOut ? 'color 300ms' : 'none' }}>{formatSmartReminderDueByFromDate(smartReminderDueDate, smartReminderTime)}</p>
       </div>
     </div>
   );

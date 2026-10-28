@@ -369,7 +369,7 @@ const NLC_EXAMPLES: { text: string; note: string; repeats?: boolean }[] = [
   { text: 'Gym Mon, Wed, Fri at 7am', note: 'Pick a few days, with commas in between.', repeats: true },
   { text: 'Take the bread out in 20 minutes', note: 'Handy for a quick nudge later on.' },
   { text: 'Pay rent on 1/12', note: "Numbers work for dates, with 'on' or 'by' in front." },
-  { text: 'Renew passport Wed 4 Nov', note: 'Or write the date out, with or without the day.' },
+  { text: 'Renew passport Wed 4th Nov', note: 'Or write the date out, with or without the day.' },
 ];
 
 function NlcExampleText({ text }: { text: string }) {

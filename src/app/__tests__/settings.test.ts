@@ -87,7 +87,7 @@ describe('NLC examples page', () => {
     'Gym Mon, Wed, Fri at 7am': ['Mon, Wed, Fri', '7am'],
     'Take the bread out in 20 minutes': ['in 20 minutes'],
     'Pay rent on 1/12': ['1/12'],
-    'Renew passport Wed 4 Nov': ['Wed 4 Nov'],
+    'Renew passport Wed 4th Nov': ['Wed 4th Nov'],
   };
 
   it('lists the approved examples', () => {

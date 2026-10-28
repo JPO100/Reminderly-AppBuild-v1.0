@@ -28,8 +28,11 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
   const [monthlyHeight, setMonthlyHeight] = useState(0);
   const [customDaysHeight, setCustomDaysHeight] = useState(0);
   const summaryRef = useRef<HTMLParagraphElement>(null);
+  const summaryWrapRef = useRef<HTMLDivElement>(null);
   const [summaryWidth, setSummaryWidth] = useState(0);
 
+  // Custom days summary line (23px) plus the 20px it adds above the divider gap
+  const SUMMARY_HEIGHT = 43;
   const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   const toggleDay = (day: string) => {
@@ -62,7 +65,10 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
     if (contentRef.current) setContentHeight(contentRef.current.scrollHeight);
     if (weeklyRef.current) setWeeklyHeight(weeklyRef.current.scrollHeight);
     if (monthlyRef.current) setMonthlyHeight(monthlyRef.current.scrollHeight);
-    if (customDaysRef.current) setCustomDaysHeight(customDaysRef.current.scrollHeight);
+    // The summary slides open and closed; size the section for its target height, not its mid-slide height
+    if (customDaysRef.current && summaryWrapRef.current) {
+      setCustomDaysHeight(customDaysRef.current.scrollHeight - summaryWrapRef.current.offsetHeight + (selectedDays.size > 0 ? SUMMARY_HEIGHT : 0));
+    }
     if (summaryRef.current) setSummaryWidth(summaryRef.current.clientWidth);
   }, [activeFrequency, selectedDays]);
 
@@ -169,13 +175,20 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
                           );
                         })}
                       </div>
-                      <p
-                        ref={summaryRef}
-                        className="font-['Lato',sans-serif] font-[600] leading-[23px] min-h-[23px] not-italic text-[17px] text-[#4784F8] text-center w-full mb-[40px]"
-                        data-name="custom-days-summary"
+                      <div
+                        ref={summaryWrapRef}
+                        className="overflow-hidden transition-[max-height] duration-300 ease-in-out w-full"
+                        style={{ maxHeight: customDaysSummary ? SUMMARY_HEIGHT : 0 }}
                       >
-                        {customDaysSummary}
-                      </p>
+                        <p
+                          ref={summaryRef}
+                          className="font-['Lato',sans-serif] font-[600] leading-[23px] min-h-[23px] not-italic text-[17px] text-[#4784F8] text-center w-full mb-[20px]"
+                          data-name="custom-days-summary"
+                        >
+                          {customDaysSummary}
+                        </p>
+                      </div>
+                      <div className="h-[20px] w-full shrink-0" />
                       <div className="h-0 relative shrink-0 w-[calc(100%-40px)]">
                         <div className="absolute inset-[-1px_0_0_0]">
                           <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 381 1">

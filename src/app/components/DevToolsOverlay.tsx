@@ -200,7 +200,7 @@ export function DevToolsInfoOverlay({ visible, onClose, header, title }: { visib
           onClick={(e) => e.stopPropagation()}
         >
           <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>{header}</p>
-          <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>
+          <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>
           <button
             onClick={onClose}
             className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0"

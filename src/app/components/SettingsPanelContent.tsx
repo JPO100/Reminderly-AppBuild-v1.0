@@ -263,11 +263,11 @@ function TidyFinishedListsImage() {
 }
 
 // Images shown on info pages between the title and the text, by info header. 40px from the title, 30px to the text.
-const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons": QuickDateButtonsImage, "1 minute time steps": OneMinuteTimeStepsImage, "Tidy finished lists": TidyFinishedListsImage };
+const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons": QuickDateButtonsImage, "Natural Language Capture": InteractionsImage, "1 minute time steps": OneMinuteTimeStepsImage, "Tidy finished lists": TidyFinishedListsImage };
 
 function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
   const Image = INFO_PAGE_IMAGES[header];
-  const text = <p className="font-['Lato:Bold',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{title}</p>;
+  const text = <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#BABABA] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>;
   return (
     <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
       <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">

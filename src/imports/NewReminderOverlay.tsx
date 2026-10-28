@@ -1959,8 +1959,8 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
             <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
               <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>{attachmentError.title}</p>
             </div>
-            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center not-italic relative shrink-0 text-[#BABABA] text-[17px] text-center">
-              <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: '24px' }}>{attachmentError.message}</p>
+            <div className="flex flex-col font-['Lato:Medium',sans-serif] justify-center not-italic relative shrink-0 text-[#BABABA] text-[17px] text-center">
+              <p className="leading-[normal] whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{attachmentError.message}</p>
             </div>
             <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
               <button

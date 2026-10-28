@@ -365,7 +365,7 @@ function NlcInteractionsSettings({ prefs, onChange }: { prefs: NlcPrefs; onChang
 const NLC_EXAMPLES: { text: string; note: string; repeats?: boolean }[] = [
   { text: 'Call mum tomorrow at 3pm', note: "Just add when, the way you'd say it." },
   { text: 'Dentist next Friday at 10:30am', note: 'Days of the week and exact times work too.' },
-  { text: 'Put the bins out every Tuesday evening', note: "Use 'every' to make it repeat.", repeats: true },
+  { text: 'Put the bins out every Tuesday evening', note: "Use 'every' to make it repeat. Evening means 6pm.", repeats: true },
   { text: 'Gym Mon, Wed, Fri at 7am', note: 'Pick a few days, with commas in between.', repeats: true },
   { text: 'Take the bread out in 20 minutes', note: 'Handy for a quick nudge later on.' },
   { text: 'Pay rent on 1/12', note: "Numbers work for dates, with 'on' or 'by' in front." },

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import svgPaths from "../../imports/svg-prkucc25l";
 import repeatSvg from "../../imports/svg-upkw3rt5ea";
-import type { RepeatConfig } from "../reminder-utils";
+import { formatCustomDaysSummary, type RepeatConfig } from "../reminder-utils";
 
 interface RepeatsOverlayProps {
   onClose: (config?: RepeatConfig) => void;
@@ -27,6 +27,8 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
   const [weeklyHeight, setWeeklyHeight] = useState(0);
   const [monthlyHeight, setMonthlyHeight] = useState(0);
   const [customDaysHeight, setCustomDaysHeight] = useState(0);
+  const summaryRef = useRef<HTMLParagraphElement>(null);
+  const [summaryWidth, setSummaryWidth] = useState(0);
 
   const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -61,7 +63,18 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
     if (weeklyRef.current) setWeeklyHeight(weeklyRef.current.scrollHeight);
     if (monthlyRef.current) setMonthlyHeight(monthlyRef.current.scrollHeight);
     if (customDaysRef.current) setCustomDaysHeight(customDaysRef.current.scrollHeight);
+    if (summaryRef.current) setSummaryWidth(summaryRef.current.clientWidth);
   }, [activeFrequency, selectedDays]);
+
+  // The custom days summary keeps "and" only when that version fits on one line
+  const summaryFits = (text: string) => {
+    if (!summaryRef.current || summaryWidth === 0) return true;
+    const ctx = document.createElement('canvas').getContext('2d');
+    if (!ctx) return true;
+    ctx.font = getComputedStyle(summaryRef.current).font;
+    return ctx.measureText(text).width <= summaryWidth;
+  };
+  const customDaysSummary = formatCustomDaysSummary(selectedDays, summaryFits);
 
   const getCurrentConfig = (): RepeatConfig => {
     if (!activeFrequency) return null;
@@ -137,7 +150,7 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
                 >
                   <div ref={customDaysRef}>
                     <div className="content-stretch flex flex-col items-center justify-center relative w-full" data-name="container-frame">
-                      <div className="flex items-center justify-between gap-[2px] py-[40px] w-full" data-name="weekdays">
+                      <div className="flex items-center justify-between gap-[2px] pt-[40px] pb-[20px] w-full" data-name="weekdays">
                         {WEEKDAYS.map(day => {
                           const isChecked = selectedDays.has(day);
                           // 45px circles; below 375pt wide they shrink so all seven fit with 2px gaps
@@ -156,6 +169,13 @@ export default function RepeatsOverlay({ onClose, initialConfig }: RepeatsOverla
                           );
                         })}
                       </div>
+                      <p
+                        ref={summaryRef}
+                        className="font-['Lato',sans-serif] font-[600] leading-[23px] min-h-[23px] not-italic text-[17px] text-[#4784F8] text-center w-full mb-[40px]"
+                        data-name="custom-days-summary"
+                      >
+                        {customDaysSummary}
+                      </p>
                       <div className="h-0 relative shrink-0 w-[calc(100%-40px)]">
                         <div className="absolute inset-[-1px_0_0_0]">
                           <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 381 1">

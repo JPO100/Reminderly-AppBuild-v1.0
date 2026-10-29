@@ -3966,12 +3966,12 @@ export default function App() {
                   >
                     <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                      <path d="M31.5015 16.8496L25.2578 16.8496" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M15.6328 16.8496H13.5" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M19.3531 20.0001C21.0928 20.0001 22.5031 18.5899 22.5031 16.8502C22.5031 15.1105 21.0928 13.7002 19.3531 13.7002C17.6134 13.7002 16.2031 15.1105 16.2031 16.8502C16.2031 18.5899 17.6134 20.0001 19.3531 20.0001Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M13.4985 28.1494L19.7422 28.1494" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M29.3672 28.1494H31.5" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M25.6469 31.3C23.9072 31.3 22.4969 29.8897 22.4969 28.15C22.4969 26.4103 23.9072 25 25.6469 25C27.3866 25 28.7969 26.4103 28.7969 28.15C28.7969 29.8897 27.3866 31.3 25.6469 31.3Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M30.9648 16.8496L25.7891 16.8496" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16.1641 16.8496H14.0312" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M19.8844 20.0001C21.624 20.0001 23.0343 18.5899 23.0343 16.8502C23.0343 15.1105 21.624 13.7002 19.8844 13.7002C18.1447 13.7002 16.7344 15.1105 16.7344 16.8502C16.7344 18.5899 18.1447 20.0001 19.8844 20.0001Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M14.0312 28.1494L19.207 28.1494" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M28.832 28.1494H30.9648" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M25.1117 31.3C23.3721 31.3 21.9618 29.8897 21.9618 28.15C21.9618 26.4103 23.3721 25 25.1117 25C26.8514 25 28.2617 26.4103 28.2617 28.15C28.2617 29.8897 26.8514 31.3 25.1117 31.3Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
                 )}
@@ -4103,12 +4103,12 @@ export default function App() {
                 >
                   <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                    <path d="M31.5015 16.8496L25.2578 16.8496" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M15.6328 16.8496H13.5" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M19.3531 20.0001C21.0928 20.0001 22.5031 18.5899 22.5031 16.8502C22.5031 15.1105 21.0928 13.7002 19.3531 13.7002C17.6134 13.7002 16.2031 15.1105 16.2031 16.8502C16.2031 18.5899 17.6134 20.0001 19.3531 20.0001Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M13.4985 28.1494L19.7422 28.1494" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M29.3672 28.1494H31.5" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M25.6469 31.3C23.9072 31.3 22.4969 29.8897 22.4969 28.15C22.4969 26.4103 23.9072 25 25.6469 25C27.3866 25 28.7969 26.4103 28.7969 28.15C28.7969 29.8897 27.3866 31.3 25.6469 31.3Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M30.9648 16.8496L25.7891 16.8496" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16.1641 16.8496H14.0312" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M19.8844 20.0001C21.624 20.0001 23.0343 18.5899 23.0343 16.8502C23.0343 15.1105 21.624 13.7002 19.8844 13.7002C18.1447 13.7002 16.7344 15.1105 16.7344 16.8502C16.7344 18.5899 18.1447 20.0001 19.8844 20.0001Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14.0312 28.1494L19.207 28.1494" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M28.832 28.1494H30.9648" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M25.1117 31.3C23.3721 31.3 21.9618 29.8897 21.9618 28.15C21.9618 26.4103 23.3721 25 25.1117 25C26.8514 25 28.2617 26.4103 28.2617 28.15C28.2617 29.8897 26.8514 31.3 25.1117 31.3Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
               );
@@ -4457,12 +4457,12 @@ export default function App() {
               >
                 <svg width="45" height="45" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
-                  <path d="M31.5015 16.8496L25.2578 16.8496" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M15.6328 16.8496H13.5" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M19.3531 20.0001C21.0928 20.0001 22.5031 18.5899 22.5031 16.8502C22.5031 15.1105 21.0928 13.7002 19.3531 13.7002C17.6134 13.7002 16.2031 15.1105 16.2031 16.8502C16.2031 18.5899 17.6134 20.0001 19.3531 20.0001Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M13.4985 28.1494L19.7422 28.1494" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M29.3672 28.1494H31.5" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M25.6469 31.3C23.9072 31.3 22.4969 29.8897 22.4969 28.15C22.4969 26.4103 23.9072 25 25.6469 25C27.3866 25 28.7969 26.4103 28.7969 28.15C28.7969 29.8897 27.3866 31.3 25.6469 31.3Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M30.9648 16.8496L25.7891 16.8496" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M16.1641 16.8496H14.0312" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M19.8844 20.0001C21.624 20.0001 23.0343 18.5899 23.0343 16.8502C23.0343 15.1105 21.624 13.7002 19.8844 13.7002C18.1447 13.7002 16.7344 15.1105 16.7344 16.8502C16.7344 18.5899 18.1447 20.0001 19.8844 20.0001Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14.0312 28.1494L19.207 28.1494" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M28.832 28.1494H30.9648" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M25.1117 31.3C23.3721 31.3 21.9618 29.8897 21.9618 28.15C21.9618 26.4103 23.3721 25 25.1117 25C26.8514 25 28.2617 26.4103 28.2617 28.15C28.2617 29.8897 26.8514 31.3 25.1117 31.3Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
             )}

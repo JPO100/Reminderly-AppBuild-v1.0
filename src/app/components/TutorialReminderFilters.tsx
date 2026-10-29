@@ -39,9 +39,12 @@ export function TutorialSettingsButton() {
   return (
     <svg data-tutorial-settings-button className="block shrink-0" width="32.308" height="32.308" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <rect width="45" height="45" rx="22.5" fill="#4784F8" />
-      <circle cx="16" cy="22.5" r="1.75" fill="white" />
-      <circle cx="22.5" cy="22.5" r="1.75" fill="white" />
-      <circle cx="29" cy="22.5" r="1.75" fill="white" />
+      <path d="M31.5015 16.8496L25.2578 16.8496" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15.6328 16.8496H13.5" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19.3531 20.0001C21.0928 20.0001 22.5031 18.5899 22.5031 16.8502C22.5031 15.1105 21.0928 13.7002 19.3531 13.7002C17.6134 13.7002 16.2031 15.1105 16.2031 16.8502C16.2031 18.5899 17.6134 20.0001 19.3531 20.0001Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13.4985 28.1494L19.7422 28.1494" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M29.3672 28.1494H31.5" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M25.6469 31.3C23.9072 31.3 22.4969 29.8897 22.4969 28.15C22.4969 26.4103 23.9072 25 25.6469 25C27.3866 25 28.7969 26.4103 28.7969 28.15C28.7969 29.8897 27.3866 31.3 25.6469 31.3Z" stroke="white" strokeWidth="1.75" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

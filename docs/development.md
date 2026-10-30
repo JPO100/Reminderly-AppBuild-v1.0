@@ -1,6 +1,6 @@
 # Development
 
-How to set up, run, test, build and deploy Reminderly. Working rules are in the NeatlyMade Working Agreement (`~/Developer/Working-Agreement.md`) and Reminderly's [project-rules.md](../project-rules.md). Architecture is in [architecture.md](./architecture.md).
+How to set up, run, test, build and deploy Reminderly. Working rules are in the NeatlyMade Working Agreement (`~/Developer/Working-Agreement.md`) and Reminderly's [project-rules.md](../project-rules.md); Claude loads them through CLAUDE.md and Codex through AGENTS.md. Architecture is in [architecture.md](./architecture.md).
 
 ## Setup
 

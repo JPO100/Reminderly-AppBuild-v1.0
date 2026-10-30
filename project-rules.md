@@ -8,6 +8,7 @@ These rules cover Reminderly-specific technical and operational requirements. Sh
 - Follow the established architecture and existing implementation patterns.
 - Keep every command scoped to the project folder or scratchpad. Never run tools against / or ~.
 - Never commit the generated ios/App/App/public/index.html.
+- Loaders hold no rules. CLAUDE.md (Claude) imports this file; the Working Agreement loads from ~/.claude/CLAUDE.md. AGENTS.md (Codex) says to read and follow the Working Agreement, then this file.
 
 ## Documentation
 - docs/development-history.md is the authoritative project history. Update it when a feature is completed, a branch is merged, an architectural decision is made or a significant bug is fixed.

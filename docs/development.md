@@ -1,6 +1,6 @@
 # Development
 
-How to set up, run, test, build and deploy Reminderly. Working rules for changes are in `Claude.md`. Architecture is in [architecture.md](./architecture.md).
+How to set up, run, test, build and deploy Reminderly. Working rules are in the NeatlyMade Working Agreement (`~/Developer/Working-Agreement.md`) and Reminderly's [project-rules.md](../project-rules.md). Architecture is in [architecture.md](./architecture.md).
 
 ## Setup
 
@@ -39,7 +39,7 @@ Notes:
 
 - `npx cap copy ios` copies `dist/` into `ios/App/App/public`. Use `npx cap sync ios` only when Capacitor plugins or their versions change, as it also updates the Swift package (`ios/App/CapApp-SPM`).
 - Open `App.xcodeproj`, not a workspace. The project uses Swift Package Manager; there is no CocoaPods workspace.
-- Command-line build, install and launch for the simulator and a physical iPhone (`xcodebuild`, `xcrun simctl`, `xcrun devicectl`) are listed in `Claude.md`.
+- Command-line build, install and launch for the simulator and a physical iPhone (`xcodebuild`, `xcrun simctl`, `xcrun devicectl`) are listed in [project-rules.md](../project-rules.md).
 - Do not change signing, provisioning or bundle identifiers without approval. Identifiers are in [ios.md](./ios.md).
 
 ## Dev tools
@@ -125,7 +125,7 @@ For UI changes, check the affected screens on the simulator and a physical iPhon
 
 ## Verification expectations
 
-`Claude.md` sets the verification required for each type of change (Type A, B, C) and the protected areas that always need targeted checks (notifications, badge, dates and times, repeats, completion, deletion, lifecycle, persistence).
+The NeatlyMade Working Agreement sets testing for each work type (A to E). [project-rules.md](../project-rules.md) lists the protected areas that always need targeted checks (notifications, badge, dates and times, repeats, completion, deletion, lifecycle, persistence).
 
 ## Troubleshooting
 

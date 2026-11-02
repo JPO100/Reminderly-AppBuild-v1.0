@@ -159,6 +159,7 @@ export function TutorialListSettingsOverlay() {
     <TutorialMiniOverlayShell>
       <TutorialOverlayCard>
         <TutorialOverlayTitle>Work tasks</TutorialOverlayTitle>
+        <div className="flex flex-col gap-[30px] items-start shrink-0 w-full">
         <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
           <TutorialOverlayToggleRow
             title="Set smart reminder"
@@ -182,6 +183,7 @@ export function TutorialListSettingsOverlay() {
           <TutorialListSettingsButton label="Create template from list" color="#4784F8" />
           <TutorialListSettingsButton label="Delete list" color="#939393" />
         </div>
+        </div>
       </TutorialOverlayCard>
     </TutorialMiniOverlayShell>
   );
@@ -193,6 +195,7 @@ export function TutorialListSettingsOverlayWithToggle({ smartToggleActive, showT
     <TutorialMiniOverlayShell>
       <TutorialOverlayCard>
         <TutorialOverlayTitle>Work tasks</TutorialOverlayTitle>
+        <div className="flex flex-col gap-[30px] items-start shrink-0 w-full">
         <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
           <TutorialOverlayToggleRow
             title="Set smart reminder"
@@ -216,6 +219,7 @@ export function TutorialListSettingsOverlayWithToggle({ smartToggleActive, showT
           <TutorialListSettingsButton label="Uncheck all items" color="#4784F8" />
           <TutorialListSettingsButton label="Create template from list" color="#4784F8" />
           <TutorialListSettingsButton label="Delete list" color="#939393" />
+        </div>
         </div>
       </TutorialOverlayCard>
     </TutorialMiniOverlayShell>

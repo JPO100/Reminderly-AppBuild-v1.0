@@ -259,7 +259,7 @@ export default function InfoOverlay({ listTitle, onUncheckAll, onCreateTemplate,
       <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
         <OverlayHeader header={listTitle} />
         <ScrollArea>
-          <div className="flex flex-col gap-[40px] items-center w-full">
+          <div className="flex flex-col gap-[30px] items-center w-full">
           {showSmartReminders && <Frame3 smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} showSmartReminders={showSmartReminders} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />}
           <Buttons onUncheckAll={onUncheckAll} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} allUnchecked={allUnchecked} showUncheckAll={!smartRemindersActive || !isDatePickerOpen} />
           </div>

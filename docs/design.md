@@ -241,8 +241,8 @@ div.fixed.inset-0.z-[60].flex.items-center.justify-center
 |---------|--------|---------|
 | Reminder info | Header (the reminder text, truncated), 30 (glyph measured), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), smart reminder line and repeats line (Bold `#939393`, 30 apart, truncated), 40, buttons | Stacked, scrolling `ScrollArea` |
 | Deleted info | Header, 40, buttons | Stacked, scrolling |
-| List settings | Header, 40, toggle rows (30 apart), 40, buttons | Stacked, scrolling |
-| List info | Header, 40, smart reminder row when shown, 40, buttons | Stacked, scrolling |
+| List settings | Header, 40, one button block: toggle rows and buttons all 30 apart | Stacked, scrolling |
+| List info | Header, 40, one button block: smart reminder row (when shown) and buttons all 30 apart | Stacked, scrolling |
 | Saved list menu | Header, 40, buttons | Stacked, scrolling |
 | Template editor menu | Header, 40, buttons | Stacked, scrolling |
 | Reminders settings | Shared height, centred title, rows 30 apart (toggles, then click-through rows with a 7 x 13 `#939393` chevron, then the tutorial row), no close button | Fixed title, scrolling rows |

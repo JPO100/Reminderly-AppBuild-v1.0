@@ -126,7 +126,7 @@ Used by New reminder, Repeats, Lists editor, Templates, Dev tools and the tutori
 
 ### Centred overlays
 
-Used by Reminder info, deleted info, list settings (`InfoOverlay`), list info, saved list and template menus, Reminders and Lists settings, Dev tools info and Dev tools confirmation dialogs. There is no shared wrapper; each is built inline to the same standard:
+Used by Reminder info, deleted info, list settings (`InfoOverlay`), list info, saved list and template menus, Reminders and Lists settings, the New reminder panel's Add attachment, Attachment error and Delete attachment overlays, Dev tools info and Dev tools confirmation dialogs. There is no shared wrapper; each is built inline to the same standard:
 
 ```
 div.fixed.inset-0.bg-black/50.z-[60]                         backdrop, tap to close
@@ -160,7 +160,7 @@ Text:
 
 Buttons:
 
-- Stacked: full width, 50px high, fully rounded, `px-[18px] py-[15px]`, 30px apart. Primary `#4784F8`; destructive or secondary `#939393`; disabled `#D9D9D9`.
+- Stacked: full width, 50px high, fully rounded, `px-[18px] py-[15px]`, 30px apart. Primary `#4784F8`; destructive or secondary `#939393`; disabled `#D9D9D9`. The Delete attachment button is destructive grey `#939393` (it was red); that overlay has no Cancel button and closes by tapping outside.
 - Side by side (Dev tools confirmations): Cancel `#BABABA` and Confirm `#4784F8`, 50px high, 30px apart, `justify-between`.
 
 Layouts:

@@ -132,7 +132,7 @@ This section is the NeatlyMade overlay specification. It is written to be reused
 
 #### Part A. Approved design standard
 
-Vocabulary (Overlay Design Standards v2): **Header** is the overlay's heading, Lato Bold 20px. **Title** is the optional line or lines directly under the Header, Lato Bold 17px. **Header area** is the Header plus any Title. **Button block** is the group of rows or buttons, 30px apart. **Scrollable area** is the part where only content scrolls. **Viewport** is the visible screen area. **Card** is the white rounded panel. **Backdrop** is the dimming layer behind it. **Wrapper** is the invisible full-screen layer that centres the card. **Footer controls** are buttons pinned below the body.
+Vocabulary (Overlay Design Standards v2): **Header** is the overlay's heading, Lato Bold 20px. **Title** is the optional line or lines directly under the Header, Lato Bold 17px. **Header area** is the Header plus any Title (in Noterly, a folder icon and name may take the Title's place; it follows the same 30px rule; Reminderly has no folders). **Button block** is the group of rows or buttons, 30px apart. **Scrollable area** is the part where only content scrolls. **Viewport** is the visible screen area. **Card** is the white rounded panel. **Backdrop** is the dimming layer behind it. **Wrapper** is the invisible full-screen layer that centres the card. **Footer controls** are buttons pinned below the body.
 
 **A1. Position and geometry**
 
@@ -154,7 +154,7 @@ Responsive rules: the standard is expressed as clearances and a preferred width,
 - Card padding: 40px top and bottom, 30px left and right. Content is centred horizontally.
 - Header: Lato Bold 20px, `#1C2C42`, centred, one line (line box 24px), truncated with an ellipsis if too long. Never wraps.
 - Title (only where text sits under the Header): Lato Bold 17px, `#939393`, centred. Short Title lines are one line and truncate; a Title that is a description (a dialog message) may wrap. Exception: the Reminder info due line stays red `#FF0000` when overdue.
-- **Header-to-Title distance is 30px measured from the Header's baseline to the Title's cap top, not between text boxes (this is the one measurement taken to glyphs inside the header area).** Lato Bold metrics (as bundled): ascent 0.987em, descent 0.213em, cap height 0.723em, line box 1.2em. With the Header line box fixed at 24px its baseline is 0.213 x 20 = 4.26px above its box bottom; the Title's cap top is (0.987 - 0.723) x 17 = 4.488px below its line box top. The CSS gap between the two boxes is therefore 30 - 4.26 - 4.488 = **21.25px** (`HEADER_TITLE_GAP` in `OverlayHeader.tsx`). No other spacing is measured to glyphs: the 40px, 30px and 20px values elsewhere are between boxes, as before.
+- **Header-to-Title distance is 30px measured from the Header's baseline to the Title's cap top, not between text boxes (this is the one measurement taken to glyphs inside the header area).** Lato Bold metrics (as bundled): ascent 0.987em, descent 0.213em, cap height 0.723em, line box 1.2em. With the Header line box fixed at 24px its baseline is 0.213 x 20 = 4.26px above its box bottom; the Title's cap top is (0.987 - 0.723) x 17 = 4.488px below its line box top. The CSS gap between the two boxes is therefore 30 - 4.26 - 4.488 = **21.25px** (`HEADER_TITLE_GAP` in `OverlayHeader.tsx`). The only other glyph measurement is the cap top of a line of text that follows the header area (next bullet); every other value is between boxes.
 - **One rule below the header area (John, 2026-11-02): the gap from the bottom of the header area to whatever comes next is always 30px.** The header area is the Header plus any Title lines (or the Support pages' version and date lines); its bottom is the bottom of the last line's descenders, which is the bottom of that line's box (line box 1.2em; the Header's is fixed at 24px). What comes next is measured at its top: the top edge of a toggle row, click-through row, button or image, or the cap top of a line of text. This holds for every overlay and every tutorial replica, with no exceptions (the Support pages' earlier 30px gap is now simply the standard). Cards lay out their children with a 40px gap, so `OverlayHeader` (and the matching headers in the settings pages and Reminder info) pull the header area 10px into it (`HEADER_PULL`); where the parent gap is already 30 nothing is pulled. `ScrollArea` pulls a first line of text up by its leading above the capitals, (line height - 1.2em) / 2 + 0.264em, so the capitals, not the line box, are 30px below.
 - Several Title lines in one header area (Reminder info) are 30px apart, box to box.
 
@@ -175,7 +175,7 @@ Destructive actions use grey `#939393`, not red.
 
 - Overlays that fit never scroll and show no scroll indicator.
 - When content is taller than the available height, **the header area stays fixed** and only the scrollable area scrolls. The Header and Title never scroll away.
-- The scrollable area's top edge, where content is clipped (hard edge), is **20px below the header area**; the content inside starts another 20px lower, so the first row is still 40px below the header area. The clip edge is a flat cut: scrolled content is visible in the 20px band and disappears at the edge. Where a page uses a 30px gap under its header area (Support sub-pages), the clip edge is 20px below and the content starts 30px below.
+- The scrollable area's top edge, where content is clipped (hard edge), is **20px below the header area**; the content inside starts 10px lower, so the first row is 30px below the header area, as everywhere. The clip edge is a flat cut: scrolled content is visible in the 20px band and disappears at the edge.
 - A **single** footer control (Back, Close, OK) is pinned at the card's bottom padding and stays visible. A **group** of several buttons is part of the scrolling body.
 - The body area ends 30px above the card's bottom padding edge (above the pinned button if there is one) as a hard edge. No fades or gradients.
 - Scroll indicator: a grey `#D9D9D9` down chevron, 12px wide and 7px high, centred horizontally in the 30px footer gap, directly above the pinned button or card bottom. It is visual only (not tappable), shown while there is more content below, and hidden when the body reaches its end. It switches instantly.
@@ -189,7 +189,7 @@ Destructive actions use grey `#939393`, not red.
 |--------|-----------|
 | Info (Reminder info, List info, Deleted info) | Header, 30, rows or buttons (30 apart). Reminder info: Header, Title lines (30 apart), 30, buttons |
 | Menu (Saved list, Template editor) | Header, 30, stacked buttons |
-| Settings (Reminders, Lists) | One shared card height for all settings overlays: the taller of the two home pages, capped by the available height. Sub-pages and information pages inherit that height (a page never resizes the card). Title fixed, rows scroll; information pages have fixed title, scrolling image and text, and Back pinned |
+| Settings (Reminders, Lists) | One shared card height for all settings overlays: the taller of the two home pages, capped by the available height. Sub-pages and information pages inherit that height (a page never resizes the card). Header fixed, rows scroll; information pages have a fixed Header, scrolling image and text, and Back pinned |
 | Attachment overlays | Add attachment: title and stacked primary buttons. Attachment error: title, message, OK. Delete attachment: title and one grey destructive button, no Cancel |
 | Confirmation and notice dialogs | Header, 30 (baseline to cap top), Title (the message), 30, buttons (equal-width Cancel and Confirm, or a single OK) |
 | Permission prompt (Notification ask) | Same as a confirmation dialog: "Not now" and "Allow", equal width |
@@ -236,7 +236,7 @@ div.fixed.inset-0.z-[60].flex.items-center.justify-center
 
 | Overlay | Layout | Buttons |
 |---------|--------|---------|
-| Reminder info | Header (the reminder text, truncated), 30 (glyph measured), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), smart reminder line and repeats line (Bold `#939393`, 30 apart, truncated), 30, buttons | Stacked, scrolling `ScrollArea` |
+| Reminder info | Header (the reminder text, truncated), 30 (baseline to cap top), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), smart reminder line and repeats line (Bold `#939393`, 30 apart, truncated), 30, buttons | Stacked, scrolling `ScrollArea` |
 | Deleted info | Header, 30, buttons | Stacked, scrolling |
 | List settings | Header, 30, one button block: toggle rows and buttons all 30 apart | Stacked, scrolling |
 | List info | Header, 30, one button block: smart reminder row (when shown) and buttons all 30 apart | Stacked, scrolling |
@@ -249,7 +249,7 @@ div.fixed.inset-0.z-[60].flex.items-center.justify-center
 | Add attachment | Header, buttons | Stacked: Choose a photo, Take a photo, Choose a file (`#4784F8`) |
 | Attachment error | Header, Title (message), OK | Single `#4784F8` |
 | Delete attachment | Header, one button | Single grey `#939393`; no Cancel |
-| Dev tools info | Header, body (Lato Medium 17px, 24px line height), Close | Title fixed, body scrolls, Close pinned `#4784F8` |
+| Dev tools info | Header, body (Lato Medium 17px, 24px line height), Close | Header fixed, body scrolls, Close pinned `#4784F8` |
 | NLC, Onboarding, Reminders, Lists, push-to-live confirmations (Dev tools) | Header, Title (message), Cancel and Confirm | Equal width, Cancel `#BABABA`, Confirm `#4784F8`, 30 gap (six dialogs) |
 | Home toggle confirm | Same as the Dev tools confirmations | Same |
 | Last module notice (Dev tools) | Header, Title (message), OK | Single `#4784F8` (D2) |
@@ -273,9 +273,9 @@ Tutorial replicas: Reminder info, List settings (two), Template menu, Add attach
 | Dev tools confirmations, push-to-live, Home toggle confirm | Cancel | Not implemented |
 | Last module notice | Close | Not implemented |
 
-**B4. Text and buttons as implemented.** Header Lato Bold 20px `#1C2C42`, one line, ellipsis (`OverlayHeader`, or the same classes inline in Reminder info, the settings headers and the tutorial replica `TutorialOverlayTitle`). Title Lato Bold 17px `#939393` (`OverlayHeader` `title`; Reminder info lines inline), 21.25px under the Header's box. Info body Lato Medium 17px `#939393`, 24px line height. Reminder info due line `#939393`, `#FF0000` when overdue. The scrollable area's `marginTop: -20` / `paddingTop: 20` (`OverlayScrollArea.tsx`) give the 20px clip clearance. Settings and Dev tools information page Headers (icon plus text) are one line, so on the narrowest screens a long one such as "Include smart reminder lists" is truncated. Buttons are 50px high, `rounded-[100px]`, `px-[18px] py-[15px]`, Lato Bold 17px white. Two-button dialogs use `flex-1` on both buttons with a 30px gap (P2, merged 72110f4). Overlay headers are pinned with only the main content scrolling (P2a, merged 8ace85d). Rounded scroll edges for List settings and List info (P1, merged 8e73a93).
+**B4. Text and buttons as implemented.** Header Lato Bold 20px `#1C2C42`, one line, ellipsis (`OverlayHeader`, or the same classes inline in Reminder info, the settings headers and the tutorial replica `TutorialOverlayTitle`). Title Lato Bold 17px `#939393` (`OverlayHeader` `title`; Reminder info lines inline), 21.25px under the Header's box (30px baseline to cap top). Info body Lato Medium 17px `#939393`, 24px line height. Reminder info due line `#939393`, `#FF0000` when overdue. The scrollable area's `marginTop: -10` / `paddingTop: 10` (`OverlayScrollArea.tsx`) give the 20px clip clearance with the first row 30px below the header area; `OverlayHeader`'s `marginBottom: -10` (`HEADER_PULL`) makes the 30px from the card's 40px gap. Settings and Dev tools information page Headers (icon plus text) are one line, so on the narrowest screens a long one such as "Include smart reminder lists" is truncated. Buttons are 50px high, `rounded-[100px]`, `px-[18px] py-[15px]`, Lato Bold 17px white. Two-button dialogs use `flex-1` on both buttons with a 30px gap (P2, merged 72110f4). Overlay headers are pinned with only the main content scrolling (P2a, merged 8ace85d). Rounded scroll edges for List settings and List info (P1, merged 8e73a93).
 
-**B5. Settings scrolling details.** Every sub-page and information page takes the settings card's height and never resizes it. On an information page the title is fixed and only the image and text scroll; Back is always pinned at the bottom padding. Content that fits leaves unused space between content and Back, with no arrow. Overflowing content scrolls above Back with the 30px gap and arrow directly above it. Home pages that overflow on short screens follow the same rule. The tutorial Re-run pages use the live settings content and inherit it.
+**B5. Settings scrolling details.** Every sub-page and information page takes the settings card's height and never resizes it. On an information page the Header is fixed and only the image and text scroll; Back is always pinned at the bottom padding. Content that fits leaves unused space between content and Back, with no arrow. Overflowing content scrolls above Back with the 30px gap and arrow directly above it. Home pages that overflow on short screens follow the same rule. The tutorial Re-run pages use the live settings content and inherit it.
 
 **B6. Toggle rows in centred overlays.**
 
@@ -304,7 +304,7 @@ No screen-reader testing has been done on any overlay. These items must not be d
 #### Part D. Checklist for a new app (Noterly)
 
 1. Build backdrop, wrapper and card as in B1; card 340px preferred, wrapper 20px side padding, 100px (or inset + 20px) top and bottom, 32px radius, z-60 (z-70 for overlays above overlays).
-2. Padding 40/30; Header Lato Bold 20px (one line, truncates); Title Lato Bold 17px `#939393` with the Header-to-Title 30px measured baseline to cap top (A2); spacing 40 between sections and 30 within.
+2. Padding 40/30; Header Lato Bold 20px (one line, truncates); Title Lato Bold 17px `#939393` with the Header-to-Title 30px measured baseline to cap top (A2); 30px below the header area, 30px between rows and buttons.
 3. Buttons 50px, fully rounded, 17px white bold labels; two-button dialogs equal width with a 30px gap.
 4. Put the header area outside the scrolling area, with the scroll clip edge 20px below it and 20px of padding inside; only the body scrolls; one footer control may be pinned; use a single shared scroll component with a 30px footer gap and a 12 x 7 `#D9D9D9` chevron.
 5. Clip scrolled content with the card's rounded corners; no gradients, fades or square edges.

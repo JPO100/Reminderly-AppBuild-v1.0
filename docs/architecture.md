@@ -45,6 +45,8 @@ src/
                                repeat-conversion, date-display, list-utils, haptics, sounds,
                                widget, tutorial-pages, dummy generators
     components/                DevToolsOverlay, RepeatsOverlay, ReminderInfoOverlay,
+                               OverlayHeader (centred overlay Header and Title), OverlayScrollArea
+                               (shared scrolling area and arrow; see design.md Centred overlays),
                                RemindersCalendar, ListSmartReminderCalendar, SettingsPanelContent,
                                TutorialOverlay and tutorial/onboarding pages, lists/, icons/
     components/ui/             48 shadcn files. Not imported by the app. Do not use

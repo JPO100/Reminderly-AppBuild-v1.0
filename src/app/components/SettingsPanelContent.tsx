@@ -55,9 +55,9 @@ const OVERFLOW_FOOTER = 30;
 const OVERFLOW_TOLERANCE = 1;
 
 // Down arrow shown in the footer while there is more content below (John's SVG, #D9D9D9). Visual only: not tappable.
-function ScrollIndicator({ visible }: { visible: boolean }) {
+function ScrollIndicator({ visible, bottom }: { visible: boolean; bottom: number }) {
   return (
-    <div data-scroll-indicator aria-hidden="true" className="absolute left-1/2 -translate-x-1/2 pointer-events-none" style={{ bottom: -(SCROLL_PEEK - (OVERFLOW_FOOTER - 7) / 2), visibility: visible ? "visible" : "hidden" }}>
+    <div data-scroll-indicator aria-hidden="true" className="absolute left-1/2 -translate-x-1/2 pointer-events-none" style={{ bottom, visibility: visible ? "visible" : "hidden" }}>
       <svg width="12" height="7" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg" className="block">
         <path d="M0.322842 1.74896C-0.107614 1.36744 -0.107614 0.748782 0.322842 0.367263C0.75329 -0.0141897 1.45106 -0.0142031 1.88149 0.367263L5.95385 3.97689L10.1185 0.285692C10.5489 -0.0957689 11.2467 -0.0957661 11.6772 0.285692C12.1076 0.667211 12.1076 1.28587 11.6772 1.66739L6.90621 5.89595C6.8632 5.95639 6.81223 6.01382 6.75282 6.06648C6.3224 6.4479 5.62461 6.44788 5.19417 6.06648L0.322842 1.74896Z" fill="#D9D9D9" />
       </svg>
@@ -69,7 +69,11 @@ function ScrollIndicator({ visible }: { visible: boolean }) {
 // card's height. When the content overflows, the area ends OVERFLOW_FOOTER above the card's edge instead of SCROLL_PEEK
 // and the indicator shows until the content is scrolled to its end. Whether it overflows is measured against the 40px
 // footer height, which does not depend on the result, so the two states never feed back into each other.
-function ScrollArea({ children }: { children: ReactNode }) {
+// pinned: a 50px button kept below the area (information pages' Back). The area fills the card, so the button always sits
+// at the card's bottom padding, with any unused space between the content and the button; the footer and indicator sit
+// between the area and the button.
+const PINNED_BUTTON_HEIGHT = 50;
+function ScrollArea({ children, pinned }: { children: ReactNode; pinned?: ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
   const [overflows, setOverflows] = useState(false);
@@ -105,13 +109,15 @@ function ScrollArea({ children }: { children: ReactNode }) {
           {children}
         </div>
       </div>
-      {overflows && <ScrollIndicator visible={!atEnd} />}
+      {pinned}
+      {overflows && <ScrollIndicator visible={!atEnd} bottom={pinned ? PINNED_BUTTON_HEIGHT + (OVERFLOW_FOOTER - 7) / 2 : -(SCROLL_PEEK - (OVERFLOW_FOOTER - 7) / 2)} />}
     </>
   );
 }
 
 // Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
-// with Back returning to the page it was opened from. The card fits its height to the text.
+// with Back returning to the page it was opened from. The card keeps the home page's height; the image and text scroll in the
+// standard scroll area when they do not fit, with Back pinned below it (docs/design.md, overlay scrolling standard).
 // The title has the info icon before it, in dark blue, 10px from the text, 1px below centre (John, 2026-10-22).
 // Info page image: a mock-up of the New reminder panel with its quick date buttons, in a 216px frame with 15px padding,
 // cut off at the bottom through the Date row (John, 2026-10-26).
@@ -267,25 +273,28 @@ const INFO_PAGE_IMAGES: Record<string, () => ReactNode> = { "Quick date buttons"
 
 function InfoPage({ header, title, onBack }: { header: string; title: string; onBack: () => void }) {
   const Image = INFO_PAGE_IMAGES[header];
-  const text = <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>;
+  const text = <p className="w-full font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>;
   return (
-    <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
+    <>
       <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
         <span className="relative top-[1px] flex shrink-0"><InfoIcon color="#1C2C42" /></span>
         <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>
           {header}
         </p>
       </div>
-      {Image ? (
-        <div className="flex flex-col gap-[30px] items-center w-full">
-          <Image />
-          {text}
-        </div>
-      ) : text}
-      <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
-        <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
-      </button>
-    </div>
+      <ScrollArea pinned={(
+        <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
+          <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
+        </button>
+      )}>
+        {Image ? (
+          <div className="flex flex-col gap-[30px] items-center w-full">
+            <Image />
+            {text}
+          </div>
+        ) : text}
+      </ScrollArea>
+    </>
   );
 }
 
@@ -307,14 +316,17 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
     const root = rootRef.current;
     if (subPage === null && info === null && root) setMainHeight(root.offsetHeight);
   });
-  if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
       {/* grow: fills a fixed-height card (narrow screens), so the footer is measured from the card's edge, not the content's */}
-      <div ref={rootRef} className="content-stretch flex flex-col grow items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight } : {}) }}>
-        <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
-        {/* Keyed by page so each page measures its own overflow from scratch */}
-        {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
+      <div ref={rootRef} className="content-stretch flex flex-col grow items-start relative w-full min-h-0" style={{ gap: subPage && !info ? subTitleGap : 40, ...((subPage || info) && mainHeight ? { height: mainHeight } : {}) }}>
+        {info ? <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} /> : (
+          <>
+            <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
+            {/* Keyed by page so each page measures its own overflow from scratch */}
+            {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
+          </>
+        )}
       </div>
     </InfoPageContext.Provider>
   );

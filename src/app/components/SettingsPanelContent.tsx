@@ -111,7 +111,8 @@ function ScrollArea({ children }: { children: ReactNode }) {
 }
 
 // Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
-// with Back returning to the page it was opened from. The card fits its height to the text.
+// with Back returning to the page it was opened from. The card keeps the home page's height; the text and Back scroll in the
+// standard scroll area when they do not fit (docs/design.md, overlay scrolling standard).
 // The title has the info icon before it, in dark blue, 10px from the text, 1px below centre (John, 2026-10-22).
 // Info page image: a mock-up of the New reminder panel with its quick date buttons, in a 216px frame with 15px padding,
 // cut off at the bottom through the Date row (John, 2026-10-26).
@@ -269,23 +270,27 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
   const Image = INFO_PAGE_IMAGES[header];
   const text = <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>;
   return (
-    <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
+    <>
       <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
         <span className="relative top-[1px] flex shrink-0"><InfoIcon color="#1C2C42" /></span>
         <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>
           {header}
         </p>
       </div>
-      {Image ? (
-        <div className="flex flex-col gap-[30px] items-center w-full">
-          <Image />
-          {text}
+      <ScrollArea>
+        <div className="content-stretch flex flex-col gap-[40px] items-center relative w-full">
+          {Image ? (
+            <div className="flex flex-col gap-[30px] items-center w-full">
+              <Image />
+              {text}
+            </div>
+          ) : text}
+          <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
+            <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
+          </button>
         </div>
-      ) : text}
-      <button type="button" onClick={onBack} className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0 border-none">
-        <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Back</p>
-      </button>
-    </div>
+      </ScrollArea>
+    </>
   );
 }
 
@@ -307,14 +312,17 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
     const root = rootRef.current;
     if (subPage === null && info === null && root) setMainHeight(root.offsetHeight);
   });
-  if (info) return <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} />;
   return (
     <InfoPageContext.Provider value={(header, text) => setInfo({ header, title: text })}>
       {/* grow: fills a fixed-height card (narrow screens), so the footer is measured from the card's edge, not the content's */}
-      <div ref={rootRef} className="content-stretch flex flex-col grow items-start relative w-full min-h-0" style={{ gap: subPage ? subTitleGap : 40, ...(subPage && mainHeight ? { height: mainHeight } : {}) }}>
-        <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
-        {/* Keyed by page so each page measures its own overflow from scratch */}
-        {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
+      <div ref={rootRef} className="content-stretch flex flex-col grow items-start relative w-full min-h-0" style={{ gap: subPage && !info ? subTitleGap : 40, ...((subPage || info) && mainHeight ? { height: mainHeight } : {}) }}>
+        {info ? <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} /> : (
+          <>
+            <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
+            {/* Keyed by page so each page measures its own overflow from scratch */}
+            {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
+          </>
+        )}
       </div>
     </InfoPageContext.Provider>
   );

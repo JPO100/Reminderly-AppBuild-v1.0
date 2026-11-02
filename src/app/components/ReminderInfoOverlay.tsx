@@ -1,4 +1,4 @@
-import { HEADER_TITLE_GAP } from "./OverlayHeader";
+import { HEADER_TITLE_GAP, TITLE_DESCENT } from "./OverlayHeader";
 import { useEffect, useRef } from "react";
 import { ScrollArea } from "./OverlayScrollArea";
 import svgPaths from "../../imports/svg-oxn8g14l6y";
@@ -142,7 +142,7 @@ export default function ReminderInfoOverlay({
           {/* Title and info lines stay put; the buttons scroll beneath them when the card is taller than the screen allows */}
           <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
           {/* Header (the reminder text), then the Title lines 30px apart; Header-to-Title spacing as in OverlayHeader */}
-          <div className="flex flex-col items-center shrink-0 w-full">
+          <div className="flex flex-col items-center shrink-0 w-full" style={{ marginBottom: -TITLE_DESCENT }}>
           <p className="font-['Lato:Bold',sans-serif] not-italic text-[20px] text-[#1C2C42] text-center whitespace-nowrap overflow-hidden text-ellipsis max-w-full" style={{ fontWeight: 700, lineHeight: "24px" }}>{displayTitle}</p>
           <div className="flex flex-col gap-[30px] items-center w-full" style={{ marginTop: HEADER_TITLE_GAP }}>
 

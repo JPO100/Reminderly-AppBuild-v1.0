@@ -10,10 +10,16 @@ import type { ReactNode } from "react";
 //   Title cap top is (0.987 - 0.723) x 17 = 4.488px below the top of its line box (line-height normal = 1.2em).
 //   Box gap = 30 - 4.26 - 4.488 = 21.25px.
 export const HEADER_TITLE_GAP = 21.25;
+// The header area ends at its last baseline: the space below the last line's baseline inside its line box (descent
+// 0.213em) is pulled back with a negative bottom margin, so the 40px (or 30px) below the header area is measured from
+// the baseline, as in the diagram. Header 20px: 4.26. Title 17px: 3.62.
+export const HEADER_DESCENT = 4.26;
+export const TITLE_DESCENT = 3.62;
 
 export function OverlayHeader({ header, title, singleLine }: { header: ReactNode; title?: ReactNode; singleLine?: boolean }) {
+  const hasTitle = title !== undefined && title !== null && title !== "";
   return (
-    <div className="flex flex-col items-center shrink-0 w-full" style={{ gap: HEADER_TITLE_GAP }}>
+    <div className="flex flex-col items-center shrink-0 w-full" style={{ gap: HEADER_TITLE_GAP, marginBottom: -(hasTitle ? TITLE_DESCENT : HEADER_DESCENT) }}>
       <p className="font-['Lato:Bold',sans-serif] not-italic text-[20px] text-[#1C2C42] text-center whitespace-nowrap overflow-hidden text-ellipsis max-w-full" style={{ fontWeight: 700, lineHeight: "24px" }}>{header}</p>
       {title !== undefined && title !== null && title !== "" && (
         <p

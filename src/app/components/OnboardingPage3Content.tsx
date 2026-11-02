@@ -1,4 +1,4 @@
-import { HEADER_TITLE_GAP } from "./OverlayHeader";
+import { HEADER_DESCENT, HEADER_TITLE_GAP, TITLE_DESCENT } from "./OverlayHeader";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -64,9 +64,9 @@ export function TutorialOverlayCard({ children }: { children: ReactNode }) {
 }
 
 // Live overlay title: 20px dark blue bold, centred
-export function TutorialOverlayTitle({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function TutorialOverlayTitle({ children, className = "", trim = true }: { children: ReactNode; className?: string; trim?: boolean }) {
   return (
-    <div className={`flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center w-full ${className}`}>
+    <div className={`flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center w-full ${className}`} style={trim ? { marginBottom: -HEADER_DESCENT } : undefined}>
       <p className="whitespace-nowrap overflow-hidden text-ellipsis max-w-full" style={{ fontWeight: 700, lineHeight: "24px" }}>{children}</p>
     </div>
   );
@@ -136,8 +136,8 @@ export function TutorialReminderInfoOverlay({ reminder }: { reminder: Reminder }
   return (
     <TutorialMiniOverlayShell>
       <TutorialOverlayCard>
-        <div className="flex flex-col items-center shrink-0 w-full">
-          <TutorialOverlayTitle>{reminder.displayText}</TutorialOverlayTitle>
+        <div className="flex flex-col items-center shrink-0 w-full" style={{ marginBottom: -TITLE_DESCENT }}>
+          <TutorialOverlayTitle trim={false}>{reminder.displayText}</TutorialOverlayTitle>
           <div className="content-stretch flex items-center justify-center gap-[8px] min-w-full relative shrink-0" style={{ marginTop: HEADER_TITLE_GAP }}>
             <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] min-w-0 not-italic relative shrink text-[17px] text-center max-w-full" style={{ color: "#939393" }}>
               <p className="leading-[normal] whitespace-nowrap" style={{ fontWeight: 700 }}>{dueLine}</p>

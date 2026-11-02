@@ -13,16 +13,16 @@ const OVERFLOW_TOLERANCE = 1;
 // (gap - SCROLL_TOP_CLEARANCE) and the same amount is added back as padding, so the first row still starts `gap` below
 // the header area.
 const SCROLL_TOP_CLEARANCE = 20;
-// Text directly under a Header sits like a Title: 30px from the Header's baseline to the text's cap top (docs/design.md,
-// Overlay Design Standards v2). Lato Bold: the Header baseline is 0.213 x 20 above its 24px line box's bottom; for text
-// the cap top is (line height - 1.2em) / 2 + (0.987 - 0.723)em below its line box's top.
-const HEADER_DESCENT = 4.26;
+// Text or an image directly under a Header sits like a Title: 30px from the Header's baseline (docs/design.md, Overlay
+// Design Standards v2). The header area ends at its last baseline (OverlayHeader trims the descent), so `gap` is measured
+// from the baseline. For text the cap top is (line height - 1.2em) / 2 + (0.987 - 0.723)em below its line box's top.
 const TEXT_UNDER_HEADER = 30;
-// The first line of text in the area (not inside a row or button), or null when the area starts with a row, button or image.
-function leadingText(rows: HTMLElement): HTMLElement | null {
+// The first element of the area, seen through single-child and column wrappers: a line of text (P), an image (marked
+// data-overlay-image), or something else (a row or button), which keeps the 40px.
+function leadingElement(rows: HTMLElement): HTMLElement | null {
   let el: Element | null = rows.firstElementChild;
-  while (el && el.tagName === "DIV" && (el.childElementCount === 1 || getComputedStyle(el).flexDirection === "column")) el = el.firstElementChild;
-  return el && el.tagName === "P" ? (el as HTMLElement) : null;
+  while (el && el.tagName === "DIV" && !el.hasAttribute("data-overlay-image") && (el.childElementCount === 1 || getComputedStyle(el).flexDirection === "column")) el = el.firstElementChild;
+  return el as HTMLElement | null;
 }
 
 // Down arrow shown in the footer while there is more content below (John's SVG, #D9D9D9). Visual only: not tappable.
@@ -61,13 +61,17 @@ export function ScrollArea({ children, pinned, gap = 40, textUnderHeader = true 
     if (!scroll || !rows) return;
     const measure = () => {
       const fitsHeight = scroll.clientHeight - topPadding - (overflowsRef.current ? SCROLL_PEEK - OVERFLOW_FOOTER : 0);
-      const text = textUnderHeader ? leadingText(rows) : null;
+      const lead = textUnderHeader ? leadingElement(rows) : null;
+      const text = lead && lead.tagName === "P" ? lead : null;
+      const imageFirst = !!lead && lead.hasAttribute("data-overlay-image");
       let nextPull = 0;
       if (text) {
         const style = getComputedStyle(text);
         const size = parseFloat(style.fontSize);
         const line = style.lineHeight === "normal" ? 1.2 * size : parseFloat(style.lineHeight);
-        nextPull = Math.max(0, HEADER_DESCENT + gap + (line - 1.2 * size) / 2 + 0.264 * size - TEXT_UNDER_HEADER);
+        nextPull = Math.max(0, gap + (line - 1.2 * size) / 2 + 0.264 * size - TEXT_UNDER_HEADER);
+      } else if (imageFirst) {
+        nextPull = Math.max(0, gap - TEXT_UNDER_HEADER);
       }
       if (Math.abs(nextPull - pullRef.current) > 0.01) {
         pullRef.current = nextPull;

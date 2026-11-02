@@ -4,6 +4,7 @@
 // picker) picks the holiday photo, and the photo attaches as the live thumbnail tile. Photos are flat-colour SVG
 // drawings, hard edges only.
 
+import { HEADER_DESCENT } from "./OverlayHeader";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { SHEET_TOP, ThrobCircle, ThrobRing, TutorialNewReminderSheet, useRelativeRect } from "./OnboardingCreateReminderContent";
@@ -141,8 +142,8 @@ function TutorialAttachmentOverlay({ highlightChoosePhoto }: { highlightChoosePh
   return (
     <TutorialMiniOverlayShell>
       <div className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] outline-none">
-        <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-          <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Add an attachment</p>
+        <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center" style={{ marginBottom: -HEADER_DESCENT }}>
+          <p className="whitespace-pre-wrap" style={{ fontWeight: 700, lineHeight: "24px" }}>Add an attachment</p>
         </div>
         <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
           {labels.map((label, index) => (

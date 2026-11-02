@@ -93,7 +93,7 @@ App.tsx
 └── DevToolsOverlay
 ```
 
-Overlays slide up from the bottom (`y: "100%"` to `0`) with a backdrop, except the settings panels, which use the centred overlay standard. See [design.md](./design.md).
+Panels (New reminder, Repeats, Lists editor, Templates, Dev tools, tutorial) slide up from the bottom (`y: "100%"` to `0`) with a backdrop. Dialogs, menus, info overlays and the Reminders and Lists settings panels use the centred overlay standard and appear instantly. See [design.md](./design.md).
 
 ## State management
 

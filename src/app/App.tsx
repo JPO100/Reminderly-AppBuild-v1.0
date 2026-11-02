@@ -34,7 +34,7 @@ import NotificationAskDialog from "./components/NotificationAskDialog";
 import { setSettingsWriteFailureListener, useStoredSetting } from "./settings/useStoredSetting";
 import { useNotificationTapHandler } from "./useNotificationTapHandler";
 import laterBtnPaths from "../imports/svg-0tntgsesap";
-import { RemindersSettingsContent, ListsSettingsContent } from "./components/SettingsPanelContent";
+import { RemindersSettingsContent, ListsSettingsContent, SettingsHeightProbe, settingsCardMinHeight } from "./components/SettingsPanelContent";
 import ListsHeader from "../imports/Header";
 import InfoOverlay from "../imports/InfoOverlay";
 import ListInfoOverlay from "../imports/list-info-overlay";
@@ -3572,6 +3572,67 @@ export default function App() {
     devToolsTopRef.current = null;
   }
 
+  // Reminders and Lists settings share one card height, the taller of the two home pages: each card renders the other
+  // panel's home page invisibly to measure it (SettingsHeightProbe)
+  const [remindersSettingsHomeHeight, setRemindersSettingsHomeHeight] = useState<number | null>(null);
+  const [listsSettingsHomeHeight, setListsSettingsHomeHeight] = useState<number | null>(null);
+  const remindersSettingsContent = (
+    <ShowInfoIconsContext.Provider value={showInfoIcons}>
+        <RemindersSettingsContent
+          notificationsAvailable={isRemindersEnabled && notificationsFlag}
+          notifPrefs={{ alerts: notifReminderAlerts, sound: notifSound, badge: notifAppBadge, includeToday: notifIncludeTodayInBadge }}
+          notifPermissionDenied={notifPermission === 'denied'}
+          onNotifChange={(key, value) => {
+            // Turning alerts or badge on while iOS has not decided shows the in-app ask first (section 6.3)
+            if ((key === 'alerts' || key === 'badge') && settingsToggleNeedsAsk(value, notifPermission)) {
+              setNotifAsk({ source: 'settings', pref: key });
+              return;
+            }
+            ({ alerts: setNotifReminderAlerts, sound: setNotifSound, badge: setNotifAppBadge, includeToday: setNotifIncludeTodayInBadge })[key](value);
+          }}
+          datePresetsAvailable={isRemindersEnabled && datePresetsFlag}
+          datePresetsOn={datePresetsPref}
+          onDatePresetsChange={setDatePresetsPref}
+          soundsAvailable={soundsFlag}
+          nlcAvailable={isNlcAvailable}
+          nlcPrefs={nlcPrefs}
+          onNlcChange={(key, value) => nlcPrefSetters[key](value)}
+          repeatsAvailable={isRepeatRemindersActive}
+          hapticsAvailable={hapticsFlag}
+          oneMinuteAvailable={isOneMinuteAvailable}
+          oneMinuteOn={useOneMinuteTimeIncrements}
+          onOneMinuteChange={setUseOneMinuteTimeIncrements}
+          siriAvailable={isSiriRemindersAvailable}
+          siriOn={remindersSettingsSiriOn}
+          onSiriChange={setRemindersSettingsSiriOn}
+          feedbackAvailable={feedbackFlag}
+          onClose={() => setIsRemindersSettingsPanelOpen(false)}
+          onOpenTutorial={isOnboardingTutorialEnabled ? handleRemindersSettingsTutorialOpen : undefined}
+        />
+        </ShowInfoIconsContext.Provider>
+  );
+  const listsSettingsContent = (
+    <ShowInfoIconsContext.Provider value={showInfoIcons}>
+        <ListsSettingsContent
+          feedbackAvailable={feedbackFlag}
+          onClose={() => setIsListsSettingsPanelOpen(false)}
+          soundsAvailable={soundsFlag}
+          hapticsAvailable={hapticsFlag}
+          templatesAvailable={savedListsFeatureEnabled}
+          siriAvailable={isSiriListsAvailable}
+          siriOn={listsSettingsSiriOn}
+          onSiriChange={setListsSettingsSiriOn}
+          itemOrder={listItemOrder}
+          onItemOrderChange={setListItemOrder}
+          hideTickedOn={listHideTicked}
+          onHideTickedChange={setListHideTicked}
+          autoClearOn={listAutoClear}
+          onAutoClearChange={setListAutoClear}
+          onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}
+        />
+        </ShowInfoIconsContext.Provider>
+  );
+
   return (
     <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
         if ((clearListStep === 1 || clearListStep === 2) && clearAllButtonRef.current && !clearAllButtonRef.current.contains(e.target as Node)) {
@@ -5701,49 +5762,19 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Settings overlays (centred overlay standard). Fixed 450px height so sub-pages do not resize the card; the wrapper keeps 100px clear top and bottom and shrinks the card on small screens, where rows scroll */}
+      {/* Settings overlays (centred overlay standard). Both cards use the taller home page's height (F4) so sub-pages do not resize the card; the wrapper keeps 100px clear top and bottom and shrinks the card on small screens, where rows scroll */}
       {isRemindersSettingsPanelOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsRemindersSettingsPanelOpen(false)} />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none h-[450px] min-[393px]:h-auto"
-              style={{ width: 340, overflowY: 'hidden' }}
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+              style={{ width: 340, overflowY: 'hidden', minHeight: settingsCardMinHeight(remindersSettingsHomeHeight, listsSettingsHomeHeight) }}
               onClick={(e) => e.stopPropagation()}
             >
-                <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                <RemindersSettingsContent
-                  notificationsAvailable={isRemindersEnabled && notificationsFlag}
-                  notifPrefs={{ alerts: notifReminderAlerts, sound: notifSound, badge: notifAppBadge, includeToday: notifIncludeTodayInBadge }}
-                  notifPermissionDenied={notifPermission === 'denied'}
-                  onNotifChange={(key, value) => {
-                    // Turning alerts or badge on while iOS has not decided shows the in-app ask first (section 6.3)
-                    if ((key === 'alerts' || key === 'badge') && settingsToggleNeedsAsk(value, notifPermission)) {
-                      setNotifAsk({ source: 'settings', pref: key });
-                      return;
-                    }
-                    ({ alerts: setNotifReminderAlerts, sound: setNotifSound, badge: setNotifAppBadge, includeToday: setNotifIncludeTodayInBadge })[key](value);
-                  }}
-                  datePresetsAvailable={isRemindersEnabled && datePresetsFlag}
-                  datePresetsOn={datePresetsPref}
-                  onDatePresetsChange={setDatePresetsPref}
-                  soundsAvailable={soundsFlag}
-                  nlcAvailable={isNlcAvailable}
-                  nlcPrefs={nlcPrefs}
-                  onNlcChange={(key, value) => nlcPrefSetters[key](value)}
-                  repeatsAvailable={isRepeatRemindersActive}
-                  hapticsAvailable={hapticsFlag}
-                  oneMinuteAvailable={isOneMinuteAvailable}
-                  oneMinuteOn={useOneMinuteTimeIncrements}
-                  onOneMinuteChange={setUseOneMinuteTimeIncrements}
-                  siriAvailable={isSiriRemindersAvailable}
-                  siriOn={remindersSettingsSiriOn}
-                  onSiriChange={setRemindersSettingsSiriOn}
-                  feedbackAvailable={feedbackFlag}
-                  onClose={() => setIsRemindersSettingsPanelOpen(false)}
-                  onOpenTutorial={isOnboardingTutorialEnabled ? handleRemindersSettingsTutorialOpen : undefined}
-                />
-                </ShowInfoIconsContext.Provider>
+                {remindersSettingsContent}
+                <SettingsHeightProbe onHeight={setRemindersSettingsHomeHeight}>{remindersSettingsContent}</SettingsHeightProbe>
+                <SettingsHeightProbe onHeight={setListsSettingsHomeHeight}>{listsSettingsContent}</SettingsHeightProbe>
             </div>
           </div>
         </>
@@ -5754,29 +5785,13 @@ export default function App() {
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsListsSettingsPanelOpen(false)} />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div
-              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none h-[450px] min-[393px]:h-auto"
-              style={{ width: 340, overflowY: 'hidden' }}
+              className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+              style={{ width: 340, overflowY: 'hidden', minHeight: settingsCardMinHeight(remindersSettingsHomeHeight, listsSettingsHomeHeight) }}
               onClick={(e) => e.stopPropagation()}
             >
-                <ShowInfoIconsContext.Provider value={showInfoIcons}>
-                <ListsSettingsContent
-                  feedbackAvailable={feedbackFlag}
-                  onClose={() => setIsListsSettingsPanelOpen(false)}
-                  soundsAvailable={soundsFlag}
-                  hapticsAvailable={hapticsFlag}
-                  templatesAvailable={savedListsFeatureEnabled}
-                  siriAvailable={isSiriListsAvailable}
-                  siriOn={listsSettingsSiriOn}
-                  onSiriChange={setListsSettingsSiriOn}
-                  itemOrder={listItemOrder}
-                  onItemOrderChange={setListItemOrder}
-                  hideTickedOn={listHideTicked}
-                  onHideTickedChange={setListHideTicked}
-                  autoClearOn={listAutoClear}
-                  onAutoClearChange={setListAutoClear}
-                  onOpenTutorial={isOnboardingTutorialEnabled ? handleListsSettingsTutorialOpen : undefined}
-                />
-                </ShowInfoIconsContext.Provider>
+                {listsSettingsContent}
+                <SettingsHeightProbe onHeight={setRemindersSettingsHomeHeight}>{remindersSettingsContent}</SettingsHeightProbe>
+                <SettingsHeightProbe onHeight={setListsSettingsHomeHeight}>{listsSettingsContent}</SettingsHeightProbe>
             </div>
           </div>
         </>

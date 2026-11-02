@@ -37,6 +37,7 @@ import laterBtnPaths from "../imports/svg-0tntgsesap";
 import { RemindersSettingsContent, ListsSettingsContent, SettingsHeightProbe, settingsCardMinHeight } from "./components/SettingsPanelContent";
 import ListsHeader from "../imports/Header";
 import InfoOverlay from "../imports/InfoOverlay";
+import { ScrollArea } from "./components/OverlayScrollArea";
 import ListInfoOverlay from "../imports/list-info-overlay";
 import DeletedInfoOverlay from "../imports/deleted-info-overlay";
 import AddListItemInput from "./components/lists/AddListItemInput";
@@ -5318,7 +5319,7 @@ export default function App() {
             onClick={closeListSettingsOverlay}
           />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
-            <div className="pointer-events-auto centred-overlay-card w-full max-w-[340px] rounded-[32px]">
+            <div className="pointer-events-auto centred-overlay-card flex flex-col w-full max-w-[340px] rounded-[32px]" style={{ overflowY: 'hidden' }}>
               <InfoOverlay listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
                 const listId = editingListId;
                 if (!listId) return;
@@ -5355,7 +5356,7 @@ export default function App() {
             onClick={() => setListInfoOverlayListId(null)}
           />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
-            <div className="pointer-events-auto centred-overlay-card w-full max-w-[340px] rounded-[32px]">
+            <div className="pointer-events-auto centred-overlay-card flex flex-col w-full max-w-[340px] rounded-[32px]" style={{ overflowY: 'hidden' }}>
               <ListInfoOverlay
                 listTitle={listInfoOverlayList.title}
                 smartReminders={(listInfoOverlayList.smartReminders ?? false) || pendingListInfoSmartReminderListId === listInfoOverlayList.id}
@@ -5438,16 +5439,18 @@ export default function App() {
             />
             <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
               <div
-                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-                style={{ width: 340 }}
+                className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+                style={{ width: 340, overflowY: 'hidden' }}
                 onClick={(event) => event.stopPropagation()}
               >
+                <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
                 <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
                   <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
                     {savedList.title}
                   </p>
                 </div>
 
+                <ScrollArea>
                 <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
                   <button
                     className="cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
@@ -5521,6 +5524,8 @@ export default function App() {
                     </div>
                   </button>
                 </div>
+                </ScrollArea>
+                </div>
               </div>
             </div>
           </>
@@ -5539,16 +5544,18 @@ export default function App() {
             />
             <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
               <div
-                className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-                style={{ width: 340 }}
+                className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+                style={{ width: 340, overflowY: 'hidden' }}
                 onClick={(event) => event.stopPropagation()}
               >
+                <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
                 <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
                   <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
                     {savedList.title}
                   </p>
                 </div>
 
+                <ScrollArea>
                 <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
                   <button
                     className="cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
@@ -5612,6 +5619,8 @@ export default function App() {
                       </div>
                     </div>
                   </button>
+                </div>
+                </ScrollArea>
                 </div>
               </div>
             </div>

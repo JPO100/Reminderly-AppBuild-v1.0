@@ -1,3 +1,4 @@
+import { ScrollArea } from "../app/components/OverlayScrollArea";
 import svgPaths from "./svg-oxn8g14l6y";
 import { useEffect, useRef, useState } from "react";
 import ListSmartReminderCalendar from "../app/components/ListSmartReminderCalendar";
@@ -280,16 +281,22 @@ export default function ListInfoOverlay({ listTitle, smartReminders, onSmartRemi
   };
 
   return (
-    <div className="bg-white content-stretch flex flex-col gap-[40px] items-center justify-start px-[30px] py-[40px] relative rounded-[32px] mx-auto" style={{ width: "100%", maxWidth: 340 }} data-name="list-info-overlay">
-      <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center w-full">
-        <p className="leading-[normal] whitespace-pre-wrap break-words" style={{ fontWeight: 700 }}>{listTitle}</p>
-      </div>
-      {showSmartReminders && (
-        <div className="w-full">
-          <Frame3 smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />
+    <div className="bg-white content-stretch flex flex-col min-h-0 items-center justify-start px-[30px] py-[40px] relative rounded-[32px] mx-auto" style={{ width: "100%", maxWidth: 340 }} data-name="list-info-overlay">
+      <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
+        <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center w-full">
+          <p className="leading-[normal] whitespace-pre-wrap break-words" style={{ fontWeight: 700 }}>{listTitle}</p>
         </div>
-      )}
-      <Buttons onMarkAsDone={onMarkAsDone} onEdit={onEdit} onTogglePinned={onTogglePinned} isPinned={isPinned} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} showActionButtons={!smartRemindersActive || !isDatePickerOpen} showPinnedLists={showPinnedLists} />
+        <ScrollArea>
+          <div className="flex flex-col gap-[40px] items-center w-full">
+          {showSmartReminders && (
+            <div className="w-full">
+              <Frame3 smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />
+            </div>
+          )}
+          <Buttons onMarkAsDone={onMarkAsDone} onEdit={onEdit} onTogglePinned={onTogglePinned} isPinned={isPinned} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} showActionButtons={!smartRemindersActive || !isDatePickerOpen} showPinnedLists={showPinnedLists} />
+          </div>
+        </ScrollArea>
+      </div>
     </div>
   );
 }

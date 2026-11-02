@@ -23,6 +23,7 @@ import type { Check } from "../dev/check-system";
 import { DEFAULT_TEMPLATE_SEED } from "../utils/default-templates";
 import type { GeneratedDummyListsPayload, GeneratedList } from "../utils/dummy-list-generator";
 import DevToolsHome, { LastModuleNotice } from "../../imports/DevTools";
+import { ScrollArea } from "./OverlayScrollArea";
 import DummyRemindersPage from "../../imports/DummyReminders";
 import DummyListsPage from "../../imports/DummyLists";
 import type { Reminder } from "../reminder-utils";
@@ -195,18 +196,23 @@ export function DevToolsInfoOverlay({ visible, onClose, header, title }: { visib
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
       <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
         <div
-          className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-          style={{ width: 340 }}
+          className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+          style={{ width: 340, overflowY: 'hidden' }}
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>{header}</p>
-          <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>
-          <button
-            onClick={onClose}
-            className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0"
-          >
-            <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Close</p>
-          </button>
+          <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
+          <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap shrink-0" style={{ fontWeight: 700 }}>{header}</p>
+          <ScrollArea pinned={(
+            <button
+              onClick={onClose}
+              className="bg-[#4784f8] h-[50px] w-full rounded-[100px] cursor-pointer flex items-center justify-center shrink-0"
+            >
+              <p className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal]" style={{ fontWeight: 700 }}>Close</p>
+            </button>
+          )}>
+            <p className="font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap w-full" style={{ lineHeight: '24px' }}>{title}</p>
+          </ScrollArea>
+          </div>
         </div>
       </div>
     </>,

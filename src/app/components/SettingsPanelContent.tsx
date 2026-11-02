@@ -279,7 +279,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
           <>
             <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
             {/* Keyed by page so each page measures its own overflow from scratch */}
-            {content && <ScrollArea key={subPage ?? ""} gap={subPage ? subTitleGap : 40}>{content}</ScrollArea>}
+            {content && <ScrollArea key={subPage ?? ""} gap={subPage ? subTitleGap : 40} textUnderHeader={!(subPage && (subVersion || subUpdated))}>{content}</ScrollArea>}
           </>
         )}
       </div>

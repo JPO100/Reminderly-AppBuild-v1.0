@@ -177,7 +177,7 @@ Layouts:
 
 Scrolling settings pages (overlay scrolling standard, John, 2026-10-26; replaces the 2026-10-23 reduced footer and glimpse rules, docs/plans/overlay-scrolling.md):
 
-- Every sub-page and every information page (the page an info icon opens, with its title, image, text and Back) takes its panel's home page height (Reminders settings or Lists settings). No page resizes the card, and no page sizes the card to its own content. On an information page the title stays fixed and the image, text and Back scroll in the same scroll area, so Back is always reachable with the standard footer below it.
+- Every sub-page and every information page (the page an info icon opens, with its title, image, text and Back) takes its panel's home page height (Reminders settings or Lists settings). No page resizes the card, and no page sizes the card to its own content. On an information page the title stays fixed and only the image and text scroll. Back is pinned below the scroll area, at the card's 40px bottom padding, so it is always visible: content that fits keeps Back 40px under it, and content that overflows gets the 30px footer and arrow between the scroll area and Back (arrow centred in that footer).
 - Content that fits: the standard 40px bottom margin, no indicator.
 - Content that overflows: the scroll area ends 30px above the card's bottom edge, as a hard edge (no fade), and a down arrow (12 x 7, #D9D9D9) sits centred in that footer. The arrow is visual only, shows while there is more content below and hides at the end, switching instantly.
 - Home pages that overflow (short screens) follow the same rule.

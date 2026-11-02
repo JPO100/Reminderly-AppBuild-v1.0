@@ -1,3 +1,4 @@
+import { OverlayHeader } from "./components/OverlayHeader";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 import { Badge } from "@capawesome/capacitor-badge";
@@ -5444,11 +5445,7 @@ export default function App() {
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
-                <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                  <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
-                    {savedList.title}
-                  </p>
-                </div>
+                <OverlayHeader header={savedList.title} />
 
                 <ScrollArea>
                 <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
@@ -5549,11 +5546,7 @@ export default function App() {
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
-                <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                  <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
-                    {savedList.title}
-                  </p>
-                </div>
+                <OverlayHeader header={savedList.title} />
 
                 <ScrollArea>
                 <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { ScrollArea } from "./OverlayScrollArea";
+import { HEADER_PULL } from "./OverlayHeader";
 import { ToggleRow, MenuRow, KeyLine, InfoPageContext, ShowInfoIconsContext, InfoIcon } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
@@ -16,9 +17,9 @@ import { parseTokens } from "../utils/nlc-parser";
 // Centred overlay header: title centred, back arrow on the left for sub-pages, and an optional grey version line under the title,
 // with an optional last updated line under it in the same style (Privacy policy and Terms of use; John, 2026-10-23).
 // The back button pads the 9x17 arrow to a 45x45 tap area; the negative left offset keeps the arrow in place.
-function PanelHeader({ title, version, updated, onBack }: { title: string; version?: string; updated?: string; onBack?: () => void }) {
+function PanelHeader({ title, version, updated, onBack, trimDescent = true }: { title: string; version?: string; updated?: string; onBack?: () => void; trimDescent?: boolean }) {
   return (
-    <div className="flex flex-col items-center shrink-0 w-full">
+    <div className="flex flex-col items-center shrink-0 w-full" style={trimDescent ? { marginBottom: -HEADER_PULL } : undefined}>
       <div className="relative flex items-center justify-center shrink-0 w-full">
         {onBack && (
           <button type="button" onClick={onBack} className="absolute left-[-18px] top-1/2 -translate-y-1/2 cursor-pointer shrink-0 px-[18px] py-[14px] m-0 border-none bg-transparent z-[1]" aria-label="Back">
@@ -29,7 +30,7 @@ function PanelHeader({ title, version, updated, onBack }: { title: string; versi
             </div>
           </button>
         )}
-        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap px-[24px]" style={{ fontWeight: 700 }}>
+        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-nowrap overflow-hidden text-ellipsis min-w-0 px-[24px]" style={{ fontWeight: 700 }}>
           {title}
         </p>
       </div>
@@ -78,7 +79,7 @@ export function settingsCardMinHeight(remindersHeight: number | null, listsHeigh
 // cut off at the bottom through the Date row (John, 2026-10-26).
 function QuickDateButtonsImage() {
   return (
-    <div className="relative shrink-0 w-[216px] h-[156px] overflow-hidden rounded-[11px] p-[15px] flex flex-col gap-[14px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="New reminder with quick date buttons">
+    <div data-overlay-image="" className="relative shrink-0 w-[216px] h-[156px] overflow-hidden rounded-[11px] p-[15px] flex flex-col gap-[14px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="New reminder with quick date buttons">
       <div className="flex items-center justify-between h-[24px] shrink-0">
         <p className="font-['Lato:Bold',sans-serif] text-[10px] text-[#1C2C42] leading-[normal]" style={{ fontWeight: 700 }}>New reminder</p>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="shrink-0">
@@ -136,7 +137,7 @@ function InteractionsImage() {
   ];
   const textClassName = "font-['Lato:Bold',sans-serif] text-[8.5px] leading-[normal]";
   return (
-    <div className="relative shrink-0 w-[216px] h-[132px] overflow-hidden rounded-[11px] bg-white mx-auto" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Typed reminder with its date and time applied">
+    <div data-overlay-image="" className="relative shrink-0 w-[216px] h-[132px] overflow-hidden rounded-[11px] bg-white mx-auto" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Typed reminder with its date and time applied">
       <div className="absolute left-[15px] right-[15px] top-[15px] h-[51px] rounded-[6px] bg-[#F2F2F2] px-[8px] pt-[9px]">
         <p className="font-['Lato:Medium',sans-serif] text-[8.5px] text-[#1C2C42] leading-[normal]">
           Call mum <span className="text-[#4784F8]">tomorrow</span> at <span className="text-[#4784F8]">3pm</span>
@@ -170,7 +171,7 @@ function OneMinuteTimeStepsImage() {
   const rowCentres = [58, 77.5, 97, 117, 137];
   const rowColours = ["#D9D9D9", "#BABABA", "#BABABA", "#1C2C42", "#BABABA"];
   return (
-    <div className="relative shrink-0 w-[216px] h-[138px] overflow-hidden rounded-[11px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Time picker stepping by the minute">
+    <div data-overlay-image="" className="relative shrink-0 w-[216px] h-[138px] overflow-hidden rounded-[11px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Time picker stepping by the minute">
       <div className="absolute left-[15px] right-[15px] top-[15px] h-[22px] flex items-center">
         <div className="flex items-center gap-[8px] w-[71px] shrink-0">
           <MiniClockIcon />
@@ -202,7 +203,7 @@ function TidyFinishedListsImage() {
     { title: "New apartment to-do", detail: "6 of 6. Clears tonight", colour: "#8168D5" },
   ];
   return (
-    <div className="relative shrink-0 w-[216px] overflow-hidden rounded-[11px] p-[15px] flex flex-col gap-[14px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Active lists, one complete and clearing tonight">
+    <div data-overlay-image="" className="relative shrink-0 w-[216px] overflow-hidden rounded-[11px] p-[15px] flex flex-col gap-[14px] bg-white" style={{ boxShadow: "inset 0 0 0 1px #D9D9D9" }} role="img" aria-label="Active lists, one complete and clearing tonight">
       {lists.map(({ title, detail, colour }) => (
         <div key={title} className="flex items-start gap-[9px] w-full">
           <svg width="14" height="14" viewBox="0 0 25 25" fill="none" className="shrink-0 mt-[1px]">
@@ -231,9 +232,9 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
   const text = <p className="w-full font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>;
   return (
     <>
-      <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
+      <div className="flex items-center justify-center gap-[10px] shrink-0 w-full" style={{ marginBottom: -HEADER_PULL }}>
         <span className="relative top-[1px] flex shrink-0"><InfoIcon color="#1C2C42" /></span>
-        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>
+        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-nowrap overflow-hidden text-ellipsis min-w-0" style={{ fontWeight: 700 }}>
           {header}
         </p>
       </div>
@@ -277,7 +278,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
       <div ref={rootRef} className="content-stretch flex flex-col grow items-start relative w-full min-h-0" style={{ gap: subPage && !info ? subTitleGap : 40, ...((subPage || info) && mainHeight ? { height: mainHeight } : {}) }}>
         {info ? <InfoPage header={info.header} title={info.title} onBack={() => setInfo(null)} /> : (
           <>
-            <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
+            <PanelHeader trimDescent={!subPage || subTitleGap === 40} title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
             {/* Keyed by page so each page measures its own overflow from scratch */}
             {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
           </>

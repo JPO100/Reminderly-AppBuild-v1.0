@@ -8,6 +8,22 @@ const SCROLL_PEEK = 40;
 const OVERFLOW_FOOTER = 30;
 // Overflow must exceed this before the indicator shows, so rounding at the threshold never makes it flicker.
 const OVERFLOW_TOLERANCE = 1;
+// Overlay Design Standards v2: the header area is followed by 30px, whatever comes next (OverlayHeader pulls the header
+// area into the card's 40px gap). The area's top edge, where scrolled content is clipped, lies SCROLL_TOP_CLEARANCE below
+// the header area: the area is pulled up by the difference and the same amount is added back as padding, so the first
+// row still starts 30px below it.
+const SCROLL_TOP_CLEARANCE = 20;
+const HEADER_TO_CONTENT = 30;
+const TOP_PADDING = HEADER_TO_CONTENT - SCROLL_TOP_CLEARANCE;
+// Text starts with its cap top 30px below the header area, not its line box: the line box's leading above the capitals,
+// (line height - 1.2em) / 2 + (0.987 - 0.723)em for Lato Bold and Medium, is pulled up.
+// The first element of the area, seen through single-child and column wrappers; a line of text (P) or null (a row,
+// button or image, whose top edge is the top).
+function leadingText(rows: HTMLElement): HTMLElement | null {
+  let el: Element | null = rows.firstElementChild;
+  while (el && el.tagName === "DIV" && (el.childElementCount === 1 || getComputedStyle(el).flexDirection === "column")) el = el.firstElementChild;
+  return el && el.tagName === "P" ? (el as HTMLElement) : null;
+}
 
 // Down arrow shown in the footer while there is more content below (John's SVG, #D9D9D9). Visual only: not tappable.
 function ScrollIndicator({ visible, bottom }: { visible: boolean; bottom: number }) {
@@ -29,18 +45,33 @@ function ScrollIndicator({ visible, bottom }: { visible: boolean; bottom: number
 // between the area and the button.
 const PINNED_BUTTON_HEIGHT = 50;
 export function ScrollArea({ children, pinned }: { children: ReactNode; pinned?: ReactNode }) {
+  const topPadding = TOP_PADDING;
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
   const [overflows, setOverflows] = useState(false);
   const [atEnd, setAtEnd] = useState(false);
+  const [pull, setPull] = useState(0);
+  const pullRef = useRef(pull);
   const overflowsRef = useRef(overflows);
   useLayoutEffect(() => {
     const scroll = scrollRef.current;
     const rows = rowsRef.current;
     if (!scroll || !rows) return;
     const measure = () => {
-      const fitsHeight = scroll.clientHeight - (overflowsRef.current ? SCROLL_PEEK - OVERFLOW_FOOTER : 0);
-      const next = rows.offsetHeight > fitsHeight + OVERFLOW_TOLERANCE;
+      const fitsHeight = scroll.clientHeight - topPadding - (overflowsRef.current ? SCROLL_PEEK - OVERFLOW_FOOTER : 0);
+      const text = leadingText(rows);
+      let nextPull = 0;
+      if (text) {
+        const style = getComputedStyle(text);
+        const size = parseFloat(style.fontSize);
+        const line = style.lineHeight === "normal" ? 1.2 * size : parseFloat(style.lineHeight);
+        nextPull = Math.max(0, (line - 1.2 * size) / 2 + 0.264 * size);
+      }
+      if (Math.abs(nextPull - pullRef.current) > 0.01) {
+        pullRef.current = nextPull;
+        setPull(nextPull);
+      }
+      const next = rows.offsetHeight - pullRef.current > fitsHeight + OVERFLOW_TOLERANCE;
       if (next !== overflowsRef.current) {
         overflowsRef.current = next;
         setOverflows(next);
@@ -59,8 +90,8 @@ export function ScrollArea({ children, pinned }: { children: ReactNode; pinned?:
   }, []);
   return (
     <>
-      <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={overflows ? { marginBottom: OVERFLOW_FOOTER - SCROLL_PEEK } : undefined}>
-        <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full">
+      <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={{ marginTop: -topPadding, paddingTop: topPadding, ...(overflows ? { marginBottom: OVERFLOW_FOOTER - SCROLL_PEEK } : undefined) }}>
+        <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full" style={pull ? { marginTop: -pull } : undefined}>
           {children}
         </div>
       </div>

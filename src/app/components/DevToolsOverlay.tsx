@@ -1,3 +1,4 @@
+import { OverlayHeader } from "./OverlayHeader";
 import { useState, useRef, useEffect, createContext, useContext } from "react";
 import { createPortal } from "react-dom";
 import type { ReactNode } from "react";
@@ -201,7 +202,7 @@ export function DevToolsInfoOverlay({ visible, onClose, header, title }: { visib
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
-          <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap shrink-0" style={{ fontWeight: 700 }}>{header}</p>
+          <OverlayHeader header={header} />
           <ScrollArea pinned={(
             <button
               onClick={onClose}
@@ -431,20 +432,11 @@ function NaturalLanguagePage({ onBack, onClose, nlcEnabled, onNlcEnabledChange, 
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingNlcState
+              <OverlayHeader header={pendingNlcState
                     ? 'Turn on NLC?'
-                    : 'Turn off NLC?'}
-                </p>
-              </div>
-              <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingNlcState
+                    : 'Turn off NLC?'} title={pendingNlcState
                     ? 'Dates and times will be recognised automatically as you type. Existing reminders remain unchanged until edited.'
-                    : 'Reminders will be saved exactly as typed. Dates and times will only be set manually.'}
-                </p>
-              </div>
+                    : 'Reminders will be saved exactly as typed. Dates and times will only be set manually.'} />
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingNlcState(null)}
@@ -509,20 +501,11 @@ function OnboardingPage({ onBack, onClose, isOnboardingTutorialEnabled, onOnboar
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingOnboardingState
+              <OverlayHeader header={pendingOnboardingState
                     ? 'Turn on onboarding tutorial?'
-                    : 'Turn off onboarding tutorial?'}
-                </p>
-              </div>
-              <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingOnboardingState
+                    : 'Turn off onboarding tutorial?'} title={pendingOnboardingState
                     ? 'The onboarding tutorial will be accessible from Settings and shown to new users on first launch.'
-                    : 'The onboarding tutorial will be hidden from Settings and will not be shown to new users.'}
-                </p>
-              </div>
+                    : 'The onboarding tutorial will be hidden from Settings and will not be shown to new users.'} />
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingOnboardingState(null)}
@@ -767,20 +750,11 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingRemindersState
+              <OverlayHeader header={pendingRemindersState
                     ? 'Turn on reminders?'
-                    : 'Turn off reminders?'}
-                </p>
-              </div>
-              <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingRemindersState
+                    : 'Turn off reminders?'} title={pendingRemindersState
                     ? 'Reminders will be shown again, with reminder notifications and the badge restored.'
-                    : 'The app will show Lists only. Reminder notifications stop and the badge clears. Reminders and settings are kept.'}
-                </p>
-              </div>
+                    : 'The app will show Lists only. Reminder notifications stop and the badge clears. Reminders and settings are kept.'} />
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingRemindersState(null)}
@@ -851,20 +825,11 @@ function ListsAreaPage({ onBack, onClose, enableReminders, isListsEnabled, onLis
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingListsState
+              <OverlayHeader header={pendingListsState
                     ? 'Turn on Lists?'
-                    : 'Turn off Lists?'}
-                </p>
-              </div>
-              <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingListsState
+                    : 'Turn off Lists?'} title={pendingListsState
                     ? 'The Lists feature will be enabled, allowing full access to all features.'
-                    : 'The Lists feature will be disabled, restricting access to certain features.'}
-                </p>
-              </div>
+                    : 'The Lists feature will be disabled, restricting access to certain features.'} />
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingListsState(null)}
@@ -1085,8 +1050,7 @@ function OnboardingTestingPage({ variant, onBack, onClose }: { variant: Tutorial
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setConfirmPush(false)} />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card" style={{ width: 340 }} onClick={(e) => e.stopPropagation()}>
-              <p className="font-['Lato:Bold',sans-serif] text-[#1C2C42] text-[20px] text-center leading-[normal] whitespace-pre-wrap">Push this page set to the live {name} tutorial?</p>
-              <p className="font-['Lato:SemiBold',sans-serif] text-[#939393] text-[17px] text-center leading-[normal] whitespace-pre-wrap">{pages.filter((page) => pagesOn[page.id]).length} of {pages.length} pages. With testing mode off, the tutorial shows these pages where the normal rules allow.</p>
+              <OverlayHeader header="Push to live tutorial?" title={`${pages.filter((page) => pagesOn[page.id]).length} of ${pages.length} pages for the ${name} tutorial. With testing mode off, the tutorial shows these pages where the normal rules allow.`} />
               <div className="flex gap-[30px] w-full justify-between">
                 <button type="button" onClick={() => setConfirmPush(false)} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px] bg-[#BABABA]">
                   <span className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal] whitespace-nowrap">Cancel</span>

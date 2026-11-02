@@ -69,9 +69,9 @@ function ScrollIndicator({ visible, bottom }: { visible: boolean; bottom: number
 // card's height. When the content overflows, the area ends OVERFLOW_FOOTER above the card's edge instead of SCROLL_PEEK
 // and the indicator shows until the content is scrolled to its end. Whether it overflows is measured against the 40px
 // footer height, which does not depend on the result, so the two states never feed back into each other.
-// pinned: a 50px button kept below the area (information pages' Back). The area then takes only the height its content
-// needs, so the button follows it when it fits and sits at the card's bottom padding when it overflows; the footer and
-// indicator sit between the area and the button.
+// pinned: a 50px button kept below the area (information pages' Back). The area fills the card, so the button always sits
+// at the card's bottom padding, with any unused space between the content and the button; the footer and indicator sit
+// between the area and the button.
 const PINNED_BUTTON_HEIGHT = 50;
 function ScrollArea({ children, pinned }: { children: ReactNode; pinned?: ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -104,7 +104,7 @@ function ScrollArea({ children, pinned }: { children: ReactNode; pinned?: ReactN
   }, []);
   return (
     <>
-      <div ref={scrollRef} className={`relative w-full min-h-0 ${pinned ? "flex-initial" : "flex-1"} overflow-y-auto`} style={overflows ? { marginBottom: OVERFLOW_FOOTER - SCROLL_PEEK } : undefined}>
+      <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={overflows ? { marginBottom: OVERFLOW_FOOTER - SCROLL_PEEK } : undefined}>
         <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full">
           {children}
         </div>

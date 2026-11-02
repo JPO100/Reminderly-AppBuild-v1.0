@@ -5318,7 +5318,7 @@ export default function App() {
             onClick={closeListSettingsOverlay}
           />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
-            <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
+            <div className="pointer-events-auto centred-overlay-card w-full max-w-[340px] rounded-[32px]">
               <InfoOverlay listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
                 const listId = editingListId;
                 if (!listId) return;
@@ -5355,7 +5355,7 @@ export default function App() {
             onClick={() => setListInfoOverlayListId(null)}
           />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
-            <div className="pointer-events-auto centred-overlay-card w-full max-w-[400px]">
+            <div className="pointer-events-auto centred-overlay-card w-full max-w-[340px] rounded-[32px]">
               <ListInfoOverlay
                 listTitle={listInfoOverlayList.title}
                 smartReminders={(listInfoOverlayList.smartReminders ?? false) || pendingListInfoSmartReminderListId === listInfoOverlayList.id}

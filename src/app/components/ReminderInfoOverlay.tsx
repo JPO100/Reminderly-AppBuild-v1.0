@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { ScrollArea } from "./OverlayScrollArea";
 import svgPaths from "../../imports/svg-oxn8g14l6y";
 import type { Reminder } from "../reminder-utils";
 import { canMoveToTomorrow, formatRepeatRuleText, formatScheduledDateForRow, isOverdue } from "../reminder-utils";
@@ -133,10 +134,13 @@ export default function ReminderInfoOverlay({
           tabIndex={-1}
           role="dialog"
           aria-modal="true"
-          className="bg-white relative flex flex-col gap-[30px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-          style={{ width: 340 }}
+          className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+          style={{ width: 340, overflowY: 'hidden' }}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Title and info lines stay put; the buttons scroll beneath them when the card is taller than the screen allows */}
+          <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
+          <div className="flex flex-col gap-[30px] items-center shrink-0 w-full">
           {/* Reminder text in single quotes */}
           <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center mb-[10px]">
             <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>{displayTitle}</p>
@@ -188,8 +192,11 @@ export default function ReminderInfoOverlay({
             </div>
           )}
 
+          </div>
+
           {/* Buttons */}
-          <div className="content-stretch flex flex-col gap-[30px] items-start mt-[10px] relative shrink-0 w-full">
+          <ScrollArea>
+          <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
             <button
               className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full"
               onClick={onMarkAsDone}
@@ -275,6 +282,8 @@ export default function ReminderInfoOverlay({
                 </div>
               </div>
             </button>
+          </div>
+          </ScrollArea>
           </div>
         </div>
       </div>

@@ -1,3 +1,5 @@
+import { ScrollArea } from "../app/components/OverlayScrollArea";
+
 interface DeletedInfoOverlayProps {
   title: string;
   buttonColor: string;
@@ -18,16 +20,18 @@ export default function DeletedInfoOverlay({
       <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
       <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
         <div
-          className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
-          style={{ width: 340 }}
+          className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
+          style={{ width: 340, overflowY: 'hidden' }}
           onClick={(event) => event.stopPropagation()}
         >
+          <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
           <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
             <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>
               {title}
             </p>
           </div>
 
+          <ScrollArea>
           <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
             <button
               className="cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
@@ -42,6 +46,8 @@ export default function DeletedInfoOverlay({
                 </div>
               </div>
             </button>
+          </div>
+          </ScrollArea>
           </div>
         </div>
       </div>

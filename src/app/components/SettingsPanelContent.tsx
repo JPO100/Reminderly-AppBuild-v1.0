@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { ScrollArea } from "./OverlayScrollArea";
-import { HEADER_DESCENT } from "./OverlayHeader";
+import { HEADER_PULL } from "./OverlayHeader";
 import { ToggleRow, MenuRow, KeyLine, InfoPageContext, ShowInfoIconsContext, InfoIcon } from "./DevToolsOverlay";
 import svgPathsDummy from "../../imports/svg-enpj30u9ti";
 import { getHapticsConfig, setHapticsConfig, HAPTIC_GROUPS, panelMasterKey } from "../utils/haptics";
@@ -19,7 +19,7 @@ import { parseTokens } from "../utils/nlc-parser";
 // The back button pads the 9x17 arrow to a 45x45 tap area; the negative left offset keeps the arrow in place.
 function PanelHeader({ title, version, updated, onBack, trimDescent = true }: { title: string; version?: string; updated?: string; onBack?: () => void; trimDescent?: boolean }) {
   return (
-    <div className="flex flex-col items-center shrink-0 w-full" style={trimDescent && !version && !updated ? { marginBottom: -HEADER_DESCENT } : undefined}>
+    <div className="flex flex-col items-center shrink-0 w-full" style={trimDescent ? { marginBottom: -HEADER_PULL } : undefined}>
       <div className="relative flex items-center justify-center shrink-0 w-full">
         {onBack && (
           <button type="button" onClick={onBack} className="absolute left-[-18px] top-1/2 -translate-y-1/2 cursor-pointer shrink-0 px-[18px] py-[14px] m-0 border-none bg-transparent z-[1]" aria-label="Back">
@@ -232,7 +232,7 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
   const text = <p className="w-full font-['Lato:Medium',sans-serif] text-[17px] text-[#939393] text-center whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{title}</p>;
   return (
     <>
-      <div className="flex items-center justify-center gap-[10px] shrink-0 w-full" style={{ marginBottom: -HEADER_DESCENT }}>
+      <div className="flex items-center justify-center gap-[10px] shrink-0 w-full" style={{ marginBottom: -HEADER_PULL }}>
         <span className="relative top-[1px] flex shrink-0"><InfoIcon color="#1C2C42" /></span>
         <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-nowrap overflow-hidden text-ellipsis min-w-0" style={{ fontWeight: 700 }}>
           {header}
@@ -280,7 +280,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
           <>
             <PanelHeader trimDescent={!subPage || subTitleGap === 40} title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
             {/* Keyed by page so each page measures its own overflow from scratch */}
-            {content && <ScrollArea key={subPage ?? ""} gap={subPage ? subTitleGap : 40} textUnderHeader={!(subPage && (subVersion || subUpdated))}>{content}</ScrollArea>}
+            {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
           </>
         )}
       </div>

@@ -8,21 +8,21 @@ const SCROLL_PEEK = 40;
 const OVERFLOW_FOOTER = 30;
 // Overflow must exceed this before the indicator shows, so rounding at the threshold never makes it flicker.
 const OVERFLOW_TOLERANCE = 1;
-// Overlay Design Standards v2: the area sits below the header area with a gap before it (40px, the card's gap). Its top
-// edge, where scrolled content is clipped, lies SCROLL_TOP_CLEARANCE below the header area: the area is pulled up by
-// (gap - SCROLL_TOP_CLEARANCE) and the same amount is added back as padding, so the first row still starts `gap` below
-// the header area.
+// Overlay Design Standards v2: the header area is followed by 30px, whatever comes next (OverlayHeader pulls the header
+// area into the card's 40px gap). The area's top edge, where scrolled content is clipped, lies SCROLL_TOP_CLEARANCE below
+// the header area: the area is pulled up by the difference and the same amount is added back as padding, so the first
+// row still starts 30px below it.
 const SCROLL_TOP_CLEARANCE = 20;
-// Text or an image directly under a Header sits like a Title: 30px from the Header's baseline (docs/design.md, Overlay
-// Design Standards v2). The header area ends at its last baseline (OverlayHeader trims the descent), so `gap` is measured
-// from the baseline. For text the cap top is (line height - 1.2em) / 2 + (0.987 - 0.723)em below its line box's top.
-const TEXT_UNDER_HEADER = 30;
-// The first element of the area, seen through single-child and column wrappers: a line of text (P), an image (marked
-// data-overlay-image), or something else (a row or button), which keeps the 40px.
-function leadingElement(rows: HTMLElement): HTMLElement | null {
+const HEADER_TO_CONTENT = 30;
+const TOP_PADDING = HEADER_TO_CONTENT - SCROLL_TOP_CLEARANCE;
+// Text starts with its cap top 30px below the header area, not its line box: the line box's leading above the capitals,
+// (line height - 1.2em) / 2 + (0.987 - 0.723)em for Lato Bold and Medium, is pulled up.
+// The first element of the area, seen through single-child and column wrappers; a line of text (P) or null (a row,
+// button or image, whose top edge is the top).
+function leadingText(rows: HTMLElement): HTMLElement | null {
   let el: Element | null = rows.firstElementChild;
-  while (el && el.tagName === "DIV" && !el.hasAttribute("data-overlay-image") && (el.childElementCount === 1 || getComputedStyle(el).flexDirection === "column")) el = el.firstElementChild;
-  return el as HTMLElement | null;
+  while (el && el.tagName === "DIV" && (el.childElementCount === 1 || getComputedStyle(el).flexDirection === "column")) el = el.firstElementChild;
+  return el && el.tagName === "P" ? (el as HTMLElement) : null;
 }
 
 // Down arrow shown in the footer while there is more content below (John's SVG, #D9D9D9). Visual only: not tappable.
@@ -44,10 +44,8 @@ function ScrollIndicator({ visible, bottom }: { visible: boolean; bottom: number
 // at the card's bottom padding, with any unused space between the content and the button; the footer and indicator sit
 // between the area and the button.
 const PINNED_BUTTON_HEIGHT = 50;
-// textUnderHeader: false where the header area has lines of its own below the Header (Support pages' version and date), so
-// the rule above, which assumes the Header is the last line, does not apply.
-export function ScrollArea({ children, pinned, gap = 40, textUnderHeader = true }: { children: ReactNode; pinned?: ReactNode; gap?: number; textUnderHeader?: boolean }) {
-  const topPadding = gap - SCROLL_TOP_CLEARANCE;
+export function ScrollArea({ children, pinned }: { children: ReactNode; pinned?: ReactNode }) {
+  const topPadding = TOP_PADDING;
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
   const [overflows, setOverflows] = useState(false);
@@ -61,17 +59,13 @@ export function ScrollArea({ children, pinned, gap = 40, textUnderHeader = true 
     if (!scroll || !rows) return;
     const measure = () => {
       const fitsHeight = scroll.clientHeight - topPadding - (overflowsRef.current ? SCROLL_PEEK - OVERFLOW_FOOTER : 0);
-      const lead = textUnderHeader ? leadingElement(rows) : null;
-      const text = lead && lead.tagName === "P" ? lead : null;
-      const imageFirst = !!lead && lead.hasAttribute("data-overlay-image");
+      const text = leadingText(rows);
       let nextPull = 0;
       if (text) {
         const style = getComputedStyle(text);
         const size = parseFloat(style.fontSize);
         const line = style.lineHeight === "normal" ? 1.2 * size : parseFloat(style.lineHeight);
-        nextPull = Math.max(0, gap + (line - 1.2 * size) / 2 + 0.264 * size - TEXT_UNDER_HEADER);
-      } else if (imageFirst) {
-        nextPull = Math.max(0, gap - TEXT_UNDER_HEADER);
+        nextPull = Math.max(0, (line - 1.2 * size) / 2 + 0.264 * size);
       }
       if (Math.abs(nextPull - pullRef.current) > 0.01) {
         pullRef.current = nextPull;
@@ -93,7 +87,7 @@ export function ScrollArea({ children, pinned, gap = 40, textUnderHeader = true 
       observer.disconnect();
       scroll.removeEventListener("scroll", measure);
     };
-  }, [topPadding, gap, textUnderHeader]);
+  }, []);
   return (
     <>
       <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={{ marginTop: -topPadding, paddingTop: topPadding, ...(overflows ? { marginBottom: OVERFLOW_FOOTER - SCROLL_PEEK } : undefined) }}>

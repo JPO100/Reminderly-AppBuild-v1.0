@@ -154,12 +154,8 @@ Responsive rules: the standard is expressed as clearances and a preferred width,
 - Card padding: 40px top and bottom, 30px left and right. Content is centred horizontally.
 - Header: Lato Bold 20px, `#1C2C42`, centred, one line (line box 24px), truncated with an ellipsis if too long. Never wraps.
 - Title (only where text sits under the Header): Lato Bold 17px, `#939393`, centred. Short Title lines are one line and truncate; a Title that is a description (a dialog message) may wrap. Exception: the Reminder info due line stays red `#FF0000` when overdue.
-- **Header-to-Title distance is 30px measured from the Header's baseline to the Title's cap top, not between text boxes.** Lato Bold metrics (as bundled): ascent 0.987em, descent 0.213em, cap height 0.723em, line box 1.2em. With the Header line box fixed at 24px its baseline is 0.213 x 20 = 4.26px above its box bottom; the Title's cap top is (0.987 - 0.723) x 17 = 4.488px below its line box top. The CSS gap between the two boxes is therefore 30 - 4.26 - 4.488 = **21.25px** (`HEADER_TITLE_GAP` in `OverlayHeader.tsx`). No other spacing is measured to glyphs: the 40px, 30px and 20px values elsewhere are between boxes, as before.
-- **The header area ends at its last baseline, and spacing below it is measured from that baseline:** 40px from the baseline to the top of the first row, button or toggle; 30px to the cap top of text or the top of an image (and from the Header to a Title); 40px from the last Title's baseline to the first button or row. The descent below the last line's baseline inside its line box (0.213em: 4.26px for the Header, 3.62px for a Title) is pulled back with a negative bottom margin (`HEADER_DESCENT`, `TITLE_DESCENT` in `OverlayHeader.tsx`).
-- **Text and images directly under a Header are spaced like a Title: 30px from the Header's baseline** (to the text's cap top, or to the image's top edge): information pages, Dev tools info, the NLC Examples and Interactions pages. `ScrollArea` detects a first line of text, or an image marked `data-overlay-image`, and pulls it up: by gap + (line height - 1.2em) / 2 + 0.264em - 30 for text (about 20px for 23-24px body lines), by gap - 30 for an image. Where the header area has lines of its own under the Header (Support pages' version and date) this does not apply and the 30px box gap stays, as John set it on 2026-10-23.
-- Between sections (for example header to buttons): 40px.
-- Between elements within a section (rows, stacked buttons, lines of related text, around separators): 30px.
-- Intro or description text: Lato Medium 17px, `#939393`, 24px line height, centred or left-aligned as the content requires. Confirmation messages use Lato SemiBold 17px, `#939393`.
+- **Header-to-Title distance is 30px measured from the Header's baseline to the Title's cap top, not between text boxes (this is the one measurement taken to glyphs inside the header area).** Lato Bold metrics (as bundled): ascent 0.987em, descent 0.213em, cap height 0.723em, line box 1.2em. With the Header line box fixed at 24px its baseline is 0.213 x 20 = 4.26px above its box bottom; the Title's cap top is (0.987 - 0.723) x 17 = 4.488px below its line box top. The CSS gap between the two boxes is therefore 30 - 4.26 - 4.488 = **21.25px** (`HEADER_TITLE_GAP` in `OverlayHeader.tsx`). No other spacing is measured to glyphs: the 40px, 30px and 20px values elsewhere are between boxes, as before.
+- **One rule below the header area (John, 2026-11-02): the gap from the bottom of the header area to whatever comes next is always 30px.** The header area is the Header plus any Title lines (or the Support pages' version and date lines); its bottom is the bottom of the last line's descenders, which is the bottom of that line's box (line box 1.2em; the Header's is fixed at 24px). What comes next is measured at its top: the top edge of a toggle row, click-through row, button or image, or the cap top of a line of text. This holds for every overlay and every tutorial replica, with no exceptions (the Support pages' earlier 30px gap is now simply the standard). Cards lay out their children with a 40px gap, so `OverlayHeader` (and the matching headers in the settings pages and Reminder info) pull the header area 10px into it (`HEADER_PULL`); where the parent gap is already 30 nothing is pulled. `ScrollArea` pulls a first line of text up by its leading above the capitals, (line height - 1.2em) / 2 + 0.264em, so the capitals, not the line box, are 30px below.
 - Several Title lines in one header area (Reminder info) are 30px apart, box to box.
 
 Buttons:
@@ -191,11 +187,11 @@ Destructive actions use grey `#939393`, not red.
 
 | Family | Structure |
 |--------|-----------|
-| Info (Reminder info, List info, Deleted info) | Header, 40, rows or buttons (30 apart). Reminder info: Header, Title lines (30 apart), 40, buttons |
-| Menu (Saved list, Template editor) | Header, 40, stacked buttons |
+| Info (Reminder info, List info, Deleted info) | Header, 30, rows or buttons (30 apart). Reminder info: Header, Title lines (30 apart), 30, buttons |
+| Menu (Saved list, Template editor) | Header, 30, stacked buttons |
 | Settings (Reminders, Lists) | One shared card height for all settings overlays: the taller of the two home pages, capped by the available height. Sub-pages and information pages inherit that height (a page never resizes the card). Title fixed, rows scroll; information pages have fixed title, scrolling image and text, and Back pinned |
 | Attachment overlays | Add attachment: title and stacked primary buttons. Attachment error: title, message, OK. Delete attachment: title and one grey destructive button, no Cancel |
-| Confirmation and notice dialogs | Header, 30 (glyph measured), Title (the message), 40, buttons (equal-width Cancel and Confirm, or a single OK) |
+| Confirmation and notice dialogs | Header, 30 (baseline to cap top), Title (the message), 30, buttons (equal-width Cancel and Confirm, or a single OK) |
 | Permission prompt (Notification ask) | Same as a confirmation dialog: "Not now" and "Allow", equal width |
 | Tutorial replicas | See A6 |
 
@@ -240,12 +236,12 @@ div.fixed.inset-0.z-[60].flex.items-center.justify-center
 
 | Overlay | Layout | Buttons |
 |---------|--------|---------|
-| Reminder info | Header (the reminder text, truncated), 30 (glyph measured), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), smart reminder line and repeats line (Bold `#939393`, 30 apart, truncated), 40, buttons | Stacked, scrolling `ScrollArea` |
-| Deleted info | Header, 40, buttons | Stacked, scrolling |
-| List settings | Header, 40, one button block: toggle rows and buttons all 30 apart | Stacked, scrolling |
-| List info | Header, 40, one button block: smart reminder row (when shown) and buttons all 30 apart | Stacked, scrolling |
-| Saved list menu | Header, 40, buttons | Stacked, scrolling |
-| Template editor menu | Header, 40, buttons | Stacked, scrolling |
+| Reminder info | Header (the reminder text, truncated), 30 (glyph measured), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), smart reminder line and repeats line (Bold `#939393`, 30 apart, truncated), 30, buttons | Stacked, scrolling `ScrollArea` |
+| Deleted info | Header, 30, buttons | Stacked, scrolling |
+| List settings | Header, 30, one button block: toggle rows and buttons all 30 apart | Stacked, scrolling |
+| List info | Header, 30, one button block: smart reminder row (when shown) and buttons all 30 apart | Stacked, scrolling |
+| Saved list menu | Header, 30, buttons | Stacked, scrolling |
+| Template editor menu | Header, 30, buttons | Stacked, scrolling |
 | Reminders settings | Shared height, centred title, rows 30 apart (toggles, then click-through rows with a 7 x 13 `#939393` chevron, then the tutorial row), no close button | Fixed title, scrolling rows |
 | Lists settings | As Reminders settings | As above |
 | Settings sub-pages and information pages | Same height; sub-pages have a back arrow in the header; information pages have fixed title, scrolling image and text | Back pinned |

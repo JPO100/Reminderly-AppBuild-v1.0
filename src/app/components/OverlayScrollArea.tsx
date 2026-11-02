@@ -8,6 +8,11 @@ const SCROLL_PEEK = 40;
 const OVERFLOW_FOOTER = 30;
 // Overflow must exceed this before the indicator shows, so rounding at the threshold never makes it flicker.
 const OVERFLOW_TOLERANCE = 1;
+// Overlay Design Standards v2: the area sits below the header area with a gap before it (40px, the card's gap). Its top
+// edge, where scrolled content is clipped, lies SCROLL_TOP_CLEARANCE below the header area: the area is pulled up by
+// (gap - SCROLL_TOP_CLEARANCE) and the same amount is added back as padding, so the first row still starts `gap` below
+// the header area.
+const SCROLL_TOP_CLEARANCE = 20;
 
 // Down arrow shown in the footer while there is more content below (John's SVG, #D9D9D9). Visual only: not tappable.
 function ScrollIndicator({ visible, bottom }: { visible: boolean; bottom: number }) {
@@ -28,7 +33,8 @@ function ScrollIndicator({ visible, bottom }: { visible: boolean; bottom: number
 // at the card's bottom padding, with any unused space between the content and the button; the footer and indicator sit
 // between the area and the button.
 const PINNED_BUTTON_HEIGHT = 50;
-export function ScrollArea({ children, pinned }: { children: ReactNode; pinned?: ReactNode }) {
+export function ScrollArea({ children, pinned, gap = 40 }: { children: ReactNode; pinned?: ReactNode; gap?: number }) {
+  const topPadding = gap - SCROLL_TOP_CLEARANCE;
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
   const [overflows, setOverflows] = useState(false);
@@ -39,7 +45,7 @@ export function ScrollArea({ children, pinned }: { children: ReactNode; pinned?:
     const rows = rowsRef.current;
     if (!scroll || !rows) return;
     const measure = () => {
-      const fitsHeight = scroll.clientHeight - (overflowsRef.current ? SCROLL_PEEK - OVERFLOW_FOOTER : 0);
+      const fitsHeight = scroll.clientHeight - topPadding - (overflowsRef.current ? SCROLL_PEEK - OVERFLOW_FOOTER : 0);
       const next = rows.offsetHeight > fitsHeight + OVERFLOW_TOLERANCE;
       if (next !== overflowsRef.current) {
         overflowsRef.current = next;
@@ -56,10 +62,10 @@ export function ScrollArea({ children, pinned }: { children: ReactNode; pinned?:
       observer.disconnect();
       scroll.removeEventListener("scroll", measure);
     };
-  }, []);
+  }, [topPadding]);
   return (
     <>
-      <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={overflows ? { marginBottom: OVERFLOW_FOOTER - SCROLL_PEEK } : undefined}>
+      <div ref={scrollRef} className="relative w-full min-h-0 flex-1 overflow-y-auto" style={{ marginTop: -topPadding, paddingTop: topPadding, ...(overflows ? { marginBottom: OVERFLOW_FOOTER - SCROLL_PEEK } : undefined) }}>
         <div ref={rowsRef} className="content-stretch flex flex-col gap-[30px] items-start relative w-full">
           {children}
         </div>

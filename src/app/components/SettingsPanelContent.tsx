@@ -29,7 +29,7 @@ function PanelHeader({ title, version, updated, onBack }: { title: string; versi
             </div>
           </button>
         )}
-        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap px-[24px]" style={{ fontWeight: 700 }}>
+        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-nowrap overflow-hidden text-ellipsis min-w-0 px-[24px]" style={{ fontWeight: 700 }}>
           {title}
         </p>
       </div>
@@ -233,7 +233,7 @@ function InfoPage({ header, title, onBack }: { header: string; title: string; on
     <>
       <div className="flex items-center justify-center gap-[10px] shrink-0 w-full">
         <span className="relative top-[1px] flex shrink-0"><InfoIcon color="#1C2C42" /></span>
-        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-pre-wrap" style={{ fontWeight: 700 }}>
+        <p className="font-['Lato:Bold',sans-serif] text-[20px] text-[#1C2C42] leading-[normal] text-center whitespace-nowrap overflow-hidden text-ellipsis min-w-0" style={{ fontWeight: 700 }}>
           {header}
         </p>
       </div>
@@ -279,7 +279,7 @@ function PanelShell({ title, subPage, subVersion, subUpdated, subTitleGap = 40, 
           <>
             <PanelHeader title={subPage ? (SUB_PAGE_TITLES[subPage] ?? subPage) : title} version={subPage ? subVersion : undefined} updated={subPage ? subUpdated : undefined} onBack={subPage ? onBack : undefined} />
             {/* Keyed by page so each page measures its own overflow from scratch */}
-            {content && <ScrollArea key={subPage ?? ""}>{content}</ScrollArea>}
+            {content && <ScrollArea key={subPage ?? ""} gap={subPage ? subTitleGap : 40}>{content}</ScrollArea>}
           </>
         )}
       </div>

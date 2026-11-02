@@ -1,3 +1,4 @@
+import { OverlayHeader } from "../app/components/OverlayHeader";
 import { useState } from "react";
 import { DevPage, DevCard, DevNavToggleRow, DevMenuRow } from "../app/components/DevToolsOverlay";
 
@@ -12,12 +13,7 @@ export function LastModuleNotice({ onClose }: { onClose: () => void }) {
           style={{ width: 340 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-            <p className="leading-[normal] whitespace-pre-wrap">One module must stay on</p>
-          </div>
-          <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-            <p className="leading-[normal] whitespace-pre-wrap">At least one of Reminders or Lists must stay on. Turn the other on first.</p>
-          </div>
+          <OverlayHeader header="One module must stay on" title="At least one of Reminders or Lists must stay on. Turn the other on first." />
           <button
             onClick={onClose}
             className="h-[50px] rounded-[100px] cursor-pointer px-[16px] w-full"
@@ -155,16 +151,7 @@ export default function DevTools({
               style={{ width: 340 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingToggle.target ? copy.onTitle : copy.offTitle}
-                </p>
-              </div>
-              <div className="flex flex-col font-['Lato:SemiBold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-                <p className="leading-[normal] whitespace-pre-wrap">
-                  {pendingToggle.target ? copy.onSubtitle : copy.offSubtitle}
-                </p>
-              </div>
+              <OverlayHeader header={pendingToggle.target ? copy.onTitle : copy.offTitle} title={pendingToggle.target ? copy.onSubtitle : copy.offSubtitle} />
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingToggle(null)}

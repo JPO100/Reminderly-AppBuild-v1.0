@@ -1,3 +1,4 @@
+import { OverlayHeader } from "../app/components/OverlayHeader";
 import svgPaths from "./svg-k8owpv3rm6";
 import { parseTokens, type ParsedToken, type TokenCategory, type NlcRecognitionConfig } from "../app/utils/nlc-parser";
 import { keepRepeatRuleWhenOff } from "../app/settings/resolver";
@@ -1898,9 +1899,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
             style={{ width: 340 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-              <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Add an attachment</p>
-            </div>
+            <OverlayHeader header="Add an attachment" />
 
             <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
               <button
@@ -1956,12 +1955,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
             style={{ width: 340 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-              <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>{attachmentError.title}</p>
-            </div>
-            <div className="flex flex-col font-['Lato:Medium',sans-serif] justify-center not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
-              <p className="leading-[normal] whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{attachmentError.message}</p>
-            </div>
+            <OverlayHeader header={attachmentError.title} title={attachmentError.message} />
             <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
               <button
                 className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
@@ -1990,9 +1984,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
             style={{ width: 340 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
-              <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Delete attachment</p>
-            </div>
+            <OverlayHeader header="Delete attachment" />
             <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
               <button
                 className="bg-[#939393] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"

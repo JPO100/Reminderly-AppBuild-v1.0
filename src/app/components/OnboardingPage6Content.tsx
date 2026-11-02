@@ -10,7 +10,7 @@ import {
   TUTORIAL_ATTENTION_THROB_TIMES,
   TUTORIAL_OVERLAY_PHONE_INTERIOR_WIDTH,
 } from "./OnboardingPage3Content";
-import { ListsSettingsContent, RemindersSettingsContent } from "./SettingsPanelContent";
+import { ListsSettingsContent, RemindersSettingsContent, SettingsHeightProbe } from "./SettingsPanelContent";
 import { ShowInfoIconsContext } from "./DevToolsOverlay";
 
 export function OnboardingPage6Text() {
@@ -88,6 +88,9 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
   const [ringCentre, setRingCentre] = useState<{ x: number; y: number } | null>(null);
   const [cardMaxHeight, setCardMaxHeight] = useState<number | undefined>(undefined);
   const [cycle, setCycle] = useState(0);
+  const [remindersHeight, setRemindersHeight] = useState<number | null>(null);
+  const [listsHeight, setListsHeight] = useState<number | null>(null);
+  const homeHeight = Math.max(remindersHeight ?? 0, listsHeight ?? 0);
 
   useEffect(() => {
     setPhase("none");
@@ -148,6 +151,53 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
     setRingCentre({ x: targetRect.left - rootRect.left + targetRect.width / 2, y: targetRect.top - rootRect.top + targetRect.height / 2 });
   }, [phase, variant]);
 
+  // The live cards share the taller home page's height, so the card here is at least as tall as the other panel's home page
+  const listsContent = (
+    <ShowInfoIconsContext.Provider value={listsSettings?.showInfoIcons ?? true}>
+    <ListsSettingsContent
+      onOpenTutorial={noop}
+      soundsAvailable={listsSettings?.soundsAvailable ?? true}
+      hapticsAvailable={listsSettings?.hapticsAvailable ?? false}
+      templatesAvailable={listsSettings?.templatesAvailable ?? false}
+      siriAvailable={listsSettings?.siriAvailable ?? false}
+      siriOn={listsSettings?.siriOn ?? false}
+      onSiriChange={noop}
+      itemOrder={listsSettings?.itemOrder ?? "newest"}
+      onItemOrderChange={noop}
+      hideTickedOn={listsSettings?.hideTickedOn ?? false}
+      onHideTickedChange={noop}
+      autoClearOn={listsSettings?.autoClearOn ?? false}
+      onAutoClearChange={noop}
+    />
+  </ShowInfoIconsContext.Provider>
+  );
+  const remindersContent = (
+    <ShowInfoIconsContext.Provider value={settings?.showInfoIcons ?? true}>
+    <RemindersSettingsContent
+      onOpenTutorial={noop}
+      notificationsAvailable={settings?.notificationsAvailable ?? true}
+      notifPrefs={{ alerts: true, sound: true, badge: true, includeToday: false }}
+      notifPermissionDenied={false}
+      onNotifChange={noop}
+      datePresetsAvailable={settings?.datePresetsAvailable ?? false}
+      datePresetsOn={settings?.datePresetsOn ?? false}
+      onDatePresetsChange={noop}
+      soundsAvailable={settings?.soundsAvailable ?? true}
+      nlcAvailable={settings?.nlcAvailable ?? false}
+      nlcPrefs={{ on: true, date: true, time: true, repeats: true, autoParsing: true }}
+      onNlcChange={noop}
+      repeatsAvailable={false}
+      hapticsAvailable={settings?.hapticsAvailable ?? false}
+      oneMinuteAvailable={settings?.oneMinuteAvailable ?? false}
+      oneMinuteOn={settings?.oneMinuteOn ?? false}
+      onOneMinuteChange={noop}
+      siriAvailable={settings?.siriAvailable ?? false}
+      siriOn={settings?.siriOn ?? false}
+      onSiriChange={noop}
+    />
+  </ShowInfoIconsContext.Provider>
+  );
+
   const overlayOpen = phase === "settings-overlay" || phase === "settings-scroll" || phase === "support-throb" || phase === "support-open" || phase === "tutorial-throb";
 
   return (
@@ -159,52 +209,11 @@ export function OnboardingPage6Overlay({ variant = "reminders", settings, listsS
           <div
             ref={cardRef}
             className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] outline-none shrink-0"
-            style={{ width: 340, maxHeight: cardMaxHeight, overflowY: "hidden", transform: `scale(${PAGE_6_CARD_SCALE})`, transformOrigin: "bottom center" }}
+            style={{ width: 340, maxHeight: cardMaxHeight, minHeight: homeHeight ? Math.min(homeHeight, cardMaxHeight ?? homeHeight) : undefined, overflowY: "hidden", transform: `scale(${PAGE_6_CARD_SCALE})`, transformOrigin: "bottom center" }}
           >
-            {variant === "lists" ? (
-            <ShowInfoIconsContext.Provider value={listsSettings?.showInfoIcons ?? true}>
-              <ListsSettingsContent
-                onOpenTutorial={noop}
-                soundsAvailable={listsSettings?.soundsAvailable ?? true}
-                hapticsAvailable={listsSettings?.hapticsAvailable ?? false}
-                templatesAvailable={listsSettings?.templatesAvailable ?? false}
-                siriAvailable={listsSettings?.siriAvailable ?? false}
-                siriOn={listsSettings?.siriOn ?? false}
-                onSiriChange={noop}
-                itemOrder={listsSettings?.itemOrder ?? "newest"}
-                onItemOrderChange={noop}
-                hideTickedOn={listsSettings?.hideTickedOn ?? false}
-                onHideTickedChange={noop}
-                autoClearOn={listsSettings?.autoClearOn ?? false}
-                onAutoClearChange={noop}
-              />
-            </ShowInfoIconsContext.Provider>
-            ) : (
-            <ShowInfoIconsContext.Provider value={settings?.showInfoIcons ?? true}>
-              <RemindersSettingsContent
-                onOpenTutorial={noop}
-                notificationsAvailable={settings?.notificationsAvailable ?? true}
-                notifPrefs={{ alerts: true, sound: true, badge: true, includeToday: false }}
-                notifPermissionDenied={false}
-                onNotifChange={noop}
-                datePresetsAvailable={settings?.datePresetsAvailable ?? false}
-                datePresetsOn={settings?.datePresetsOn ?? false}
-                onDatePresetsChange={noop}
-                soundsAvailable={settings?.soundsAvailable ?? true}
-                nlcAvailable={settings?.nlcAvailable ?? false}
-                nlcPrefs={{ on: true, date: true, time: true, repeats: true, autoParsing: true }}
-                onNlcChange={noop}
-                repeatsAvailable={false}
-                hapticsAvailable={settings?.hapticsAvailable ?? false}
-                oneMinuteAvailable={settings?.oneMinuteAvailable ?? false}
-                oneMinuteOn={settings?.oneMinuteOn ?? false}
-                onOneMinuteChange={noop}
-                siriAvailable={settings?.siriAvailable ?? false}
-                siriOn={settings?.siriOn ?? false}
-                onSiriChange={noop}
-              />
-            </ShowInfoIconsContext.Provider>
-            )}
+            {variant === "lists" ? listsContent : remindersContent}
+            <SettingsHeightProbe onHeight={setRemindersHeight}>{remindersContent}</SettingsHeightProbe>
+            <SettingsHeightProbe onHeight={setListsHeight}>{listsContent}</SettingsHeightProbe>
           </div>
         </div>
       )}

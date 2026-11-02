@@ -1927,7 +1927,7 @@ export default function TutorialOnboardingContent({
                 activeMainTab="reminders"
                 showMainTabBar={isListsEnabled}
                 showHeaderMenu={false}
-                overlay={<OnboardingPage6Overlay settings={remindersSettings} />}
+                overlay={<OnboardingPage6Overlay settings={remindersSettings} listsSettings={listsSettings} />}
                 filterRow={
                   <TutorialRemindersFilterRow settingsMenuEnabled={settingsMenuEnabled} calendarEnabled={calendarEnabled} />
                 }
@@ -1945,7 +1945,7 @@ export default function TutorialOnboardingContent({
               <TutorialPhoneShell
                 activeMainTab="lists"
                 showHeaderMenu={false}
-                overlay={<OnboardingPage6Overlay variant="lists" listsSettings={listsSettings} />}
+                overlay={<OnboardingPage6Overlay variant="lists" settings={remindersSettings} listsSettings={listsSettings} />}
                 filterRow={
                   <TutorialReminderFilters
                     items={savedListsEnabled ? SAVED_LISTS_TUTORIAL_FILTER_ITEMS : UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS}

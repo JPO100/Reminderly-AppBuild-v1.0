@@ -115,6 +115,29 @@ function ScrollArea({ children, pinned }: { children: ReactNode; pinned?: ReactN
   );
 }
 
+// Reminders and Lists settings share one card height: the taller of the two home pages (F4). Each card renders both
+// panels' home pages invisibly, at the card's inner width, and each probe reports the card height its page would need (its
+// height plus the card's 40px top and bottom padding), measured the same way for both. The card takes the larger as a
+// minimum, never beyond the space the screen leaves it.
+const SETTINGS_CARD_PADDING = 80;
+export function SettingsHeightProbe({ children, onHeight }: { children: ReactNode; onHeight: (height: number) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => onHeight(el.offsetHeight + SETTINGS_CARD_PADDING);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [onHeight]);
+  return <div ref={ref} aria-hidden="true" className="absolute left-[30px] right-[30px] top-[40px] invisible pointer-events-none">{children}</div>;
+}
+export function settingsCardMinHeight(remindersHeight: number | null, listsHeight: number | null) {
+  const height = Math.max(remindersHeight ?? 0, listsHeight ?? 0);
+  return height ? `min(${height}px, 100%)` : undefined;
+}
+
 // Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
 // with Back returning to the page it was opened from. The card keeps the home page's height; the image and text scroll in the
 // standard scroll area when they do not fit, with Back pinned below it (docs/design.md, overlay scrolling standard).

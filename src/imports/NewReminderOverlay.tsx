@@ -1892,9 +1892,9 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     {showAttachmentOverlay && (
       <>
         <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setShowAttachmentOverlay(false)} />
-        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
           <div
-            className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+            className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
             style={{ width: 340 }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1902,7 +1902,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
               <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Add an attachment</p>
             </div>
 
-            <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
+            <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
               <button
                 className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
                 onClick={handleChoosePhoto}
@@ -1950,9 +1950,9 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     {attachmentError && (
       <>
         <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setAttachmentError(null)} />
-        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
           <div
-            className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+            className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
             style={{ width: 340 }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1962,7 +1962,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
             <div className="flex flex-col font-['Lato:Medium',sans-serif] justify-center not-italic relative shrink-0 text-[#939393] text-[17px] text-center">
               <p className="leading-[normal] whitespace-pre-wrap" style={{ lineHeight: '24px' }}>{attachmentError.message}</p>
             </div>
-            <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
+            <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
               <button
                 className="bg-[#4784f8] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
                 onClick={() => setAttachmentError(null)}
@@ -1984,18 +1984,18 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
     {showDeleteAttachmentConfirm && (
       <>
         <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setShowDeleteAttachmentConfirm(false)} />
-        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
           <div
-            className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] pointer-events-auto outline-none"
+            className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
             style={{ width: 340 }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
               <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Delete attachment</p>
             </div>
-            <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
+            <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
               <button
-                className="bg-[#EC0F0F] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
+                className="bg-[#939393] cursor-pointer h-[50px] relative rounded-[100px] shrink-0 w-full border-none"
                 onClick={() => {
                   setPendingAttachment(null);
                   attachmentDeletedRef.current = true;

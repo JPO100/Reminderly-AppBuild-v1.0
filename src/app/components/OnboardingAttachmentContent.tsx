@@ -134,17 +134,17 @@ const PICKER_PHOTOS: { id: string; photo: ReactNode }[] = [
   },
 ];
 
-// Live Add an attachment overlay (NewReminderOverlay), value for value: 340 wide, 32px corners, 35px top and
-// bottom, 32px sides, 25px gap, title 20px dark blue bold, then three 50px blue pills 30px apart, 7px lower
+// Live Add an attachment overlay (NewReminderOverlay), value for value: 340 wide, 32px corners, 40px top and
+// bottom, 30px sides, 40px gap, title 20px dark blue bold, then three 50px blue pills 30px apart
 function TutorialAttachmentOverlay({ highlightChoosePhoto }: { highlightChoosePhoto: boolean }) {
   const labels = ["Choose a photo", "Take a photo", "Choose a file"];
   return (
     <TutorialMiniOverlayShell>
-      <div className="bg-white relative flex flex-col gap-[25px] items-center pt-[35px] pb-[35px] px-[32px] rounded-[32px] outline-none">
+      <div className="bg-white relative flex flex-col gap-[40px] items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] outline-none">
         <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[#1C2C42] text-[20px] text-center">
           <p className="leading-[normal] whitespace-pre-wrap" style={{ fontWeight: 700 }}>Add an attachment</p>
         </div>
-        <div className="content-stretch flex flex-col gap-[30px] items-start mt-[7px] relative shrink-0 w-full">
+        <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
           {labels.map((label, index) => (
             <div key={label} className="bg-[#4784f8] h-[50px] relative rounded-[100px] shrink-0 w-full">
               <div className="flex flex-row items-center justify-center size-full">

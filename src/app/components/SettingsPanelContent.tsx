@@ -73,7 +73,7 @@ export function settingsCardMinHeight(remindersHeight: number | null, listsHeigh
 
 // Info page: an info icon's description shown in the same card, laid out like the info overlay (title, text, button),
 // with Back returning to the page it was opened from. The card keeps the home page's height; the image and text scroll in the
-// standard scroll area when they do not fit, with Back pinned below it (docs/design.md, overlay scrolling standard).
+// standard scroll area when they do not fit, with Back pinned below it (docs/design-standards/overlay-standards.md, scrolling).
 // The title has the info icon before it, in dark blue, 10px from the text, 1px below centre (John, 2026-10-22).
 // Info page image: a mock-up of the New reminder panel with its quick date buttons, in a 216px frame with 15px padding,
 // cut off at the bottom through the Date row (John, 2026-10-26).

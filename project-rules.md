@@ -4,7 +4,7 @@ These rules cover Reminderly-specific technical and operational requirements. Sh
 
 ## Project
 - iOS app: React, TypeScript, Vite, Capacitor 8, Swift Package Manager. Bundle id com.reminderly.app.
-- Reference docs: docs/architecture.md, docs/design.md, docs/development.md, docs/ios.md, docs/features/.
+- Reference docs: docs/architecture.md, docs/design.md, docs/design-standards/, docs/development.md, docs/ios.md, docs/features/.
 - Follow the established architecture and existing implementation patterns.
 - Keep every command scoped to the project folder or scratchpad. Never run tools against / or ~.
 - Never commit the generated ios/App/App/public/index.html.
@@ -14,7 +14,7 @@ These rules cover Reminderly-specific technical and operational requirements. Sh
 - docs/development-history.md is the authoritative project history. Update it when a feature is completed, a branch is merged, an architectural decision is made or a significant bug is fixed.
 - Fold pending merge records into the next branch that touches docs. Never open a branch only to record a merge.
 - Update docs/release-readiness.md when a change affects App Store readiness (permissions, data handling, native features, paid features, defaults). Claude's recommendations stay proposals until John decides.
-- Record new UI standards in docs/design.md.
+- Record new UI standards in docs/design-standards/, one document per standard (overlay-standards.md first); docs/design.md holds what has not moved yet.
 
 ## Protected areas
 Notification scheduling, notification actions, badge counts, date handling, time handling, repeating reminders, completion flows, deletion flows, app lifecycle, local storage persistence.
@@ -26,7 +26,7 @@ For changes touching these: define explicit verification steps, run targeted reg
 - If a change affects UI the onboarding tutorial reproduces, update the tutorial in the same branch and include it in regression checks.
 
 ## UI conventions
-- docs/design.md is the standard.
+- docs/design-standards/ is the standard for what it covers (centred overlays); docs/design.md for the rest. Never restate a rule in two places.
 - Colour names: Reminderly blue #4784F8, Reminderly dark blue #1C2C42, medium grey #BABABA (row and toggle subtitles), inactive grey #D9D9D9, description grey #939393 (Lato Medium).
 - Toggles: on is dark blue text with a blue switch; off is dark blue text with a medium grey switch; inactive is inactive grey text and switch, not tappable.
 - No gradients or fades. Hard edges only. (The one approved exception is the Siri tutorial screen-edge glow.)

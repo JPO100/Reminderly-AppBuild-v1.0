@@ -46,7 +46,7 @@ src/
                                widget, tutorial-pages, dummy generators
     components/                DevToolsOverlay, RepeatsOverlay, ReminderInfoOverlay,
                                OverlayHeader (centred overlay Header and Title), OverlayScrollArea
-                               (shared scrolling area and arrow; see design.md Centred overlays),
+                               (shared scrolling area and arrow; see design-standards/overlay-standards.md),
                                RemindersCalendar, ListSmartReminderCalendar, SettingsPanelContent,
                                TutorialOverlay and tutorial/onboarding pages, lists/, icons/
     components/ui/             48 shadcn files. Not imported by the app. Do not use
@@ -95,7 +95,7 @@ App.tsx
 └── DevToolsOverlay
 ```
 
-Panels (New reminder, Repeats, Lists editor, Templates, Dev tools, tutorial) slide up from the bottom (`y: "100%"` to `0`) with a backdrop. Dialogs, menus, info overlays and the Reminders and Lists settings panels use the centred overlay standard and appear instantly. See [design.md](./design.md).
+Panels (New reminder, Repeats, Lists editor, Templates, Dev tools, tutorial) slide up from the bottom (`y: "100%"` to `0`) with a backdrop. Dialogs, menus, info overlays and the Reminders and Lists settings panels use the centred overlay standard and appear instantly. See [design.md](./design.md) and [design-standards/overlay-standards.md](./design-standards/overlay-standards.md).
 
 ## State management
 

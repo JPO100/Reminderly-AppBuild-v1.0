@@ -73,7 +73,7 @@ If the app's measured values equal these: the overlay spacing figures stand. If 
 
 Every spacing rule that is measured on the glyphs depends on these numbers. Recompute them from the app's own measurements:
 
-- **Header to Title, and Title to Title:** the box gap between two lines is `30 - (box bottom - baseline of the upper line) - (cap top below top of the lower line's box)`. With Reminderly's values: `30 - 4 - 4.71 = 21.29`, which the standard rounds to `21.25` (`HEADER_TITLE_GAP`); the standard's derivation is in [overlay-standards.md](./overlay-standards.md), section 3.
+- **Header to Title, and Title to Title:** the box gap between two lines is `30 - (box bottom - baseline of the upper line) - (cap top below top of the lower line's box)`. With Reminderly's values: `30 - 4 - 4.71 = 21.29`, which the standard rounds to `21.25` (`HEADER_TITLE_GAP`). The standard derives the same figure from the font's unrounded metrics (`30 - 4.26 - 4.488 = 21.25`, [overlay-standards.md](./overlay-standards.md), section 3); the two methods agree to within 0.05px. Use the measured, engine-rounded values of the app's own environment, and record which method you used.
 - **30px below the header area:** measured from the bottom of the last line's box, so it needs no font-dependent term; it still must be 30px in the app.
 - **Title-line icon rows, Header subtitle and the 21px line box:** recheck any row whose height depends on a line box.
 

@@ -1,6 +1,6 @@
 # Typography standards
 
-**Version:** 1.0, 2026-11-03. Part of the [design standards](./README.md). Owner: Reminderly; other NeatlyMade apps take a copy and record their own font assets.
+**Version:** 1.0, 2026-11-03. Part of the [design standards](./README.md). Owner: Reminderly; other NeatlyMade apps reference it (no copies) and record their own font assets.
 **Reviewed:** 2026-11-03 against the code (`src/styles/fonts.css`, `src/styles/theme.css`, the components named below). Where the code and this document differ, the code is the source of truth and this document is corrected.
 
 ## 1. The font

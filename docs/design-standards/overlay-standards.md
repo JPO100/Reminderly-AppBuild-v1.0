@@ -1,7 +1,7 @@
 # NeatlyMade Centred Overlay Standard
 
-**Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) take a copy of this file unchanged and do not edit it. Change requests go to John, are made here, and the new version is re-shared.
-**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.5.1, 2026-11-03.
+**Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) **reference this file and do not keep a copy** (a copy goes stale). They link to it, or read it from the Reminderly repository, and record in their own repository only the version they conform to. Change requests go to John and are made here.
+**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work; version 1.6 additions proposed for approval. **Version:** 1.6, 2026-11-03.
 **Scope:** everything about centred overlays lives in this one document. Sections 1 to 10 are the standard and apply to every app; section 11 is this document's version history. The Related standards and Adoption notes in the introduction also apply to every app. The appendix at the end is Reminderly's own implementation record (inventory, dismissal table, known gaps) and applies to Reminderly only; other apps ignore it and keep their own record in their own repository, without restating these rules. If an appendix disagrees with the standard, the standard wins.
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
@@ -18,7 +18,7 @@ Where this file gives Reminderly constants and CSS, they are the reference imple
 
 **Every centred overlay has two zones, and all content sits in one of them. Nothing sits outside them.**
 
-- **Header area:** the Header, plus either any Title lines or any Header subtitle lines under it. Every overlay has a Header; Title lines and Header subtitle lines are optional, and a Header subtitle never appears with a Title. A folder icon and name (apps with folders, such as Noterly) may take a Title line's place. It follows the existing Title-line icon convention: the icon sits before the text, 8px from it, in the Title colour role (Reminderly `#939393`), icon about 19 to 21px high (Reminderly's smart reminder icon is 19 x 21 and its repeats icon 21 x 21), text Lato Bold 17px, one line, truncating, and the same 30px baseline to cap top spacing as any Title. The folder icon's exact dimensions are not specified here; they are taken from the app's own icon set under this convention and confirmed with John.
+- **Header area:** the Header, plus either any Title lines or any Header subtitle lines under it. Every overlay has a Header; Title lines and Header subtitle lines are optional, and a Header subtitle never appears with a Title. In an app with folders (Noterly), the Folder Options overlay uses the folder name as its Header: Header style as in section 3, one line, truncating, with a 24 x 22 folder icon before it, 10px from the text (the same gap as the information page Header icon, section 4). The icon is drawn in the folder's own colour, which is an app-defined value, not a colour role.
 - **Button block:** everything below the header area that the user acts on or reads as the body: buttons, click-through rows and toggles (on information pages, also the scrolling image and text). Items are 30px apart.
 
 Design every overlay by deciding what goes in the header area and what goes in the button block. If content fits neither zone, the design is wrong, not the principle. A single pinned footer control (Back, OK, Close) is the last item of the button block, pinned rather than scrolled.
@@ -88,6 +88,8 @@ All hex values below are Reminderly's values for a colour role. Roles and values
 | Two-button dialogs | Side by side, **equal width** (each takes half), 30px apart, both 50px high |
 | Single action (OK, Close, Back) | Full width |
 
+**Disclosure arrow.** A stacked button that opens a further overlay or page may carry a disclosure arrow: a 6 x 12 right-pointing chevron in the button label colour (white), in a 44 x 44 non-interactive box vertically centred with its right edge 6px inside the button's right edge. The label stays centred on the button, and the whole button is the tap target. It is not the 7 x 13 grey click-through chevron, which belongs to rows (section 6).
+
 Destructive actions use grey `#939393`, not red. (The only red is a Title line that signals an overdue reminder, `#FF0000`; other apps need no equivalent unless John decides.)
 
 ### Icon artwork
@@ -103,7 +105,7 @@ The icons used in overlays are supplied as SVG files in [assets/overlay/](./asse
 | `smart-reminder-bell.svg` | 19 x 21 | Description text (`#939393`) | Title line icon, Reminder info (Reminderly feature) |
 | `repeats-icon.svg` | 21 x 21 | Description text (`#939393`) | Title line icon, Reminder info (Reminderly feature) |
 
-Not supplied, by design: the folder icon (an app with folders uses its own icon under the Title-line icon convention in section 1); the toggle-row left icons (insertion order, alphabetical) and the copy-feedback icon, which belong to Reminderly's list rows and are not part of the shared overlay set; the information page example image, which is content. The smart reminder bell and repeats icon are Reminderly features and are included only as the reference for the Title-line icon convention (size, gap and colour role). Where an icon was in more than one place in the source, the instance used in the overlay was taken.
+Not supplied, by design: the folder icon (an app with folders uses its own, section 1); the lock, disclosure arrow, info-row and three-line icons (sizes in sections 3, 4 and 6); the toggle-row left icons (insertion order, alphabetical) and the copy-feedback icon, which belong to Reminderly's list rows and are not part of the shared overlay set; the information page example image, which is content. The smart reminder bell and repeats icon are Reminderly features and are included only as the reference for the Title-line icon convention (size, gap and colour role). Where an icon was in more than one place in the source, the instance used in the overlay was taken.
 
 ### Colour roles
 
@@ -127,9 +129,19 @@ Header then Title (message) then buttons is the pattern for every dialog: the me
 - **Sub-page Header:** the Header is centred, one line, truncating, with 24px of space either side of it. A back arrow sits at the left edge of the content area: 9 x 17, heading text role colour, with a 45 x 45 tap area (the arrow stays in place; the tap area extends beyond it). A sub-page title that does not fit on one line is replaced by a shorter title, not wrapped.
 - **Information page Header:** an info icon sits before the Header text, 10px from it and 1px below the text's vertical centre, in the heading text role colour. The Header is still one line and truncates.
 - **Information page body:** Lato Medium 17px, description text role colour, 24px line height, centred, wrapping. The body is in the button block. An optional image sits above the text, 30px from it. The image frame is up to 216px wide with an 11px radius and a 1px inset `#D9D9D9` border; Reminderly's example is 216 x 156 with 15px of inner padding, cropped at the bottom. The image and text scroll together while the Header stays fixed and Back is pinned.
+- **Multi-paragraph notices:** the same body style applies to a notice in any overlay (Header, body, one full-width Close or OK button). Each paragraph is its own block, **24px** apart (the body line height); the body scrolls under section 5 if it does not fit.
 - **Back:** a single full-width primary button pinned at the bottom (section 5).
 - **Back to top (document pages):** a document page that scrolls (Privacy policy, Terms of use, FAQs) ends with a **Back to top** button as the last item inside the scrolling text, not pinned: the standard primary button (50px high, full width, `#4784F8`, label Lato Bold 17px white), 40px below the final text (the 30px between blocks plus 10px). A tap scrolls the body smoothly back to the top and nothing else.
 - **Settings rows:** on a settings overlay home page every row is 30px high and rows are 30px apart (60px pitch), toggle rows first and then click-through rows. A row's label is vertically centred in its 30px row. A click-through row's chevron (7 x 13) is vertically centred and its right edge sits 15px inside the toggle's right edge. A toggle row is as high as its toggle (30px). (Overlay toggle rows with a subtitle, section 6, are aligned to the top instead.)
+- **Settings icons:** a toggle row that has an information page carries a 16.5 x 16.5 info icon 15px after its label, in the info icon colour of [controls-standards.md](./controls-standards.md) (normal on and off, inactive grey only when inactive), with a 7px tap padding all round; it opens the information page. A row that leaves settings to start a mode (rather than open a sub-page) ends with a 13 x 12 three-line icon in the description text role instead of the chevron, in the chevron's position.
+
+### Form controls (folder form)
+
+A form in an overlay (Noterly's New folder and Edit folder) uses the button block's 30px spacing and these controls:
+
+- **Text field:** full width, at least 50px high, 16px side padding, 10px radius, fill the Input fill role and a 1px keyline in the Separator grey role ([colour-standards.md](./colour-standards.md), section 3). Text Lato Medium 17px, heading text role; placeholder description text role.
+- **Colour picker:** one row of swatches spread evenly across the width. Each swatch is a 28px circle in a 40 x 40 tap target; the selected swatch has a 2px ring in its own colour. Swatch colours are app-defined values.
+- **Private toggle:** a toggle row (section 6) with a 20 x 21 lock icon in the heading text role before the label block, 16px from it and 1px below the row's top; open lock when off, closed when on. Track, knob and states are unchanged.
 
 ## 5. Scrolling
 
@@ -196,6 +208,8 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 If an overlay needs to depart from this standard, it is a decision for John, recorded in that app's design document with the reason. Do not introduce exceptions silently. An overlay that does not follow the standard is a tidy-up item, not a precedent.
 
 ## 11. Version history
+
+**1.6 — 2026-11-03.** Existing Noterly behaviours accepted (proposed for John's approval): disclosure arrow on stacked buttons; folder form controls (text field, colour picker, private toggle with lock icon); multi-paragraph notices (24px paragraph spacing); Folder Options Header (folder name in the Header style, folder-coloured icon), which replaces the earlier Title-line folder variant; settings info icon and three-line action icon. Colours and type use the existing roles: form field fill and keyline are the Input fill and Separator grey roles, not hard-coded values. Other apps now reference this document instead of keeping a copy. No existing measurement changed.
 
 **1.5.1 — 2026-11-03.** Header to Title and Title to Title gap corrected from 21.25px to 20.28px so the spacing reads 30px in the iOS web view, the environment the apps run in (John's ruling). Measured on simulators; the Chromium figure is retired.
 

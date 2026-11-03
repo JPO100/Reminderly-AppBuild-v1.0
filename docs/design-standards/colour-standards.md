@@ -1,6 +1,6 @@
 # Colour standards
 
-**Version:** 1.0, 2026-11-03. Part of the [design standards](./README.md). Owner: Reminderly; other NeatlyMade apps take a copy and keep their own values.
+**Version:** 1.0, 2026-11-03. Part of the [design standards](./README.md). Owner: Reminderly; other NeatlyMade apps reference it (no copies) and keep their own values.
 **Reviewed:** 2026-11-03 against the code. The register below is every colour used by the app's own screens; entries marked "Code" were checked in the source (file given), entries marked "Not re-checked" come from the previous version of this document. Where the code and this document differ, the code is the source of truth and this document is corrected.
 
 ## 1. How colours are recorded

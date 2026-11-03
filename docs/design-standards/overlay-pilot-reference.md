@@ -1,6 +1,6 @@
 # Overlay pilot reference sheet
 
-**Version:** 1.0, 2026-11-03 (proposed for CTO review). Part of the [design standards](./README.md). Applies to any app comparing its overlays with Reminderly's; written for the Noterly pilot (one confirmation dialog and one scrolling overlay).
+**Version:** 1.0, 2026-11-03. Approved by John, 2026-11-03 (standing in for the CTO). Part of the [design standards](./README.md). Applies to any app comparing its overlays with Reminderly's; written for the Noterly pilot (one confirmation dialog and one scrolling overlay).
 **Purpose:** a pass or fail basis for the side-by-side comparison. It records, for one real Reminderly confirmation dialog and one real scrolling overlay, where everything sits at the four supported screen sizes. It does not restate the standard; the rules are in [overlay-standards.md](./overlay-standards.md).
 
 ## 1. How the values were taken, and the limits
@@ -9,7 +9,7 @@
 - **Computed** values are derived from measured rectangles plus Lato's font metrics (stated where used). They are marked "computed".
 - **Environment:** Reminderly's Vite preview in a desktop browser (Chromium engine) at emulated viewport sizes, with Lato 400, 700 and 900 bundled (`@fontsource/lato` 5.3.0). **They were not taken on a device or in the iOS web view.** The engine rounds line heights to whole pixels, and a different engine may differ; that is exactly what [font-rendering-validation.md](./font-rendering-validation.md) checks in the target app's own environment.
 - Positions are from the top-left corner of the viewport. Sizes: 360 x 667, 375 x 667, 390 x 844, 402 x 874 (portrait).
-- **Proposed tolerance** (for CTO approval, not yet agreed): positions and sizes within 1px of the reference; the 30px glyph spacing within 0.5px. Text content, and therefore text heights and scroll lengths, are content-dependent; compare structure, not text length.
+- **Tolerance** (approved by John with this document, 2026-11-03): positions and sizes within 1px of the reference; the 30px glyph spacing within 0.5px. Text content, and therefore text heights and scroll lengths, are content-dependent; compare structure, not text length.
 
 ## 2. Reference A: confirmation dialog
 

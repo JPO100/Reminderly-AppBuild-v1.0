@@ -18,7 +18,7 @@ Colours and sizes are mostly applied inline in component code; there is no singl
 | [controls-standards.md](./controls-standards.md) | Pills, rows, buttons, toggles | Mixed: toggle standard shared; pills and rows Reminderly only | Moved, review due |
 | [tutorial-phone-standards.md](./tutorial-phone-standards.md) | Tutorial phone sizing and ownership | Reminderly only | Moved, review due |
 | [motion-standards.md](./motion-standards.md) | Sheet and list motion | Mixed: to be classified in the review | Moved, review due |
-| [overlay-pilot-reference.md](./overlay-pilot-reference.md) | Measured reference values for one confirmation dialog and one scrolling overlay at the four sizes; pass or fail basis for an app's pilot | All apps (comparison basis) | v1.0, 2026-11-03, proposed for CTO review |
-| [font-rendering-validation.md](./font-rendering-validation.md) | Procedure to prove another app's Lato files and rendering match Reminderly's, and recalculate if not | All apps | v1.0, 2026-11-03, proposed for CTO review |
+| [overlay-pilot-reference.md](./overlay-pilot-reference.md) | Measured reference values for one confirmation dialog and one scrolling overlay at the four sizes; pass or fail basis for an app's pilot | All apps (comparison basis) | v1.0, 2026-11-03, approved by John |
+| [font-rendering-validation.md](./font-rendering-validation.md) | Procedure to prove another app's Lato files and rendering match Reminderly's, and recalculate if not | All apps | v1.0, 2026-11-03, approved by John |
 
 Record new UI standards here, as a new document or in the document that owns the topic.

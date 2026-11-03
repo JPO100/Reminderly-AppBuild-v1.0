@@ -1,6 +1,6 @@
 # Font and rendering validation procedure
 
-**Version:** 1.0, 2026-11-03 (proposed for CTO review). Part of the [design standards](./README.md). Applies to any NeatlyMade app that adopts the overlay or typography standards; written first for Noterly.
+**Version:** 1.0, 2026-11-03. Approved by John, 2026-11-03 (standing in for the CTO). Part of the [design standards](./README.md). Applies to any NeatlyMade app that adopts the overlay or typography standards; written first for Noterly.
 **Purpose:** the overlay spacing rules are derived from how Lato renders in Reminderly's environment. Before an app claims overlay or typography parity, it proves, in its own rendering environment, that the same fonts render the same way, and recalculates any figure that does not match. Parity is claimed only after this procedure passes.
 
 **Decision (John, 2026-11-03):** Noterly mirrors Reminderly's typography throughout the whole app, not only in centred overlays: the same Lato assets (weights 400, 700 and 900), the same rendered weights, sizes and semantic styles ([typography-standards.md](./typography-standards.md)). This procedure is how that is validated against Noterly's actual rendering environment.

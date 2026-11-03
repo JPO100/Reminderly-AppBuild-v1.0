@@ -440,7 +440,7 @@ function NaturalLanguagePage({ onBack, onClose, nlcEnabled, onNlcEnabledChange, 
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingNlcState(null)}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#BABABA' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -454,7 +454,7 @@ function NaturalLanguagePage({ onBack, onClose, nlcEnabled, onNlcEnabledChange, 
                     onNlcEnabledChange(pendingNlcState);
                     setPendingNlcState(null);
                   }}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#4784F8' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -509,7 +509,7 @@ function OnboardingPage({ onBack, onClose, isOnboardingTutorialEnabled, onOnboar
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingOnboardingState(null)}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#BABABA' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -523,7 +523,7 @@ function OnboardingPage({ onBack, onClose, isOnboardingTutorialEnabled, onOnboar
                     onOnboardingTutorialEnabledChange(pendingOnboardingState);
                     setPendingOnboardingState(null);
                   }}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#4784F8' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -758,7 +758,7 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingRemindersState(null)}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#BABABA' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -772,7 +772,7 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
                     onEnableRemindersChange(pendingRemindersState);
                     setPendingRemindersState(null);
                   }}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#4784F8' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -833,7 +833,7 @@ function ListsAreaPage({ onBack, onClose, enableReminders, isListsEnabled, onLis
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingListsState(null)}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#BABABA' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -847,7 +847,7 @@ function ListsAreaPage({ onBack, onClose, enableReminders, isListsEnabled, onLis
                     onListsEnabledChange(pendingListsState);
                     setPendingListsState(null);
                   }}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#4784F8' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -1052,10 +1052,10 @@ function OnboardingTestingPage({ variant, onBack, onClose }: { variant: Tutorial
             <div className="bg-white relative flex flex-col gap-[40px] items-center py-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card" style={{ width: 340 }} onClick={(e) => e.stopPropagation()}>
               <OverlayHeader header="Push to live tutorial?" title={`${pages.filter((page) => pagesOn[page.id]).length} of ${pages.length} pages for the ${name} tutorial. With testing mode off, the tutorial shows these pages where the normal rules allow.`} />
               <div className="flex gap-[30px] w-full justify-between">
-                <button type="button" onClick={() => setConfirmPush(false)} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px] bg-[#BABABA]">
+                <button type="button" onClick={() => setConfirmPush(false)} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px] bg-[#BABABA]">
                   <span className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal] whitespace-nowrap">Cancel</span>
                 </button>
-                <button type="button" onClick={() => { saveLive(pages.filter((page) => pagesOn[page.id]).map((page) => page.id)); setConfirmPush(false); }} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px] bg-[#4784F8]">
+                <button type="button" onClick={() => { saveLive(pages.filter((page) => pagesOn[page.id]).map((page) => page.id)); setConfirmPush(false); }} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px] bg-[#4784F8]">
                   <span className="font-['Lato:Bold',sans-serif] text-[17px] text-white leading-[normal] whitespace-nowrap">Yes, push</span>
                 </button>
               </div>

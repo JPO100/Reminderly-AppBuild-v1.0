@@ -14,14 +14,14 @@ export default function NotificationAskDialog({ onAllow, onNotNow }: { onAllow: 
         >
           <OverlayHeader header="Turn on notifications?" title="Reminderly can notify you when a reminder is due and show a count on the app icon." />
           <div className="flex gap-[30px] w-full justify-between">
-            <button onClick={onNotNow} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]" style={{ backgroundColor: '#BABABA' }}>
+            <button onClick={onNotNow} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]" style={{ backgroundColor: '#BABABA' }}>
               <div className="flex items-center justify-center size-full">
                 <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
                   <p className="leading-[normal]">Not now</p>
                 </div>
               </div>
             </button>
-            <button onClick={onAllow} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]" style={{ backgroundColor: '#4784F8' }}>
+            <button onClick={onAllow} className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]" style={{ backgroundColor: '#4784F8' }}>
               <div className="flex items-center justify-center size-full">
                 <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
                   <p className="leading-[normal]">Allow</p>

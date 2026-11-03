@@ -10,7 +10,7 @@ Colours and sizes are mostly applied inline in component code; there is no singl
 
 | Document | Covers | Applies to | Status |
 |----------|--------|------------|--------|
-| [overlay-standards.md](./overlay-standards.md) | Centred overlays: two-zone principle, geometry, spacing, buttons, scrolling, toggles, accessibility, tutorials, screen sizes, checklist; Reminderly appendix | All apps (sections 1 to 10, and the introduction; section 11 is the version history); Reminderly only (appendix) | v1.4.1, 2026-11-03, reviewed |
+| [overlay-standards.md](./overlay-standards.md) | Centred overlays: two-zone principle, geometry, spacing, buttons, scrolling, toggles, accessibility, tutorials, screen sizes, checklist; Reminderly appendix | All apps (sections 1 to 10, and the introduction; section 11 is the version history); Reminderly only (appendix) | v1.4.2, 2026-11-03, reviewed |
 | [colour-standards.md](./colour-standards.md) | Every colour as Name = Hex with role and evidence; colour roles shared across apps | Mixed: roles shared, values per app; category and tutorial colours Reminderly only | v1.0, 2026-11-03, reviewed |
 | [typography-standards.md](./typography-standards.md) | Lato files and weights as rendered, type scale, font metrics | Mixed: font rules shared where an app adopts Lato; Reminderly's type scale Reminderly only | v1.0, 2026-11-03, reviewed |
 | [layout-and-spacing-standards.md](./layout-and-spacing-standards.md) | Common spacing values, layout and responsiveness | Mixed: spacing values shared; pill and tutorial heights Reminderly only | Moved, review due |

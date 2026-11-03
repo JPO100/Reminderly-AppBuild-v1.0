@@ -1,7 +1,7 @@
 # NeatlyMade Centred Overlay Standard
 
 **Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) take a copy of this file unchanged and do not edit it. Change requests go to John, are made here, and the new version is re-shared.
-**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.4.1, 2026-11-03.
+**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.4.2, 2026-11-03.
 **Scope:** everything about centred overlays lives in this one document. Sections 1 to 10 are the standard and apply to every app; section 11 is this document's version history. The Related standards and Adoption notes in the introduction also apply to every app. The appendix at the end is Reminderly's own implementation record (inventory, dismissal table, known gaps) and applies to Reminderly only; other apps ignore it and keep their own record in their own repository, without restating these rules. If an appendix disagrees with the standard, the standard wins.
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
@@ -192,6 +192,8 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 If an overlay needs to depart from this standard, it is a decision for John, recorded in that app's design document with the reason. Do not introduce exceptions silently. An overlay that does not follow the standard is a tidy-up item, not a precedent.
 
 ## 11. Version history
+
+**1.4.2 — 2026-11-03.** John's cross-app decisions recorded (Noterly shares the core palette, keeps its note-personalisation palette separate; Noterly uses the same Lato assets and validates them); references to the pilot reference sheet and the font validation procedure added. No measurement changed.
 
 **1.4.1 — 2026-11-03.** Two stale references corrected: the colour roles are in colour-standards.md, section 7, not in this document.
 

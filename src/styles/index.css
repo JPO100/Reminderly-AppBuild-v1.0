@@ -13,4 +13,12 @@
   max-height: 100%;
   overflow-y: auto;
 }
+/* Settings overlays on a short viewport (below 592pt high) use 5px side margins instead of 20px, giving the rows
+   more width; the card and its fixed Header and Back are otherwise unchanged. See overlay-standards.md, section 2 */
+@media (max-height: 591.98px) {
+  .centred-overlay-wrapper.settings-overlay-wrapper {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
 

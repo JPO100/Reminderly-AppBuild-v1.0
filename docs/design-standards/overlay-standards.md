@@ -1,7 +1,7 @@
 # NeatlyMade Centred Overlay Standard
 
 **Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) **reference this file and do not keep a copy** (a copy goes stale). They link to it, or read it from the Reminderly repository, and record in their own repository only the version they conform to. Change requests go to John and are made here.
-**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work; version 1.6 additions proposed for approval. **Version:** 1.6, 2026-11-03.
+**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work; version 1.6 additions proposed for approval. **Version:** 1.7, 2026-11-03.
 **Scope:** everything about centred overlays lives in this one document. Sections 1 to 10 are the standard and apply to every app; section 11 is this document's version history. The Related standards and Adoption notes in the introduction also apply to every app. The appendix at the end is Reminderly's own implementation record (inventory, dismissal table, known gaps) and applies to Reminderly only; other apps ignore it and keep their own record in their own repository, without restating these rules. If an appendix disagrees with the standard, the standard wins.
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
@@ -61,6 +61,8 @@ Wrapper: full-screen, flex-centred, 20px side padding. Card: 340px wide at most 
 | 402 x 874 | 340 | 31 | 674 | iPhone 17 Pro and similar |
 
 **Verified on screen (Reminderly, 2026-11-03, 2 overlays at each size):** card width and side gaps at all four sizes match the table; the card is vertically centred at all four; at 667 high a tall overlay reaches the 467 cap with exactly 100px above and below. At 844 and 874 high no existing overlay is tall enough to reach the cap (the tallest measured 508.5), so 644 and 674 are computed from the 100px clearance and were not reached on screen.
+
+**Short viewport exception (Settings overlays; John, 2026-11-03).** Below 592pt viewport height the Settings overlay (Reminders settings and Lists settings, with their sub-pages and information pages) uses **5px** left and right margins instead of 20px, so the card is up to 350px wide (340 maximum). At 592pt and above the margins and layout are as in the table above. Content scrolls vertically when it does not fit, and the Header and Back stay fixed while it scrolls (section 5). Typography, colours, internal padding and every other overlay behaviour are unchanged. Implementation: `.settings-overlay-wrapper` in `src/styles/index.css` (`max-height: 591.98px`). Other overlays keep the 20px margin. Noterly applies the same rule.
 
 The 100px clearance wins whenever the safe-area inset is under 80px (every current iPhone in portrait). Taller screens only add room: the card stays 340px wide. An overlay that fits never scrolls. One that does not fit keeps its header area fixed and scrolls the button block. Nothing may overflow horizontally at any size.
 
@@ -208,6 +210,8 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 If an overlay needs to depart from this standard, it is a decision for John, recorded in that app's design document with the reason. Do not introduce exceptions silently. An overlay that does not follow the standard is a tidy-up item, not a precedent.
 
 ## 11. Version history
+
+**1.7 — 2026-11-03.** Short viewport exception for Settings overlays: 5px side margins below 592pt viewport height (section 2). No other measurement changed. Proposed for John's approval.
 
 **1.6 — 2026-11-03.** Existing Noterly behaviours accepted (proposed for John's approval): disclosure arrow on stacked buttons; folder form controls (text field, colour picker, private toggle with lock icon); multi-paragraph notices (24px paragraph spacing); Folder Options Header (folder name in the Header style, folder-coloured icon), which replaces the earlier Title-line folder variant; settings info icon and three-line action icon. Colours and type use the existing roles: form field fill and keyline are the Input fill (`#F7F7F7`) and Separator grey (`#E4E4E4`) roles. Other apps now reference this document instead of keeping a copy. No existing measurement changed.
 

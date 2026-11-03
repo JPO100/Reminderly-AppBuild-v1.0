@@ -5781,7 +5781,7 @@ export default function App() {
       {isRemindersSettingsPanelOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsRemindersSettingsPanelOpen(false)} />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper settings-overlay-wrapper">
             <div
               className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
               style={{ width: 340, overflowY: 'hidden', minHeight: settingsCardMinHeight(remindersSettingsHomeHeight, listsSettingsHomeHeight) }}
@@ -5798,7 +5798,7 @@ export default function App() {
       {isListsSettingsPanelOpen && (
         <>
           <div className="fixed inset-0 bg-black/50 z-[60]" onClick={() => setIsListsSettingsPanelOpen(false)} />
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
+          <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper settings-overlay-wrapper">
             <div
               className="bg-white relative flex flex-col items-center pt-[40px] pb-[40px] px-[30px] rounded-[32px] pointer-events-auto centred-overlay-card outline-none"
               style={{ width: 340, overflowY: 'hidden', minHeight: settingsCardMinHeight(remindersSettingsHomeHeight, listsSettingsHomeHeight) }}

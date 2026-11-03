@@ -134,6 +134,13 @@ This section is the NeatlyMade overlay specification. It is written to be reused
 
 Vocabulary (Overlay Design Standards v2): **Header** is the overlay's heading, Lato Bold 20px. **Title** is the optional line or lines directly under the Header, Lato Bold 17px. **Header area** is the Header plus any Title (in Noterly, a folder icon and name may take the Title's place; it follows the same 30px rule; Reminderly has no folders). **Button block** is the group of rows or buttons, 30px apart. **Scrollable area** is the part where only content scrolls. **Viewport** is the visible screen area. **Card** is the white rounded panel. **Backdrop** is the dimming layer behind it. **Wrapper** is the invisible full-screen layer that centres the card. **Footer controls** are buttons pinned below the body.
 
+**Two-zone principle (John, 2026-11-03).** All content in a centred overlay sits in one of two zones, and nothing sits outside them:
+
+- **Header area:** the Header, plus any Title lines under it. Every overlay has a Header; the Title is optional.
+- **Button block:** everything below the header area that the user acts on or reads as the body: buttons, click-through rows and toggles (and, on information pages, the scrolling image and text). Items in it are 30px apart, and it starts 30px below the header area (A2).
+
+New overlays are designed by deciding what goes in the Header area and what goes in the Button block. If content fits neither zone, the design is wrong, not the principle. A single pinned footer control (Back, OK, Close) is the last item of the Button block, pinned rather than scrolled (A3). An overlay that does not follow this is a tidy-up item, not an exception.
+
 **A1. Position and geometry**
 
 | Item | Rule | Measured from |
@@ -156,7 +163,7 @@ Responsive rules: the standard is expressed as clearances and a preferred width,
 - Title (only where text sits under the Header): Lato Bold 17px, `#939393`, centred. Short Title lines are one line and truncate; a Title that is a description (a dialog message) may wrap. Exception: the Reminder info due line stays red `#FF0000` when overdue.
 - **Header-to-Title distance is 30px measured from the Header's baseline to the Title's cap top, not between text boxes (this is the one measurement taken to glyphs inside the header area).** Lato Bold metrics (as bundled): ascent 0.987em, descent 0.213em, cap height 0.723em, line box 1.2em. With the Header line box fixed at 24px its baseline is 0.213 x 20 = 4.26px above its box bottom; the Title's cap top is (0.987 - 0.723) x 17 = 4.488px below its line box top. The CSS gap between the two boxes is therefore 30 - 4.26 - 4.488 = **21.25px** (`HEADER_TITLE_GAP` in `OverlayHeader.tsx`). The only other glyph measurement is the cap top of a line of text that follows the header area (next bullet); every other value is between boxes.
 - **One rule below the header area (John, 2026-11-02): the gap from the bottom of the header area to whatever comes next is always 30px.** The header area is the Header plus any Title lines (or the Support pages' version and date lines); its bottom is the bottom of the last line's descenders, which is the bottom of that line's box (line box 1.2em; the Header's is fixed at 24px). What comes next is measured at its top: the top edge of a toggle row, click-through row, button or image, or the cap top of a line of text. This holds for every overlay and every tutorial replica, with no exceptions (the Support pages' earlier 30px gap is now simply the standard). Cards lay out their children with a 40px gap, so `OverlayHeader` (and the matching headers in the settings pages and Reminder info) pull the header area 10px into it (`HEADER_PULL`); where the parent gap is already 30 nothing is pulled. `ScrollArea` pulls a first line of text up by its leading above the capitals, (line height - 1.2em) / 2 + 0.264em, so the capitals, not the line box, are 30px below.
-- Several Title lines in one header area (Reminder info) are 30px apart, box to box.
+- **Every gap between text lines inside the header area is 30px measured on the glyphs, never between text boxes (John, 2026-11-03, from a Figma spec):** from one line's baseline to the next line's cap top, which is the 21.25px box gap (`HEADER_TITLE_GAP`) for the 17px lines. This covers Header to Title and Title to Title. Reminder info is the overlay with several Title lines (the Support pages' version and date lines follow the same rule): the due line, plus either the smart reminder progress line or the repeats line, so at most two (a smart reminder cannot repeat: the Repeats row is disabled in smart reminder mode and a smart reminder is created without a repeat rule). Measured at 402 x 874: 29.96px for both gaps.
 
 Buttons:
 
@@ -187,7 +194,7 @@ Destructive actions use grey `#939393`, not red.
 
 | Family | Structure |
 |--------|-----------|
-| Info (Reminder info, List info, Deleted info) | Header, 30, rows or buttons (30 apart). Reminder info: Header, Title lines (30 apart), 30, buttons |
+| Info (Reminder info, List info, Deleted info) | Header, 30, rows or buttons (30 apart). Reminder info: Header, Title lines (30 apart, baseline to cap top), 30, buttons |
 | Menu (Saved list, Template editor) | Header, 30, stacked buttons |
 | Settings (Reminders, Lists) | One shared card height for all settings overlays: the taller of the two home pages, capped by the available height. Sub-pages and information pages inherit that height (a page never resizes the card). Header fixed, rows scroll; information pages have a fixed Header, scrolling image and text, and Back pinned |
 | Attachment overlays | Add attachment: title and stacked primary buttons. Attachment error: title, message, OK. Delete attachment: title and one grey destructive button, no Cancel |
@@ -236,7 +243,7 @@ div.fixed.inset-0.z-[60].flex.items-center.justify-center
 
 | Overlay | Layout | Buttons |
 |---------|--------|---------|
-| Reminder info | Header (the reminder text, truncated), 30 (baseline to cap top), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), smart reminder line and repeats line (Bold `#939393`, 30 apart, truncated), 30, buttons | Stacked, scrolling `ScrollArea` |
+| Reminder info | Header (the reminder text, truncated), 30 (baseline to cap top), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), then the smart reminder progress line or the repeats line, never both (Bold `#939393`, 30 apart baseline to cap top, truncated), 30, buttons | Stacked, scrolling `ScrollArea` |
 | Deleted info | Header, 30, buttons | Stacked, scrolling |
 | List settings | Header, 30, one button block: toggle rows and buttons all 30 apart | Stacked, scrolling |
 | List info | Header, 30, one button block: smart reminder row (when shown) and buttons all 30 apart | Stacked, scrolling |
@@ -304,7 +311,7 @@ No screen-reader testing has been done on any overlay. These items must not be d
 #### Part D. Checklist for a new app (Noterly)
 
 1. Build backdrop, wrapper and card as in B1; card 340px preferred, wrapper 20px side padding, 100px (or inset + 20px) top and bottom, 32px radius, z-60 (z-70 for overlays above overlays).
-2. Padding 40/30; Header Lato Bold 20px (one line, truncates); Title Lato Bold 17px `#939393` with the Header-to-Title 30px measured baseline to cap top (A2); 30px below the header area, 30px between rows and buttons.
+2. Two zones only: every piece of content is in the header area or the button block (Two-zone principle). Padding 40/30; Header Lato Bold 20px (one line, truncates); Title Lato Bold 17px `#939393` with the Header-to-Title 30px measured baseline to cap top (A2); 30px below the header area, 30px between rows and buttons.
 3. Buttons 50px, fully rounded, 17px white bold labels; two-button dialogs equal width with a 30px gap.
 4. Put the header area outside the scrolling area, with the scroll clip edge 20px below it and 20px of padding inside; only the body scrolls; one footer control may be pinned; use a single shared scroll component with a 30px footer gap and a 12 x 7 `#D9D9D9` chevron.
 5. Clip scrolled content with the card's rounded corners; no gradients, fades or square edges.

@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 //   Title cap top is (0.987 - 0.723) x 17 = 4.488px below the top of its line box (line-height normal = 1.2em).
 //   Box gap = 30 - 4.26 - 4.488 = 21.25px.
 export const HEADER_TITLE_GAP = 21.25;
+// The same gap applies between two Title lines (Reminder info): 30px from one line's baseline to the next line's cap top.
 // The header area ends at the bottom of its last line (the bottom of the descenders, which is the bottom of the line box).
 // Whatever comes below it, a toggle, button, image or text, starts 30px lower (docs/design.md, Overlay Design Standards v2).
 // Cards lay their children out with a 40px gap, so the header area is pulled 10px into it.

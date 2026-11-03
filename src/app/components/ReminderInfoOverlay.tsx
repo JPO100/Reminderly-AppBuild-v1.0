@@ -144,7 +144,7 @@ export default function ReminderInfoOverlay({
           {/* Header (the reminder text), then the Title lines 30px apart; Header-to-Title spacing as in OverlayHeader */}
           <div className="flex flex-col items-center shrink-0 w-full" style={{ marginBottom: -HEADER_PULL }}>
           <p className="font-['Lato:Bold',sans-serif] not-italic text-[20px] text-[#1C2C42] text-center whitespace-nowrap overflow-hidden text-ellipsis max-w-full" style={{ fontWeight: 700, lineHeight: "24px" }}>{displayTitle}</p>
-          <div className="flex flex-col gap-[30px] items-center w-full" style={{ marginTop: HEADER_TITLE_GAP }}>
+          <div className="flex flex-col items-center w-full" style={{ gap: HEADER_TITLE_GAP, marginTop: HEADER_TITLE_GAP }}>
 
           {/* Due line */}
           <div className="content-stretch flex items-center justify-center gap-[8px] min-w-full relative shrink-0">

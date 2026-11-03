@@ -2,7 +2,7 @@
 
 The Reminders tab: the active list, filters, the done/deleted archive, the reminder lifecycle and the New reminder and Reminder info overlays. Completion, deletion and repeats are protected areas (see `Claude.md`).
 
-Scheduling, NLC, repeats and the calendar view are in [scheduling-and-nlc.md](./scheduling-and-nlc.md). Notifications are in [notifications.md](./notifications.md). Smart reminders are in [lists.md](./lists.md). Visual standards are in [../design.md](../design.md).
+Scheduling, NLC, repeats and the calendar view are in [scheduling-and-nlc.md](./scheduling-and-nlc.md). Notifications are in [notifications.md](./notifications.md). Smart reminders are in [lists.md](./lists.md). Visual standards are in [../design-standards/](../design-standards/README.md).
 
 Visual values in this document were checked against `App.tsx` on 2026-10-12. Where a detail is not listed, the code is the source of truth.
 

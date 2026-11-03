@@ -306,7 +306,7 @@ Not migrated (data and internal state, unchanged): `reminderly.reminders.v1`, `r
 
 ### 11.1 UI and UX
 
-- All settings UI reuses the existing components and standards: `ToggleRow`, `MenuRow`, `PanelShell`, the centred overlay standard and panel spacing (`docs/design.md`). No new visual patterns.
+- All settings UI reuses the existing components and standards: `ToggleRow`, `MenuRow`, `PanelShell`, the centred overlay standard and panel spacing (`docs/design-standards/`). No new visual patterns.
 - Hidden rows are removed from the layout, not greyed out, so the overlays keep their spacing.
 - Three new pieces of UI have no existing pattern. Each will be built from existing components and shown for approval before it is finalised: the in-app notification ask, the "Turn on in Settings" row state, and the main screen when Reminders is off (D3).
 

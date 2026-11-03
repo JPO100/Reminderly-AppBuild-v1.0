@@ -27,7 +27,7 @@ Design philosophy: mobile-first, deterministic and user-controlled. No AI. All b
 
 `package.json` still carries the Figma Make name (`@figma/my-make-file`) and a set of Radix, Recharts, Emotion and other dependencies that exist only for the unused `components/ui` folder. `postinstall` runs `patch-package`.
 
-Target device: iPhone, portrait only. Designed at iPhone 16 Pro size (402 x 874), responsive down to iPhone SE. See [design.md](./design.md).
+Target device: iPhone, portrait only. Designed at iPhone 16 Pro size (402 x 874), responsive down to iPhone SE. See [design-standards/layout-and-spacing-standards.md](./design-standards/layout-and-spacing-standards.md).
 
 ## Repository layout
 
@@ -95,7 +95,7 @@ App.tsx
 └── DevToolsOverlay
 ```
 
-Panels (New reminder, Repeats, Lists editor, Templates, Dev tools, tutorial) slide up from the bottom (`y: "100%"` to `0`) with a backdrop. Dialogs, menus, info overlays and the Reminders and Lists settings panels use the centred overlay standard and appear instantly. See [design.md](./design.md) and [design-standards/overlay-standards.md](./design-standards/overlay-standards.md).
+Panels (New reminder, Repeats, Lists editor, Templates, Dev tools, tutorial) slide up from the bottom (`y: "100%"` to `0`) with a backdrop. Dialogs, menus, info overlays and the Reminders and Lists settings panels use the centred overlay standard and appear instantly. See [design-standards/panel-standards.md](./design-standards/panel-standards.md) and [design-standards/overlay-standards.md](./design-standards/overlay-standards.md).
 
 ## State management
 

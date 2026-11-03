@@ -5,11 +5,13 @@ import type { ReactNode } from "react";
 // singleLine is set.
 //
 // The Header-to-Title distance is 30px measured from the Header's baseline to the Title's cap top, not between text
-// boxes. Lato Bold (as bundled): ascent 0.987em, descent 0.213em, cap height 0.723em; line box 1.2em.
-//   Header line box is fixed at 24px, so its baseline is 0.213 x 20 = 4.26px above the box bottom.
-//   Title cap top is (0.987 - 0.723) x 17 = 4.488px below the top of its line box (line-height normal = 1.2em).
-//   Box gap = 30 - 4.26 - 4.488 = 21.25px.
-export const HEADER_TITLE_GAP = 21.25;
+// boxes, as rendered in the iOS web view (WKWebView), which is where the app runs (John, 2026-11-03).
+//   WKWebView (measured): the Header line box is fixed at 24px and its baseline sits 19px below its top, so 5px above
+//   the box bottom; a 17px Title line (line-height normal) is 21px high with its baseline 17px below the top and its
+//   cap top 17 - 0.723 x 17 = 4.72px below the top.
+//   Box gap = 30 - 5 - 4.72 = 20.28px. (Chromium, used for the earlier reference sheet, put the Header baseline 20px
+//   down and gave 21.25px; the iOS web view governs.)
+export const HEADER_TITLE_GAP = 20.28;
 // The same gap applies between two Title lines (Reminder info): 30px from one line's baseline to the next line's cap top.
 // The header area ends at the bottom of its last line (the bottom of the descenders, which is the bottom of the line box).
 // Whatever comes below it, a toggle, button, image or text, starts 30px lower (docs/design-standards/overlay-standards.md).

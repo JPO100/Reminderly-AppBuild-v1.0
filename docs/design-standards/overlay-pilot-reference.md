@@ -1,6 +1,6 @@
 # Overlay pilot reference sheet
 
-**Version:** 1.1, 2026-11-03. Version 1.0 approved by John, 2026-11-03 (standing in for the CTO); version 1.1 additions proposed for his approval. Part of the [design standards](./README.md). Applies to any app comparing its overlays with Reminderly's; written for the Noterly pilot (one confirmation dialog and one scrolling overlay).
+**Version:** 1.2, 2026-11-03. Version 1.0 approved by John, 2026-11-03 (standing in for the CTO); version 1.1 additions proposed for his approval. Part of the [design standards](./README.md). Applies to any app comparing its overlays with Reminderly's; written for the Noterly pilot (one confirmation dialog and one scrolling overlay).
 **Purpose:** a pass or fail basis for the side-by-side comparison. It records, for one real Reminderly confirmation dialog and one real scrolling overlay, where everything sits at the four supported screen sizes. It does not restate the standard; the rules are in [overlay-standards.md](./overlay-standards.md).
 
 ## 1. How the values were taken, and the limits
@@ -17,13 +17,15 @@ Reminderly's Dev tools "Turn off reminders?" confirmation, the standard's Header
 
 ### 2.1 Measured at each size
 
+**Version 1.2:** these rectangles are for the corrected gap (20.28). The card height 288.27, the offsets within the card (Header 40 below the card top, Title 44.27 below the Header top, buttons 114 below the Title top) and the widths were measured in the desktop preview; the absolute positions are computed from them and the centring (the measured dialog sits inside the Dev tools sheet, so its absolute top could not be read). Version 1.1 values (gap 21.25) are superseded.
+
 | Element | 360 x 667 | 375 x 667 | 390 x 844 | 402 x 874 |
 |---------|-----------|-----------|-----------|-----------|
-| Card (left, top, width, height) | 20, 188.88, 320, 289.25 | 20, 188.88, 335, 289.25 | 25, 277.38, 340, 289.25 | 31, 292.38, 340, 289.25 |
-| Header (left, top, width, height) | 92.88, 228.88, 174.23, 24 | 100.38, 228.88, 174.23, 24 | 107.88, 317.38, 174.23, 24 | 113.88, 332.38, 174.23, 24 |
-| Title, message (left, top, width, height) | 50, 274.13, 260, 84 | 50, 274.13, 275, 84 | 55, 362.63, 280, 84 | 61, 377.63, 280, 84 |
-| Cancel button (left, top, width, height) | 50, 388.13, 115, 50 | 50, 388.13, 122.5, 50 | 55, 476.63, 125, 50 | 61, 491.63, 125, 50 |
-| Turn off button (left, top, width, height) | 195, 388.13, 115, 50 | 202.5, 388.13, 122.5, 50 | 210, 476.63, 125, 50 | 216, 491.63, 125, 50 |
+| Card (left, top, width, height) | 20, 189.37, 320, 288.27 | 20, 189.37, 335, 288.27 | 25, 277.87, 340, 288.27 | 31, 292.87, 340, 288.27 |
+| Header (left, top, width, height) | 92.88, 229.37, 174.23, 24 | 100.38, 229.37, 174.23, 24 | 107.88, 317.87, 174.23, 24 | 113.88, 332.87, 174.23, 24 |
+| Title, message (left, top, width, height) | 50, 273.64, 260, 84 | 50, 273.64, 275, 84 | 55, 362.14, 280, 84 | 61, 377.14, 280, 84 |
+| Cancel button (left, top, width, height) | 50, 387.64, 115, 50 | 50, 387.64, 122.5, 50 | 55, 476.14, 125, 50 | 61, 491.14, 125, 50 |
+| Turn off button (left, top, width, height) | 195, 387.64, 115, 50 | 202.5, 387.64, 122.5, 50 | 210, 476.14, 125, 50 | 216, 491.14, 125, 50 |
 
 Also measured, at 360 x 667 only (rectangles above are measured at all four sizes; these style values were not re-read at the other three): card padding 40 top, 30 right, 40 bottom, 30 left; card corner radius 32; card shadow none; backdrop black at 50%; Header Lato Bold 20px, line height 24px, colour `#1C2C42`; Title Lato Bold 17px, colour `#939393`; button label Lato Bold 17px white; button horizontal padding 18; button radius 100; Cancel background `#BABABA`; Turn off background `#4784F8`.
 
@@ -31,15 +33,27 @@ Also measured, at 360 x 667 only (rectangles above are measured at all four size
 
 | Relationship | Value | Basis |
 |--------------|-------|-------|
-| Card centred vertically (space above equals space below) | 188.88 / 188.87 at 667; 277.38 / 277.37 at 844; 292.38 / 292.37 at 874 | Computed from measured card top and height |
+| Card centred vertically (space above equals space below) | 189.37 / 189.36 at 667; 277.87 / 277.86 at 844; 292.87 / 292.86 at 874 | Computed from the measured card height (288.27) and the viewport |
 | Card centred horizontally; side gap | 20, 20, 25, 31 | Measured |
 | Card top to Header top | 40 | Measured |
-| Header box bottom to Title box top | 21.25 | Measured (252.88 to 274.13) |
+| Header box bottom to Title box top | 20.28 (20.27 measured: 1019.63 less 999.36) | Measured, at the corrected gap |
 | Header baseline to Title cap top | 29.96 | **Computed**: Header baseline is 20 below the top of its box and the Title cap top is 4.71 below the top of its line box (Lato metrics, see the validation procedure) |
 | Title box bottom to buttons top | 30 | Measured |
 | Gap between the two buttons | 30 | Measured (e.g. 165 to 195 at 360) |
 | Buttons bottom to card bottom | 40 | Measured |
 | Buttons equal width; combined width plus gap equals content width | 115+115+30 = 260; 122.5+122.5+30 = 275; 125+125+30 = 280 | Measured |
+
+### 2.3 Glyph spacing as rendered in the iOS web view (pixel readings, simulators)
+
+Header baseline to Title cap top, read from simulator screenshots with the sub-pixel method (top edge of a flat-topped capital = first inked row + (1 - coverage); bottom edge of a flat stem = last fully inked row + 1). Reminderly's Reminder info overlay (Header "Pick up the dry cleaning", Title "No schedule set"). Target 30 pt, tolerance 0.5 pt.
+
+| Environment | Gap 21.25 (before) | Gap 20.28 (corrected) | Pixel resolution |
+|-------------|--------------------|-----------------------|------------------|
+| iPhone SE (3rd generation), iOS 26.4 simulator, 2x | 30.71 pt | 29.71 pt | 0.50 pt |
+| iPhone 17, iOS 26.3 simulator, 3x | not read | 30.05 pt | 0.33 pt |
+| Noterly pilot, gap 21.25 (Noterly Claude): SE, 16e, 17 Pro | 30.71, 31.04, 31.04 pt | not yet applied | 0.50, 0.33, 0.33 pt |
+
+Text is snapped to whole device pixels, so at 2x the reading can only step by 0.5 pt (29.71, 30.21, 30.71 are the reachable values here): 29.71 is within the tolerance; 30.71 was not. Measured by pixel reading; not measured on a device.
 
 ## 3. Reference B: scrolling overlay
 
@@ -105,14 +119,14 @@ Reminderly's Reminder info overlay for a reminder with no schedule: Header "Pick
 
 | Element | 360 x 667 | 375 x 667 | 390 x 844 | 402 x 874 |
 |---------|-----------|-----------|-----------|-----------|
-| Card (left, top, width, height) | 20, 140.38, 320, 386.25 | 20, 140.38, 335, 386.25 | 25, 228.88, 340, 386.25 | 31, 243.88, 340, 386.25 |
-| Header (left, top, width, height) | 74.36, 180.38, 211.28, 24 | 81.86, 180.38, 211.28, 24 | 89.36, 268.88, 211.28, 24 | 95.36, 283.88, 211.28, 24 |
-| Title (left, top, width, height) | 120.23, 225.63, 119.52, 21 | 127.73, 225.63, 119.52, 21 | 135.23, 314.13, 119.52, 21 | 141.23, 329.13, 119.52, 21 |
-| Button 1 (left, top, width, height) | 50, 276.63, 260, 50 | 50, 276.63, 275, 50 | 55, 365.13, 280, 50 | 61, 380.13, 280, 50 |
-| Button 2 (left, top, width, height) | 50, 356.63, 260, 50 | 50, 356.63, 275, 50 | 55, 445.13, 280, 50 | 61, 460.13, 280, 50 |
-| Button 3 (left, top, width, height) | 50, 436.63, 260, 50 | 50, 436.63, 275, 50 | 55, 525.13, 280, 50 | 61, 540.13, 280, 50 |
+| Card (left, top, width, height) | 20, 140.86, 320, 385.27 | 20, 140.86, 335, 385.27 | 25, 229.36, 340, 385.27 | 31, 244.36, 340, 385.27 |
+| Header (left, top, width, height) | 74.36, 180.86, 211.28, 24 | 81.86, 180.86, 211.28, 24 | 89.36, 269.36, 211.28, 24 | 95.36, 284.36, 211.28, 24 |
+| Title (left, top, width, height) | 120.23, 225.13, 119.52, 21 | 127.73, 225.13, 119.52, 21 | 135.23, 313.63, 119.52, 21 | 141.23, 328.63, 119.52, 21 |
+| Button 1 (left, top, width, height) | 50, 276.13, 260, 50 | 50, 276.13, 275, 50 | 55, 364.63, 280, 50 | 61, 379.63, 280, 50 |
+| Button 2 (left, top, width, height) | 50, 356.13, 260, 50 | 50, 356.13, 275, 50 | 55, 444.63, 280, 50 | 61, 459.63, 280, 50 |
+| Button 3 (left, top, width, height) | 50, 436.13, 260, 50 | 50, 436.13, 275, 50 | 55, 524.63, 280, 50 | 61, 539.63, 280, 50 |
 
-Derived, true at every size: card top to Header top 40; Header box bottom to Title top 21.25; Title box bottom to Button 1 top 30; buttons 30 apart; Button 3 bottom to card bottom 40; card centred vertically. **The Title box shrink-wraps its text** (119.52 wide, centred), like the Header box; a full-width Title box does not match this sheet's rectangles even though the text looks the same.
+Derived, true at every size (values re-measured at the corrected gap 20.28): card top to Header top 40; Header box bottom to Title top 20.27; Title box bottom to Button 1 top 30; buttons 30 apart; Button 3 bottom to card bottom 40; card centred vertically. **The Title box shrink-wraps its text** (119.52 wide, centred), like the Header box; a full-width Title box does not match this sheet's rectangles even though the text looks the same.
 
 ## 5. Reference D: settings overlay home page
 
@@ -156,3 +170,5 @@ The pinned footer control variant (used on information pages and the Dev tools i
 **1.0 — 2026-11-03.** First version. Reference A (Dev tools confirmation dialog) and Reference B (Privacy policy page) measured in Reminderly's browser preview at the four supported sizes. Indicator end state confirmed at 402 x 874 only.
 
 **1.1 — 2026-11-03.** Added the Back to top button at the end of Reference B (missed in 1.0), Reference C (Header, Title and three buttons) and Reference D (settings overlay home page), measured in the desktop preview. Measured values only; computed values marked. Proposed for John's approval.
+
+**1.2 — 2026-11-03.** Reference A and C rectangles re-baselined for the corrected Header-to-Title gap (20.28); glyph spacing readings in the iOS web view added (section 2.3). Reference A absolute positions are computed from measured offsets (see 2.1).

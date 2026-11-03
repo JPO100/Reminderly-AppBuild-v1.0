@@ -134,6 +134,13 @@ This section is the NeatlyMade overlay specification. It is written to be reused
 
 Vocabulary (Overlay Design Standards v2): **Header** is the overlay's heading, Lato Bold 20px. **Title** is the optional line or lines directly under the Header, Lato Bold 17px. **Header area** is the Header plus any Title (in Noterly, a folder icon and name may take the Title's place; it follows the same 30px rule; Reminderly has no folders). **Button block** is the group of rows or buttons, 30px apart. **Scrollable area** is the part where only content scrolls. **Viewport** is the visible screen area. **Card** is the white rounded panel. **Backdrop** is the dimming layer behind it. **Wrapper** is the invisible full-screen layer that centres the card. **Footer controls** are buttons pinned below the body.
 
+**Two-zone principle (John, 2026-11-03).** All content in a centred overlay sits in one of two zones, and nothing sits outside them:
+
+- **Header area:** the Header, plus any Title lines under it. Every overlay has a Header; the Title is optional.
+- **Button block:** everything below the header area that the user acts on or reads as the body: buttons, click-through rows and toggles (and, on information pages, the scrolling image and text). Items in it are 30px apart, and it starts 30px below the header area (A2).
+
+New overlays are designed by deciding what goes in the Header area and what goes in the Button block. If content fits neither zone, the design is wrong, not the principle. A single pinned footer control (Back, OK, Close) is the last item of the Button block, pinned rather than scrolled (A3). An overlay that does not follow this is a tidy-up item, not an exception.
+
 **A1. Position and geometry**
 
 | Item | Rule | Measured from |
@@ -304,7 +311,7 @@ No screen-reader testing has been done on any overlay. These items must not be d
 #### Part D. Checklist for a new app (Noterly)
 
 1. Build backdrop, wrapper and card as in B1; card 340px preferred, wrapper 20px side padding, 100px (or inset + 20px) top and bottom, 32px radius, z-60 (z-70 for overlays above overlays).
-2. Padding 40/30; Header Lato Bold 20px (one line, truncates); Title Lato Bold 17px `#939393` with the Header-to-Title 30px measured baseline to cap top (A2); 30px below the header area, 30px between rows and buttons.
+2. Two zones only: every piece of content is in the header area or the button block (Two-zone principle). Padding 40/30; Header Lato Bold 20px (one line, truncates); Title Lato Bold 17px `#939393` with the Header-to-Title 30px measured baseline to cap top (A2); 30px below the header area, 30px between rows and buttons.
 3. Buttons 50px, fully rounded, 17px white bold labels; two-button dialogs equal width with a 30px gap.
 4. Put the header area outside the scrolling area, with the scroll clip edge 20px below it and 20px of padding inside; only the body scrolls; one footer control may be pinned; use a single shared scroll component with a 30px footer gap and a 12 x 7 `#D9D9D9` chevron.
 5. Clip scrolled content with the card's rounded corners; no gradients, fades or square edges.

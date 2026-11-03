@@ -132,7 +132,7 @@ This section is the NeatlyMade overlay specification. It is written to be reused
 
 #### Part A. Approved design standard
 
-Vocabulary (Overlay Design Standards v2): **Header** is the overlay's heading, Lato Bold 20px. **Title** is the optional line or lines directly under the Header, Lato Bold 17px. **Header area** is the Header plus any Title (in Noterly, a folder icon and name may take the Title's place; it follows the same 30px rule; Reminderly has no folders). **Button block** is the group of rows or buttons, 30px apart. **Scrollable area** is the part where only content scrolls. **Viewport** is the visible screen area. **Card** is the white rounded panel. **Backdrop** is the dimming layer behind it. **Wrapper** is the invisible full-screen layer that centres the card. **Footer controls** are buttons pinned below the body.
+Vocabulary (Overlay Design Standards v2): **Header** is the overlay's heading, Lato Bold 20px. **Title** is the optional line or lines directly under the Header, Lato Bold 17px. **Header area** is the Header plus any Title (in Noterly, a folder icon and name may take the Title's place; it follows the same 30px rule; Reminderly has no folders). **Button block** is everything below the header area: the buttons, click-through rows and toggles, 30px apart (on information pages also the scrolling image and text); see the Two-zone principle. **Scrollable area** is the part where only content scrolls. **Viewport** is the visible screen area. **Card** is the white rounded panel. **Backdrop** is the dimming layer behind it. **Wrapper** is the invisible full-screen layer that centres the card. **Footer controls** are buttons pinned below the body.
 
 **Two-zone principle (John, 2026-11-03).** All content in a centred overlay sits in one of two zones, and nothing sits outside them:
 
@@ -153,6 +153,17 @@ New overlays are designed by deciding what goes in the Header area and what goes
 | Backdrop | Full viewport, black at 50% opacity, flat colour (no gradient or blur) | Viewport |
 | Layering | Backdrop and wrapper at layer 60. An overlay that must sit over another overlay (the notification permission prompt) uses layer 70 | Page |
 | Orientation | Portrait only; landscape is not supported | N/A |
+
+**Behaviour by screen size** (portrait; clearances from A1, card width = viewport width minus 40, capped at 340):
+
+| Viewport (points) | Card width | Side gap | Max card height (viewport minus 2 x 100) | Typical device |
+|-------------------|-----------|----------|------------------------------------------|----------------|
+| 360 x 667 (minimum supported) | 320 | 20 | 467 | smallest supported |
+| 375 x 667 | 335 | 20 | 467 | iPhone SE |
+| 390 x 844 | 340 | 25 | 644 | iPhone 14 and similar |
+| 402 x 874 | 340 | 31 | 674 | iPhone 17 Pro and similar |
+
+The 100px clearance wins whenever the safe-area inset is under 80px, which holds on every current iPhone in portrait, so the table needs no inset term. Taller screens only add room (the card stays 340px wide and centred); an overlay that fits never scrolls, and one that does not fit keeps its header area fixed and scrolls the button block (A3). Nothing may overflow horizontally at any size.
 
 Responsive rules: the standard is expressed as clearances and a preferred width, not as device sizes. Narrower screens shrink the card width (minimum supported viewport 360 x 667), shorter screens shrink the card height and the body scrolls. Nothing may overflow horizontally. The 20px side clearance and the 100px vertical clearance apply on every screen size.
 
@@ -219,7 +230,7 @@ Destructive actions use grey `#939393`, not red.
 - Intentional differences: the settings replica (Page 6) uses the live settings content, is anchored 16px above the phone bottom, scaled from bottom centre, capped to the phone height, and takes the shared settings height (documented exception, 2026-10-23).
 - Any change to an overlay that a tutorial reproduces updates the tutorial in the same branch.
 
-#### Part B. Current Reminderly implementation (verified against code, 2026-11-02)
+#### Part B. Current Reminderly implementation (verified against code, 2026-11-02; wrapper CSS, scroll constants and header spacing constants re-checked 2026-11-03)
 
 **B1. Structure.** There is no shared wrapper component; each overlay is built inline from the same three elements:
 
@@ -310,7 +321,7 @@ No screen-reader testing has been done on any overlay. These items must not be d
 
 #### Part D. Checklist for a new app (Noterly)
 
-1. Build backdrop, wrapper and card as in B1; card 340px preferred, wrapper 20px side padding, 100px (or inset + 20px) top and bottom, 32px radius, z-60 (z-70 for overlays above overlays).
+1. Build backdrop, wrapper and card as in B1, but as one shared overlay component, with one shared header component and one shared scroll component, not inline per overlay (Reminderly's inline structure is a historical gap, not a pattern to copy); card 340px preferred, wrapper 20px side padding, 100px (or inset + 20px) top and bottom, 32px radius, z-60 (z-70 for overlays above overlays).
 2. Two zones only: every piece of content is in the header area or the button block (Two-zone principle). Padding 40/30; Header Lato Bold 20px (one line, truncates); Title Lato Bold 17px `#939393` with the Header-to-Title 30px measured baseline to cap top (A2); 30px below the header area, 30px between rows and buttons.
 3. Buttons 50px, fully rounded, 17px white bold labels; two-button dialogs equal width with a 30px gap.
 4. Put the header area outside the scrolling area, with the scroll clip edge 20px below it and 20px of padding inside; only the body scrolls; one footer control may be pinned; use a single shared scroll component with a 30px footer gap and a 12 x 7 `#D9D9D9` chevron.

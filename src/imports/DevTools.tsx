@@ -16,7 +16,7 @@ export function LastModuleNotice({ onClose }: { onClose: () => void }) {
           <OverlayHeader header="One module must stay on" title="At least one of Reminders or Lists must stay on. Turn the other on first." />
           <button
             onClick={onClose}
-            className="h-[50px] rounded-[100px] cursor-pointer px-[16px] w-full"
+            className="h-[50px] rounded-[100px] cursor-pointer px-[18px] w-full"
             style={{ backgroundColor: '#4784F8' }}
           >
             <div className="flex items-center justify-center size-full">
@@ -155,7 +155,7 @@ export default function DevTools({
               <div className="flex gap-[30px] w-full justify-between">
                 <button
                   onClick={() => setPendingToggle(null)}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#BABABA' }}
                 >
                   <div className="flex items-center justify-center size-full">
@@ -166,13 +166,13 @@ export default function DevTools({
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[16px]"
+                  className="h-[50px] flex-1 rounded-[100px] cursor-pointer px-[18px]"
                   style={{ backgroundColor: '#4784F8' }}
                 >
                   <div className="flex items-center justify-center size-full">
                     <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
                       <p className="leading-[normal]">
-                        {pendingToggle.target ? 'Yes, turn on' : 'Yes, turn off'}
+                        {pendingToggle.target ? 'Turn on' : 'Turn off'}
                       </p>
                     </div>
                   </div>

@@ -34,7 +34,7 @@ Full instructions: [docs/development.md](./docs/development.md).
 | [docs/architecture.md](./docs/architecture.md) | Stack, structure, state, data model, storage, conventions, known constraints |
 | [docs/development.md](./docs/development.md) | Setup, commands, iOS build, dev tools, testing, baselines |
 | [docs/ios.md](./docs/ios.md) | Native layer: Siri, widget, notifications patch, project settings |
-| [docs/design.md](./docs/design.md) | Colours, typography, spacing, panel and overlay standards |
+| [docs/design-standards/](./docs/design-standards/README.md) | Design standards: colour, typography, layout and spacing, panels, controls, overlays, tutorial phone, motion |
 | [docs/features/reminders.md](./docs/features/reminders.md) | Reminder list, filters, lifecycle, archive, overlays |
 | [docs/features/scheduling-and-nlc.md](./docs/features/scheduling-and-nlc.md) | Dates, times, repeats, calendar view, natural language capture, text normalisation |
 | [docs/features/notifications.md](./docs/features/notifications.md) | Notifications, badge, actions |

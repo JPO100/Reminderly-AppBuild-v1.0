@@ -147,7 +147,7 @@ If an overlay needs to depart from this standard, it is a decision for John, rec
 
 ## 11. Version history
 
-**1.0 — 2026-11-03.** First consolidated release (moved from `docs/design.md` into the design-standards folder): two-zone principle; Header and Title styles; 30px glyph-measured spacing inside the header area and 30px below it; 20px scroll clip clearance; behaviour by screen size; shared-component and accessibility requirements.
+**1.0 — 2026-11-03.** First consolidated release (moved from the former `docs/design.md` into the design-standards folder): two-zone principle; Header and Title styles; 30px glyph-measured spacing inside the header area and 30px below it; 20px scroll clip clearance; behaviour by screen size; shared-component and accessibility requirements.
 
 ---
 
@@ -197,7 +197,7 @@ div.fixed.inset-0.z-[60].flex.items-center.justify-center
 | Home toggle confirm | Same as the Dev tools confirmations | Same |
 | Last module notice (Dev tools) | Header, Title (message), OK | Single `#4784F8` |
 
-Slide-up panels (z-50, separate standard in Bottom sheets): New and edit reminder, Repeats, Lists editor, Templates, Dev tools, tutorial.
+Slide-up panels (z-50, separate standard in [panel-standards.md](./panel-standards.md), Bottom sheets): New and edit reminder, Repeats, Lists editor, Templates, Dev tools, tutorial.
 Tutorial replicas: Reminder info, List settings (two), Template menu, Add attachment, Page 6 settings (two variants).
 
 **B3. Dismissal (per overlay)**

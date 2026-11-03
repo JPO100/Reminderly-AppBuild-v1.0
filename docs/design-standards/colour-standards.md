@@ -94,7 +94,7 @@ Shared standards (such as the overlay standard) refer to a **role**, not a hex v
 | Card | Card and panel background | White `#FFFFFF` |
 | Backdrop | Dimming layer behind an overlay | Black at 50% (shared; not an app colour) |
 
-Another app (Noterly) records its own value for each role in its own design document. Its values are decided by John and are not yet set. Geometry and spacing do not change with colour values.
+**Noterly (decision by John, 2026-11-03):** Noterly shares Reminderly's core application UI palette, including the established blues, greys and the common colour roles above, so its values for these roles are Reminderly's values. Noterly's note-personalisation palette (the colours users choose for their notes) is separate, is not part of these standards and must not be changed or confused with the core palette. Noterly confirms its actual hex values against its own design before implementation. Any other app records its own value for each role in its own design document. Geometry and spacing do not change with colour values.
 
 ## 8. Open items
 

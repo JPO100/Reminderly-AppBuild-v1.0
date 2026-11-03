@@ -81,4 +81,4 @@ They share size and colour and differ in weight, element and place. The overlap 
 - 12px, 16px, 22px and the 20px reminder text field are in the code but not classified.
 - The 20px New reminder and New template button label differs from the 17px in controls-standards.md.
 - Usage marked unverified in section 3 is to be confirmed.
-- Another app records its font files and weights in its own design document before adopting the overlay standard; Noterly's font assets are not yet confirmed.
+- **Noterly (decision by John, 2026-11-03):** Noterly mirrors Reminderly's typography throughout the whole app, not only in centred overlays: the same Lato assets (weights 400, 700 and 900), the same rendered weights, sizes and semantic styles. It validates this in its own rendering environment before claiming parity, using [font-rendering-validation.md](./font-rendering-validation.md). Any other app records its font files and weights in its own design document before adopting.

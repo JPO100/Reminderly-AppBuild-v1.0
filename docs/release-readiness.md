@@ -113,6 +113,8 @@ With developer tools excluded, these values are what users get. Development defa
 | No placeholder or test content visible | Verify before submission | 2.1(a) | |
 | Local data durability (`localStorage` in WKWebView) | Verify before submission | 2.1 | Rare iOS clearing would lose data; consider before release |
 | Minimum functionality beyond a web wrapper | Complete | 4.2 | Native notifications, widget, Siri, haptics |
+| Overlay accessibility: dialog semantics (`role="dialog"`, `aria-modal`, accessible name), focus into and back from each overlay, Escape to close, background scroll lock, and VoiceOver verification | Outstanding (deferred; subject to pre-release review) | Deferred by John and Jason 2026-11-02, confirmed 2026-11-03; docs/design-standards/overlay-standards.md, section 7 and the Reminderly appendix | Only Reminder info has these behaviours today. No screen-reader testing has been done on any overlay. Do not claim accessibility compliance, and do not assume this affects or guarantees App Store approval, until it is built and tested. Noterly may defer the same work but must track it in its own record |
+| Shared overlay component (one component for backdrop, wrapper, card, header and scroll, replacing about 21 inline copies) | Outstanding (deferred architectural refactor; not authorised) | Overlay audit finding F4, 2026-11-03; overlay-standards.md section 2 | Cross-component refactor, proposed Type C or D, plan to Jason before any work. No implementation is authorised. Not a release requirement |
 
 ### Notifications, widget and Siri
 
@@ -192,6 +194,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-11-03 | Overlay accessibility work and the shared overlay component added to the tracker as deferred outstanding work (John and Jason). No compliance claim made |
 | 2026-10-25 | Decision: release header layouts (John). Pending decision D6 (supported screen sizes and minimum iOS) and screen size testing added |
 | 2026-10-23 | Decision: natural language capture ships in the release (John). Release readiness review to follow in a separate ticket |
 | 2026-10-23 | Global distribution legal review added for the Privacy Policy and Terms of Use (US priority market; US, UK and EU requirements, enforceability, country-specific App Store requirements) |

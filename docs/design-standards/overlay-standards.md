@@ -296,6 +296,8 @@ Tutorial replicas: Reminder info, List settings (two), Template menu, Add attach
 
 ### Not yet built in Reminderly
 
+Tracked in [docs/release-readiness.md](../release-readiness.md) (Features and behaviour) as deferred outstanding work, with the shared overlay component refactor.
+
 Approved by John but **not built**: work package P3 was deliberately deferred (2026-11-02, John and Jason) after the overlay review found no confirmed user-facing defects. Only Reminder info has any of the behaviours below, and VoiceOver behaviour is untested on every overlay. Today's behaviour differs from section 7 as follows:
 
 | Standard (section 7) | Current implementation |

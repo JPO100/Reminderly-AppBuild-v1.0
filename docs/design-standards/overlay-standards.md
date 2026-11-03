@@ -6,7 +6,7 @@
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
 
-**What is shared and what is per app.** The semantic rules are shared: structure, geometry, spacing, sizes, behaviour and which colour role each element uses. Colour **values** are per app: every hex value in this document is Reminderly's value for a role (roles and values: [colour-standards.md](./colour-standards.md), section 7), not a requirement on other apps, not a requirement on other apps. An app that uses different values keeps the same roles and the same geometry and spacing.
+**What is shared and what is per app.** The semantic rules are shared: structure, geometry, spacing, sizes, behaviour and which colour role each element uses. Colour **values** are per app: every hex value in this document is Reminderly's value for a role (roles and values: [colour-standards.md](./colour-standards.md), section 7), not a requirement on other apps. An app that uses different values keeps the same roles and the same geometry and spacing.
 
 **Fonts.** "Lato Medium" in this document renders as Lato Regular (400), and "SemiBold" as Bold (700), because only the 400, 700 and 900 files are bundled; see [typography-standards.md](./typography-standards.md), section 2. An app matches by using Regular where this document says Medium.
 

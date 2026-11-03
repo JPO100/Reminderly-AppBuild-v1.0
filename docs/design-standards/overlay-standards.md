@@ -1,16 +1,22 @@
 # NeatlyMade Centred Overlay Standard
 
 **Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) take a copy of this file unchanged and do not edit it. Change requests go to John, are made here, and the new version is re-shared.
-**Status:** Approved by John (CEO). **Version:** 1.0, 2026-11-03.
+**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.1, 2026-11-03.
 **Scope:** everything about centred overlays lives in this one document. Sections 1 to 10 are the standard and apply to every app. The appendix at the end is Reminderly's own implementation record (inventory, dismissal table, known gaps) and applies to Reminderly only; other apps ignore it and keep their own record in their own repository, without restating these rules. If an appendix disagrees with the standard, the standard wins.
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
+
+**What is shared and what is per app.** The semantic rules are shared: structure, geometry, spacing, sizes, behaviour and which colour role each element uses. Colour **values** are per app: every hex value in this document is Reminderly's value for a role (table in section 3), not a requirement on other apps. An app that uses different values keeps the same roles and the same geometry and spacing.
+
+**Related standards (share the whole folder).** Toggle track, knob and states are in [controls-standards.md](./controls-standards.md); colours in [colour-standards.md](./colour-standards.md); Lato styles in [typography-standards.md](./typography-standards.md). This document refers to them and does not restate them.
+
+**Adoption.** The CSS, geometry and spacing figures assume a web-based interface and Lato at the same bundled version. An app on a different stack or font confirms with its developer, and recomputes the figures that depend on font metrics (section 3), before adopting. Noterly's stack is not yet confirmed.
 
 ## 1. The principle
 
 **Every centred overlay has two zones, and all content sits in one of them. Nothing sits outside them.**
 
-- **Header area:** the Header, plus any Title lines under it. Every overlay has a Header; Titles are optional. In Noterly, a folder icon and name may take the Title's place; it follows the same spacing rules.
+- **Header area:** the Header, plus any Title lines under it. Every overlay has a Header; Titles are optional. A folder icon and name (apps with folders, such as Noterly) may take a Title line's place. It follows the existing Title-line icon convention: the icon sits before the text, 8px from it, in the Title colour role (Reminderly `#939393`), icon about 19 to 21px high (Reminderly's smart reminder icon is 19 x 21 and its repeats icon 21 x 21), text Lato Bold 17px, one line, truncating, and the same 30px baseline to cap top spacing as any Title. The folder icon's exact dimensions are not specified here; they are taken from the app's own icon set under this convention and confirmed with John.
 - **Button block:** everything below the header area that the user acts on or reads as the body: buttons, click-through rows and toggles (on information pages, also the scrolling image and text). Items are 30px apart.
 
 Design every overlay by deciding what goes in the header area and what goes in the button block. If content fits neither zone, the design is wrong, not the principle. A single pinned footer control (Back, OK, Close) is the last item of the button block, pinned rather than scrolled.
@@ -51,9 +57,13 @@ Wrapper: full-screen, flex-centred, 20px side padding. Card: 340px wide at most 
 | 390 x 844 | 340 | 25 | 644 | iPhone 14 and similar |
 | 402 x 874 | 340 | 31 | 674 | iPhone 17 Pro and similar |
 
+**Verified on screen (Reminderly, 2026-11-03, 2 overlays at each size):** card width and side gaps at all four sizes match the table; the card is vertically centred at all four; at 667 high a tall overlay reaches the 467 cap with exactly 100px above and below. At 844 and 874 high no existing overlay is tall enough to reach the cap (the tallest measured 508.5), so 644 and 674 are computed from the 100px clearance and were not reached on screen.
+
 The 100px clearance wins whenever the safe-area inset is under 80px (every current iPhone in portrait). Taller screens only add room: the card stays 340px wide. An overlay that fits never scrolls. One that does not fit keeps its header area fixed and scrolls the button block. Nothing may overflow horizontally at any size.
 
 ## 3. Internal layout
+
+All hex values below are Reminderly's values for a colour role. See the roles table at the end of this section.
 
 - **Card padding:** 40px top and bottom, 30px left and right. Content is centred horizontally. (When content overflows and scrolls, the bottom gap becomes 30px; see section 5.)
 - **Header:** Lato Bold 20px, `#1C2C42`, centred, one line (line box fixed at 24px), truncated with an ellipsis. Never wraps.
@@ -76,7 +86,20 @@ The 100px clearance wins whenever the safe-area inset is under 80px (every curre
 
 Destructive actions use grey `#939393`, not red. (The only red is a Title line that signals an overdue reminder, `#FF0000`; other apps need no equivalent unless John decides.)
 
-Colours are named: Reminderly blue `#4784F8`, Reminderly dark blue `#1C2C42`, medium grey `#BABABA`, inactive grey `#D9D9D9`, description grey `#939393`. Confirm with John that each app shares these tokens; if an app's palette differs, only the colours change, never the geometry.
+### Colour roles
+
+| Role | Used for | Reminderly value |
+|------|----------|------------------|
+| Primary action | Primary buttons, active toggle track | `#4784F8` (Reminderly blue) |
+| Heading text | Header, toggle and row titles and icons, back arrow | `#1C2C42` (Reminderly dark blue) |
+| Description text | Title lines, information text, destructive and secondary buttons, click-through chevrons | `#939393` |
+| Subtitle and dismissive | Row and toggle subtitles, Cancel and Not now buttons, off toggle track | `#BABABA` (medium grey) |
+| Inactive | Disabled buttons, inactive toggle and its text, scroll indicator | `#D9D9D9` (inactive grey) |
+| Warning text | The one overdue Title line | `#FF0000` |
+| Card | Card background | white |
+| Backdrop | Dimming layer | black at 50% (geometry; shared) |
+
+Noterly uses the same roles with its own values, decided by John; geometry and spacing are unchanged.
 
 ## 4. Overlay families
 
@@ -85,11 +108,18 @@ Colours are named: Reminderly blue `#4784F8`, Reminderly dark blue `#1C2C42`, me
 | Info | Header, 30, rows or buttons (30 apart) |
 | Menu | Header, 30, stacked buttons |
 | Attachment overlays | Add attachment: Header and stacked primary buttons. Attachment error: Header, message Title, OK. Delete attachment: Header and one grey destructive button, no Cancel |
-| Settings | One shared card height for all settings overlays (the taller home page, capped by the available height). Sub-pages and information pages inherit it; a page never resizes the card. Header fixed, rows scroll; information pages have a fixed Header, scrolling image and text, and Back pinned |
+| Settings | Row order on a settings page: toggle rows first, click-through rows below, Support last; recheck the whole page whenever a row is added or moved. One shared card height for all settings overlays (the taller home page, capped by the available height). Sub-pages and information pages inherit it; a page never resizes the card. Header fixed, rows scroll; information pages have a fixed Header, scrolling image and text, and Back pinned |
 | Confirmation and notice dialogs | Header, 30, Title (the message), 30, buttons (equal-width Cancel and Confirm, or a single OK) |
 | Permission prompt | As a confirmation dialog: "Not now" and "Allow", equal width |
 
 Header then Title (message) then buttons is the pattern for every dialog: the message is a Title, not body text in the button block.
+
+### Settings sub-pages and information pages
+
+- **Sub-page Header:** the Header is centred, one line, truncating, with 24px of space either side of it. A back arrow sits at the left edge of the content area: 9 x 17, heading text role colour, with a 45 x 45 tap area (the arrow stays in place; the tap area extends beyond it). A sub-page title that does not fit on one line is replaced by a shorter title, not wrapped.
+- **Information page Header:** an info icon sits before the Header text, 10px from it and 1px below the text's vertical centre, in the heading text role colour. The Header is still one line and truncates.
+- **Information page body:** Lato Medium 17px, description text role colour, 24px line height, centred, wrapping. The body is in the button block. An optional image sits above the text, 30px from it. The image frame is up to 216px wide with an 11px radius and a 1px inset `#D9D9D9` border; Reminderly's example is 216 x 156 with 15px of inner padding, cropped at the bottom. The image and text scroll together while the Header stays fixed and Back is pinned.
+- **Back:** a single full-width primary button pinned at the bottom (section 5).
 
 ## 5. Scrolling
 
@@ -107,7 +137,7 @@ Reminderly constants (one shared scroll component, `OverlayScrollArea.tsx`): `SC
 
 ## 6. Toggle rows in overlays
 
-- Row: full width, flex with a 16px gap, items aligned to the start, whole row tappable; the toggle stops click propagation so it does not fire twice. Rows are 30px apart.
+- Row: full width, flex with a 16px gap, items aligned to the start, whole row tappable; the toggle stops click propagation so it does not fire twice. Rows are 30px apart. Track, knob and state colours: [controls-standards.md](./controls-standards.md).
 - Label block fills the remaining width: title 17px, single line with ellipsis; subtitle 14px, wraps; 9px between them.
 - On: title and icon `#1C2C42`, subtitle `#BABABA`, track `#4784F8`. Off: title and icon `#1C2C42`, subtitle `#BABABA`, track `#BABABA`. Inactive (feature unavailable): title, subtitle and track `#D9D9D9`, not tappable. No hover or focus states in overlays.
 - Click-through rows carry a 7 x 13 `#939393` chevron.
@@ -146,6 +176,8 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 If an overlay needs to depart from this standard, it is a decision for John, recorded in that app's design document with the reason. Do not introduce exceptions silently. An overlay that does not follow the standard is a tidy-up item, not a precedent.
 
 ## 11. Version history
+
+**1.1 — 2026-11-03.** Jason's review applied: colour roles shared with per-app values; overlay rules brought in from the Reminderly appendix (sub-page and information page Headers, information page body, settings row order); folder Header variant specified from the existing Title-line icon convention; cross-references to the controls, colour and typography standards; adoption note; screen sizes verified on screen (heights at 667 only).
 
 **1.0 — 2026-11-03.** First consolidated release (moved from the former `docs/design.md` into the design-standards folder): two-zone principle; Header and Title styles; 30px glyph-measured spacing inside the header area and 30px below it; 20px scroll clip clearance; behaviour by screen size; shared-component and accessibility requirements.
 
@@ -216,7 +248,7 @@ Tutorial replicas: Reminder info, List settings (two), Template menu, Add attach
 | Dev tools confirmations, push-to-live, Home toggle confirm | Cancel | Not implemented |
 | Last module notice | Close | Not implemented |
 
-**B4. Text and buttons as implemented.** The Header and Title follow section 3 through `OverlayHeader` (`HEADER_TITLE_GAP` 21.25, `HEADER_PULL` 10) or the same classes inline in Reminder info, the settings headers and the tutorial replica `TutorialOverlayTitle`. The scrollable area's `marginTop: -10` / `paddingTop: 10` (`OverlayScrollArea.tsx`) give the 20px clip clearance. Info body text is Lato Medium 17px `#939393`, 24px line height. Settings and Dev tools information page Headers (icon plus text) are one line, so on the narrowest screens a long one such as "Include smart reminder lists" is truncated. Two-button dialogs use `flex-1` on both buttons (P2, merged 72110f4). Overlay headers are pinned with only the main content scrolling (P2a, merged 8ace85d). Rounded scroll edges for List settings and List info (P1, merged 8e73a93).
+**B4. Text and buttons as implemented.** The Header and Title follow section 3 through `OverlayHeader` (`HEADER_TITLE_GAP` 21.25, `HEADER_PULL` 10) or the same classes inline in Reminder info, the settings headers and the tutorial replica `TutorialOverlayTitle`. The scrollable area's `marginTop: -10` / `paddingTop: 10` (`OverlayScrollArea.tsx`) give the 20px clip clearance. Information page body text follows the standard (section 4). Settings and Dev tools information page Headers (icon plus text) are one line, so on the narrowest screens a long one such as "Include smart reminder lists" is truncated. Two-button dialogs use `flex-1` on both buttons (P2, merged 72110f4). Overlay headers are pinned with only the main content scrolling (P2a, merged 8ace85d). Rounded scroll edges for List settings and List info (P1, merged 8e73a93).
 
 **B5. Settings scrolling details.** Every sub-page and information page takes the settings card's height and never resizes it. On an information page the Header is fixed and only the image and text scroll; Back is always pinned at the bottom padding. Content that fits leaves unused space between content and Back, with no arrow. Overflowing content scrolls above Back with the 30px gap and arrow directly above it. Home pages that overflow on short screens follow the same rule. The tutorial Re-run pages use the live settings content and inherit it.
 

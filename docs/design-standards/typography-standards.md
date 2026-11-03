@@ -62,7 +62,7 @@ Sizes also found in the code and not classified here: 12px (calendar caption), 1
 
 Lato (as bundled), per em: ascent 0.987, descent 0.213, cap height 0.723; the line box with `line-height: normal` is 1.2em in the font's own terms.
 
-**As rendered in Reminderly's web view (measured 2026-11-03):** the browser rounds ascent and descent to whole pixels, so a 17px line with `line-height: normal` is **21px** high (not 20.4px), with its baseline 17px below the top and 4px above the bottom; the overlay Header is set to a fixed 24px line. The overlay spacing rules (30px baseline to cap top, a 21.25px gap between boxes) are derived from these values in [overlay-standards.md](./overlay-standards.md).
+**As rendered in Reminderly's web view (measured 2026-11-03):** the browser rounds ascent and descent to whole pixels, so a 17px line with `line-height: normal` is **21px** high (not 20.4px), with its baseline 17px below the top and 4px above the bottom; the overlay Header is set to a fixed 24px line. In the iOS web view (the environment the apps run in) the 24px Header line box has its baseline 19px down, one pixel higher than in Chromium (20), so the overlay spacing rules (30px baseline to cap top, a 20.28px gap between boxes in the iOS web view) are derived from the web view's values in [overlay-standards.md](./overlay-standards.md).
 
 An app that uses different font files, a different rendering environment or different rounding must measure its own rendered baseline and cap top and recompute those figures. It must not assume it matches Reminderly.
 

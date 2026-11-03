@@ -1,7 +1,7 @@
 # NeatlyMade Centred Overlay Standard
 
 **Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) take a copy of this file unchanged and do not edit it. Change requests go to John, are made here, and the new version is re-shared.
-**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.1, 2026-11-03.
+**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.2, 2026-11-03.
 **Scope:** everything about centred overlays lives in this one document. Sections 1 to 10 are the standard and apply to every app. The appendix at the end is Reminderly's own implementation record (inventory, dismissal table, known gaps) and applies to Reminderly only; other apps ignore it and keep their own record in their own repository, without restating these rules. If an appendix disagrees with the standard, the standard wins.
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
@@ -16,12 +16,12 @@ Where this file gives Reminderly constants and CSS, they are the reference imple
 
 **Every centred overlay has two zones, and all content sits in one of them. Nothing sits outside them.**
 
-- **Header area:** the Header, plus any Title lines under it. Every overlay has a Header; Titles are optional. A folder icon and name (apps with folders, such as Noterly) may take a Title line's place. It follows the existing Title-line icon convention: the icon sits before the text, 8px from it, in the Title colour role (Reminderly `#939393`), icon about 19 to 21px high (Reminderly's smart reminder icon is 19 x 21 and its repeats icon 21 x 21), text Lato Bold 17px, one line, truncating, and the same 30px baseline to cap top spacing as any Title. The folder icon's exact dimensions are not specified here; they are taken from the app's own icon set under this convention and confirmed with John.
+- **Header area:** the Header, plus either any Title lines or any Header subtitle lines under it. Every overlay has a Header; Title lines and Header subtitle lines are optional, and a Header subtitle never appears with a Title. A folder icon and name (apps with folders, such as Noterly) may take a Title line's place. It follows the existing Title-line icon convention: the icon sits before the text, 8px from it, in the Title colour role (Reminderly `#939393`), icon about 19 to 21px high (Reminderly's smart reminder icon is 19 x 21 and its repeats icon 21 x 21), text Lato Bold 17px, one line, truncating, and the same 30px baseline to cap top spacing as any Title. The folder icon's exact dimensions are not specified here; they are taken from the app's own icon set under this convention and confirmed with John.
 - **Button block:** everything below the header area that the user acts on or reads as the body: buttons, click-through rows and toggles (on information pages, also the scrolling image and text). Items are 30px apart.
 
 Design every overlay by deciding what goes in the header area and what goes in the button block. If content fits neither zone, the design is wrong, not the principle. A single pinned footer control (Back, OK, Close) is the last item of the button block, pinned rather than scrolled.
 
-Vocabulary: **Header** (Lato Bold 20px), **Title** (Lato Bold 17px), **Card** (white rounded panel), **Backdrop** (dimming layer), **Wrapper** (invisible full-screen layer that centres the card), **Scrollable area** (the part where only content scrolls), **Viewport** (visible screen area).
+Vocabulary: **Header** (Lato Bold 20px), **Title** (Lato Bold 17px), **Header subtitle** (Lato Medium 15px, directly under the Header; not the row or toggle subtitle, which is a different element), **Card** (white rounded panel), **Backdrop** (dimming layer), **Wrapper** (invisible full-screen layer that centres the card), **Scrollable area** (the part where only content scrolls), **Viewport** (visible screen area).
 
 ## 2. Position and geometry
 
@@ -68,7 +68,8 @@ All hex values below are Reminderly's values for a colour role. See the roles ta
 - **Card padding:** 40px top and bottom, 30px left and right. Content is centred horizontally. (When content overflows and scrolls, the bottom gap becomes 30px; see section 5.)
 - **Header:** Lato Bold 20px, `#1C2C42`, centred, one line (line box fixed at 24px), truncated with an ellipsis. Never wraps.
 - **Title:** Lato Bold 17px, `#939393`, centred. Short Title lines are one line and truncate; a Title that is a message (dialog text) may wrap.
-- **Every gap between text lines inside the header area is 30px measured on the glyphs, never between text boxes:** from one line's baseline to the next line's cap top. This covers Header to Title and Title to Title. For Lato Bold (ascent 0.987em, descent 0.213em, cap height 0.723em, line box 1.2em) with a 24px Header line box and 17px Titles, the CSS gap between boxes is **21.25px** (`30 - 4.26 - 4.488`). Reminderly's constant is `HEADER_TITLE_GAP = 21.25`. If you use a different font or size, recompute from that font's metrics.
+- **Between a Header and a Title, and between Title lines, the gap is 30px measured on the glyphs, never between text boxes:** from one line's baseline to the next line's cap top. For Lato Bold (ascent 0.987em, descent 0.213em, cap height 0.723em, line box 1.2em) with a 24px Header line box and 17px Titles, the CSS gap between boxes is **21.25px** (`30 - 4.26 - 4.488`). Reminderly's constant is `HEADER_TITLE_GAP = 21.25`. If you use a different font or size, recompute from that font's metrics.
+- **Header subtitle:** Lato Medium 15px, subtitle colour role (Reminderly `#BABABA`), 20px line height, centred. It appears only directly under the Header, never together with a Title. The first line sits 8px below the Header's box (box to box, not glyph measured); further lines sit directly under it with no gap. It is not truncated by the standard and wraps if it must. Used by the Support pages (version and last updated). It is not the row or toggle subtitle (section 6), which is Lato 14px under a row title.
 - **One rule below the header area:** the gap from the bottom of the header area to whatever comes next is always **30px**. The header area's bottom is the bottom of its last line's box (the Header's is 24px). What comes next is measured at its top: the top edge of a toggle row, click-through row, button or image, or the cap top of a line of text. No exceptions.
 - Cards lay out their children with a 40px gap, so the header area is pulled 10px into it (`HEADER_PULL = 10`, applied as a negative bottom margin on the header area) to give 30px.
 - Items in the button block are **30px apart**.
@@ -93,7 +94,7 @@ Destructive actions use grey `#939393`, not red. (The only red is a Title line t
 | Primary action | Primary buttons, active toggle track | `#4784F8` (Reminderly blue) |
 | Heading text | Header, toggle and row titles and icons, back arrow | `#1C2C42` (Reminderly dark blue) |
 | Description text | Title lines, information text, destructive and secondary buttons, click-through chevrons | `#939393` |
-| Subtitle and dismissive | Row and toggle subtitles, Cancel and Not now buttons, off toggle track | `#BABABA` (medium grey) |
+| Subtitle and dismissive | Row and toggle subtitles, Header subtitles, Cancel and Not now buttons, off toggle track | `#BABABA` (medium grey) |
 | Inactive | Disabled buttons, inactive toggle and its text, scroll indicator | `#D9D9D9` (inactive grey) |
 | Warning text | The one overdue Title line | `#FF0000` |
 | Card | Card background | white |
@@ -162,7 +163,7 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 2. Every piece of content is in the header area or the button block.
 3. Padding 40 top and bottom, 30 left and right.
 4. Header 20px one line, truncates. Titles 17px `#939393`.
-5. Header to Title and Title to Title: 30px baseline to cap top. 30px from the header area to the button block. Items in the button block 30px apart.
+5. Header to Title and Title to Title: 30px baseline to cap top. A Header subtitle, if used, sits 8px under the Header and never with a Title. 30px from the header area to the button block. Items in the button block 30px apart.
 6. Buttons 50px, fully rounded, 17px white bold, correct colour for their role. Two-button dialogs equal width.
 7. Fits without scrolling when it can; otherwise header fixed, body scrolls with a 20px clip clearance, 30px footer and chevron, one pinned footer control at most.
 8. No gradients, fades or square edges; radius 32px.
@@ -176,6 +177,8 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 If an overlay needs to depart from this standard, it is a decision for John, recorded in that app's design document with the reason. Do not introduce exceptions silently. An overlay that does not follow the standard is a tidy-up item, not a precedent.
 
 ## 11. Version history
+
+**1.2 — 2026-11-03.** Header subtitle added to the header area (John): Lato Medium 15px, subtitle colour role, 8px under the Header, only under the Header and never with a Title. The 30px glyph rule now applies to Header to Title and Title to Title. Records the existing Support page styling as the standard; no source change.
 
 **1.1 — 2026-11-03.** Jason's review applied: colour roles shared with per-app values; overlay rules brought in from the Reminderly appendix (sub-page and information page Headers, information page body, settings row order); folder Header variant specified from the existing Title-line icon convention; cross-references to the controls, colour and typography standards; adoption note; screen sizes verified on screen (heights at 667 only).
 

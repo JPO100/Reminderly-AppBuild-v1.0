@@ -30,8 +30,7 @@ For changes touching these: define explicit verification steps, run targeted reg
 - Colour names: Reminderly blue #4784F8, Reminderly dark blue #1C2C42, medium grey #BABABA (row and toggle subtitles), inactive grey #D9D9D9, description grey #939393 (Lato Medium).
 - Toggles: on is dark blue text with a blue switch; off is dark blue text with a medium grey switch; inactive is inactive grey text and switch, not tappable.
 - No gradients or fades. Hard edges only. (The one approved exception is the Siri tutorial screen-edge glow.)
-- Settings and Dev tools pages: toggle rows first, click-through rows below, Support last. Recheck the whole page whenever a row is added or moved.
-- Settings sub-pages keep their panel's home page height. Content that fits gets a 40px footer; overflowing content gets a 30px footer and the grey down arrow.
+- Settings and Dev tools pages: row order, sub-page height and footers follow docs/design-standards/overlay-standards.md (section 4 Settings, section 5 Scrolling).
 - Minimum supported screen is 360 x 667. Vertical scroll is acceptable; horizontal overflow is not.
 - Dev tools control feature availability only, never user preferences.
 - Siri phrases must avoid "remind", "reminder" and "note".

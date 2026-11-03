@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-// Centred overlay header area (docs/design.md, Overlay Design Standards v2): a Header (Lato Bold 20px, #1C2C42) and an
+// Centred overlay header area (docs/design-standards/overlay-standards.md): a Header (Lato Bold 20px, #1C2C42) and an
 // optional Title (Lato Bold 17px, #939393) below it. The Header is one line and truncates. The Title wraps unless
 // singleLine is set.
 //
@@ -12,7 +12,7 @@ import type { ReactNode } from "react";
 export const HEADER_TITLE_GAP = 21.25;
 // The same gap applies between two Title lines (Reminder info): 30px from one line's baseline to the next line's cap top.
 // The header area ends at the bottom of its last line (the bottom of the descenders, which is the bottom of the line box).
-// Whatever comes below it, a toggle, button, image or text, starts 30px lower (docs/design.md, Overlay Design Standards v2).
+// Whatever comes below it, a toggle, button, image or text, starts 30px lower (docs/design-standards/overlay-standards.md).
 // Cards lay their children out with a 40px gap, so the header area is pulled 10px into it.
 export const HEADER_TO_CONTENT = 30;
 export const HEADER_PULL = 10;

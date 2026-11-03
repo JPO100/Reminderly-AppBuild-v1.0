@@ -1,7 +1,7 @@
 # NeatlyMade Centred Overlay Standard
 
 **Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) take a copy of this file unchanged and do not edit it. Change requests go to John, are made here, and the new version is re-shared.
-**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.4.3, 2026-11-03.
+**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.5, 2026-11-03.
 **Scope:** everything about centred overlays lives in this one document. Sections 1 to 10 are the standard and apply to every app; section 11 is this document's version history. The Related standards and Adoption notes in the introduction also apply to every app. The appendix at the end is Reminderly's own implementation record (inventory, dismissal table, known gaps) and applies to Reminderly only; other apps ignore it and keep their own record in their own repository, without restating these rules. If an appendix disagrees with the standard, the standard wins.
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
@@ -128,6 +128,8 @@ Header then Title (message) then buttons is the pattern for every dialog: the me
 - **Information page Header:** an info icon sits before the Header text, 10px from it and 1px below the text's vertical centre, in the heading text role colour. The Header is still one line and truncates.
 - **Information page body:** Lato Medium 17px, description text role colour, 24px line height, centred, wrapping. The body is in the button block. An optional image sits above the text, 30px from it. The image frame is up to 216px wide with an 11px radius and a 1px inset `#D9D9D9` border; Reminderly's example is 216 x 156 with 15px of inner padding, cropped at the bottom. The image and text scroll together while the Header stays fixed and Back is pinned.
 - **Back:** a single full-width primary button pinned at the bottom (section 5).
+- **Back to top (document pages):** a document page that scrolls (Privacy policy, Terms of use, FAQs) ends with a **Back to top** button as the last item inside the scrolling text, not pinned: the standard primary button (50px high, full width, `#4784F8`, label Lato Bold 17px white), 40px below the final text (the 30px between blocks plus 10px). A tap scrolls the body smoothly back to the top and nothing else.
+- **Settings rows:** on a settings overlay home page every row is 30px high and rows are 30px apart (60px pitch), toggle rows first and then click-through rows. A row's label is vertically centred in its 30px row. A click-through row's chevron (7 x 13) is vertically centred and its right edge sits 15px inside the toggle's right edge. A toggle row is as high as its toggle (30px). (Overlay toggle rows with a subtitle, section 6, are aligned to the top instead.)
 
 ## 5. Scrolling
 
@@ -194,6 +196,8 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 If an overlay needs to depart from this standard, it is a decision for John, recorded in that app's design document with the reason. Do not introduce exceptions silently. An overlay that does not follow the standard is a tidy-up item, not a precedent.
 
 ## 11. Version history
+
+**1.5 — 2026-11-03.** Back to top button added for scrolling document pages; settings row geometry (30px rows, 60px pitch, centred labels and chevrons) stated, both taken from Reminderly's source and measured. No existing measurement changed. Proposed for John's approval, on top of 1.4.3.
 
 **1.4.3 — 2026-11-03.** Two clarifications: the 21.25px derivation is given by both methods (unrounded metrics and the engine's rounded values) and shown to agree; the Noterly pilot is recorded as an accessibility exception, tracked and reassessed before release. No measurement changed.
 

@@ -12,7 +12,7 @@ Where this file gives Reminderly constants and CSS, they are the reference imple
 
 **Related standards (share the whole folder).** Toggle track, knob and states are in [controls-standards.md](./controls-standards.md); colours in [colour-standards.md](./colour-standards.md); Lato styles in [typography-standards.md](./typography-standards.md). This document refers to them and does not restate them.
 
-**Adoption.** Cross-app visual parity is not guaranteed by following the figures alone. The geometry and spacing figures were derived and verified for Reminderly's rendering environment (a web view on iOS) and its bundled Lato files. An app must not assume it uses identical Lato files or identical rendering. Before adopting, each app validates its own font metrics (ascent, descent, cap height, line box and how line heights are rounded) and its rendering environment, recomputes the figures that depend on them (section 3), and then confirms parity by comparing its overlays with Reminderly's side by side at the four screen sizes. Noterly's stack and font assets are not yet confirmed.
+**Adoption.** Cross-app visual parity is not guaranteed by following the figures alone. The geometry and spacing figures were derived and verified for Reminderly's rendering environment (a web view on iOS) and its bundled Lato files. An app must not assume it uses identical Lato files or identical rendering. Noterly is to use the same Lato assets (weights 400, 700 and 900), by John's decision (2026-11-03), and still validates this in its own environment. Before adopting, each app validates its own font metrics (ascent, descent, cap height, line box and how line heights are rounded) and its rendering environment, recomputes the figures that depend on them (section 3), and then confirms parity by comparing its overlays with Reminderly's side by side at the four screen sizes. The procedure is in [font-rendering-validation.md](./font-rendering-validation.md) and the pass or fail basis for the comparison is in [overlay-pilot-reference.md](./overlay-pilot-reference.md). Noterly's stack and rendering environment are not yet confirmed.
 
 ## 1. The principle
 
@@ -107,7 +107,7 @@ Not supplied, by design: the folder icon (an app with folders uses its own icon 
 
 ### Colour roles
 
-Colour roles and Reminderly's value for each (primary action, heading text, description text, subtitle and dismissive, inactive, warning text, card, backdrop) are defined once, in [colour-standards.md](./colour-standards.md), section 7. Colours are recorded there as Name = Hex (for example Reminderly blue = `#4784F8`). The hex values quoted in this document are those values, repeated for readability; if they ever differ, colour-standards.md wins. Noterly uses the same roles with its own values, decided by John; geometry and spacing are unchanged.
+Colour roles and Reminderly's value for each (primary action, heading text, description text, subtitle and dismissive, inactive, warning text, card, backdrop) are defined once, in [colour-standards.md](./colour-standards.md), section 7. Colours are recorded there as Name = Hex (for example Reminderly blue = `#4784F8`). The hex values quoted in this document are those values, repeated for readability; if they ever differ, colour-standards.md wins. Noterly uses the same roles and, by John's decision (2026-11-03), shares Reminderly's core application palette; its note-personalisation palette is separate and untouched. Geometry and spacing are unchanged.
 
 ## 4. Overlay families
 

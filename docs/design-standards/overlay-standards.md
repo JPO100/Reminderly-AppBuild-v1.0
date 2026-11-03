@@ -1,7 +1,7 @@
 # NeatlyMade Centred Overlay Standard
 
 **Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) take a copy of this file unchanged and do not edit it. Change requests go to John, are made here, and the new version is re-shared.
-**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.2.1, 2026-11-03.
+**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.3, 2026-11-03.
 **Scope:** everything about centred overlays lives in this one document. Sections 1 to 10 are the standard and apply to every app; section 11 is this document's version history. The Related standards and Adoption notes in the introduction also apply to every app. The appendix at the end is Reminderly's own implementation record (inventory, dismissal table, known gaps) and applies to Reminderly only; other apps ignore it and keep their own record in their own repository, without restating these rules. If an appendix disagrees with the standard, the standard wins.
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
@@ -31,8 +31,9 @@ Vocabulary: **Header** (Lato Bold 20px), **Title** (Lato Bold 17px), **Header su
 | Width | Preferred 340px; shrinks so the card is never closer than 20px to either side (320 at 360, 335 at 375, 340 from 380 up) |
 | Top and bottom clearance | At least 100px, and never less than the safe-area inset plus 20px: `max(100px, inset + 20px)` |
 | Maximum height | Viewport height minus the two clearances; the card never grows past it |
+| Card surface | White background (the card colour role). No shadow, no border, no outline (including no focus outline). Verified on the rendered Reminder info card: shadow none, border 0, outline none |
 | Corner radius | 32px on all four corners, always visible, including while content scrolls |
-| Backdrop | Full viewport, black at 50% opacity, flat colour (no gradient, no blur) |
+| Backdrop | Full viewport, black at 50% opacity, flat colour (no gradient, no blur). Verified: `backdrop-filter` none |
 | Layering | Backdrop and wrapper at layer 60; an overlay that sits over another overlay at layer 70 |
 | Orientation | Portrait only |
 
@@ -86,6 +87,21 @@ All hex values below are Reminderly's values for a colour role. See the roles ta
 | Single action (OK, Close, Back) | Full width |
 
 Destructive actions use grey `#939393`, not red. (The only red is a Title line that signals an overdue reminder, `#FF0000`; other apps need no equivalent unless John decides.)
+
+### Icon artwork
+
+The icons used in overlays are supplied as SVG files in [assets/overlay/](./assets/overlay/), extracted unchanged from Reminderly's source (path data, view box and size as implemented). An app uses these shapes at these sizes so its overlays match; an app does not redraw them. Colour is set by role (the files carry Reminderly's values; recolour by role, not by editing the shape).
+
+| File | Size | Colour role (Reminderly value in the file) | Used for |
+|------|------|-------|----------|
+| `back-arrow.svg` | 9 x 17 | Heading text (`#1C2C42`) | Sub-page back arrow (45 x 45 tap area, section 4) |
+| `info-icon.svg` | 16.5 x 16.5 | Heading text (`#1C2C42`) | Information page Header, 10px before the text |
+| `scroll-chevron.svg` | 12 x 7 | Inactive (`#D9D9D9`) | Scroll indicator (section 5) |
+| `click-through-chevron.svg` | 7 x 13 | Description text (`#939393`) | Click-through rows (section 6) |
+| `smart-reminder-bell.svg` | 19 x 21 | Description text (`#939393`) | Title line icon, Reminder info (Reminderly feature) |
+| `repeats-icon.svg` | 21 x 21 | Description text (`#939393`) | Title line icon, Reminder info (Reminderly feature) |
+
+Not supplied, by design: the folder icon (an app with folders uses its own icon under the Title-line icon convention in section 1); the toggle-row left icons (insertion order, alphabetical) and the copy-feedback icon, which belong to Reminderly's list rows and are not part of the shared overlay set; the information page example image, which is content. The smart reminder bell and repeats icon are Reminderly features and are included only as the reference for the Title-line icon convention (size, gap and colour role). Where an icon was in more than one place in the source, the instance used in the overlay was taken.
 
 ### Colour roles
 
@@ -185,6 +201,8 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 If an overlay needs to depart from this standard, it is a decision for John, recorded in that app's design document with the reason. Do not introduce exceptions silently. An overlay that does not follow the standard is a tidy-up item, not a precedent.
 
 ## 11. Version history
+
+**1.3 — 2026-11-03.** Card surface stated (white, no shadow, no border, no outline; backdrop has no blur), verified on the rendered card. Overlay icon artwork supplied as SVG files in assets/overlay/, extracted unchanged from Reminderly's source. No existing measurement changed.
 
 **1.2.1 — 2026-11-03.** Documentation corrections from Jason's review: scope of sections aligned with the README; wrapping versus truncation stated; the three bottom-of-card measurements separated; font metrics and rendering environment must be validated per app; 50px button height takes precedence over padding. No measurement changed.
 

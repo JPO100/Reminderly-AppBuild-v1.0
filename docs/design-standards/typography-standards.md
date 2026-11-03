@@ -21,25 +21,42 @@ The code and our documents use design-tool names. Each name is mapped to a CSS w
 
 So wherever this standard says "Lato Medium" the rendered text is **Lato Regular (400)**, and "SemiBold" renders as **Bold (700)**. An app that bundles a true Lato Medium (500) would render these styles differently from Reminderly, so another app matches Reminderly by using Regular 400 for every "Medium" style, not by adding a Medium file.
 
-## 3. Type scale used on the app screens
+## 3. Type scale and where each style is used
 
-Default weight is Bold (700) unless stated. Colours are the roles in [colour-standards.md](./colour-standards.md).
+Each style is one row: the font, size and weight actually rendered, the colour role, and a plain-English description of where it appears. **Status** says whether the usage was confirmed in the code on 2026-11-03 (file named) or is **unverified** (taken from the previous document or another standard and not confirmed). Colours are the roles in [colour-standards.md](./colour-standards.md). Detailed overlay geometry and spacing stay in [overlay-standards.md](./overlay-standards.md); the overlay rows here only name the styles.
 
-| Style | Size | Weight rendered | Colour | Note |
-|-------|------|-----------------|--------|------|
-| Panel title | 20px | Bold | Reminderly dark blue `#1C2C42` | |
-| Row title, setting label, button label | 17px | Bold | Reminderly dark blue `#1C2C42` (buttons white) | |
-| Description text | 17px | Regular ("Medium") | Description grey `#939393` | 14px for section subtitles |
-| Row subtitle | 14px | Bold | Medium grey `#BABABA` | |
-| Filter pill | 14px | Bold | Category colour | |
-| Sub-header | 15px | Bold | Medium grey `#BABABA` | Found in the tutorial refresh row (`Frame681.tsx`); see section 5 |
-| Empty state | 17px | Regular (plain Lato, no bold; `App.tsx:583`) | `#CCCCCC` (`#BABABA` for the calendar empty day) | The calendar empty day was not checked |
+### App screens (panels, lists, settings)
 
-Weights in this table other than Description text, Sub-header and Empty state are the previous version's default (Bold) and were not re-checked row by row.
+| Style | Font, size, rendered weight | Colour | Where it is used | Status |
+|-------|-----------------------------|--------|------------------|--------|
+| Panel title | Lato, 20px, Bold | Reminderly dark blue `#1C2C42` | The main heading at the top of a slide-up panel or screen, for example "List templates", and the month title in the calendar view | Verified (`App.tsx`: "List templates", calendar month title) |
+| Row title | Lato, 17px, Bold | Reminderly dark blue `#1C2C42` | The first line of a reminder or list row, for example "Water the plants" | Verified (measured at 17px in the running app) |
+| Setting label | Lato, 17px, Bold | Reminderly dark blue `#1C2C42` | The name of a setting row in the Reminders and Lists settings and in Dev tools | Verified (`SettingsPanelContent.tsx`, `DevToolsOverlay.tsx` rows) |
+| Button label | Lato, 17px, Bold | White | The text on a rounded button, for example "Back", "Close", "Mark as done" | Verified (`SettingsPanelContent.tsx`, overlays) |
+| Description text | Lato "Medium", 17px, rendered Regular 400, 23px line height, left-aligned | Description grey `#939393` | Explanatory paragraphs on settings pages | Verified (`SettingsPanelContent.tsx`, description class) |
+| Section subtitle | Lato "SemiBold", 14px, rendered Bold 700 | Description grey `#939393` | A short explanatory line under a Dev tools section heading | Verified in Dev tools only (`DevToolsOverlay.tsx`); use elsewhere is unverified, and the previous document gave it as Medium |
+| Row subtitle | Lato, 14px, Bold | Medium grey `#BABABA` | The second line of a reminder or list row giving detail, for example "Today at 6pm. Every week (Mon)" | Verified for size and use (measured at 14px); weight is the previous document's default and not re-checked |
+| Filter pill | Lato, 14px, Bold | Category colour | The label inside a pill-shaped button. Confirmed for the Done, Deleted and Clear all pills; the Today, This week and Later pills are unverified | Partly verified (`App.tsx`) |
+| Sub-header | Lato, 15px, Bold | Medium grey `#BABABA` | The second line of the tutorial refresh row ("Take a refresh of the onboarding tutorial"). The only place found | Verified (`Frame681.tsx`) |
+| Empty state | Lato, 17px, Regular 400 | Empty-state grey `#CCCCCC` | The message shown in the middle of a list that has nothing in it | Verified for the component (`App.tsx` `DelayedEmptyState`); the individual messages and the calendar empty day (`#BABABA`) are unverified |
 
-Centred overlay text (Header 20px, Title 17px, Header subtitle 15px, information page body 17px, and the line heights and spacing) is defined once, in [overlay-standards.md](./overlay-standards.md), and is not repeated here.
+### Centred overlays (full rules in overlay-standards.md)
 
-Sizes also found in the code and not classified here: 12px (calendar caption), 16px (Dev tools login fields in SemiBold, calendar day numbers), 22px (tutorial and Dev tools login text). Sizes with decimals (for example 11.834px, 9.751px) are tutorial replicas scaled by the phone's width and are not separate standards.
+| Style | Font, size, rendered weight | Colour | Where it is used | Status |
+|-------|-----------------------------|--------|------------------|--------|
+| Header | Lato, 20px, Bold, one line, truncates | Reminderly dark blue `#1C2C42` | The main heading at the top of a centred overlay, for example "Turn on notifications?" | Verified (`OverlayHeader.tsx`) |
+| Title | Lato, 17px, Bold | Description grey `#939393` | A line of text directly under the Header: the due, smart reminder and repeats lines in Reminder info, and the message in a confirmation or notice dialog | Verified (`OverlayHeader.tsx`, `ReminderInfoOverlay.tsx`) |
+| Header subtitle | Lato "Medium", 15px, rendered Regular 400, 20px line height | Medium grey `#BABABA` | The version and last-updated lines under the Header on the Privacy policy and Terms of use pages | Verified (`SettingsPanelContent.tsx` `PanelHeader`) |
+| Information page body | Lato "Medium", 17px, rendered Regular 400, 24px line height, centred | Description grey `#939393` | The explanation text on a settings information page and on a Dev tools information overlay | Verified (`SettingsPanelContent.tsx`, `DevToolsOverlay.tsx`) |
+| Overlay button label | Lato, 17px, Bold | White | The text on a button inside a centred overlay | Verified |
+| Toggle row title | Lato, 17px | Reminderly dark blue `#1C2C42` | The name of a toggle row in an overlay, for example "Set smart reminder" | Size from overlay-standards.md; weight and file unverified |
+| Toggle row subtitle | Lato, 14px | Medium grey `#BABABA` | The explanatory line under a toggle row title | Size from overlay-standards.md; weight and file unverified |
+
+Weights in the "Row subtitle" row, and any weight marked unverified, are the previous document's default (Bold) and were not re-checked row by row.
+
+**Differences found, not changed here.** The full-width "New reminder" and "New template" buttons use a **20px** white Bold label (`App.tsx`, "New reminder" button and "New template" button), while `controls-standards.md` gives the New reminder / New list button label as 17px. That is a conflict between a standard and the code; it is not a new style and is left for John to decide, in the controls standards review.
+
+Sizes also found in the code and not classified here: 12px (calendar caption), 16px (Dev tools login fields in SemiBold, calendar day numbers), 22px (tutorial and Dev tools login text), and a 20px reminder text field in the New reminder header (`Header.tsx`). Sizes with decimals (for example 11.834px, 9.751px) are tutorial replicas scaled by the phone's width and are not separate standards.
 
 ## 4. Font metrics and rendering
 
@@ -61,5 +78,7 @@ They share size and colour and differ in weight, element and place. The overlap 
 ## 6. Open items
 
 - Decide whether Sub-header and Row subtitle (15px and 14px) should be one style.
-- 12px, 16px and 22px text styles are in the code but not classified.
+- 12px, 16px, 22px and the 20px reminder text field are in the code but not classified.
+- The 20px New reminder and New template button label differs from the 17px in controls-standards.md.
+- Usage marked unverified in section 3 is to be confirmed.
 - Another app records its font files and weights in its own design document before adopting the overlay standard; Noterly's font assets are not yet confirmed.

@@ -1,12 +1,12 @@
 # NeatlyMade Centred Overlay Standard
 
 **Single source of truth** for centred overlays in every NeatlyMade app. Owned and updated in the Reminderly repository (`docs/design-standards/overlay-standards.md`); other apps (Noterly) take a copy of this file unchanged and do not edit it. Change requests go to John, are made here, and the new version is re-shared.
-**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.4, 2026-11-03.
+**Status:** Approved by John (CEO), with Jason's (CTO) review of the 2026-11-03 completion work. **Version:** 1.4.1, 2026-11-03.
 **Scope:** everything about centred overlays lives in this one document. Sections 1 to 10 are the standard and apply to every app; section 11 is this document's version history. The Related standards and Adoption notes in the introduction also apply to every app. The appendix at the end is Reminderly's own implementation record (inventory, dismissal table, known gaps) and applies to Reminderly only; other apps ignore it and keep their own record in their own repository, without restating these rules. If an appendix disagrees with the standard, the standard wins.
 
 Where this file gives Reminderly constants and CSS, they are the reference implementation, not an extra requirement.
 
-**What is shared and what is per app.** The semantic rules are shared: structure, geometry, spacing, sizes, behaviour and which colour role each element uses. Colour **values** are per app: every hex value in this document is Reminderly's value for a role (table in section 3), not a requirement on other apps. An app that uses different values keeps the same roles and the same geometry and spacing.
+**What is shared and what is per app.** The semantic rules are shared: structure, geometry, spacing, sizes, behaviour and which colour role each element uses. Colour **values** are per app: every hex value in this document is Reminderly's value for a role (roles and values: [colour-standards.md](./colour-standards.md), section 7), not a requirement on other apps, not a requirement on other apps. An app that uses different values keeps the same roles and the same geometry and spacing.
 
 **Fonts.** "Lato Medium" in this document renders as Lato Regular (400), and "SemiBold" as Bold (700), because only the 400, 700 and 900 files are bundled; see [typography-standards.md](./typography-standards.md), section 2. An app matches by using Regular where this document says Medium.
 
@@ -66,7 +66,7 @@ The 100px clearance wins whenever the safe-area inset is under 80px (every curre
 
 ## 3. Internal layout
 
-All hex values below are Reminderly's values for a colour role. See the roles table at the end of this section.
+All hex values below are Reminderly's values for a colour role. Roles and values are in [colour-standards.md](./colour-standards.md), section 7.
 
 - **Card padding:** 40px top and bottom, 30px left and right. Content is centred horizontally. (When content overflows and scrolls, the bottom gap becomes 30px; see section 5.)
 - **Header:** Lato Bold 20px, `#1C2C42`, centred, one line (line box fixed at 24px), truncated with an ellipsis. Never wraps.
@@ -192,6 +192,8 @@ If an app has an onboarding tutorial that reproduces an overlay, reproduce it in
 If an overlay needs to depart from this standard, it is a decision for John, recorded in that app's design document with the reason. Do not introduce exceptions silently. An overlay that does not follow the standard is a tidy-up item, not a precedent.
 
 ## 11. Version history
+
+**1.4.1 — 2026-11-03.** Two stale references corrected: the colour roles are in colour-standards.md, section 7, not in this document.
 
 **1.4 — 2026-11-03.** Colour roles table moved to colour-standards.md (section 7) so colours are defined once; font metrics referred to typography-standards.md; rendered weight of "Medium" and "SemiBold" stated. No measurement changed.
 

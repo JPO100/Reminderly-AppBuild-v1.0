@@ -49,8 +49,8 @@ Each style is one row: the font, size and weight actually rendered, the colour r
 | Header subtitle | Lato "Medium", 15px, rendered Regular 400, 20px line height | Medium grey `#BABABA` | The version and last-updated lines under the Header on the Privacy policy and Terms of use pages | Verified (`SettingsPanelContent.tsx` `PanelHeader`) |
 | Information page body | Lato "Medium", 17px, rendered Regular 400, 24px line height, centred | Description grey `#939393` | The explanation text on a settings information page and on a Dev tools information overlay | Verified (`SettingsPanelContent.tsx`, `DevToolsOverlay.tsx`) |
 | Overlay button label | Lato, 17px, Bold | White | The text on a button inside a centred overlay | Verified |
-| Toggle row title | Lato, 17px | Reminderly dark blue `#1C2C42` | The name of a toggle row in an overlay, for example "Set smart reminder" | Size from overlay-standards.md; weight and file unverified |
-| Toggle row subtitle | Lato, 14px | Medium grey `#BABABA` | The explanatory line under a toggle row title | Size from overlay-standards.md; weight and file unverified |
+| Toggle row title | Lato, 17px, Bold, 17px line height | Reminderly dark blue `#1C2C42` | The name of a toggle row in an overlay, for example "Set smart reminder" | Verified (`InfoOverlay.tsx`, `list-info-overlay.tsx`, toggle review 2026-11-03) |
+| Toggle row subtitle | Lato, 14px, Bold, 14px line height | Medium grey `#BABABA` | The explanatory line under a toggle row title, for example the due-by date under "Set smart reminder" | Verified (`InfoOverlay.tsx`, toggle review 2026-11-03) |
 
 Weights in the "Row subtitle" row, and any weight marked unverified, are the previous document's default (Bold) and were not re-checked row by row.
 

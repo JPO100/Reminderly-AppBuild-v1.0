@@ -13,3 +13,5 @@ Lato throughout (`src/styles/fonts.css`), bold (700) unless stated.
 | Filter pill | 14px | Category colour |
 | Sub-header | 15px | `#BABABA` |
 | Empty state | 17px | `#CCCCCC` (`#BABABA` for the calendar empty day) |
+
+Note (2026-11-03): the overlay standard defines a Header subtitle, Lato Medium 15px `#BABABA`, in a centred overlay's header area. This table lists a 15px `#BABABA` Sub-header and, by the rule at the top, treats it as bold. The only other 15px `#BABABA` text found in the code is a Lato Bold line in a settings row, so the Header subtitle and the Sub-header share size and colour and differ in weight and use. They are not reconciled; the typography review decides. The overlay standard governs the Header subtitle.

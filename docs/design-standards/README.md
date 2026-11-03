@@ -10,7 +10,7 @@ Colours and sizes are mostly applied inline in component code; there is no singl
 
 | Document | Covers | Applies to | Status |
 |----------|--------|------------|--------|
-| [overlay-standards.md](./overlay-standards.md) | Centred overlays: two-zone principle, geometry, spacing, buttons, scrolling, toggles, accessibility, tutorials, screen sizes, checklist; Reminderly appendix | All apps (sections 1 to 11); Reminderly only (appendix) | v1.2, 2026-11-03, reviewed |
+| [overlay-standards.md](./overlay-standards.md) | Centred overlays: two-zone principle, geometry, spacing, buttons, scrolling, toggles, accessibility, tutorials, screen sizes, checklist; Reminderly appendix | All apps (sections 1 to 10, and the introduction; section 11 is the version history); Reminderly only (appendix) | v1.2.1, 2026-11-03, reviewed |
 | [colour-standards.md](./colour-standards.md) | Core, reminder category, list category, state and grey colours | Mixed: roles shared, values per app; category colours Reminderly only | Moved, review due |
 | [typography-standards.md](./typography-standards.md) | Lato styles, sizes and colours | Mixed: Lato styles shared where adopted; colours per app | Moved, review due |
 | [layout-and-spacing-standards.md](./layout-and-spacing-standards.md) | Common spacing values, layout and responsiveness | Mixed: spacing values shared; pill and tutorial heights Reminderly only | Moved, review due |

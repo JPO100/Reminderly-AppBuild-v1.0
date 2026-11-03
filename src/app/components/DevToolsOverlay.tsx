@@ -460,7 +460,7 @@ function NaturalLanguagePage({ onBack, onClose, nlcEnabled, onNlcEnabledChange, 
                   <div className="flex items-center justify-center size-full">
                     <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
                       <p className="leading-[normal]">
-                        {pendingNlcState ? 'Yes, turn on' : 'Yes, turn off'}
+                        {pendingNlcState ? 'Turn on' : 'Turn off'}
                       </p>
                     </div>
                   </div>
@@ -529,7 +529,7 @@ function OnboardingPage({ onBack, onClose, isOnboardingTutorialEnabled, onOnboar
                   <div className="flex items-center justify-center size-full">
                     <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
                       <p className="leading-[normal]">
-                        {pendingOnboardingState ? 'Yes, turn on' : 'Yes, turn off'}
+                        {pendingOnboardingState ? 'Turn on' : 'Turn off'}
                       </p>
                     </div>
                   </div>
@@ -778,7 +778,7 @@ function RemindersPage({ onBack, onClose, enableReminders, onEnableRemindersChan
                   <div className="flex items-center justify-center size-full">
                     <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
                       <p className="leading-[normal]">
-                        {pendingRemindersState ? 'Yes, turn on' : 'Yes, turn off'}
+                        {pendingRemindersState ? 'Turn on' : 'Turn off'}
                       </p>
                     </div>
                   </div>
@@ -853,7 +853,7 @@ function ListsAreaPage({ onBack, onClose, enableReminders, isListsEnabled, onLis
                   <div className="flex items-center justify-center size-full">
                     <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
                       <p className="leading-[normal]">
-                        {pendingListsState ? 'Yes, turn on' : 'Yes, turn off'}
+                        {pendingListsState ? 'Turn on' : 'Turn off'}
                       </p>
                     </div>
                   </div>

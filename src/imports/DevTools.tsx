@@ -172,7 +172,7 @@ export default function DevTools({
                   <div className="flex items-center justify-center size-full">
                     <div className="flex flex-col font-['Lato:Bold',sans-serif] justify-center leading-[0] not-italic relative shrink-0 text-[17px] text-white whitespace-nowrap">
                       <p className="leading-[normal]">
-                        {pendingToggle.target ? 'Yes, turn on' : 'Yes, turn off'}
+                        {pendingToggle.target ? 'Turn on' : 'Turn off'}
                       </p>
                     </div>
                   </div>

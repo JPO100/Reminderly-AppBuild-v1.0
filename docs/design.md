@@ -163,7 +163,7 @@ Responsive rules: the standard is expressed as clearances and a preferred width,
 - Title (only where text sits under the Header): Lato Bold 17px, `#939393`, centred. Short Title lines are one line and truncate; a Title that is a description (a dialog message) may wrap. Exception: the Reminder info due line stays red `#FF0000` when overdue.
 - **Header-to-Title distance is 30px measured from the Header's baseline to the Title's cap top, not between text boxes (this is the one measurement taken to glyphs inside the header area).** Lato Bold metrics (as bundled): ascent 0.987em, descent 0.213em, cap height 0.723em, line box 1.2em. With the Header line box fixed at 24px its baseline is 0.213 x 20 = 4.26px above its box bottom; the Title's cap top is (0.987 - 0.723) x 17 = 4.488px below its line box top. The CSS gap between the two boxes is therefore 30 - 4.26 - 4.488 = **21.25px** (`HEADER_TITLE_GAP` in `OverlayHeader.tsx`). The only other glyph measurement is the cap top of a line of text that follows the header area (next bullet); every other value is between boxes.
 - **One rule below the header area (John, 2026-11-02): the gap from the bottom of the header area to whatever comes next is always 30px.** The header area is the Header plus any Title lines (or the Support pages' version and date lines); its bottom is the bottom of the last line's descenders, which is the bottom of that line's box (line box 1.2em; the Header's is fixed at 24px). What comes next is measured at its top: the top edge of a toggle row, click-through row, button or image, or the cap top of a line of text. This holds for every overlay and every tutorial replica, with no exceptions (the Support pages' earlier 30px gap is now simply the standard). Cards lay out their children with a 40px gap, so `OverlayHeader` (and the matching headers in the settings pages and Reminder info) pull the header area 10px into it (`HEADER_PULL`); where the parent gap is already 30 nothing is pulled. `ScrollArea` pulls a first line of text up by its leading above the capitals, (line height - 1.2em) / 2 + 0.264em, so the capitals, not the line box, are 30px below.
-- Several Title lines in one header area (Reminder info) are 30px apart, box to box.
+- Several Title lines in one header area (Reminder info, up to three: due, smart reminder progress, repeats) are 30px apart measured the same way as Header to Title: from one line's baseline to the next line's cap top (John, 2026-11-03, from a Figma spec), which is the same 21.25px box gap (`HEADER_TITLE_GAP`). Measured at 402 x 874: 29.96px for both gaps.
 
 Buttons:
 
@@ -194,7 +194,7 @@ Destructive actions use grey `#939393`, not red.
 
 | Family | Structure |
 |--------|-----------|
-| Info (Reminder info, List info, Deleted info) | Header, 30, rows or buttons (30 apart). Reminder info: Header, Title lines (30 apart), 30, buttons |
+| Info (Reminder info, List info, Deleted info) | Header, 30, rows or buttons (30 apart). Reminder info: Header, Title lines (30 apart, baseline to cap top), 30, buttons |
 | Menu (Saved list, Template editor) | Header, 30, stacked buttons |
 | Settings (Reminders, Lists) | One shared card height for all settings overlays: the taller of the two home pages, capped by the available height. Sub-pages and information pages inherit that height (a page never resizes the card). Header fixed, rows scroll; information pages have a fixed Header, scrolling image and text, and Back pinned |
 | Attachment overlays | Add attachment: title and stacked primary buttons. Attachment error: title, message, OK. Delete attachment: title and one grey destructive button, no Cancel |
@@ -243,7 +243,7 @@ div.fixed.inset-0.z-[60].flex.items-center.justify-center
 
 | Overlay | Layout | Buttons |
 |---------|--------|---------|
-| Reminder info | Header (the reminder text, truncated), 30 (baseline to cap top), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), smart reminder line and repeats line (Bold `#939393`, 30 apart, truncated), 30, buttons | Stacked, scrolling `ScrollArea` |
+| Reminder info | Header (the reminder text, truncated), 30 (baseline to cap top), Title lines: due line (Bold, `#939393`, `#FF0000` when overdue), smart reminder line and repeats line (Bold `#939393`, 30 apart baseline to cap top, truncated), 30, buttons | Stacked, scrolling `ScrollArea` |
 | Deleted info | Header, 30, buttons | Stacked, scrolling |
 | List settings | Header, 30, one button block: toggle rows and buttons all 30 apart | Stacked, scrolling |
 | List info | Header, 30, one button block: smart reminder row (when shown) and buttons all 30 apart | Stacked, scrolling |

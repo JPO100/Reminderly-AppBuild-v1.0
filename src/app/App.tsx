@@ -905,6 +905,7 @@ export default function App() {
   const listItemHighlightTimerRef = useRef<number | null>(null);
   const tabsBarRef = useRef<HTMLDivElement | null>(null);
   const logoRef = useRef<HTMLDivElement | null>(null);
+  const appHeaderRef = useRef<HTMLDivElement | null>(null);
   const listInfoOverlayList = listInfoOverlayListId == null
     ? null
     : createdLists.find((list) => list.id === listInfoOverlayListId) ?? null;
@@ -2201,11 +2202,12 @@ export default function App() {
     return DEFAULT_TOP;
   };
 
-  // Sliding panels stop 28px below the logo, with Lists on or off
+  // Sliding panels rest where the main panel stack starts, the bottom of the app header (146px on the
+  // reference layout), with Lists on or off (docs/design-standards/panel-standards.md)
   const getBottomSheetTopPosition = () => {
-    const logoBottom = logoRef.current?.getBoundingClientRect().bottom;
-    if (typeof logoBottom === "number" && Number.isFinite(logoBottom)) {
-      return logoBottom + 28;
+    const headerBottom = appHeaderRef.current?.getBoundingClientRect().bottom;
+    if (typeof headerBottom === "number" && Number.isFinite(headerBottom)) {
+      return headerBottom;
     }
     return getOverlayTopPosition();
   };
@@ -3565,10 +3567,9 @@ export default function App() {
     />
   ) : null;
 
-  // Dev tools panel sits level with the top of the logo
+  // Dev tools panel rests at the shared sliding panel position
   if (isDevToolsOpen && devToolsTopRef.current === null) {
-    const logoTop = logoRef.current?.getBoundingClientRect().top;
-    devToolsTopRef.current = typeof logoTop === "number" && Number.isFinite(logoTop) ? logoTop : getBottomSheetTopPosition();
+    devToolsTopRef.current = getBottomSheetTopPosition();
   }
   if (!isDevToolsOpen) {
     devToolsTopRef.current = null;
@@ -3651,7 +3652,7 @@ export default function App() {
         </div>
       )}
       {/* Header */}
-      <div className="app-header relative shrink-0 w-full p-[20px]">
+      <div ref={appHeaderRef} className="app-header relative shrink-0 w-full p-[20px]">
         <div className="content-stretch flex flex-col gap-[17px] items-start relative w-full max-w-[768px] mx-auto" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }}>
           <div className="content-stretch flex items-center justify-center pb-[20px] pt-[50px] relative shrink-0 w-full">
             <div ref={logoRef} className="h-[35.653px] relative shrink-0 w-[209.653px]" style={{ top: '7px' }}>
@@ -4105,7 +4106,7 @@ export default function App() {
               <button
                 type="button"
                 className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full"
-                style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
+                style={{ height: '60px' }}
                 onClick={() => {
                   hapticTap('createTemplate');
                   setListTitle(pickDefaultTemplateName(savedLists.map(l => l.title)));
@@ -4350,7 +4351,7 @@ export default function App() {
             <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
               <button
                 className="bg-[#4784F8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full transition-colors"
-                style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
+                style={{ height: '60px' }}
                 onClick={() => { hapticTap('createList'); setListTitle(pickDefaultListName(createdLists.map(l => l.title))); setListItems([]); setListOverlayMode('create'); setEditingListId(null); setIsTemplateEditorSort(false); setListSmartReminders(false); setListSmartReminderDueDate(null); setListSmartReminderTime(null); setIsListsOverlayOpen(true); }}
               >
                 <div className="relative shrink-0 size-[15px]">
@@ -5001,7 +5002,7 @@ export default function App() {
         <div className="content-stretch flex items-center justify-center w-full max-w-[768px] pb-[24px] shrink-0">
           <button
             className="bg-[#4784f8] content-stretch flex gap-[16px] items-center justify-center px-[30px] relative rounded-[100px] w-full transition-colors"
-            style={{ height: 'clamp(40px, calc(20vh - 73.6px), 60px)' }}
+            style={{ height: '60px' }}
             onClick={() => { hapticTap('createReminder'); setIsOverlayOpen(true); }}
           >
             <div className="relative shrink-0 size-[15px]">
@@ -5172,7 +5173,7 @@ export default function App() {
                   onPointerDown={(event) => listsSheetDragControls.start(event)}
                 />
                 <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[26px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
+                  <div className="content-stretch flex flex-col gap-[26px] items-start pt-[24px] px-[20px] relative w-full shrink-0">
                     <ListsHeader
                       value={listTitle}
                       onChange={setListTitle}
@@ -5235,7 +5236,7 @@ export default function App() {
                         }, INSERT_HIGHLIGHT_MS);
                     }} isEmpty={listItems.length === 0} accentColor={isSavedListCreateOverlay ? '#4784F8' : currentListAccentColor} idleCircleColor="#D9D9D9" leadingIcon={isSavedListCreateOverlay ? <SavedListOverlayAddItemIcon /> : undefined} focusedLeadingIcon={isSavedListCreateOverlay ? <SavedListOverlayAddItemFocusedIcon /> : undefined} activeLeadingIcon={isSavedListCreateOverlay ? <SavedListOverlayAddItemFocusedIcon /> : undefined} nextPlaceholder={isSavedListCreateOverlay ? "Add your next template item..." : "Add your next item..."} />
                   </div>
-                  <div className="flex flex-col gap-[23px] items-start px-[24px] pb-[24px] relative w-full flex-1 min-h-0 overflow-y-auto mt-[35px]">
+                  <div className="flex flex-col gap-[23px] items-start px-[20px] pb-[24px] relative w-full flex-1 min-h-0 overflow-y-auto mt-[35px]">
                     <AnimatePresence initial={false}>
                     {overlayDisplayListItems.map((item) => {
                       const isItemReinserted = listItemReinsertedId === item.id;

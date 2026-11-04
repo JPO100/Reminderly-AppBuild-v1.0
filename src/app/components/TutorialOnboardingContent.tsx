@@ -83,8 +83,8 @@ interface TutorialOnboardingContentProps {
 const LIST_BLUE = "#4784F8";
 const REMINDERLY_LIGHT_BLUE = "#4784F8";
 const TUTORIAL_PHONE_GAP_TOP_CLASSNAME = "mt-[35px]";
-// Standard footer button height (Next, Okay got it, Turn on and Skip)
-const TUTORIAL_FOOTER_BUTTON_HEIGHT = "clamp(40px, calc(20vh - 73.6px), 54px)";
+// Standard footer button height (Next, Okay got it, Turn on and Skip): the 60px CTA height
+const TUTORIAL_FOOTER_BUTTON_HEIGHT = "60px";
 const TUTORIAL_PHONE_GAP_BOTTOM_CLASSNAME = "pb-[45px]";
 const TUTORIAL_LIST_OVERLAY_TOP = 11 + 5.026 + 65 - 2;
 const LISTS_PAGE_3_TARGET_LIST_ID = "list-2";
@@ -1742,12 +1742,12 @@ export default function TutorialOnboardingContent({
       data-testid="onboarding-root"
       className="bg-white flex flex-col h-full relative [@media(max-height:570px)]:!h-full [@media(max-height:570px)]:!pb-0"
       style={{
-        borderTopLeftRadius: '30px',
-        borderTopRightRadius: '30px',
-        paddingLeft: 'clamp(16px, 5vw, 40px)',
-        paddingRight: 'clamp(16px, 5vw, 40px)',
-        paddingTop: '34px',
-        paddingBottom: '34px',
+        borderTopLeftRadius: '15px',
+        borderTopRightRadius: '15px',
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        paddingTop: '24px',
+        paddingBottom: '24px',
       }}
     >
       {testPageIds && <TutorialTestingModeIcon />}
@@ -1997,7 +1997,7 @@ export default function TutorialOnboardingContent({
           ))}
         </div>
         
-        <div className="relative flex items-center justify-center w-full max-w-[322px] h-[45px]">
+        <div className="relative flex items-center justify-center w-full max-w-[322px] h-[60px]">
           {!isFirstPage ? (
             <button 
               className="absolute left-0 h-[45px] w-[35px] cursor-pointer"

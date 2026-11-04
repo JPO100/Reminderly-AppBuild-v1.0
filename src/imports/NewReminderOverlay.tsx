@@ -1628,7 +1628,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
   return (
     <>
     <div className="relative shrink-0 w-full max-w-[768px] h-full flex flex-col" data-name="new-reminder-elements">
-      <div className="content-stretch flex flex-col gap-[22px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
+      <div className="content-stretch flex flex-col gap-[22px] items-start pt-[24px] px-[20px] relative w-full shrink-0">
         <Header isSubmitActive={isSubmitActive} onSubmit={handleSubmit} title={isSmartReminderCreate ? 'Add smart reminder' : isEditMode ? (isSmartReminderEdit ? 'Edit smart reminder' : 'Edit reminder') : 'New reminder'} />
         {/* NLC: Container wraps mirror layer + textarea for alignment */}
         {/* Mirror and hit layer must stay identical in text metrics (font, size, line-height, padding, whitespace). Any styling change must be applied to both. */}
@@ -1844,7 +1844,7 @@ function NewReminderElements({ repeatsEnabled = true, onRepeatsOverlayOpen, repe
           )}
         </motion.div>
       </div>
-      <div className="flex-1 min-h-0 flex flex-col px-[24px] pt-[24px] pb-[24px]">
+      <div className="flex-1 min-h-0 flex flex-col px-[20px] pt-[24px] pb-[24px]">
         {/* Spacing by width: 10px gaps, except iPhone 15 Pro width (393-401pt) where the pills spread edge to edge */}
         {isDatePresetsEnabled && !isSmartReminderMode && (
           <div className="flex items-center gap-[10px] min-[393px]:max-[401.98px]:gap-0 min-[393px]:max-[401.98px]:justify-between shrink-0 mb-[24px] overflow-x-auto" style={{ scrollbarWidth: 'none' }} data-name="date-presets">

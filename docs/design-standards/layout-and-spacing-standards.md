@@ -4,7 +4,7 @@ Visual conventions as implemented, checked against the code on 2026-10-12. Where
 
 ## Spacing and sizing
 
-Common values: 4px (title to subtitle), 10px (list gaps), 16px (pill padding, row gaps), 20px (main panel padding), 24px (panel padding), 30px and 40px (see the overlay standard), 45px (header, pill and button height).
+Common values: 4px (title to subtitle), 10px (list gaps), 16px (pill padding, row gaps), 20px (panel side padding), 24px (panel top and bottom spacing), 30px and 40px (see the overlay standard), 45px (header, pill and button height), 60px (CTA height). Panel values: see [panel-standards.md](./panel-standards.md).
 
 ## Layout and responsiveness
 

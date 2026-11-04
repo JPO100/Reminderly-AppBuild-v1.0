@@ -171,7 +171,7 @@ Decided within D1 (2026-10-14): annual subscription at £9, all features free wi
 
 | Requirement | Status | Reference | Notes |
 |-------------|--------|-----------|-------|
-| Developer Program membership and App Store Connect app record | Verify before submission | | Bundle ids `com.reminderly.app`, `com.reminderly.app.widget` |
+| Developer Program membership and App Store Connect app record | Verify before submission | | NeatlyMade Ltd team. Bundle ids and the four App Store Connect records (Dev and Release for each app) are set out in [plans/testflight-dev-release-split.md](./plans/testflight-dev-release-split.md) (deferred, 2026-11-04); the ids `com.reminderly.app` and `com.reminderly.app.widget` are not assumed |
 | App name available | Verify before submission | | "Reminderly" |
 | Metadata: subtitle, description, keywords, category (Productivity), copyright, support URL | Outstanding | 2.3 | Must match the submitted feature set |
 | Screenshots: required iPhone sizes only (iPhone only) | Outstanding | | No iPad screenshots needed |

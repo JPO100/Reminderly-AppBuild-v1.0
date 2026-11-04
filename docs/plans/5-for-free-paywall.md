@@ -175,6 +175,8 @@ States:
 
 ## 7. Paywall mode and build configuration
 
+> Updated 2026-11-04: the installations and ids below are superseded by [testflight-dev-release-split.md](./testflight-dev-release-split.md) (four variants under NeatlyMade: Dev and Release for each app, new Release ids, Release installed through TestFlight). The paywall mode per variant (Off, Dev, Enforced) is still to be confirmed against that plan when implementation starts.
+
 Web assets are built once and shared by every iOS build, so the paywall mode is set natively per Xcode build configuration and read by the app at launch. It is not stored in local storage and cannot be changed in the app.
 
 | Installation | Configuration | Bundle ID | Paywall mode | Dev tools effect |
@@ -189,10 +191,12 @@ Rules:
 - Off behaves exactly as Reminderly does today: no limits, no upgrade UI and no StoreKit calls.
 - In Dev mode, `reminderly-ff-paywall` is the on/off control. Its default stays off. The limit overrides and simulated states are new Dev tools controls, available in Dev mode only.
 - In Enforced mode, Dev tools and stored flags cannot disable or bypass the paywall. This is consistent with the existing decision to exclude Dev tools from release builds ([release-readiness.md](../release-readiness.md)).
-- The Release configuration is used only for archiving and uploading to App Store Connect. Release builds are never installed on John's iPhone. This rule is added to CLAUDE.md deployment rules during implementation.
+- The Release configuration is used only for archiving and uploading to App Store Connect. Release builds are installed on John's iPhone only through TestFlight (updated 2026-11-04, see testflight-dev-release-split.md).
 - Self Check reports the current paywall mode so it can be checked on each installation.
 
 ## 8. Reminderly Dev installation
+
+> Updated 2026-11-04: Reminderly Dev is now one of four variants and is also distributed through TestFlight; ids, App Groups and signing follow [testflight-dev-release-split.md](./testflight-dev-release-split.md). The requirements and isolation checks below still apply.
 
 A prerequisite for paywall testing. It must be built and its isolation verified before any paywall testing starts.
 
@@ -207,7 +211,7 @@ Requirements:
 - Reusable for future feature testing.
 - Siri shortcuts for both apps registered under their own app names; checked on device.
 
-Signing: the new bundle IDs and App Group need registering once. John does this in Xcode, or gives Claude explicit permission to use `-allowProvisioningUpdates`. No paid Apple setup is needed for this step.
+Signing: the new bundle IDs and App Group need registering once. John does this in Xcode, or gives Claude explicit permission to use `-allowProvisioningUpdates`. Superseded (2026-11-04): both apps now sign with the NeatlyMade Ltd team and register ids as set out in testflight-dev-release-split.md.
 
 Isolation verification, before paywall testing:
 

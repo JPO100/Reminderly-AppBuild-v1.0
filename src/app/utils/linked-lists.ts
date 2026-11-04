@@ -36,6 +36,17 @@ export type PublishedList = {
   items: { id: string; text: string; completed: boolean }[];
 };
 
+/** The list id in a link from Noterly (reminderly://list/<id>), or null for any other address. */
+export function parseListLink(url: string | null | undefined): string | null {
+  const match = /^reminderly:\/\/list\/([^/?#\s]+)$/.exec(url ?? '');
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
+}
+
 export function getLinkEpoch(list: Pick<CreatedList, 'linkEpoch'>): number {
   return typeof list.linkEpoch === 'number' ? list.linkEpoch : 0;
 }

@@ -20,7 +20,7 @@ import { renderReminderText, getDisplayTitle } from "./utils/render-text";
 import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
 import { syncWidget, syncSiriActive, syncSiriContext, getSiriPending, removeSiriPending } from "./utils/widget";
 import { useLinkedLists } from "./utils/useLinkedLists";
-import { applyLinkTicks, endListLinks, getActiveLinks, getLinkedNoteStatus, getUnlinkLabel } from "./utils/linked-lists";
+import { applyLinkTicks, endListLinks, getActiveLinks, getLinkedNoteStatus, getUnlinkLabel, parseListLink } from "./utils/linked-lists";
 import { LinkIcon, LinkedConfirmDialog } from "../imports/LinkedListControls";
 import type { LinkedControls } from "../imports/LinkedListControls";
 import { buildSiriContext, planSiriImport } from "./utils/siri-pending";
@@ -1561,6 +1561,17 @@ export default function App() {
     if (!openId) return;
     setListItems((items) => applyLinkTicks([{ id: openId, title: '', items }], ticks, Date.now()).lists[0].items);
   });
+  // Open in Reminderly: a link from Noterly (reminderly://list/<id>) opens that list. Ignored while the feature is off.
+  useEffect(() => {
+    if (!linkedListsFlag) return;
+    const openLink = (url: string | null | undefined) => {
+      const listId = parseListLink(url);
+      if (listId) openLinkedSmartReminderList(listId);
+    };
+    void CapacitorApp.getLaunchUrl().then((launch) => openLink(launch?.url)).catch(() => {});
+    const listener = CapacitorApp.addListener('appUrlOpen', (event) => openLink(event.url));
+    return () => { void listener.then((handle) => handle.remove()); };
+  }, [linkedListsFlag, openLinkedSmartReminderList]);
   const [linkedConfirm, setLinkedConfirm] = useState<{ kind: 'unlink' | 'delete'; listId: string; count: number; proceed?: () => void } | null>(null);
   const linkedCountFor = (listId: string | null | undefined) => {
     const list = linkedListsFlag && listId ? createdLists.find((candidate) => candidate.id === listId) : undefined;

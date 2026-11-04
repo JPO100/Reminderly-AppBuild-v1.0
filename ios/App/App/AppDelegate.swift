@@ -18,7 +18,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIWindowSceneDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        // A link that launches the app cold arrives here, not in openURLContexts; Capacitor keeps it for getLaunchUrl.
+        if let url = connectionOptions.urlContexts.first?.url, url.scheme == "reminderly", url.host != "add" {
+            _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: url, options: [:])
+        }
+    }
+
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        // With scenes, application(_:open:) is not called, so other links (reminderly://list/<id>) go to Capacitor here.
+        if let url = URLContexts.first?.url, url.scheme == "reminderly", url.host != "add" {
+            _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: url, options: [:])
+            return
+        }
         guard let url = URLContexts.first?.url,
               url.scheme == "reminderly",
               url.host == "add",

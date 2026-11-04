@@ -1,6 +1,6 @@
 # Panel standards
 
-Version 2.5, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly and future NeatlyMade apps by reference: an app links to this document and does not keep a copy. This document covers panel anatomy, positioning, dimensions, padding, scrolling, safe areas, tabs and CTA areas. The header treatment (title, controls, variants) is in [header-standards.md](./header-standards.md). Centred overlays are a separate standard: [overlay-standards.md](./overlay-standards.md).
+Version 2.6, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly and future NeatlyMade apps by reference: an app links to this document and does not keep a copy. This document covers panel anatomy, positioning, dimensions, padding, scrolling, safe areas, tabs and CTA areas. The header treatment (title, controls, variants) is in [header-standards.md](./header-standards.md). Centred overlays are a separate standard: [overlay-standards.md](./overlay-standards.md).
 
 The reference is John's panel design visual (approved 2026-11-04). Where the code or an earlier version of this document differs, the reference wins.
 
@@ -36,7 +36,7 @@ A sliding panel at rest has its top at 146px in both layouts. With tabs it there
 | Item | Value |
 |------|-------|
 | Stack top (see A1) | 146px from the top of the screen |
-| Panel background | White. No grey panel, including Dev tools |
+| Panel background | White. The one exception is Reminderly's Dev tools (A7) |
 | Panel corners | Top 15px, bottom 0 |
 | Top spacing | 24px between the panel top and its header (see A3 for sliding panels and Noterly's arrow band) |
 | Bottom spacing | 24px between the CTA (or last content) and the screen bottom. 0 when the content scrolls to the screen edge and there is no CTA |
@@ -91,7 +91,14 @@ Both apps set `viewport-fit=cover` so the inset is available. What makes a panel
 
 ## A7. Dev tools
 
-A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24px apart, a 45px header and 20px side padding (approved 2026-11-04). Cards are separated by white 1px lines. Dev tools is outside the section-spacing rule (A2a) because its design is different.
+Dev tools sits at the standard resting top with a 45px header and 20px side padding, cards (6px corners) 24px apart. Its colours are a narrow, explicit exception to the white-panel rule (CTO and John, 2026-11-04):
+
+| App | Panel | Cards | Card dividers | Login field |
+|-----|-------|-------|---------------|-------------|
+| Reminderly | `#F7F7F7` | White | `#F7F7F7` 1px lines | White |
+| Noterly | White (its existing treatment, unchanged) | Not part of this exception | Not part of this exception | Not part of this exception |
+
+All other shared panel standards apply to Dev tools. Dev tools is outside the section-spacing rule (A2a) because its design is different.
 
 ## A8. Agreed exceptions
 
@@ -100,6 +107,7 @@ A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24
 | Noterly note panels (New/Edit note, linked note, search-result edit) | The 58px arrow band replaces the 24px top spacing (A3), so the header row starts below the band. The band is part of the header block and sits at the top of the white panel, collapsed or expanded | The arrow is Noterly's way to expand a note to full height | John, 2026-11-04 (decision A); interpretation approved by the CTO |
 | Noterly note panel full-height activation | The user expands it, at any screen size | Reading and editing room for long notes | John, 2026-11-04 |
 | Reminderly tutorial full-height activation | Below 740px viewport height the tutorial goes full-height | The tutorial mock-up needs the room | Existing behaviour retained, 2026-11-04 |
+| Reminderly Dev tools colours | `#F7F7F7` panel with white cards, `#F7F7F7` card dividers and a white login field (A7). Noterly's Dev tools keeps its white panel | Restores the Dev tools palette used before the panel standardisation | CTO and John, 2026-11-04 |
 | Reminderly tutorial Next button | 180 x 60 pill instead of a full-width CTA (A4) | Tutorial design | John, 2026-11-04 (decision D) |
 | Reminderly tutorial internal spacing | The carousel is exempt from the 24px gap between its internal elements and keeps: title to subtitle 27px, subtitle to phone mock 35px, phone mock to page dots 45px, page dots to Next 36px. Its panel top, side padding, full-height rule and CTA height still apply | The tutorial is a distinct visual composition | John, 2026-11-04 |
 
@@ -132,6 +140,7 @@ A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24
 
 ## Version history
 
+- v2.6, 2026-11-04: Reminderly's Dev tools restored to its original palette as a narrow colour exception (A7, A8); Noterly's Dev tools keeps its white panel. No geometry or other standard changed.
 - v2.5, 2026-11-04: recorded two approved interpretations so they are not flagged as defects: the calendar view's month grid and day list are one content section (0px), and the tutorial's carousel spacing is an approved exception (27 / 35 / 45 / 36px). All other panels measure 24px between adjacent sections (Dev tools excepted).
 - v2.4, 2026-11-04: John's rule added: the gap between adjacent panel sections is 24px (A2a), Dev tools excepted. Noterly's expanded note aligned with the full-height rule (B2). Header treatment finalised in header-standards.md v1.0.
 - v2.3, 2026-11-04: header treatment moved to the new header-standards.md (the 45px header allocation and the 24px header-to-content gap stay here). Full-height rule changed to John's decision: the white panel begins below the status bar, the status bar keeps the app background, and the header begins 24px below the panel top. Noterly's expanded note recorded as not yet aligned.

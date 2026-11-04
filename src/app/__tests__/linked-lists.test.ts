@@ -7,6 +7,7 @@ import {
   endListLinks,
   getActiveLinks,
   getConsumedTicks,
+  getLinkedNoteCount,
   getLinkedNoteStatus,
   getUnlinkLabel,
   parseLinkEntries,
@@ -55,6 +56,37 @@ describe('linked note status', () => {
     const many = [link(), link({ noteId: 'n2', blockId: 'b2' }), link({ noteId: 'n3', blockId: 'b3' })];
     expect(getLinkedNoteStatus(many, makeList())).toEqual({ count: 3, text: 'Noterly: linked to 3 notes' });
     expect(getUnlinkLabel(3)).toBe('Unlink all from Noterly');
+  });
+
+  it('counts distinct notes, not linked blocks (D1)', () => {
+    // One note holding the list twice is one note: singular wording, the note title, "Unlink from Noterly"
+    const sameNote = [link(), link({ blockId: 'b2' })];
+    expect(getLinkedNoteCount(sameNote, makeList())).toBe(1);
+    expect(getLinkedNoteStatus(sameNote, makeList())).toEqual({ count: 1, text: 'Noterly: My London trip' });
+    expect(getUnlinkLabel(getLinkedNoteStatus(sameNote, makeList()).count)).toBe('Unlink from Noterly');
+    // Two notes, three blocks: two notes
+    const threeBlocks = [link(), link({ blockId: 'b2' }), link({ noteId: 'n2', blockId: 'b3' })];
+    expect(getLinkedNoteCount(threeBlocks, makeList())).toBe(2);
+    expect(getLinkedNoteStatus(threeBlocks, makeList())).toEqual({ count: 2, text: 'Noterly: linked to 2 notes' });
+    expect(getUnlinkLabel(2)).toBe('Unlink all from Noterly');
+  });
+
+  it('Unlink all still ends every block, including several in one note', () => {
+    const entries = [link(), link({ blockId: 'b2' }), link({ noteId: 'n2', blockId: 'b3' })];
+    const ended = endListLinks(makeList());
+    expect(getActiveLinks(entries, makeList())).toHaveLength(3);
+    expect(getActiveLinks(entries, ended)).toHaveLength(0);
+    expect(getLinkedNoteCount(entries, ended)).toBe(0);
+  });
+
+  it('a deleted note and a private note count once each, whatever their block counts', () => {
+    const entries = [
+      link({ noteId: 'n1', blockId: 'b1', title: null, private: true }),
+      link({ noteId: 'n1', blockId: 'b2', title: null, private: true }),
+      link({ noteId: 'n2', blockId: 'b3', deleted: true }),
+    ];
+    expect(getLinkedNoteCount(entries, makeList())).toBe(1);
+    expect(getLinkedNoteStatus(entries, makeList()).text).toBe('Noterly: a private note');
   });
 
   it('never shows a private note title, and still counts it', () => {

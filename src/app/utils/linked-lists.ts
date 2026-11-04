@@ -62,15 +62,21 @@ export function getActiveLinks(links: LinkEntry[], list: CreatedList): LinkEntry
   return links.filter((link) => link.listId === list.id && link.epoch === epoch && !link.deleted);
 }
 
+/** How many notes hold the list: distinct notes, however many linked blocks each has. */
+export function getLinkedNoteCount(links: LinkEntry[], list: CreatedList): number {
+  return new Set(getActiveLinks(links, list).map((link) => link.noteId)).size;
+}
+
 export function getLinkedNoteStatus(links: LinkEntry[], list: CreatedList): { count: number; text: string } {
   const active = getActiveLinks(links, list);
-  if (active.length === 0) return { count: 0, text: 'No note currently linked' };
-  if (active.length === 1) {
+  const count = getLinkedNoteCount(links, list);
+  if (count === 0) return { count: 0, text: 'No note currently linked' };
+  if (count === 1) {
     const [link] = active;
     const title = link.private ? 'a private note' : (link.title?.trim() || 'Untitled note');
     return { count: 1, text: `Noterly: ${title}` };
   }
-  return { count: active.length, text: `Noterly: linked to ${active.length} notes` };
+  return { count, text: `Noterly: linked to ${count} notes` };
 }
 
 /** Wording for the Unlink button, or null when no note is linked (the button is hidden). */

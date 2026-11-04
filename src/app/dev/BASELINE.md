@@ -2,6 +2,11 @@
 
 Last updated: 2026-11-04
 
+## Verified Baseline (2026-11-04, fix/linked-note-count-distinct-notes, D1)
+
+- Vitest (`npm run test`): 513 passed, 0 failed (24 files). `linked-lists.test.ts` adds 3 (distinct-note counting, Unlink all ends every block, private and deleted notes). All 3 fail without the fix.
+- Self Check: not re-run (no Self Check suite changed; the count helper is covered by Vitest). Type check: not run (no setup).
+
 ## Verified Baseline (2026-11-04, feature/linked-lists-reminderly, Stage 1)
 
 - Vitest (`npm run test`): 508 passed, 0 failed (24 files). `linked-lists.test.ts` adds 20 (flag default off, status wording, private notes, epoch, published lists, tick apply and replay, consume after save, register parsing); `linked-lists-overlay.test.tsx` adds 3 (completed-list overlay shows status and Unlink, never the toggle).

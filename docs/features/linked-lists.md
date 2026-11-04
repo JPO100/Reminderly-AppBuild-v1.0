@@ -20,7 +20,7 @@ A Reminderly list can be inserted into Noterly notes and ticked in either app. R
 ## Flow
 
 - On launch and each return to the foreground (flag on): read the register and tick files, apply the ticks through normal list state (set to a value, never toggle; active lists only), and once the lists are saved publish `linked.lists` from the stored string, then delete each applied tick file only if it still holds the applied id. The first read gates the first paint on a cold launch.
-- Status line in the list overlay: none "No note currently linked"; one "Noterly: <title>" (a private note reads "a private note"); several "Noterly: linked to N notes". Recently Deleted notes and links from an earlier epoch are not counted. The Unlink button is hidden with no links, "Unlink from Noterly" with one, "Unlink all from Noterly" with several. A link icon follows "N of M" in the list editor and on Lists rows.
+- Status line in the list overlay: none "No note currently linked"; one "Noterly: <title>" (a private note reads "a private note"); several "Noterly: linked to N notes". N counts distinct notes, not linked blocks: a note holding the list twice counts once. Recently Deleted notes and links from an earlier epoch are not counted. The Unlink button is hidden with no links, "Unlink from Noterly" with one, "Unlink all from Noterly" with several. A link icon follows "N of M" in the list editor and on Lists rows.
 - Deleting a linked list asks first, because the links end for good.
 - A tick for a list open in the editor is also applied to the editor's copy, so closing the editor cannot undo it.
 

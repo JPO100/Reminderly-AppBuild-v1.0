@@ -20,7 +20,7 @@ import { renderReminderText, getDisplayTitle } from "./utils/render-text";
 import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
 import { syncWidget, syncSiriActive, syncSiriContext, getSiriPending, removeSiriPending } from "./utils/widget";
 import { useLinkedLists } from "./utils/useLinkedLists";
-import { applyLinkTicks, endListLinks, getActiveLinks, getLinkedNoteStatus, getUnlinkLabel, parseListLink } from "./utils/linked-lists";
+import { applyLinkTicks, endListLinks, getLinkedNoteCount, getLinkedNoteStatus, getUnlinkLabel, parseListLink } from "./utils/linked-lists";
 import { LinkIcon, LinkedConfirmDialog } from "../imports/LinkedListControls";
 import type { LinkedControls } from "../imports/LinkedListControls";
 import { buildSiriContext, planSiriImport } from "./utils/siri-pending";
@@ -1587,7 +1587,7 @@ export default function App() {
   const [linkedConfirm, setLinkedConfirm] = useState<{ kind: 'unlink' | 'delete'; listId: string; count: number; proceed?: () => void } | null>(null);
   const linkedCountFor = (listId: string | null | undefined) => {
     const list = linkedListsFlag && listId ? createdLists.find((candidate) => candidate.id === listId) : undefined;
-    return list ? getActiveLinks(linkedLinks, list).length : 0;
+    return list ? getLinkedNoteCount(linkedLinks, list) : 0;
   };
   const linkedControlsFor = (listId: string | null | undefined): LinkedControls | undefined => {
     const list = linkedListsFlag && listId ? createdLists.find((candidate) => candidate.id === listId) : undefined;

@@ -35,3 +35,22 @@ A Reminderly list can be inserted into Noterly notes and ticked in either app. R
 - A Noterly tick reaches Reminderly when Reminderly next opens; smart reminder wording stays at the old progress until then. No background processing.
 - A completed (done) list that is still linked keeps its status line (under the title) and Unlink in the completed-list overlay, and never shows Make list linkable. Deleted lists have no links (the epoch was raised at delete). The link icon is drawn on active rows and in the editor, not on archive rows.
 - Before release: retire or remove the flag, update the onboarding tutorial and `release-readiness.md`.
+
+## Release readiness (Stage 4, 2026-11-04)
+
+Status: Stages 1 to 3 are merged (Reminderly main 2af17b5 and 80cc419; Noterly main e8c0aa0 and 1aab994) and the feature is complete for V1. Nothing is added in Stage 4.
+
+Production behaviour of the flag (checked in code):
+- `reminderly-ff-linked-lists` defaults to off and can only be changed in Dev tools. Dev tools are excluded from release builds (release-readiness.md), so in a release build the flag stays off and the feature is hidden in both apps.
+- Off in Reminderly: no linkable row, status, Unlink, link icon or delete warning; no lists published, no ticks read, no register read. It does write `linked.enabled = false` to the group at launch (one small key). A list delete still raises the list's epoch.
+- Noterly has no flag of its own. It reads `linked.enabled`; a missing or unreadable value is off. Noterly alone (no Reminderly) or a missing group therefore shows nothing and changes no note. Linked blocks already in a note are kept, hidden, and come back if the flag turns on.
+- Turning it on for release means making the flag always on (or removing it), which is decision D7, and then: update the onboarding tutorial's list settings mock (`OnboardingPage3Content.tsx`, two mocks with Uncheck all items, Create template from list and Delete list) to match the overlay, which gains the "Make list linkable" row; check the privacy label wording (data shared between our two apps on the device, no tracking); make sure Noterly's App ID and Reminderly's group are registered under the same paid team for App Store builds.
+- Known limit (accepted by John and Jay): a Noterly tick reaches Reminderly when Reminderly next opens, so a smart reminder's wording can show the old progress until then.
+
+Outstanding physical-device checks (John's phones are unavailable; none attempted):
+- Foreground refresh with no visible stale-to-current change, on a device.
+- Cross-process timing and rapid app switching on real hardware.
+- Reminderly missing and reinstalled (Noterly keeps the last content, ticking off, Unlink works; the simulator copy cannot be uninstalled without losing its data).
+- Free-profile provisioning of Noterly's App Group (`-allowProvisioningUpdates`, John's approval each deploy).
+- Several notes on one list and private-folder notes, where not yet seen by hand (unit-tested).
+

@@ -36,6 +36,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 | D4 | Privacy policy, terms of use and support site: content, owner and hosting | Needed whether or not the app is paid. Privacy policy Version 1.0 text in the app (feature/reminder-list-settings, not merged); terms of use and FAQs still placeholders; neatlymade.co does not resolve (2026-10-23), so no hosted policy URL yet |
 | D5 | Countries and storefronts, and seller details (individual or company) | Affects EU trader status and pricing |
 | D6 | Supported screen sizes and minimum iOS | Proposal: 375 x 667pt smallest supported iPhone, 360pt design floor for Android, 320pt not supported. Milestone 1 (2026-10-25) recommends minimum 360 x 667 and minimum iOS 16 (iOS 16 to 26 share the 375 x 667 screen floor; Siri needs iOS 16), with an iOS 16 WebKit smoke test before release. John agreed iOS 16 minimum (2026-10-25); awaiting CTO decision. See [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
+| D7 | Linked lists (Reminderly lists in Noterly notes) in the release | Built and validated in the simulator, behind a flag that is off by default and reachable only from Dev tools. Options: keep it off (nothing changes for users, ship later) or switch it on (retire the flag; see docs/features/linked-lists.md, Release readiness). Needs John; release also needs the device checks listed there |
 
 ## Recommended release defaults (for John's review)
 
@@ -64,6 +65,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Settings menu | `ff-settings-menu-v2` | on | on | Only settings entry point |
 | Info icons | `ff-info-icons` | off | Decision | Explanatory text in settings |
 | Lock screen widget | `ff-lock-screen-widget` | on | on | |
+| Linked lists | `ff-linked-lists` | off | Decision (D7) | With Dev tools excluded the flag cannot be turned on, so off means hidden in both apps. On adds Make list linkable, linked status, Unlink and the link icon, and needs the tutorial update and device checks in docs/features/linked-lists.md |
 | Paywall | `ff-paywall` | off | Enforced by the Release build configuration, not by the flag | Specified, not built. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 
 ## Requirements tracker
@@ -111,7 +113,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Tutorial shows once on first launch | Done (merged 2026-10-14) | 4.0 | Shown keys are now read on start and tab switch |
 | Correct "1 minute time increments" info text | Outstanding | 2.3 | Says 5-minute steps; the picker uses 15 |
 | No placeholder or test content visible | Verify before submission | 2.1(a) | |
-| Linked lists (Reminderly lists in Noterly notes) | In development (Stage 1 of 4, flag off by default) | 5.1.1, 2.1 | New native feature: both of our apps share list titles and items on the device through the existing App Group; local only, no accounts, servers or tracking. Before release: retire or remove the Dev tools flag, update the onboarding tutorial, check the privacy label wording, device-test the cross-app flow. docs/features/linked-lists.md |
+| Linked lists (Reminderly lists in Noterly notes) | Built (Stages 1 to 3 merged), validated in the simulator, flag off by default; release decision D7 and device checks outstanding | 5.1.1, 2.1 | New native feature: both of our apps share list titles and items on the device through the App Group `group.com.reminderly.app` (now also in Noterly's entitlements, same team); local only, no accounts, servers or tracking. Before release: John's decision D7, privacy label wording check, the tutorial update if it ships on, and the physical-device checks. docs/features/linked-lists.md
 | Local data durability (`localStorage` in WKWebView) | Verify before submission | 2.1 | Rare iOS clearing would lose data; consider before release |
 | Minimum functionality beyond a web wrapper | Complete | 4.2 | Native notifications, widget, Siri, haptics |
 | Overlay accessibility: dialog semantics (`role="dialog"`, `aria-modal`, accessible name), focus into and back from each overlay, Escape to close, background scroll lock, and VoiceOver verification | Outstanding (deferred; subject to pre-release review) | Deferred by John and Jason 2026-11-02, confirmed 2026-11-03; docs/design-standards/overlay-standards.md, section 7 and the Reminderly appendix | Only Reminder info has these behaviours today. No screen-reader testing has been done on any overlay. Do not claim accessibility compliance, and do not assume this affects or guarantees App Store approval, until it is built and tested. Noterly may defer the same work but must track it in its own record |
@@ -195,6 +197,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-11-04 | Linked lists Stages 1 to 3 merged and validated in the simulator; Stage 4 review recorded (production behaviour of the flag, tutorial impact, outstanding device checks). Decision D7 added (John) |
 | 2026-11-03 | Overlay accessibility work and the shared overlay component added to the tracker as deferred outstanding work (John and Jason). No compliance claim made |
 | 2026-10-25 | Decision: release header layouts (John). Pending decision D6 (supported screen sizes and minimum iOS) and screen size testing added |
 | 2026-10-23 | Decision: natural language capture ships in the release (John). Release readiness review to follow in a separate ticket |

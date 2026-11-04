@@ -18,7 +18,7 @@
 | Noterly Dev | As Reminderly Dev | On | Xcode and TestFlight | Own App Group |
 | Noterly Release | As Reminderly Release | Off | TestFlight, later App Store | Own App Group; starts fresh |
 
-- Release features: feature flags (`ff-*`) keep their default values because Dev tools, which change them, are excluded ([release-readiness.md](../release-readiness.md), D7). Nothing new is built.
+- Release features: the Release feature-flag (`ff-*`) defaults must match John's approved release feature list (to be confirmed). Excluding Dev tools only stops the flags being changed in the app; it does not make the defaults right. The list is checked against the flag defaults before the first Release archive ([release-readiness.md](../release-readiness.md), D7 for linked lists).
 - Linked lists must keep working in Dev (Reminderly Dev with Noterly Dev, through the shared Dev App Group and URL scheme). It stays off in Release (D7).
 - Development must not touch Release data. The Dev and Release App Groups differ, and each install has its own sandbox.
 
@@ -42,7 +42,7 @@ Reminderly holds real, daily-use data. It must be snapshotted and restored into 
   - Build 1 of Reminderly Release carries the importer; later builds do not.
 - App Group state is derived or off (widget, Siri, linked lists), so it is rebuilt on launch, not copied.
 - Proof: restore the real snapshot into Reminderly Dev first (it coexists with John's current app), check counts, Self Check, reminders, attachments, pending notifications, badge and widget. Only then restore into Release.
-- The old app is deleted only by John, after verification.
+- The original Reminderly installation (and its data) stays untouched, with nothing deleted, replaced or reinstalled over it, until John has verified the restored Release version and has authorised its removal. John removes it himself.
 - Not restorable: permissions (notifications, camera), Siri shortcuts, widget placement, delivered notifications.
 - Notification rescheduling and local storage are protected areas: explicit verification steps and regression checks apply.
 

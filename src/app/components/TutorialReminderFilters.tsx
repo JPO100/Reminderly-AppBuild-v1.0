@@ -71,12 +71,12 @@ export function TutorialRemindersFilterRow({ settingsMenuEnabled, calendarEnable
         items={settingsMenuEnabled ? SETTINGS_MENU_TUTORIAL_FILTER_ITEMS : UNGROUPED_TUTORIAL_FILTER_ITEMS}
         activeKey={activeKey}
         trailing={
-          <div className="flex items-center gap-[5.744px]">
+          <div className="flex items-center gap-[7.18px]">
             {calendarEnabled && <TutorialCalendarButton />}
             {settingsMenuEnabled && <TutorialSettingsButton />}
           </div>
         }
-        groupGapClassName="gap-[5.744px]"
+        groupGapClassName="gap-[7.18px]"
         showHiddenItems
       />
     );

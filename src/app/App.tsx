@@ -3809,7 +3809,7 @@ export default function App() {
           <>
           {viewMode === 'lists-done' && (
             <div className="filters-menu flex items-center justify-between relative shrink-0 w-full">
-              <div className="flex items-center gap-[8px]">
+              <div className="flex items-center gap-[10px]">
                 <button
                   onClick={() => setViewMode('list')}
                   className="hidden relative shrink-0 self-center cursor-pointer"
@@ -4009,7 +4009,7 @@ export default function App() {
               <div className="font-['Lato',sans-serif] font-bold text-[20px] text-[#1C2C42] whitespace-nowrap">
                 List templates
               </div>
-              <div className="flex items-center gap-[8px]">
+              <div className="flex items-center gap-[10px]">
                 <button
                   type="button"
                   onClick={() => setSavedListsPanelOpen(false)}
@@ -4203,8 +4203,8 @@ export default function App() {
               if (settingsMenuFeatureEnabled || savedListsFeatureEnabled) {
                 return (
                   <div className="filters-menu flex items-center justify-between gap-[8px] relative shrink-0 w-full">
-                    <div className="flex items-center gap-[8px]">{filterPills}</div>
-                    <div className="flex items-center gap-[8px]">
+                    <div className="flex items-center gap-[10px]">{filterPills}</div>
+                    <div className="flex items-center gap-[10px]">
                       {savedListsFeatureEnabled && templatesButton}
                       {settingsMenuFeatureEnabled && listsSettingsButton}
                     </div>
@@ -4376,7 +4376,7 @@ export default function App() {
             className="flex items-center justify-between w-full"
           >
             {/* Done/deleted view filters */}
-            <div className="flex items-center gap-[8px]">
+            <div className="flex items-center gap-[10px]">
               <button
                 onClick={() => setViewMode("list")}
                 className="hidden relative shrink-0 self-center cursor-pointer"
@@ -4473,11 +4473,11 @@ export default function App() {
                 </div>
               );
             }
-            // Header buttons on: filters grouped left with 8px gaps, buttons pushed right by justify-between
-            return settingsMenuFeatureEnabled || isCalendarButtonShown ? <div className="flex items-center gap-[8px]">{filterPills}</div> : filterPills;
+            // Header buttons on: filters grouped left with 10px gaps, buttons pushed right by justify-between
+            return settingsMenuFeatureEnabled || isCalendarButtonShown ? <div className="flex items-center gap-[10px]">{filterPills}</div> : filterPills;
             })()}
             {(settingsMenuFeatureEnabled || isCalendarButtonShown) && (
-            <div className="flex items-center gap-[8px]">
+            <div className="flex items-center gap-[10px]">
             {isCalendarButtonShown && (calendarElement ? (
               <button
                 type="button"
@@ -5173,7 +5173,7 @@ export default function App() {
                   onPointerDown={(event) => listsSheetDragControls.start(event)}
                 />
                 <div className="relative w-full max-w-[768px] h-full flex flex-col mx-auto">
-                  <div className="content-stretch flex flex-col gap-[26px] items-start pt-[24px] px-[20px] relative w-full shrink-0">
+                  <div className="content-stretch flex flex-col gap-[24px] items-start pt-[24px] px-[20px] relative w-full shrink-0">
                     <ListsHeader
                       value={listTitle}
                       onChange={setListTitle}

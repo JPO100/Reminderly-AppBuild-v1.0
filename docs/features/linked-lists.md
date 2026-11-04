@@ -24,6 +24,8 @@ A Reminderly list can be inserted into Noterly notes and ticked in either app. R
 - Deleting a linked list asks first, because the links end for good.
 - A tick for a list open in the editor is also applied to the editor's copy, so closing the editor cannot undo it.
 
+- Open in Reminderly: Noterly opens `reminderly://list/<id>`; Reminderly (feature on) goes to the Lists tab and opens that list, on a cold launch or while running (`parseListLink`, App.tsx).
+
 ## Code
 
 `utils/linked-lists.ts` (pure logic), `utils/useLinkedLists.ts` (lifecycle), `utils/widget.ts` (bridge functions), `WidgetBridgePlugin.swift` (five methods on the existing plugin), `imports/LinkedListControls.tsx` (row, button, dialog), `App.tsx` (wiring), Dev tools row.

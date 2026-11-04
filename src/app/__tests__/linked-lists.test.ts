@@ -10,6 +10,7 @@ import {
   getLinkedNoteStatus,
   getUnlinkLabel,
   parseLinkEntries,
+  parseListLink,
   LINKED_LISTS_FLAG_KEY,
 } from '../utils/linked-lists';
 import type { LinkEntry, LinkTick } from '../utils/linked-lists';
@@ -174,5 +175,18 @@ describe('reading the register', () => {
     const entries = parseLinkEntries(json);
     expect(entries).toHaveLength(2);
     expect(entries[1].title).toBeNull();
+  });
+});
+
+describe('links from Noterly (Open in Reminderly)', () => {
+  it('reads the list id from reminderly://list/<id>', () => {
+    expect(parseListLink('reminderly://list/d4275dea-0cf6-4326-b993-9b82a7cb9310')).toBe('d4275dea-0cf6-4326-b993-9b82a7cb9310');
+    expect(parseListLink('reminderly://list/a%20b')).toBe('a b');
+  });
+
+  it('ignores every other address', () => {
+    for (const url of [undefined, null, '', 'reminderly://', 'reminderly://list/', 'reminderly://list/a/b', 'reminderly://other/x', 'https://list/x', 'noterly://list/x', 'reminderly://list/%E0%A4%A']) {
+      expect(parseListLink(url)).toBeNull();
+    }
   });
 });

@@ -26,6 +26,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 | No default templates for new users | 2026-10-14, John and CTO | `config-templates-in-clean-state` stays off; all templates count towards the free limit |
 | Natural language capture ships in the release | 2026-10-23, John | A key differentiator against competitor apps. A separate ticket will review NLC and make it release-ready. Free or Premium not yet decided |
 | Release header layouts | 2026-10-25, John | Reminders header with reduced filters, calendar icon and settings icon, and the current Lists header, ship in v1. Release defaults must match. Non-critical header elements (filters, calendar) may be hidden on small screens; the settings button never is. See [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
+| Linked lists V1 stays off in production | 2026-11-04, John (D7) | `ff-linked-lists` stays at its default, off; with Dev tools excluded it cannot be turned on, so the feature is hidden in both apps. No tutorial or privacy label change is needed for it. Revisit to ship it later (retire the flag, update the tutorial mocks, run the device checks in [features/linked-lists.md](./features/linked-lists.md)) |
 
 ## Pending product decisions
 
@@ -64,6 +65,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Settings menu | `ff-settings-menu-v2` | on | on | Only settings entry point |
 | Info icons | `ff-info-icons` | off | Decision | Explanatory text in settings |
 | Lock screen widget | `ff-lock-screen-widget` | on | on | |
+| Linked lists | `ff-linked-lists` | off | off (decided 2026-11-04, D7) | With Dev tools excluded the flag cannot be turned on, so off means hidden in both apps. On adds Make list linkable, linked status, Unlink and the link icon, and needs the tutorial update and device checks in docs/features/linked-lists.md |
 | Paywall | `ff-paywall` | off | Enforced by the Release build configuration, not by the flag | Specified, not built. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 
 ## Requirements tracker
@@ -111,7 +113,7 @@ With developer tools excluded, these values are what users get. Development defa
 | Tutorial shows once on first launch | Done (merged 2026-10-14) | 4.0 | Shown keys are now read on start and tab switch |
 | Correct "1 minute time increments" info text | Outstanding | 2.3 | Says 5-minute steps; the picker uses 15 |
 | No placeholder or test content visible | Verify before submission | 2.1(a) | |
-| Linked lists (Reminderly lists in Noterly notes) | In development (Stage 1 of 4, flag off by default) | 5.1.1, 2.1 | New native feature: both of our apps share list titles and items on the device through the existing App Group; local only, no accounts, servers or tracking. Before release: retire or remove the Dev tools flag, update the onboarding tutorial, check the privacy label wording, device-test the cross-app flow. docs/features/linked-lists.md |
+| Linked lists (Reminderly lists in Noterly notes) | Built (Stages 1 to 3 merged), validated in the simulator; stays off in production (D7, 2026-11-04); device checks outstanding for when it ships | 5.1.1, 2.1 | New native feature: both of our apps share list titles and items on the device through the App Group `group.com.reminderly.app` (now also in Noterly's entitlements, same team); local only, no accounts, servers or tracking. Off in production, so no release work; if it ships later: privacy label wording check, the tutorial update and the physical-device checks. docs/features/linked-lists.md
 | Local data durability (`localStorage` in WKWebView) | Verify before submission | 2.1 | Rare iOS clearing would lose data; consider before release |
 | Minimum functionality beyond a web wrapper | Complete | 4.2 | Native notifications, widget, Siri, haptics |
 | Overlay accessibility: dialog semantics (`role="dialog"`, `aria-modal`, accessible name), focus into and back from each overlay, Escape to close, background scroll lock, and VoiceOver verification | Outstanding (deferred; subject to pre-release review) | Deferred by John and Jason 2026-11-02, confirmed 2026-11-03; docs/design-standards/overlay-standards.md, section 7 and the Reminderly appendix | Only Reminder info has these behaviours today. No screen-reader testing has been done on any overlay. Do not claim accessibility compliance, and do not assume this affects or guarantees App Store approval, until it is built and tested. Noterly may defer the same work but must track it in its own record |
@@ -195,6 +197,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 
 | Date | Change |
 |------|--------|
+| 2026-11-04 | Linked lists Stages 1 to 3 merged and validated in the simulator; Stage 4 review recorded (production behaviour of the flag, tutorial impact, outstanding device checks). Decision D7 added (John) |
 | 2026-11-03 | Overlay accessibility work and the shared overlay component added to the tracker as deferred outstanding work (John and Jason). No compliance claim made |
 | 2026-10-25 | Decision: release header layouts (John). Pending decision D6 (supported screen sizes and minimum iOS) and screen size testing added |
 | 2026-10-23 | Decision: natural language capture ships in the release (John). Release readiness review to follow in a separate ticket |

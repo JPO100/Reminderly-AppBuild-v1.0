@@ -1562,16 +1562,28 @@ export default function App() {
     setListItems((items) => applyLinkTicks([{ id: openId, title: '', items }], ticks, Date.now()).lists[0].items);
   });
   // Open in Reminderly: a link from Noterly (reminderly://list/<id>) opens that list. Ignored while the feature is off.
+  // The link is held until the linked lists hook is ready, then opened once. Capacitor keeps the last link it received
+  // and getLaunchUrl returns it every time, so the launch link is read once only.
+  const [pendingLinkedListId, setPendingLinkedListId] = useState<string | null>(null);
+  const launchLinkReadRef = useRef(false);
   useEffect(() => {
     if (!linkedListsFlag) return;
-    const openLink = (url: string | null | undefined) => {
+    const holdLink = (url: string | null | undefined) => {
       const listId = parseListLink(url);
-      if (listId) openLinkedSmartReminderList(listId);
+      if (listId) setPendingLinkedListId(listId);
     };
-    void CapacitorApp.getLaunchUrl().then((launch) => openLink(launch?.url)).catch(() => {});
-    const listener = CapacitorApp.addListener('appUrlOpen', (event) => openLink(event.url));
+    if (!launchLinkReadRef.current) {
+      launchLinkReadRef.current = true;
+      void CapacitorApp.getLaunchUrl().then((launch) => holdLink(launch?.url)).catch(() => {});
+    }
+    const listener = CapacitorApp.addListener('appUrlOpen', (event) => holdLink(event.url));
     return () => { void listener.then((handle) => handle.remove()); };
-  }, [linkedListsFlag, openLinkedSmartReminderList]);
+  }, [linkedListsFlag]);
+  useEffect(() => {
+    if (!pendingLinkedListId || !linkedReady) return;
+    openLinkedSmartReminderList(pendingLinkedListId);
+    setPendingLinkedListId(null);
+  }, [pendingLinkedListId, linkedReady, openLinkedSmartReminderList]);
   const [linkedConfirm, setLinkedConfirm] = useState<{ kind: 'unlink' | 'delete'; listId: string; count: number; proceed?: () => void } | null>(null);
   const linkedCountFor = (listId: string | null | undefined) => {
     const list = linkedListsFlag && listId ? createdLists.find((candidate) => candidate.id === listId) : undefined;

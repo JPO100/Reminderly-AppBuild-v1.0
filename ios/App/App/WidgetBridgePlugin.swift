@@ -12,7 +12,12 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "setSiriActive", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setSiriContext", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getSiriPending", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "removeSiriPending", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "removeSiriPending", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setLinkedEnabled", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setLinkedLists", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getLinkedLinks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getLinkedTicks", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "removeLinkedTicks", returnType: CAPPluginReturnPromise)
     ]
 
     @objc func setSnapshot(_ call: CAPPluginCall) {
@@ -86,5 +91,79 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             defaults.set(kept, forKey: "siriPendingReminders")
             call.resolve()
         }
+    }
+
+    // Linked lists (docs/features/linked-lists.md): Reminderly writes linked.enabled and linked.lists, Noterly writes
+    // linked.links and the tick files. Reminderly never writes the register or creates a tick.
+    @objc func setLinkedEnabled(_ call: CAPPluginCall) {
+        guard let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+            call.reject("App Group unavailable")
+            return
+        }
+        defaults.set(call.getBool("enabled") ?? false, forKey: "linked.enabled")
+        call.resolve()
+    }
+
+    @objc func setLinkedLists(_ call: CAPPluginCall) {
+        guard let json = call.getString("json"),
+              let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+            call.reject("No lists or App Group unavailable")
+            return
+        }
+        defaults.set(json, forKey: "linked.lists")
+        call.resolve()
+    }
+
+    // The link register as Noterly last saved it (JSON), or nothing when it was never written
+    @objc func getLinkedLinks(_ call: CAPPluginCall) {
+        if let json = UserDefaults(suiteName: "group.com.reminderly.app")?.string(forKey: "linked.links") {
+            call.resolve(["json": json])
+        } else {
+            call.resolve()
+        }
+    }
+
+    private func linkedTicksFolder() -> URL? {
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.reminderly.app")?
+            .appendingPathComponent("linked-ticks", isDirectory: true)
+    }
+
+    // One small file per list item, written by Noterly: {listId, itemId, completed, id}
+    @objc func getLinkedTicks(_ call: CAPPluginCall) {
+        guard let folder = linkedTicksFolder(),
+              let names = try? FileManager.default.contentsOfDirectory(atPath: folder.path) else {
+            call.resolve(["ticks": []])
+            return
+        }
+        var ticks: [[String: Any]] = []
+        for name in names.sorted() where name.hasSuffix(".json") {
+            guard let data = try? Data(contentsOf: folder.appendingPathComponent(name)),
+                  let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let listId = object["listId"] as? String,
+                  let itemId = object["itemId"] as? String,
+                  let completed = object["completed"] as? Bool,
+                  let id = object["id"] as? String else { continue }
+            ticks.append(["name": name, "listId": listId, "itemId": itemId, "completed": completed, "id": id])
+        }
+        call.resolve(["ticks": ticks])
+    }
+
+    // Deletes a tick file only if it still holds the id that was applied, so a newer tick from Noterly is kept
+    @objc func removeLinkedTicks(_ call: CAPPluginCall) {
+        guard let folder = linkedTicksFolder() else {
+            call.resolve()
+            return
+        }
+        for entry in call.getArray("items", JSObject.self) ?? [] {
+            guard let name = entry["name"] as? String,
+                  let id = entry["id"] as? String,
+                  !name.contains("/") else { continue }
+            let url = folder.appendingPathComponent(name)
+            guard let data = try? Data(contentsOf: url),
+                  let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  object["id"] as? String == id else { continue }
+            try? FileManager.default.removeItem(at: url)
+        }
+        call.resolve()
     }
 }

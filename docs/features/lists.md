@@ -2,6 +2,8 @@
 
 Checklists alongside reminders, with templates, pinning and smart reminders. Lists are a separate top-level surface and data set. The only link with reminders is through smart reminders.
 
+Linked lists (Reminderly lists in Noterly notes, behind a master flag): see linked-lists.md.
+
 ## Availability
 
 | Feature | Flag (default) | Notes |

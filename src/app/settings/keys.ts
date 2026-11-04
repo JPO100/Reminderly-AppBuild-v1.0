@@ -34,6 +34,7 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-smart-reminders': 'true',
   'reminderly-ff-saved-lists': 'true',
   'reminderly-ff-pinned-lists': 'true',
+  'reminderly-ff-linked-lists': 'false',
   'reminderly-pref-list-sort-az': 'false',
   'reminderly-pref-list-oldest-first': 'false',
   'reminderly-pref-list-hide-ticked': 'false',

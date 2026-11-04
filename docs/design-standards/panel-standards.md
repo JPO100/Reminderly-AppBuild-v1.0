@@ -1,6 +1,6 @@
 # Panel standards
 
-Version 2.3, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly and future NeatlyMade apps by reference: an app links to this document and does not keep a copy. This document covers panel anatomy, positioning, dimensions, padding, scrolling, safe areas, tabs and CTA areas. The header treatment (title, controls, variants) is in [header-standards.md](./header-standards.md). Centred overlays are a separate standard: [overlay-standards.md](./overlay-standards.md).
+Version 2.4, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly and future NeatlyMade apps by reference: an app links to this document and does not keep a copy. This document covers panel anatomy, positioning, dimensions, padding, scrolling, safe areas, tabs and CTA areas. The header treatment (title, controls, variants) is in [header-standards.md](./header-standards.md). Centred overlays are a separate standard: [overlay-standards.md](./overlay-standards.md).
 
 The reference is John's panel design visual (approved 2026-11-04). Where the code or an earlier version of this document differs, the reference wins.
 
@@ -43,11 +43,21 @@ A sliding panel at rest has its top at 146px in both layouts. With tabs it there
 | Left and right padding | 20px |
 | Header row | 45px high (treatment: [header-standards.md](./header-standards.md)) |
 | Sub-header row | 40px high |
-| Header (or sub-header) to content | 24px, no separator, measured from the bottom of the header block (header-standards.md, section 1) |
+| Gap between adjacent sections | 24px, no separator (see A2a): header to sub-header, sub-header to content, header to content when there is no sub-header, content to CTA |
 | CTA area | 60px high, full width inside the 20px padding (see A4) |
 | Tabs | 52px high, fill the width, 10px apart, 20px in from the sides, outside and above the panel |
 | Content max width | 768px, centred |
 | Main panel min height | 350px |
+
+### A2a. Spacing between sections
+
+The gap between adjacent panel sections is **24px** (John, 2026-11-04). The sections are, in order: header, sub-header, content, CTA. Where an optional section is absent, the gap is between the sections that remain.
+
+- Measured on the rendered layout, between the container edges of adjacent sections, in every state of the panel: populated, empty, scrolling, and at the test baseline (A6).
+- The header block ends at its lowest element (the row, or the subtitle when there is one; header-standards.md, section 1).
+- A scrolling content area keeps its box and so keeps its 24px gap above and below it; the content scrolls inside.
+- Spacing inside a section's items (rows, cards, fields, lists) is not panel-section spacing and is not covered.
+- Exceptions: Noterly's arrow band (A3) and Dev tools (A7). Nothing else is exempt; an unlisted exception is a defect.
 
 ## A3. Top spacing, drag zone and the arrow band
 
@@ -80,7 +90,7 @@ Both apps set `viewport-fit=cover` so the inset is available. What makes a panel
 
 ## A7. Dev tools
 
-A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24px apart, a 45px header and 20px side padding (approved 2026-11-04). Cards are separated by white 1px lines.
+A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24px apart, a 45px header and 20px side padding (approved 2026-11-04). Cards are separated by white 1px lines. Dev tools is outside the section-spacing rule (A2a) because its design is different.
 
 ## A8. Agreed exceptions
 
@@ -115,11 +125,12 @@ A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24
 
 - **Stack top.** The homepage panel starts at 146px (header: 20px padding, 50px top, 40px logo, 16px bottom). `BottomSheet.tsx` measures the home panel's top (`measurePanelTop()`) and sheets rest there.
 - **Sheets** use the CSS-class `BottomSheet` component (`--entering`, `--open`, `--leaving` phases). Its 24px `.bottom-sheet-drag-handle` is the drag zone. The expand/collapse arrow band is `.new-note-drag-handle-row` in `NewNotePanel.css`.
-- **Full-height: not yet aligned with A5.** Expanded, the sheet's top is 0 (`BottomSheet.tsx`, `isExpanded`), so the white panel extends behind the status bar, and the arrow band's top padding is `calc(env(safe-area-inset-top, 0px) + 24px)`. A5 puts the panel top at the inset. The change needed is small and is recorded in the development history; it is not implemented.
+- **Full-height.** Expanded, the sheet's top is `env(safe-area-inset-top, 0px)` (`BottomSheet.tsx`, `isExpanded`), so the white panel begins below the status bar and the app's background shows above it. The arrow band and header sit exactly as when collapsed.
 - **Keyboard.** The Keyboard plugin is set to `resize: none`; the note editor adds scroll padding for the keyboard height so the caret stays visible.
 
 ## Version history
 
+- v2.4, 2026-11-04: John's rule added: the gap between adjacent panel sections is 24px (A2a), Dev tools excepted. Noterly's expanded note aligned with the full-height rule (B2). Header treatment finalised in header-standards.md v1.0.
 - v2.3, 2026-11-04: header treatment moved to the new header-standards.md (the 45px header allocation and the 24px header-to-content gap stay here). Full-height rule changed to John's decision: the white panel begins below the status bar, the status bar keeps the app background, and the header begins 24px below the panel top. Noterly's expanded note recorded as not yet aligned.
 - v2.2, 2026-11-04: restructured into the design standard (Part A) and implementation notes (Part B). Clarified the 146px panel stack top against the 198px white-panel top with tabs; the drag zone and the arrow band against the 24px top spacing; the Next button exception; added responsive, scrolling, safe-area and keyboard rules with 360 x 667 as the minimum test baseline.
 - v2.1, 2026-11-04: tutorial side padding standardised to 20px; Noterly arrow band recorded as part of the expanded header block.

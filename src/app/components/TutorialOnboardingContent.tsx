@@ -519,7 +519,7 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
               <div ref={setOpenPanelElement} className="relative w-full h-full flex flex-col mx-auto">
                 <div
                   ref={setAddHighlightHostElement}
-                  className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[24px] relative w-full shrink-0"
+                  className="content-stretch flex flex-col gap-[30px] items-start pt-[30px] px-[20px] relative w-full shrink-0"
                 >
                   <ListsHeader
                     value="Work tasks"
@@ -591,7 +591,7 @@ function ListsTutorialOpenListOverlay({ open, mode, onSmartFlowPhaseChange, onAd
                     </motion.div>
                   )}
                 </div>
-                <div className="flex flex-col gap-[23px] items-start px-[24px] pb-[24px] relative w-full flex-1 min-h-0 overflow-y-auto mt-[35px]">
+                <div className="flex flex-col gap-[23px] items-start px-[20px] pb-[24px] relative w-full flex-1 min-h-0 overflow-y-auto mt-[35px]">
                   <AnimatePresence initial={false}>
                     {items.map((item) => {
                       const isItemReinserted = reinsertedItemId === item.id;
@@ -1145,7 +1145,7 @@ function ListsTutorialPlaceholderPage({
               items={[]}
               leading={<div className="font-['Lato',sans-serif] font-bold text-[14.359px] text-[#1C2C42] whitespace-nowrap">List templates</div>}
               trailing={
-                <div className="flex items-center gap-[5.744px]">
+                <div className="flex items-center gap-[7.18px]">
                   <svg className="block shrink-0" width="32.308" height="32.308" viewBox="0 0 45 45" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <rect width="45" height="45" rx="22.5" fill="#4784F8"/>
                     <path d="M17.0199 17.0201L27.9801 27.9803M17.0199 27.9803L27.9801 17.0201" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
@@ -1155,13 +1155,13 @@ function ListsTutorialPlaceholderPage({
               }
               layout="between"
               rowGapClassName="gap-[10px]"
-              groupGapClassName="gap-[5.744px]"
+              groupGapClassName="gap-[7.18px]"
             />
           ) : (
             <TutorialReminderFilters
               items={listFilterItems}
               trailing={savedListsEnabled || settingsMenuEnabled ? (
-                <div className="flex items-center gap-[5.744px]">
+                <div className="flex items-center gap-[7.18px]">
                   {savedListsEnabled && (
                     <div ref={currentPage === 4 ? setPage5TemplatesButtonElement : undefined} className="shrink-0">
                       <TemplatesTutorialButton />
@@ -1172,7 +1172,7 @@ function ListsTutorialPlaceholderPage({
               ) : undefined}
               layout="between"
               rowGapClassName="gap-[10px]"
-              groupGapClassName={savedListsEnabled || settingsMenuEnabled ? "gap-[5.744px]" : "gap-[8.615px]"}
+              groupGapClassName={savedListsEnabled || settingsMenuEnabled ? "gap-[7.18px]" : "gap-[8.615px]"}
               activeKey={currentPage === 0 ? displayActiveFilter : undefined}
             />
           )}
@@ -1215,7 +1215,7 @@ function ListsTutorialPlaceholderPage({
                     }}
                   >
                     <div ref={setPage5EditorHostElement} className="relative w-full h-full flex flex-col mx-auto">
-                      <div className="content-stretch flex flex-col gap-[26px] items-start pt-[24px] px-[24px] relative w-full shrink-0">
+                      <div className="content-stretch flex flex-col gap-[24px] items-start pt-[24px] px-[20px] relative w-full shrink-0">
                         <ListsHeader
                           value="Vegetarian lasagne"
                           onChange={() => {}}
@@ -1288,7 +1288,7 @@ function ListsTutorialPlaceholderPage({
                           </motion.div>
                         )}
                       </div>
-                      <div className="flex flex-col gap-[23px] items-start px-[24px] pb-[24px] relative w-full flex-1 min-h-0 overflow-y-auto mt-[35px]">
+                      <div className="flex flex-col gap-[23px] items-start px-[20px] pb-[24px] relative w-full flex-1 min-h-0 overflow-y-auto mt-[35px]">
                         <AnimatePresence initial={false}>
                           {page5EditorItems.map((item) => {
                             const isReinserted = page5ReinsertedItemId === item.id;
@@ -1950,14 +1950,14 @@ export default function TutorialOnboardingContent({
                   <TutorialReminderFilters
                     items={savedListsEnabled ? SAVED_LISTS_TUTORIAL_FILTER_ITEMS : UNGROUPED_TUTORIAL_LIST_FILTER_ITEMS}
                     trailing={
-                      <div className="flex items-center gap-[5.744px]">
+                      <div className="flex items-center gap-[7.18px]">
                         {savedListsEnabled && <TemplatesTutorialButton />}
                         <TutorialSettingsButton />
                       </div>
                     }
                     layout="between"
                     rowGapClassName="gap-[10px]"
-                    groupGapClassName="gap-[5.744px]"
+                    groupGapClassName="gap-[7.18px]"
                   />
                 }
               >

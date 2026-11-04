@@ -1744,8 +1744,8 @@ export default function TutorialOnboardingContent({
       style={{
         borderTopLeftRadius: '15px',
         borderTopRightRadius: '15px',
-        paddingLeft: 'clamp(16px, 5vw, 40px)',
-        paddingRight: 'clamp(16px, 5vw, 40px)',
+        paddingLeft: '20px',
+        paddingRight: '20px',
         paddingTop: '24px',
         paddingBottom: '24px',
       }}

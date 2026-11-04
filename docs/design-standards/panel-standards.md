@@ -1,6 +1,6 @@
 # Panel standards
 
-Version 2.0, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly by reference: Noterly links to this document and does not keep a copy. Centred overlays are a separate standard: [overlay-standards.md](./overlay-standards.md).
+Version 2.1, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly by reference: Noterly links to this document and does not keep a copy. Centred overlays are a separate standard: [overlay-standards.md](./overlay-standards.md).
 
 The reference is John's panel design visual (approved 2026-11-04). Where the code or an earlier version of this document differs, the reference wins.
 
@@ -69,12 +69,12 @@ A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24
 
 | Panel | Exception | Reason | Agreed |
 |-------|-----------|--------|--------|
-| Noterly note panels (New/Edit note, linked note, search-result edit) | A 58px band above the header holds the expand/collapse arrow, so the header sits below that band instead of 24px below the panel top. Expanded, the band starts at the safe-area inset + 24px | The arrow is Noterly's way to expand a note to full height | John, 2026-11-04 (decision A) |
+| Noterly note panels (New/Edit note, linked note, search-result edit) | A 58px band above the header holds the expand/collapse arrow, so the header sits below that band instead of 24px below the panel top. The band is part of the expanded panel's header block: expanded, the block begins at the safe-area inset + 24px (the arrow band's top edge), with the title and controls below the band | The arrow is Noterly's way to expand a note to full height | John, 2026-11-04 (decision A); interpretation approved by the CTO, 2026-11-04 |
 | Noterly note panel full-height activation | The user expands it | Reading and editing room for long notes | John, 2026-11-04 |
 | Reminderly tutorial full-height activation | Below 740px viewport height, the tutorial starts at the safe-area inset (covering the logo header) | The tutorial mock-up needs the room | Existing behaviour retained, 2026-11-04 |
-| Reminderly tutorial side padding | `clamp(16px, 5vw, 40px)` instead of 20 | The tutorial phone mock-up scales with width; 20.1px at 402 wide | Open: confirm with John |
 
 ## Version history
 
+- v2.1, 2026-11-04: tutorial side padding standardised to 20px (checked at 360 x 667: no overflow, titles on one line); Noterly arrow band recorded as part of the expanded header block.
 - v2.0, 2026-11-04: rewritten to the approved reference (146px resting top, 20px side padding, 45/40/60 bars, full-height rule, white Dev tools, fixed 60 CTA), cross-app parity principle and exception table added. Shared with Noterly.
 - v1.0, 2026-10-12: Reminderly main and slide-up panel values as implemented, bottom sheets.

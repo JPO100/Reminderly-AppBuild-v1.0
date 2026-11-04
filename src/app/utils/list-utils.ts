@@ -21,6 +21,9 @@ export type CreatedList = {
   statusChangedAt?: number | null;
   // When an active list last became fully ticked (null while not fully ticked). Used by Clear done lists nightly.
   fullyTickedAt?: number | null;
+  // Linked lists (docs/features/linked-lists.md): offered to Noterly's picker, and the count of ended link generations.
+  linkable?: boolean;
+  linkEpoch?: number;
 };
 
 // List buckets: Todo (nothing ticked, including empty lists), Started (some ticked), Done (all ticked).

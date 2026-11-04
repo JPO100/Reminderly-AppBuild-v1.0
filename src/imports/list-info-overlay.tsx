@@ -4,6 +4,8 @@ import svgPaths from "./svg-oxn8g14l6y";
 import { useEffect, useRef, useState } from "react";
 import ListSmartReminderCalendar from "../app/components/ListSmartReminderCalendar";
 import { formatSmartReminderDueByFromDate } from "../app/utils/list-utils";
+import { LinkableRow, UnlinkButton } from "./LinkedListControls";
+import type { LinkedControls } from "./LinkedListControls";
 
 function SmartRemindersLabel({ active, smartReminderDueDate, smartReminderTime, highlightDueDate, animateFadeOut }: { active: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; highlightDueDate: boolean; animateFadeOut: boolean }) {
   return (
@@ -188,7 +190,7 @@ function DeleteBtn({ onClick }: { onClick: () => void }) {
   );
 }
 
-function Buttons({ onMarkAsDone, onEdit, onTogglePinned, isPinned, onCreateTemplate, createTemplateStage, onDelete, showActionButtons, showPinnedLists }: { onMarkAsDone: () => void; onEdit: () => void; onTogglePinned: () => void; isPinned: boolean; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; showActionButtons: boolean; showPinnedLists: boolean }) {
+function Buttons({ onMarkAsDone, onEdit, onTogglePinned, isPinned, onCreateTemplate, createTemplateStage, onDelete, showActionButtons, showPinnedLists, linked }: { linked?: LinkedControls; onMarkAsDone: () => void; onEdit: () => void; onTogglePinned: () => void; isPinned: boolean; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; showActionButtons: boolean; showPinnedLists: boolean }) {
   if (!showActionButtons) return null;
   return (
     <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full" data-name="buttons">
@@ -197,13 +199,14 @@ function Buttons({ onMarkAsDone, onEdit, onTogglePinned, isPinned, onCreateTempl
         <EditListBtn onClick={onEdit} />
         {showPinnedLists && <PinToTopBtn isPinned={isPinned} onClick={onTogglePinned} />}
         <CreateTemplateBtn onClick={onCreateTemplate} stage={createTemplateStage} />
+        {linked?.unlinkLabel && <UnlinkButton label={linked.unlinkLabel} onClick={linked.onUnlink} />}
         <DeleteBtn onClick={onDelete} />
       </>
     </div>
   );
 }
 
-export default function ListInfoOverlay({ listTitle, smartReminders, onSmartRemindersChange, showSmartReminders, smartReminderDueDate, smartReminderTime, onSetSmartReminderDueDate, onOpenSmartReminderEditor, onMarkAsDone, onEdit, onTogglePinned, isPinned, onCreateTemplate, createTemplateStage, onDelete, showPinnedLists }: { listTitle: string; smartReminders: boolean; onSmartRemindersChange: (val: boolean) => void; showSmartReminders: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; onSetSmartReminderDueDate: (date: Date) => void; onOpenSmartReminderEditor?: () => void; onMarkAsDone: () => void; onEdit: () => void; onTogglePinned: () => void; isPinned: boolean; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; showPinnedLists: boolean }) {
+export default function ListInfoOverlay({ linked, listTitle, smartReminders, onSmartRemindersChange, showSmartReminders, smartReminderDueDate, smartReminderTime, onSetSmartReminderDueDate, onOpenSmartReminderEditor, onMarkAsDone, onEdit, onTogglePinned, isPinned, onCreateTemplate, createTemplateStage, onDelete, showPinnedLists }: { linked?: LinkedControls; listTitle: string; smartReminders: boolean; onSmartRemindersChange: (val: boolean) => void; showSmartReminders: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; onSetSmartReminderDueDate: (date: Date) => void; onOpenSmartReminderEditor?: () => void; onMarkAsDone: () => void; onEdit: () => void; onTogglePinned: () => void; isPinned: boolean; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; showPinnedLists: boolean }) {
   const smartRemindersActive = showSmartReminders && smartReminders;
   const [draftSmartReminderDate, setDraftSmartReminderDate] = useState<Date>(smartReminderDueDate ?? new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(smartRemindersActive && smartReminderDueDate == null);
@@ -292,7 +295,8 @@ export default function ListInfoOverlay({ listTitle, smartReminders, onSmartRemi
               <Frame3 smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />
             </div>
           )}
-          <Buttons onMarkAsDone={onMarkAsDone} onEdit={onEdit} onTogglePinned={onTogglePinned} isPinned={isPinned} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} showActionButtons={!smartRemindersActive || !isDatePickerOpen} showPinnedLists={showPinnedLists} />
+          {linked && !isDatePickerOpen && <LinkableRow controls={linked} />}
+          <Buttons linked={linked} onMarkAsDone={onMarkAsDone} onEdit={onEdit} onTogglePinned={onTogglePinned} isPinned={isPinned} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} showActionButtons={!smartRemindersActive || !isDatePickerOpen} showPinnedLists={showPinnedLists} />
           </div>
         </ScrollArea>
       </div>

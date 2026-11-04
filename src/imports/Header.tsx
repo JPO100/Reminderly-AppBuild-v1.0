@@ -1,4 +1,5 @@
 import svgPaths from "./svg-z3vqooufv8";
+import { LinkIcon } from "./LinkedListControls";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 // 45 x 45 header buttons (standard Settings / tick style). Inactive: #D9D9D9 circle with white icon
@@ -65,7 +66,7 @@ function SavedListSubtitleIndicator() {
   );
 }
 
-export default function Header({ value, onChange, active, onSubmit, isEditMode, onGearClick, onClose, subtitleText, subtitleHighlightColor, showSmartRemindersSubtitle, reserveSmartRemindersSubtitleSpace, showMenuButton = true, showSavedListSubtitleIcon = false, leadingIcon }: { value: string; onChange: (v: string) => void; active: boolean; onSubmit: () => void; isEditMode?: boolean; onGearClick?: () => void; onClose?: () => void; subtitleText?: string; subtitleHighlightColor?: string | null; showSmartRemindersSubtitle?: boolean; reserveSmartRemindersSubtitleSpace?: boolean; showMenuButton?: boolean; showSavedListSubtitleIcon?: boolean; leadingIcon?: ReactNode }) {
+export default function Header({ value, onChange, active, onSubmit, isEditMode, onGearClick, onClose, subtitleText, subtitleHighlightColor, showSmartRemindersSubtitle, reserveSmartRemindersSubtitleSpace, showMenuButton = true, showSavedListSubtitleIcon = false, showLinkedIndicator = false, leadingIcon }: { showLinkedIndicator?: boolean; value: string; onChange: (v: string) => void; active: boolean; onSubmit: () => void; isEditMode?: boolean; onGearClick?: () => void; onClose?: () => void; subtitleText?: string; subtitleHighlightColor?: string | null; showSmartRemindersSubtitle?: boolean; reserveSmartRemindersSubtitleSpace?: boolean; showMenuButton?: boolean; showSavedListSubtitleIcon?: boolean; leadingIcon?: ReactNode }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [hasTypedSinceFocus, setHasTypedSinceFocus] = useState(false);
@@ -144,6 +145,7 @@ export default function Header({ value, onChange, active, onSubmit, isEditMode, 
           </p>
           {showSmartRemindersSubtitle ? <SmartRemindersIndicator /> : null}
           {showSavedListSubtitleIcon ? <SavedListSubtitleIndicator /> : null}
+          {showLinkedIndicator ? <LinkIcon size={15} /> : null}
         </div>
       ) : null}
     </div>

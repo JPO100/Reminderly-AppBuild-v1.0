@@ -4,6 +4,8 @@ import svgPaths from "./svg-oxn8g14l6y";
 import { useEffect, useRef, useState } from "react";
 import ListSmartReminderCalendar from "../app/components/ListSmartReminderCalendar";
 import { formatSmartReminderDueByFromDate } from "../app/utils/list-utils";
+import { LinkableRow, UnlinkButton } from "./LinkedListControls";
+import type { LinkedControls } from "./LinkedListControls";
 
 function SmartRemindersLabel({ active, smartReminderDueDate, smartReminderTime, highlightDueDate, animateFadeOut }: { active: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; highlightDueDate: boolean; animateFadeOut: boolean }) {
   return (
@@ -165,18 +167,19 @@ function DeleteBtn({ onClick }: { onClick: () => void }) {
   );
 }
 
-function Buttons({ onUncheckAll, onCreateTemplate, createTemplateStage, onDelete, allUnchecked, showUncheckAll }: { onUncheckAll: () => void; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; allUnchecked: boolean; showUncheckAll: boolean }) {
+function Buttons({ onUncheckAll, onCreateTemplate, createTemplateStage, onDelete, allUnchecked, showUncheckAll, linked }: { linked?: LinkedControls; onUncheckAll: () => void; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; allUnchecked: boolean; showUncheckAll: boolean }) {
   if (!showUncheckAll) return null;
   return (
     <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full" data-name="buttons">
       <UncheckAllBtn onClick={onUncheckAll} disabled={allUnchecked} />
       <CreateTemplateBtn onClick={onCreateTemplate} stage={createTemplateStage} />
+      {linked?.unlinkLabel && <UnlinkButton label={linked.unlinkLabel} onClick={linked.onUnlink} />}
       <DeleteBtn onClick={onDelete} />
     </div>
   );
 }
 
-export default function InfoOverlay({ listTitle, onUncheckAll, onCreateTemplate, createTemplateStage, onDelete, allUnchecked, smartReminders, onSmartRemindersChange, showSmartReminders, smartReminderDueDate, smartReminderTime, onSetSmartReminderDueDate, onOpenSmartReminderEditor }: { listTitle: string; onUncheckAll: () => void; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; allUnchecked: boolean; smartReminders: boolean; onSmartRemindersChange: (val: boolean) => void; showSmartReminders: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; onSetSmartReminderDueDate: (date: Date) => void; onOpenSmartReminderEditor?: () => void }) {
+export default function InfoOverlay({ linked, listTitle, onUncheckAll, onCreateTemplate, createTemplateStage, onDelete, allUnchecked, smartReminders, onSmartRemindersChange, showSmartReminders, smartReminderDueDate, smartReminderTime, onSetSmartReminderDueDate, onOpenSmartReminderEditor }: { linked?: LinkedControls; listTitle: string; onUncheckAll: () => void; onCreateTemplate: () => void; createTemplateStage: 'idle' | 'fill' | 'copied' | 'blank' | 'go'; onDelete: () => void; allUnchecked: boolean; smartReminders: boolean; onSmartRemindersChange: (val: boolean) => void; showSmartReminders: boolean; smartReminderDueDate: Date | null; smartReminderTime: string | null | undefined; onSetSmartReminderDueDate: (date: Date) => void; onOpenSmartReminderEditor?: () => void }) {
   const smartRemindersActive = showSmartReminders && smartReminders;
   const [draftSmartReminderDate, setDraftSmartReminderDate] = useState<Date>(smartReminderDueDate ?? new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState<boolean>(smartRemindersActive && smartReminderDueDate == null);
@@ -261,7 +264,8 @@ export default function InfoOverlay({ listTitle, onUncheckAll, onCreateTemplate,
         <ScrollArea>
           <div className="flex flex-col gap-[30px] items-center w-full">
           {showSmartReminders && <Frame3 smartReminders={smartReminders} onSmartRemindersChange={handleSmartRemindersChange} showSmartReminders={showSmartReminders} displaySmartReminderDate={displaySmartReminderDate} smartReminderTime={smartReminderTime} selectedSmartReminderDate={draftSmartReminderDate} isDatePickerOpen={isDatePickerOpen} onDateSelect={setDraftSmartReminderDate} onSetDate={handleSetDate} onCloseDatePicker={handleCloseDatePicker} onOpenDatePicker={handleOpenDatePicker} onOpenSmartReminderEditor={onOpenSmartReminderEditor} highlightDueDate={dueDateHighlightPhase !== 'idle'} animateFadeOut={dueDateHighlightPhase === 'fade'} />}
-          <Buttons onUncheckAll={onUncheckAll} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} allUnchecked={allUnchecked} showUncheckAll={!smartRemindersActive || !isDatePickerOpen} />
+          {linked && !isDatePickerOpen && <LinkableRow controls={linked} />}
+          <Buttons linked={linked} onUncheckAll={onUncheckAll} onCreateTemplate={onCreateTemplate} createTemplateStage={createTemplateStage} onDelete={onDelete} allUnchecked={allUnchecked} showUncheckAll={!smartRemindersActive || !isDatePickerOpen} />
           </div>
         </ScrollArea>
       </div>

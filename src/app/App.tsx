@@ -19,6 +19,10 @@ import type { NlcRecognitionConfig } from "./utils/nlc-parser";
 import { renderReminderText, getDisplayTitle } from "./utils/render-text";
 import { STORAGE_KEY, loadReminders, isOverdue, categoriseReminder, sortReminders, formatRepeatLabel, formatScheduledDateForRow, formatReminderNextOccurrenceLabel, formatRepeatRuleText, computeBadgeCount, getTodayProgress, getNextTimeRefreshBoundary, getDisplayCategory, getFilterForSettingsMenu, getCalendarDots, getCalendarDayReminders, formatCalendarDayHeading, formatCalendarMonthTitle, stepCalendarMonth, toDateKey } from "./reminder-utils";
 import { syncWidget, syncSiriActive, syncSiriContext, getSiriPending, removeSiriPending } from "./utils/widget";
+import { useLinkedLists } from "./utils/useLinkedLists";
+import { applyLinkTicks, endListLinks, getActiveLinks, getLinkedNoteStatus, getUnlinkLabel } from "./utils/linked-lists";
+import { LinkIcon, LinkedConfirmDialog } from "../imports/LinkedListControls";
+import type { LinkedControls } from "../imports/LinkedListControls";
 import { buildSiriContext, planSiriImport } from "./utils/siri-pending";
 import { buildSiriReminder, isSiriNeedsTime, isSiriUnsupportedTime } from "./utils/siri";
 import type { Reminder, ReminderCategory, ReminderSchedule, RepeatConfig, ViewMode } from "./reminder-utils";
@@ -1110,6 +1114,7 @@ export default function App() {
   const [smartRemindersFeatureEnabled, setSmartRemindersFeatureEnabled] = useStoredSetting('reminderly-ff-smart-reminders');
   const [savedListsFeatureEnabled, setSavedListsFeatureEnabled] = useStoredSetting('reminderly-ff-saved-lists');
   const [pinnedListsFeatureEnabled, setPinnedListsFeatureEnabled] = useStoredSetting('reminderly-ff-pinned-lists');
+  const [linkedListsFlag, setLinkedListsFlag] = useStoredSetting('reminderly-ff-linked-lists');
   const [settingsMenuFeatureEnabled, setSettingsMenuFeatureEnabled] = useStoredSetting('reminderly-ff-settings-menu-v2');
   // The calendar button sits beside the settings button, so it only shows while the settings menu is on
   const isCalendarButtonShown = isCalendarAvailable && settingsMenuFeatureEnabled;
@@ -1546,6 +1551,39 @@ export default function App() {
       // Fail silently
     }
   }, [createdLists]);
+
+  // Linked lists (docs/features/linked-lists.md). Off by default; with the flag off nothing below reads, publishes or shows.
+  const editingListIdRef = useRef(editingListId);
+  editingListIdRef.current = editingListId;
+  const { links: linkedLinks, ready: linkedReady } = useLinkedLists(linkedListsFlag, createdLists, setCreatedLists, resolveListSortMode(listSortAz, false, listOldestFirst), (ticks) => {
+    // A list open in the editor keeps its own copy of the items, so the ticks go into that copy too
+    const openId = editingListIdRef.current;
+    if (!openId) return;
+    setListItems((items) => applyLinkTicks([{ id: openId, title: '', items }], ticks, Date.now()).lists[0].items);
+  });
+  const [linkedConfirm, setLinkedConfirm] = useState<{ kind: 'unlink' | 'delete'; listId: string; count: number; proceed?: () => void } | null>(null);
+  const linkedCountFor = (listId: string | null | undefined) => {
+    const list = linkedListsFlag && listId ? createdLists.find((candidate) => candidate.id === listId) : undefined;
+    return list ? getActiveLinks(linkedLinks, list).length : 0;
+  };
+  const linkedControlsFor = (listId: string | null | undefined): LinkedControls | undefined => {
+    const list = linkedListsFlag && listId ? createdLists.find((candidate) => candidate.id === listId) : undefined;
+    if (!list || (list.status ?? 'active') !== 'active') return undefined;
+    const { count, text } = getLinkedNoteStatus(linkedLinks, list);
+    return {
+      linkable: list.linkable === true,
+      statusText: text,
+      onLinkableChange: (value) => setCreatedLists((prev) => prev.map((candidate) => (candidate.id === list.id ? { ...candidate, linkable: value } : candidate))),
+      unlinkLabel: getUnlinkLabel(count),
+      onUnlink: () => setLinkedConfirm({ kind: 'unlink', listId: list.id, count }),
+    };
+  };
+  // Deleting a list that is linked asks first, because the links end for good
+  const requestListDelete = (listId: string, proceed: () => void) => {
+    const count = linkedCountFor(listId);
+    if (count > 0) setLinkedConfirm({ kind: 'delete', listId, count, proceed });
+    else proceed();
+  };
 
   // Records when each active list became fully ticked (Clear done lists nightly). No change, no update.
   useEffect(() => {
@@ -2718,11 +2756,11 @@ export default function App() {
       setCreatedLists((prev) =>
         prev.map((list) =>
           list.id === listId
-            ? {
+            ? endListLinks({
                 ...list,
                 status: 'deleted',
                 statusChangedAt: Date.now(),
-              }
+              })
             : list
         )
       );
@@ -3637,7 +3675,7 @@ export default function App() {
   );
 
   return (
-    <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
+    <div className="content-stretch flex flex-col items-center h-screen w-full overflow-hidden" style={{ visibility: linkedReady ? undefined : "hidden", backgroundColor: viewMode === "done-deleted" ? (isListsEnabled ? "#4784f8" : DONE_BLUE) : (shownMainTab === 'lists') ? DONE_BLUE : "#4784f8" }} onPointerDownCapture={(e) => {
         if ((clearListStep === 1 || clearListStep === 2) && clearAllButtonRef.current && !clearAllButtonRef.current.contains(e.target as Node)) {
           setClearListStep(0);
           if (clearListTimerRef.current !== null) {
@@ -4307,6 +4345,11 @@ export default function App() {
                                     {isSmartRemindersEnabled && (list.smartReminders ?? false) && (
                                       <div className="flex items-center gap-[8px] h-0 overflow-visible shrink-0 self-center pl-[8px]">
                                         <SmartRemindersIndicator />
+                                      </div>
+                                    )}
+                                    {linkedCountFor(list.id) > 0 && (
+                                      <div className="flex items-center gap-[8px] h-0 overflow-visible shrink-0 self-center pl-[8px]">
+                                        <LinkIcon size={14} />
                                       </div>
                                     )}
                                   </div>
@@ -5190,6 +5233,7 @@ export default function App() {
                         ? `${formatListProgress(listItems.filter((item) => item.completed).length, listItems.length)}. ${formatSmartReminderDueBy(listSmartReminderDueDate, listSmartReminderTime)}`
                         : formatListProgress(listItems.filter((item) => item.completed).length, listItems.length)}
                       showSmartRemindersSubtitle={!isSavedListCreateOverlay && isSmartRemindersEnabled && listSmartReminders}
+                      showLinkedIndicator={!isSavedListCreateOverlay && linkedCountFor(editingListId) > 0}
                       reserveSmartRemindersSubtitleSpace={!isSavedListCreateOverlay && isSmartRemindersEnabled}
                       showMenuButton={!isSavedListCreateOverlay || isSavedListEditOverlay}
                       leadingIcon={isSavedListCreateOverlay ? <SavedListTemplateIcon /> : undefined}
@@ -5322,16 +5366,16 @@ export default function App() {
           />
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div className="pointer-events-auto centred-overlay-card flex flex-col w-full max-w-[340px] rounded-[32px]" style={{ overflowY: 'hidden' }}>
-              <InfoOverlay listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
+              <InfoOverlay linked={linkedControlsFor(editingListId)} listTitle={listTitle} onUncheckAll={handleListSettingsUncheckAll} onCreateTemplate={handleCreateTemplateFromListSettingsFeedback} createTemplateStage={createTemplateFeedback?.source === 'list-settings' && createTemplateFeedback.key === (editingListId ?? 'list-settings') ? createTemplateFeedback.stage : 'idle'} onDelete={() => {
                 const listId = editingListId;
                 if (!listId) return;
-                runOverlayDeleteSequence(() => {
+                requestListDelete(listId, () => runOverlayDeleteSequence(() => {
                   setIsListSettingsOpen(false);
                 }, () => {
                   setIsListsOverlayOpen(false);
                 }, () => {
                   handleListDeleteClick(listId);
-                });
+                }));
               }} allUnchecked={listItems.every(i => !i.completed)} smartReminders={listSmartReminders} onSmartRemindersChange={(val) => {
                 if (!editingListId) return;
                 if (!val) {
@@ -5351,6 +5395,28 @@ export default function App() {
         </>
       )}
 
+      {linkedConfirm && (
+        <LinkedConfirmDialog
+          header={linkedConfirm.kind === 'delete' ? 'Delete linked list?' : linkedConfirm.count === 1 ? 'Unlink from Noterly?' : 'Unlink all from Noterly?'}
+          title={linkedConfirm.kind === 'delete'
+            ? `${linkedConfirm.count === 1 ? 'It is linked to a note' : `It is linked to ${linkedConfirm.count} notes`}. Deleting ends the link for good. The checklist in Noterly becomes an ordinary checklist.`
+            : linkedConfirm.count === 1
+              ? 'The checklist in your note becomes an ordinary Noterly checklist and stops syncing.'
+              : 'The checklists in your notes become ordinary Noterly checklists and stop syncing.'}
+          confirmLabel={linkedConfirm.kind === 'delete' ? 'Delete' : 'Unlink'}
+          onCancel={() => setLinkedConfirm(null)}
+          onConfirm={() => {
+            const { kind, listId, proceed } = linkedConfirm;
+            setLinkedConfirm(null);
+            if (kind === 'delete') {
+              proceed?.();
+            } else {
+              setCreatedLists((prev) => prev.map((candidate) => (candidate.id === listId ? endListLinks(candidate) : candidate)));
+            }
+          }}
+        />
+      )}
+
       {listInfoOverlayList && (
         <>
           <div
@@ -5360,6 +5426,7 @@ export default function App() {
           <div className="fixed inset-0 z-[60] flex items-center justify-center pointer-events-none px-[20px] centred-overlay-wrapper">
             <div className="pointer-events-auto centred-overlay-card flex flex-col w-full max-w-[340px] rounded-[32px]" style={{ overflowY: 'hidden' }}>
               <ListInfoOverlay
+                linked={linkedControlsFor(listInfoOverlayList.id)}
                 listTitle={listInfoOverlayList.title}
                 smartReminders={(listInfoOverlayList.smartReminders ?? false) || pendingListInfoSmartReminderListId === listInfoOverlayList.id}
                 onSmartRemindersChange={(val) => {
@@ -5418,10 +5485,12 @@ export default function App() {
                 createTemplateStage={createTemplateFeedback?.source === 'list-info' && createTemplateFeedback.key === listInfoOverlayList.id ? createTemplateFeedback.stage : 'idle'}
                 onDelete={() => {
                   const listId = listInfoOverlayList.id;
-                  setListInfoOverlayListId(null);
-                  window.setTimeout(() => {
-                    handleListDeleteClick(listId);
-                  }, 200);
+                  requestListDelete(listId, () => {
+                    setListInfoOverlayListId(null);
+                    window.setTimeout(() => {
+                      handleListDeleteClick(listId);
+                    }, 200);
+                  });
                 }}
               />
             </div>
@@ -5691,7 +5760,7 @@ export default function App() {
               className="fixed left-0 right-0 z-50 mx-auto w-full"
               style={{ bottom: 0 }}
             >
-              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} soundsFlag={soundsFlag} onSoundsFlagChange={setSoundsFlag} lockScreenWidgetFlag={lockScreenWidgetFlag} onLockScreenWidgetFlagChange={setLockScreenWidgetFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} calendarFlag={calendarFlag} onCalendarFlagChange={setCalendarFlag} attachmentsFlag={attachmentsFlag} onAttachmentsFlagChange={setAttachmentsFlag} datePresetsFlag={datePresetsFlag} onDatePresetsFlagChange={setDatePresetsFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} feedbackFlag={feedbackFlag} onFeedbackFlagChange={setFeedbackFlag} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
+              <DevToolsOverlay onClose={() => setIsDevToolsOpen(false)} hapticsFlag={hapticsFlag} onHapticsFlagChange={setHapticsFlag} soundsFlag={soundsFlag} onSoundsFlagChange={setSoundsFlag} lockScreenWidgetFlag={lockScreenWidgetFlag} onLockScreenWidgetFlagChange={setLockScreenWidgetFlag} remindersFlag={isRemindersEnabled} onRemindersFlagChange={setIsRemindersEnabled} notificationsFlag={notificationsFlag} onNotificationsFlagChange={setNotificationsFlag} repeatFlag={repeatRemindersFlag} onRepeatFlagChange={setRepeatRemindersFlag} oneMinuteFlag={oneMinuteIncrementsFlag} onOneMinuteFlagChange={setOneMinuteIncrementsFlag} calendarFlag={calendarFlag} onCalendarFlagChange={setCalendarFlag} attachmentsFlag={attachmentsFlag} onAttachmentsFlagChange={setAttachmentsFlag} datePresetsFlag={datePresetsFlag} onDatePresetsFlagChange={setDatePresetsFlag} onClearReminders={() => setReminders([])} addReminder={addReminder} addReminders={addReminders} nlcMode={nlcMode} onNlcModeChange={(mode) => setNlcPrefAutoParsing(mode === 'auto')} nlcEnabled={nlcFlag} onNlcEnabledChange={setNlcFlag} nlcRecognition={nlcRecognition} onNlcRecognitionChange={(r) => { setNlcPrefDate(r.date); setNlcPrefTime(r.time); setNlcPrefRepeats(r.repeats); }} hideOverdue={hideOverdue} onHideOverdueChange={setHideOverdue} isOnboardingTutorialEnabled={isOnboardingTutorialEnabled} onOnboardingTutorialEnabledChange={setIsOnboardingTutorialEnabled} isListsEnabled={isListsEnabled} onListsEnabledChange={setIsListsEnabled} showTutorialOnFirstLaunch={showTutorialOnFirstLaunch} onShowTutorialOnFirstLaunchChange={setShowTutorialOnFirstLaunch} showTutorialOnEveryStart={showTutorialOnEveryStart} onShowTutorialOnEveryStartChange={setShowTutorialOnEveryStart} isDevToolsUnlocked={isDevToolsUnlocked} onDevToolsUnlock={() => setIsDevToolsUnlocked(true)} isDevToolsPasswordRequired={isDevToolsPasswordRequired} onDevToolsPasswordRequiredChange={setIsDevToolsPasswordRequired} useOneMinuteIncrements={useOneMinuteTimeIncrements} onUseOneMinuteIncrementsChange={setUseOneMinuteTimeIncrements} smartRemindersEnabled={smartRemindersFeatureEnabled} onSmartRemindersEnabledChange={setSmartRemindersFeatureEnabled} savedListsEnabled={savedListsFeatureEnabled} onSavedListsEnabledChange={handleSavedListsFeatureEnabledChange} pinnedListsEnabled={pinnedListsFeatureEnabled} onPinnedListsEnabledChange={setPinnedListsFeatureEnabled} linkedListsFlag={linkedListsFlag} onLinkedListsFlagChange={setLinkedListsFlag} settingsMenuEnabled={settingsMenuFeatureEnabled} onSettingsMenuEnabledChange={setSettingsMenuFeatureEnabled} showInfoIcons={showInfoIcons} onShowInfoIconsChange={setShowInfoIcons} feedbackFlag={feedbackFlag} onFeedbackFlagChange={setFeedbackFlag} notifReminderAlerts={notifReminderAlerts} onNotifReminderAlertsChange={setNotifReminderAlerts} notifAppBadge={notifAppBadge} onNotifAppBadgeChange={setNotifAppBadge} notifIncludeTodayInBadge={notifIncludeTodayInBadge} onNotifIncludeTodayInBadgeChange={setNotifIncludeTodayInBadge} siriShortcutsEnabled={siriShortcutsEnabled} onSiriShortcutsEnabledChange={setSiriShortcutsEnabled} useDefaultTemplatesInCleanState={useDefaultTemplatesInCleanState} onUseDefaultTemplatesInCleanStateChange={setUseDefaultTemplatesInCleanState} onClearLists={(useDefaultTemplatesInCleanState) => {
                 setCreatedLists([]);
                 setSavedLists(
                   useDefaultTemplatesInCleanState

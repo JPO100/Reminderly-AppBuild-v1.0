@@ -1,8 +1,13 @@
 # Self-Check Baseline Report
 
-Last updated: 2026-10-20
+Last updated: 2026-11-04
 
-## Verified Baseline (2026-10-20, feature/onboarding-gaps merged with main)
+## Verified Baseline (2026-11-04, feature/linked-lists-reminderly, Stage 1)
+
+- Vitest (`npm run test`): 505 passed, 0 failed (23 files). `linked-lists.test.ts` adds 20 (flag default off, status wording, private notes, epoch, published lists, tick apply and replay, consume after save, register parsing).
+- Self Check: 432 passed, 0 failed across 11 suites (Node run).
+
+## Previous baseline (2026-10-20, feature/onboarding-gaps merged with main)
 
 - Vitest (`npm run test`): 246 passed, 0 failed (13 files). Main (238) plus the onboarding tutorial tests (8).
 - Self Check: 412 passed, 0 failed across 11 suites (Node run). Main (411) plus `notif-ask-tutorial-close`.

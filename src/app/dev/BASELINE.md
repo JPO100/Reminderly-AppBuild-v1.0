@@ -4,7 +4,7 @@ Last updated: 2026-11-04
 
 ## Verified Baseline (2026-11-04, feature/linked-lists-reminderly, Stage 1)
 
-- Vitest (`npm run test`): 505 passed, 0 failed (23 files). `linked-lists.test.ts` adds 20 (flag default off, status wording, private notes, epoch, published lists, tick apply and replay, consume after save, register parsing).
+- Vitest (`npm run test`): 508 passed, 0 failed (24 files). `linked-lists.test.ts` adds 20 (flag default off, status wording, private notes, epoch, published lists, tick apply and replay, consume after save, register parsing); `linked-lists-overlay.test.tsx` adds 3 (completed-list overlay shows status and Unlink, never the toggle).
 - Self Check: 432 passed, 0 failed across 11 suites (Node run).
 
 ## Previous baseline (2026-10-20, feature/onboarding-gaps merged with main)

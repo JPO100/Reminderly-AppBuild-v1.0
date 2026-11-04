@@ -1568,7 +1568,7 @@ export default function App() {
   };
   const linkedControlsFor = (listId: string | null | undefined): LinkedControls | undefined => {
     const list = linkedListsFlag && listId ? createdLists.find((candidate) => candidate.id === listId) : undefined;
-    if (!list || (list.status ?? 'active') !== 'active') return undefined;
+    if (!list || (list.status ?? 'active') === 'deleted') return undefined;
     const { count, text } = getLinkedNoteStatus(linkedLinks, list);
     return {
       linkable: list.linkable === true,
@@ -5399,10 +5399,12 @@ export default function App() {
         <LinkedConfirmDialog
           header={linkedConfirm.kind === 'delete' ? 'Delete linked list?' : linkedConfirm.count === 1 ? 'Unlink from Noterly?' : 'Unlink all from Noterly?'}
           title={linkedConfirm.kind === 'delete'
-            ? `${linkedConfirm.count === 1 ? 'It is linked to a note' : `It is linked to ${linkedConfirm.count} notes`}. Deleting ends the link for good. The checklist in Noterly becomes an ordinary checklist.`
+            ? (linkedConfirm.count === 1
+              ? 'It is linked to a note. Deleting ends the link for good. The checklist in Noterly stays as an ordinary editable checklist, with its items and ticks kept.'
+              : `It is linked to ${linkedConfirm.count} notes. Deleting ends the links for good. The checklists in Noterly stay as ordinary editable checklists, with their items and ticks kept.`)
             : linkedConfirm.count === 1
-              ? 'The checklist in your note becomes an ordinary Noterly checklist and stops syncing.'
-              : 'The checklists in your notes become ordinary Noterly checklists and stop syncing.'}
+              ? 'The checklist in your note stays as an ordinary editable checklist in Noterly, with its items and ticks kept, and stops syncing.'
+              : 'The checklists in your notes stay as ordinary editable checklists in Noterly, with their items and ticks kept, and stop syncing.'}
           confirmLabel={linkedConfirm.kind === 'delete' ? 'Delete' : 'Unlink'}
           onCancel={() => setLinkedConfirm(null)}
           onConfirm={() => {
@@ -5700,6 +5702,7 @@ export default function App() {
               ? (doneInfoReminder.deletedAt != null ? 'Mark as not deleted' : 'Mark as not done')
               : (doneInfoList?.status === 'deleted' ? 'Mark as not deleted' : 'Mark as not done')
           }
+          linked={doneInfoList?.status === 'done' ? linkedControlsFor(doneInfoList.id) : undefined}
           onClose={() => setDoneInfoTarget(null)}
           onMarkAsNotDone={() => {
             const currentTarget = doneInfoTarget;

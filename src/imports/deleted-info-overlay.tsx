@@ -1,5 +1,7 @@
 import { OverlayHeader } from "../app/components/OverlayHeader";
 import { ScrollArea } from "../app/components/OverlayScrollArea";
+import { UnlinkButton } from "./LinkedListControls";
+import type { LinkedControls } from "./LinkedListControls";
 
 interface DeletedInfoOverlayProps {
   title: string;
@@ -7,6 +9,8 @@ interface DeletedInfoOverlayProps {
   buttonLabel: string;
   onClose: () => void;
   onMarkAsNotDone: () => void;
+  // A completed list that is still linked keeps its status line and Unlink (never the Make list linkable toggle)
+  linked?: LinkedControls;
 }
 
 export default function DeletedInfoOverlay({
@@ -15,6 +19,7 @@ export default function DeletedInfoOverlay({
   buttonLabel,
   onClose,
   onMarkAsNotDone,
+  linked,
 }: DeletedInfoOverlayProps) {
   return (
     <>
@@ -26,7 +31,7 @@ export default function DeletedInfoOverlay({
           onClick={(event) => event.stopPropagation()}
         >
           <div className="relative flex flex-col gap-[40px] items-center min-h-0 grow w-full">
-          <OverlayHeader header={title} />
+          <OverlayHeader header={title} title={linked?.unlinkLabel ? linked.statusText : undefined} />
 
           <ScrollArea>
           <div className="content-stretch flex flex-col gap-[30px] items-start relative shrink-0 w-full">
@@ -43,6 +48,7 @@ export default function DeletedInfoOverlay({
                 </div>
               </div>
             </button>
+            {linked?.unlinkLabel && <UnlinkButton label={linked.unlinkLabel} onClick={linked.onUnlink} />}
           </div>
           </ScrollArea>
           </div>

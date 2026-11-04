@@ -31,5 +31,5 @@ A Reminderly list can be inserted into Noterly notes and ticked in either app. R
 ## Known limits
 
 - A Noterly tick reaches Reminderly when Reminderly next opens; smart reminder wording stays at the old progress until then. No background processing.
-- Stage 1 shows the controls in the two active-list overlays only. A done list that is still linked has no Unlink in Reminderly yet.
+- A completed (done) list that is still linked keeps its status line (under the title) and Unlink in the completed-list overlay, and never shows Make list linkable. Deleted lists have no links (the epoch was raised at delete). The link icon is drawn on active rows and in the editor, not on archive rows.
 - Before release: retire or remove the flag, update the onboarding tutorial and `release-readiness.md`.

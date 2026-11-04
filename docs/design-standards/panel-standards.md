@@ -1,6 +1,6 @@
 # Panel standards
 
-Version 2.4, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly and future NeatlyMade apps by reference: an app links to this document and does not keep a copy. This document covers panel anatomy, positioning, dimensions, padding, scrolling, safe areas, tabs and CTA areas. The header treatment (title, controls, variants) is in [header-standards.md](./header-standards.md). Centred overlays are a separate standard: [overlay-standards.md](./overlay-standards.md).
+Version 2.5, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly and future NeatlyMade apps by reference: an app links to this document and does not keep a copy. This document covers panel anatomy, positioning, dimensions, padding, scrolling, safe areas, tabs and CTA areas. The header treatment (title, controls, variants) is in [header-standards.md](./header-standards.md). Centred overlays are a separate standard: [overlay-standards.md](./overlay-standards.md).
 
 The reference is John's panel design visual (approved 2026-11-04). Where the code or an earlier version of this document differs, the reference wins.
 
@@ -57,7 +57,8 @@ The gap between adjacent panel sections is **24px** (John, 2026-11-04). The sect
 - The header block ends at its lowest element (the row, or the subtitle when there is one; header-standards.md, section 1).
 - A scrolling content area keeps its box and so keeps its 24px gap above and below it; the content scrolls inside.
 - Spacing inside a section's items (rows, cards, fields, lists) is not panel-section spacing and is not covered.
-- Exceptions: Noterly's arrow band (A3) and Dev tools (A7). Nothing else is exempt; an unlisted exception is a defect.
+- **Integrated content sections.** Components that form one content section are not separated by 24px. Reminderly's calendar view is one: the month grid and the selected day's reminder list sit directly together (0px) as a single content section (John, 2026-11-04). It is not a defect; the 24px still applies above and below the section.
+- Exceptions: Noterly's arrow band (A3), Dev tools (A7) and the Reminderly tutorial's carousel spacing (A8). Nothing else is exempt; an unlisted exception is a defect.
 
 ## A3. Top spacing, drag zone and the arrow band
 
@@ -100,6 +101,7 @@ A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24
 | Noterly note panel full-height activation | The user expands it, at any screen size | Reading and editing room for long notes | John, 2026-11-04 |
 | Reminderly tutorial full-height activation | Below 740px viewport height the tutorial goes full-height | The tutorial mock-up needs the room | Existing behaviour retained, 2026-11-04 |
 | Reminderly tutorial Next button | 180 x 60 pill instead of a full-width CTA (A4) | Tutorial design | John, 2026-11-04 (decision D) |
+| Reminderly tutorial internal spacing | The carousel is exempt from the 24px gap between its internal elements and keeps: title to subtitle 27px, subtitle to phone mock 35px, phone mock to page dots 45px, page dots to Next 36px. Its panel top, side padding, full-height rule and CTA height still apply | The tutorial is a distinct visual composition | John, 2026-11-04 |
 
 # Part B: Implementation notes
 
@@ -130,6 +132,7 @@ A white panel at the standard resting top, with `#F7F7F7` cards (6px corners) 24
 
 ## Version history
 
+- v2.5, 2026-11-04: recorded two approved interpretations so they are not flagged as defects: the calendar view's month grid and day list are one content section (0px), and the tutorial's carousel spacing is an approved exception (27 / 35 / 45 / 36px). All other panels measure 24px between adjacent sections (Dev tools excepted).
 - v2.4, 2026-11-04: John's rule added: the gap between adjacent panel sections is 24px (A2a), Dev tools excepted. Noterly's expanded note aligned with the full-height rule (B2). Header treatment finalised in header-standards.md v1.0.
 - v2.3, 2026-11-04: header treatment moved to the new header-standards.md (the 45px header allocation and the 24px header-to-content gap stay here). Full-height rule changed to John's decision: the white panel begins below the status bar, the status bar keeps the app background, and the header begins 24px below the panel top. Noterly's expanded note recorded as not yet aligned.
 - v2.2, 2026-11-04: restructured into the design standard (Part A) and implementation notes (Part B). Clarified the 146px panel stack top against the 198px white-panel top with tabs; the drag zone and the arrow band against the 24px top spacing; the Next button exception; added responsive, scrolling, safe-area and keyboard rules with 360 x 667 as the minimum test baseline.

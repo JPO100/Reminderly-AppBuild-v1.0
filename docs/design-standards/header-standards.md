@@ -1,6 +1,6 @@
 # Header standards
 
-Version 1.0, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly and future NeatlyMade apps by reference: an app links to this document and does not keep a copy. This document owns the header treatment inside a panel: layout, typography, controls, alignment, spacing and variants. Panel anatomy, positioning and spacing are in [panel-standards.md](./panel-standards.md), which keeps the 45px header allocation. Type scale and colours: [typography-standards.md](./typography-standards.md) and [colour-standards.md](./colour-standards.md).
+Version 1.1, 2026-11-04. Part of the [design standards](./README.md). Owned and updated in Reminderly, shared with Noterly and future NeatlyMade apps by reference: an app links to this document and does not keep a copy. This document owns the header treatment inside a panel: layout, typography, controls, alignment, spacing and variants. Panel anatomy, positioning and spacing are in [panel-standards.md](./panel-standards.md), which keeps the 45px header allocation. Type scale and colours: [typography-standards.md](./typography-standards.md) and [colour-standards.md](./colour-standards.md).
 
 The decisions in this document were approved by John on 2026-11-04. Items under "Not yet decided" in section 8 are open questions, not rules.
 
@@ -58,7 +58,8 @@ The tutorial's Back and Close controls are **footer navigation** (35 x 45 grey g
 | Variant | Where | Layout |
 |---------|-------|--------|
 | Title and trailing controls | Reminderly New reminder (confirm), Lists editor (options, save); Noterly note panels (options, confirm) | Title left, 1 to 2 circles right. Subtitle under the title where there is one |
-| Leading and trailing controls | Reminderly Repeats (cancel, confirm); Noterly Link panel (close, confirm); Dev tools pages (back, close) | Circle left, title centred, circle right |
+| Leading and trailing controls | Reminderly Repeats (cancel, confirm); Noterly Link panel (close, confirm) | Circle left, title centred, circle right |
+| Dev tools pages | Back and close circles in both apps | Approved exception: each app keeps its own title alignment (section 7) |
 | Page top row | Reminderly main pages: pills and two circle buttons; Noterly folder and note lists: search field and two circle buttons | Pills or the field fill the row, circles right, 10px apart |
 | Optional sub-header | A 40px row below the header (panel-standards.md) | A second line of filters or context, same left edge, 24px below the header |
 
@@ -72,6 +73,7 @@ An inactive confirm or save control is the `#D9D9D9` circle with a white glyph a
 |--------|-----------|--------|
 | Noterly note panels | The 58px expand/collapse arrow band sits at the top of the panel, so the header row starts below the band instead of 24px below the panel top (panel-standards.md) | John, 2026-11-04 (decision A) |
 | Tutorial footer navigation | Back and Close are 35 x 45 grey glyphs, not circles; they are footer navigation, not header controls | CTO, 2026-11-04 |
+| Dev tools headers, both apps | Exempt from the default alignment rule (section 2); each app keeps its existing treatment. Reminderly: the home title is centred between a decorative robot icon on the left and the close circle on the right; sub-pages have the back circle, a centred title and the close circle. Noterly: the home title is left-aligned with the close circle on the right; sub-pages have the back circle with the title left-aligned beside it and the close circle on the right. Circle controls, 10px spacing and the 45px row still apply | John, 2026-11-04 |
 
 ## 8. Not yet decided
 
@@ -79,10 +81,10 @@ These are questions the audit raised that no decision covers. They are not rules
 
 1. **Subtitle and editable titles.** The subtitle style in section 3 matches the existing Sub-header style, and editable titles (a list name, a note title) use the title style in a field with no box; neither was decided separately.
 2. **Glyph set.** The glyphs in section 4 are what both apps use today; no decision fixes them.
-3. **Dev tools headers.** Applying the alignment rule to the Dev tools pages would left-align Reminderly's Dev tools home title (today centred, beside a decorative robot icon) and centre Noterly's Dev tools page titles (today left-aligned beside the back control). Whether to change them is a decision for the CTO and John.
-4. **Heading rows below a page's top row** (Noterly's "Your folders" and "< My notes" row) have no Reminderly equivalent. They are a page title, not a panel header, and are outside this document.
+3. **Heading rows below a page's top row** (Noterly's "Your folders" and "< My notes" row) have no Reminderly equivalent. They are a page title, not a panel header, and are outside this document.
 
 ## Version history
 
+- v1.1, 2026-11-04: Dev tools headers recorded as an approved exception to the alignment rule, with each app's existing treatment (John). Open question about Dev tools alignment removed.
 - v1.0, 2026-11-04: approved by John: title alignment (left with trailing controls only, centred with a leading navigation control), 10px control spacing, `#1C2C42` panel header titles, ordinary content headings keep their colours. Built on the draft v0.1 audit of both apps.
 - v0.1 draft, 2026-11-04: first version, from a cross-app header audit and the approved panel standard.

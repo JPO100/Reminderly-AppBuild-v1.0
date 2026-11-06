@@ -4,3 +4,4 @@ APP_DISPLAY_NAME = Reminderly
 APP_GROUP_ID = group.com.neatlymade.release
 APP_URL_SCHEME = reminderly
 DEVELOPMENT_TEAM = 9B4GQCUS3R
+APP_ICON_NAME = AppIcon

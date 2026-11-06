@@ -8,6 +8,7 @@ import svgPaths from "../imports/svg-tzdfx9foxi";
 import doneTickPaths from "../imports/svg-c9judk5sbu";
 import NewReminderOverlay from "../imports/NewReminderOverlay";
 import { IS_RELEASE_BUILD } from "./config/build";
+import { DevLogoBadge } from "./components/DevLogoBadge";
 import DevToolsOverlay, { ShowInfoIconsContext } from "./components/DevToolsOverlay";
 import RepeatsOverlay from "./components/RepeatsOverlay";
 import ReminderInfoOverlay from "./components/ReminderInfoOverlay";
@@ -3792,6 +3793,8 @@ export default function App() {
                 </svg>
               )}
               
+              <DevLogoBadge fill={DONE_BLUE} />
+
               {/* Clickable area over tick circle (left segment) */}
               <button
                 className="absolute top-0 bottom-0 cursor-pointer"

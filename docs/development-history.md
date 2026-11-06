@@ -2096,3 +2096,5 @@ Stage 1 of the Dev/Release split, Reminderly (2026-11-06, feature/dev-release-sp
 
 Release preparation (2026-11-06, feature/dev-release-split, not merged): Release build defaults are now the development defaults plus RELEASE_DEFAULT_OVERRIDES (Siri for reminders on, the only decided value so far); Linked lists stays off. ITSAppUsesNonExemptEncryption = false added to Info.plist (OS encryption only). Dev tools audit: the only entry point is the logo triple-click, which is disabled in Release builds (setIsDevToolsOpen(true) appears once). Vitest 516. Remaining Release defaults await John's decisions (docs/release-readiness.md).
 
+Release defaults approved by John (2026-11-06, feature/dev-release-split, not merged): RELEASE_DEFAULT_OVERRIDES now turns on attachments, natural language capture, calendar view, sounds, information icons, date presets, haptics and Siri for reminders; tutorial live pages are already all on. Linked lists, default templates, paywall and feedback stay off; Dev defaults unchanged. Vitest 518.
+

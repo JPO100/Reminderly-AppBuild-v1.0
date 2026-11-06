@@ -106,11 +106,20 @@ const DEVELOPMENT_DEFAULTS: Record<string, string> = {
   'reminderly-ff-lock-screen-widget': 'true',
 };
 
-// Release launch defaults: only values John has decided (docs/release-readiness.md, Recommended release defaults). Everything
-// else in the Release build stays at the development default until decided. Linked lists stays off (D7).
+// Release launch defaults, decided by John (docs/release-readiness.md, Recommended release defaults). Anything not listed here
+// stays at the development default. Off in Release: Linked lists (D7), default templates, paywall, feedback. The tutorial live
+// pages are already all on in the development defaults. The calendar view preference stays the user's choice.
 export const RELEASE_DEFAULT_OVERRIDES: Record<string, string> = {
   'reminderly-ff-siri-reminders': 'true',
   'reminderly-pref-siri-reminders': 'true',
+  'reminderly-ff-reminder-attachments': 'true',
+  'reminderly-ff-nlc': 'true',
+  'reminderly-pref-nlc': 'true',
+  'reminderly-ff-calendar': 'true',
+  'reminderly-ff-sounds': 'true',
+  'reminderly-ff-info-icons': 'true',
+  'reminderly-ff-date-presets': 'true',
+  [HAPTICS_PREF_KEY]: '{"allHaptics":true}',
 };
 
 export const SETTINGS_DEFAULTS: Record<string, string> = IS_RELEASE_BUILD

@@ -2098,3 +2098,4 @@ Release preparation (2026-11-06, feature/dev-release-split, not merged): Release
 
 Release defaults approved by John (2026-11-06, feature/dev-release-split, not merged): RELEASE_DEFAULT_OVERRIDES now turns on attachments, natural language capture, calendar view, sounds, information icons, date presets, haptics and Siri for reminders; tutorial live pages are already all on. Linked lists, default templates, paywall and feedback stay off; Dev defaults unchanged. Vitest 518.
 
+Privacy manifests (2026-11-06, feature/dev-release-split, not merged): PrivacyInfo.xcprivacy added for the Reminderly app (UserDefaults CA92.1 and 1C8F.1; file timestamps C617.1 and 3B52.1) and the widget (UserDefaults 1C8F.1), no tracking or collected data. The plugins that use these APIs (Filesystem, file picker, badge) ship no manifest of their own, so the app declares them. Both manifests verified in the local Release archive. Vitest 518.

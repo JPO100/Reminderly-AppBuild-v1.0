@@ -71,3 +71,9 @@ Reminderly holds real, daily-use data. It must be snapshotted and restored into 
 - [release-readiness.md](../release-readiness.md) (Dev tools excluded from release; D7).
 - [linked-lists.md](../features/linked-lists.md).
 - Noterly `docs/development-history.md` (CEO direction on separate development and release apps).
+
+## 7. Open for device validation
+
+- The original Reminderly install registers the `reminderly` URL scheme, as does Reminderly Release. While both are installed, iOS may route `reminderly://` to either. Linked lists is off in Release and the original install has no Noterly link, so no effect is expected. Check on the iPhone; no workaround unless a real problem shows.
+- Linked lists Dev to Dev was checked in the simulator on 2026-11-06 (insert, tick, View list in Reminderly). Widget placement, Siri, notification delivery and Noterly keyboard behaviour need a device.
+

@@ -74,3 +74,4 @@ iPhone (its own command):
 - Covered: bundle ids (both apps and the Reminderly widget), signing team NeatlyMade Ltd (9B4GQCUS3R), App Group entitlements and build configuration, URL schemes, -allowProvisioningUpdates for the new ids, and a temporary migration exporter/importer that writes restored data into the target app.
 - Not covered: Apple portal registrations, App Store Connect records, TestFlight uploads (each needs John's explicit authorisation), physical iPhone installs, anything touching John's original Reminderly install or data.
 - The migration branch is never merged. Installing a migration build over the original install needs separate explicit approval.
+- Status (2026-11-06): the split is complete for Reminderly. The migration exporter/importer and snapshot tooling lived only on the never-merged branch migration/reminderly-snapshot-import and are not on main; this exception covers no migration code on main.

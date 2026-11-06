@@ -2110,3 +2110,5 @@ Reminderly Release build 2 update and work package closure (2026-11-06, John and
 
 Release-readiness tracker brought up to date after the closure (docs/release-readiness.md): export compliance, iPhone only, signing and App Group, Developer tools excluded and the privacy manifests are marked done; build numbers in progress.
 
+Merge record (2026-11-06): feature/dev-release-split (Reminderly Dev/Release split: Stage 1 build separation, Release defaults, privacy manifests, iPhone-only and upload validation fixes, build 2, Release migration and build 2 update records, from main 6e396a4, 11 commits plus this record) merged into main with --no-ff on the CTO's authorisation after a read-only pre-merge review (no conflicts, main an ancestor, no migration code, generated index.html not part of the change). Vitest 518 on the branch. The temporary migration branch migration/reminderly-snapshot-import is not merged and stays local. Not pushed at the time of the merge.
+

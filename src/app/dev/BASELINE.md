@@ -2,6 +2,10 @@
 
 Last updated: 2026-11-04
 
+## Verified Baseline (2026-11-06, feature/dev-branding, Dev logo badge)
+
+- Vitest (`npm run test`): 520 passed, 0 failed (26 files). `dev-logo-badge.test.tsx` adds 2 (the Dev build renders the gear badge in the header colour with no pointer events; the Release build renders nothing). Self Check: not re-run (no Self Check suite changed). Type check: not run (no setup).
+
 ## Verified Baseline (2026-11-06, feature/dev-release-split, Release preparation)
 
 - Vitest (`npm run test`): 518 passed, 0 failed (25 files). `release-defaults.test.ts` adds 5 (Release applies the approved defaults and only those, all 17 tutorial pages on, Dev unchanged, Linked lists/templates/paywall/feedback off). Self Check: not re-run (no Self Check suite changed). Type check: not run (no setup).

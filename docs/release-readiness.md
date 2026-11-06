@@ -98,8 +98,8 @@ Implementation (2026-11-06, John approved): the Release build reads `SETTINGS_DE
 | `UIRequiredDeviceCapabilities`: `arm64` instead of `armv7` | Outstanding | Upload validation | Legacy template value |
 | Build with Xcode 26 / iOS 26 SDK or later | Verify before submission | Apple upcoming requirements | Xcode 27 installed. From April 2027 the iOS 27 SDK is required |
 | Signing, distribution profiles and App Group for app and widget | Done 2026-11-06 | | NeatlyMade Ltd (9B4GQCUS3R): Apple Distribution, Store profiles, `group.com.neatlymade.release` on `com.neatlymade.reminderly` and its widget; Dev uses `.dev` ids and `group.com.neatlymade.dev`. Verified in the exported builds |
-| Version and build numbers | In progress | | 1.0 (1) and 1.0 (2) uploaded to TestFlight; increment the build for every upload |
-| App icon (1024 single size) and launch screen | Complete | | `AppIcon.appiconset`, `LaunchScreen.storyboard` |
+| Version and build numbers | In progress | | Reminderly Release 1.0 (1), (2) and (3) uploaded to TestFlight; Noterly Release 1.0 (2) and (3); increment the build for every upload |
+| App icon and launch screen | Complete | | `AppIcon.appiconset`: explicit-size iPhone icons with transparent corners (these render flat on iOS 26) plus an opaque 1024 marketing icon (Apple rejects alpha only in the 1024); `LaunchScreen.storyboard`. Do not use one opaque 1024 icon for every size: iOS 26 gives it a glass effect (2026-11-06) |
 | Minimum iOS raised from 15.0 (app) to match supported screen sizes | Outstanding | | Depends on D6; iOS 15 allows 320pt-wide devices |
 | Screen size testing (agreed test set, usable at every size) | Outstanding | 2.4.1 | [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
 | UIScene lifecycle | Complete | Required in the release after iOS 26 | Already adopted |
@@ -115,7 +115,7 @@ Implementation (2026-11-06, John approved): the Release build reads `SETTINGS_DE
 | Tutorial shows once on first launch | Done (merged 2026-10-14) | 4.0 | Shown keys are now read on start and tab switch |
 | Correct "1 minute time increments" info text | Outstanding | 2.3 | Says 5-minute steps; the picker uses 15 |
 | No placeholder or test content visible | Verify before submission | 2.1(a) | |
-| Linked lists (Reminderly lists in Noterly notes) | Built (Stages 1 to 3 merged), validated in the simulator; stays off in production (D7, 2026-11-04); device checks outstanding for when it ships | 5.1.1, 2.1 | New native feature: both of our apps share list titles and items on the device through the App Group `group.com.reminderly.app` (now also in Noterly's entitlements, same team); local only, no accounts, servers or tracking. Off in production, so no release work; if it ships later: privacy label wording check, the tutorial update and the physical-device checks. docs/features/linked-lists.md
+| Linked lists (Reminderly lists in Noterly notes) | Built (Stages 1 to 3 merged), validated in the simulator; stays off in production (D7, 2026-11-04); Dev to Dev passed on John's iPhone 2026-11-06; other device checks apply only if it ships | 5.1.1, 2.1 | New native feature: both of our apps share list titles and items on the device through the App Group (`group.com.neatlymade.dev` in Dev; `group.com.neatlymade.release` in Release, where the feature is off; both in Noterly's entitlements, same team); local only, no accounts, servers or tracking. Off in production, so no release work; if it ships later: privacy label wording check, the tutorial update and the physical-device checks. docs/features/linked-lists.md
 | Local data durability (`localStorage` in WKWebView) | Verify before submission | 2.1 | Rare iOS clearing would lose data; consider before release |
 | Minimum functionality beyond a web wrapper | Complete | 4.2 | Native notifications, widget, Siri, haptics |
 | Overlay accessibility: dialog semantics (`role="dialog"`, `aria-modal`, accessible name), focus into and back from each overlay, Escape to close, background scroll lock, and VoiceOver verification | Outstanding (deferred; subject to pre-release review) | Deferred by John and Jason 2026-11-02, confirmed 2026-11-03; docs/design-standards/overlay-standards.md, section 7 and the Reminderly appendix | Only Reminder info has these behaviours today. No screen-reader testing has been done on any overlay. Do not claim accessibility compliance, and do not assume this affects or guarantees App Store approval, until it is built and tested. Noterly may defer the same work but must track it in its own record |
@@ -173,12 +173,12 @@ Decided within D1 (2026-10-14): annual subscription at £9, all features free wi
 
 | Requirement | Status | Reference | Notes |
 |-------------|--------|-----------|-------|
-| Developer Program membership and App Store Connect app record | Verify before submission | | NeatlyMade Ltd team. Bundle ids and the four App Store Connect records (Dev and Release for each app) are set out in [plans/testflight-dev-release-split.md](./plans/testflight-dev-release-split.md) (deferred, 2026-11-04); the ids `com.reminderly.app` and `com.reminderly.app.widget` are not assumed |
+| Developer Program membership and App Store Connect app record | In progress | | NeatlyMade Ltd team. App Store Connect records exist for the two Release apps (Noterly ID 6831647645, bundle `com.neatlymade.noterly`; Reminderly bundle `com.neatlymade.reminderly`); internal TestFlight only, public submission not started. The plan is in [plans/testflight-dev-release-split.md](./plans/testflight-dev-release-split.md) |
 | App name available | Verify before submission | | "Reminderly" |
 | Metadata: subtitle, description, keywords, category (Productivity), copyright, support URL | Outstanding | 2.3 | Must match the submitted feature set |
 | Screenshots: required iPhone sizes only (iPhone only) | Outstanding | | No iPad screenshots needed |
 | App Review notes: no login, how to see notifications, widget, Siri and purchases | Outstanding | 2.1 | |
-| TestFlight build tested on a physical iPhone | Verify before submission | 2.1 | |
+| TestFlight build tested on a physical iPhone | Done for 1.0 (3) of both Release apps (John, 2026-11-06) | 2.1 | Read-only device verification of both installs passed |
 
 ## Known issues affecting release
 
@@ -223,6 +223,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 | 2026-10-15 | Clear done lists nightly merged to main (9dc03ea). Known issue 6 added: smart reminder sync fix required before a TestFlight release containing it |
 | 2026-10-15 | Notifications Phase 4 complete on feature/notifications-settings (not merged): user notification settings, sound off by default, in-app permission ask, no automatic iOS prompt |
 | 2026-10-12 | Plan created from the Phase 3 assessment. Decisions recorded: iPhone only, Siri enabled, developer tools excluded from release builds, tutorial once on first launch. Monetisation added as an outstanding dependency |
+| 2026-11-06 | Dev/Release split closed. Release builds 1.0 (3) of both apps are on internal TestFlight. App icon changed to explicit-size icons plus an opaque marketing icon after an iOS 26 rendering issue. Rows for version and build, app icon, linked lists, App Store Connect and the TestFlight device test updated |
 
 ## Sources
 

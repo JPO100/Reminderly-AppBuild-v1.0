@@ -1,6 +1,6 @@
 # TestFlight and Dev/Release split
 
-**Status:** Reminderly complete 2026-11-06 (Release migration and build 2 update signed off by John and the CTO); Noterly on-device work outstanding. Decided 2026-11-04 (John, Jay). Reclassified Type E and authorised in stages on 2026-11-06 (identifiers, App Groups, schemes and names approved; Stage 1, Reminderly build separation, implemented on feature/dev-release-split). Portal registration, App Store Connect, TestFlight, device installs and migration remain separately authorised. Applies to Reminderly and Noterly.
+**Status:** Complete 2026-11-06 for both apps: Reminderly (Release migration, builds 2 and 3) and Noterly (Release 1.0 (2) and (3) on internal TestFlight), signed off by John and the CTO. Outside this plan and not started: original-app removal, Dev branding, public submission. Decided 2026-11-04 (John, Jay). Reclassified Type E and authorised in stages on 2026-11-06 (identifiers, App Groups, schemes and names approved; Stage 1, Reminderly build separation, implemented on feature/dev-release-split). Portal registration, App Store Connect, TestFlight, device installs and migration remain separately authorised. Applies to Reminderly and Noterly.
 **Estimate (provisional):** 10 to 12 hours in total (Reminderly about 8h, Noterly about 2.5h). The migration is the main uncertainty.
 
 ## 1. Decisions
@@ -56,7 +56,11 @@ Reminderly holds real, daily-use data. It must be snapshotted and restored into 
 6. Noterly Release; Dev TestFlight builds for both apps when wanted.
 7. Short runbook (archive, upload, install; the two web builds); update the commands in `project-rules.md` that use the old bundle id.
 
+Status (2026-11-06): steps 1 to 6 are done for both apps (no Dev TestFlight builds were made; Dev apps are installed from Xcode). Step 7: the commands in `project-rules.md` and `docs/ios.md` are updated; a standalone runbook has not been written.
+
 ## 5. Outstanding blockers (John)
+
+Status (2026-11-06): resolved for this work package (portal, signing exception, iPhone, authorisation). App Store Connect records were created for the two Release apps.
 
 - NeatlyMade Team ID and admin access.
 - Portal registration: app ids (four apps), the Reminderly widget id for Dev and Release, and the Dev and Release App Groups. A first test of whether the old ids and group can be registered.
@@ -72,8 +76,9 @@ Reminderly holds real, daily-use data. It must be snapshotted and restored into 
 - [linked-lists.md](../features/linked-lists.md).
 - Noterly `docs/development-history.md` (CEO direction on separate development and release apps).
 
-## 7. Open for device validation
+## 7. Device validation (updated 2026-11-06)
 
-- The original Reminderly install registers the `reminderly` URL scheme, as does Reminderly Release. While both are installed, iOS may route `reminderly://` to either. Linked lists is off in Release and the original install has no Noterly link, so no effect is expected. Check on the iPhone; no workaround unless a real problem shows.
-- Linked lists Dev to Dev was checked in the simulator on 2026-11-06 (insert, tick, View list in Reminderly). Widget placement, Siri, notification delivery and Noterly keyboard behaviour need a device.
-
+- Linked lists Dev to Dev passed on John's iPhone (link, tick both ways, View list routing, Unlink). Release keeps it off (linked.enabled false in the Release group, no linked data).
+- The original Reminderly install registers the `reminderly` URL scheme, as does Reminderly Release. While both are installed, iOS may route `reminderly://` to either. Linked lists is off in Release and the original install has no Noterly link, so no effect is expected; no workaround unless a real problem shows.
+- Widget placement, Siri, notification delivery and Noterly keyboard behaviour were not rechecked on a device for this plan.
+- Noterly Release restart persistence on the phone was reported by John and not independently observed (verified in the simulator).

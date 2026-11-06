@@ -16,6 +16,13 @@ These rules cover Reminderly-specific technical and operational requirements. Sh
 - Update docs/release-readiness.md when a change affects App Store readiness (permissions, data handling, native features, paid features, defaults). Claude's recommendations stay proposals until John decides.
 - Record new UI standards in docs/design-standards/, one document per standard (see its README). Never restate a rule in two places.
 
+## Versioning and releases
+- Version is MAJOR.MINOR.PATCH (John, 2026-11-06): 1.0.0 is the public launch, 1.x.0 for features, 1.0.x for fixes and small UI batches, 2.0.0 for a major redesign or big change. Dev and Release share the version.
+- The build number is a whole number that only goes up and is never reset. Every upload needs a higher number.
+- Until the public launch, TestFlight builds stay on 1.0.x. The launch is 1.0.0, subject to John confirming in App Store Connect that earlier TestFlight builds do not block it.
+- The Support page in Settings shows the version and build number (queued, not yet built). The app shows no release notes.
+- Write release notes with every release build, one file per version in docs/releases/ (for example 1.0.0.md): a short plain-language "What's New" for users, then an internal section (branch, commit, build number, what was tested). Paste the user text into App Store Connect "What's New" and TestFlight "What to Test".
+
 ## Protected areas
 Notification scheduling, notification actions, badge counts, date handling, time handling, repeating reminders, completion flows, deletion flows, app lifecycle, local storage persistence.
 For changes touching these: define explicit verification steps, run targeted regression checks and report the results.

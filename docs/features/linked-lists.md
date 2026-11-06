@@ -8,7 +8,7 @@ A Reminderly list can be inserted into Noterly notes and ticked in either app. R
 - `CreatedList.linkable` (default false): "Make list linkable" in the list overlays, only with the flag on and only for active lists. Off stops new insertions only; existing links keep working.
 - `CreatedList.linkEpoch` (default 0): raised by one to end every link to the list. Noterly turns blocks with a lower epoch into ordinary checklists. It is raised by Unlink / Unlink all (after confirmation) and when a list delete commits (after the pending window), with the flag on or off.
 
-## Shared data (App Group `group.com.reminderly.app`, keys prefixed `linked.`)
+## Shared data (App Group `group.com.neatlymade.dev` in Dev, `group.com.neatlymade.release` in Release, keys prefixed `linked.`)
 
 | Key | Writer | Content |
 |---|---|---|

@@ -16,7 +16,7 @@ The native layer that hosts Reminderly. The native side is deliberately thin: it
 | Devices | iPhone only for version 1.0 (`TARGETED_DEVICE_FAMILY = 1`). An intentional, temporary product scope decision (John, 2026-11-06): native iPad support is on the roadmap but its UI work is not ready. It is not an architectural restriction |
 | Orientation | Portrait only; multiple scenes disabled |
 | URL scheme | `reminderly-dev` (Dev) or `reminderly` (Release), set from `$(APP_URL_SCHEME)` |
-| Capacitor config | `capacitor.config.json`: `appId com.reminderly.app`, `webDir dist`, logging off |
+| Capacitor config | `capacitor.config.json`: `appId com.reminderly.app` (web side only; the iOS bundle id is `APP_BUNDLE_ID` from the xcconfigs), `webDir dist`, logging off |
 | Generated files (ignored) | `ios/App/App/capacitor.config.json`, `config.xml`, `public/assets/`. `public/index.html` is tracked (see [architecture.md](./architecture.md), Known constraints) |
 
 Capacitor plugins registered: App, Haptics, LocalNotifications (patched), Badge (`@capawesome/capacitor-badge`), plus the local `WidgetBridge` plugin.

@@ -1,6 +1,11 @@
 import Capacitor
 import WidgetKit
 
+/// The App Group id for this build variant. Set per configuration (Dev.xcconfig, Release.xcconfig) and read from Info.plist.
+enum AppGroup {
+    static let id = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String ?? ""
+}
+
 // Lock screen widget bridge: stores today's progress in the shared App Group and reloads the widget.
 @objc(WidgetBridgePlugin)
 public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
@@ -21,7 +26,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     ]
 
     @objc func setSnapshot(_ call: CAPPluginCall) {
-        guard let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+        guard let defaults = UserDefaults(suiteName: AppGroup.id) else {
             call.reject("App Group unavailable")
             return
         }
@@ -37,14 +42,14 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
 
     // Lock screen widget flag off: remove shared reminder data so the widget shows its empty state.
     @objc func clearSnapshot(_ call: CAPPluginCall) {
-        UserDefaults(suiteName: "group.com.reminderly.app")?.removeObject(forKey: "todayProgress")
+        UserDefaults(suiteName: AppGroup.id)?.removeObject(forKey: "todayProgress")
         WidgetCenter.shared.reloadAllTimelines()
         call.resolve()
     }
 
     // Siri for reminders on or off, read by AddReminderIntent (docs/plans/siri-off-refusal.md)
     @objc func setSiriActive(_ call: CAPPluginCall) {
-        guard let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+        guard let defaults = UserDefaults(suiteName: AppGroup.id) else {
             call.reject("App Group unavailable")
             return
         }
@@ -56,7 +61,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     // repeat setting and badge timeline, read by AddReminderIntent.
     @objc func setSiriContext(_ call: CAPPluginCall) {
         guard let json = call.getString("json"),
-              let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+              let defaults = UserDefaults(suiteName: AppGroup.id) else {
             call.reject("No context or App Group unavailable")
             return
         }
@@ -68,7 +73,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     // main thread only, as the intent does, so the two never interleave.
     @objc func getSiriPending(_ call: CAPPluginCall) {
         DispatchQueue.main.async {
-            let items = UserDefaults(suiteName: "group.com.reminderly.app")?.stringArray(forKey: "siriPendingReminders") ?? []
+            let items = UserDefaults(suiteName: AppGroup.id)?.stringArray(forKey: "siriPendingReminders") ?? []
             call.resolve(["items": items])
         }
     }
@@ -77,7 +82,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func removeSiriPending(_ call: CAPPluginCall) {
         let ids = Set(call.getArray("ids", String.self) ?? [])
         DispatchQueue.main.async {
-            guard let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+            guard let defaults = UserDefaults(suiteName: AppGroup.id) else {
                 call.reject("App Group unavailable")
                 return
             }
@@ -96,7 +101,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     // Linked lists (docs/features/linked-lists.md): Reminderly writes linked.enabled and linked.lists, Noterly writes
     // linked.links and the tick files. Reminderly never writes the register or creates a tick.
     @objc func setLinkedEnabled(_ call: CAPPluginCall) {
-        guard let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+        guard let defaults = UserDefaults(suiteName: AppGroup.id) else {
             call.reject("App Group unavailable")
             return
         }
@@ -106,7 +111,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func setLinkedLists(_ call: CAPPluginCall) {
         guard let json = call.getString("json"),
-              let defaults = UserDefaults(suiteName: "group.com.reminderly.app") else {
+              let defaults = UserDefaults(suiteName: AppGroup.id) else {
             call.reject("No lists or App Group unavailable")
             return
         }
@@ -116,7 +121,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
 
     // The link register as Noterly last saved it (JSON), or nothing when it was never written
     @objc func getLinkedLinks(_ call: CAPPluginCall) {
-        if let json = UserDefaults(suiteName: "group.com.reminderly.app")?.string(forKey: "linked.links") {
+        if let json = UserDefaults(suiteName: AppGroup.id)?.string(forKey: "linked.links") {
             call.resolve(["json": json])
         } else {
             call.resolve()
@@ -124,7 +129,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     private func linkedTicksFolder() -> URL? {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.reminderly.app")?
+        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppGroup.id)?
             .appendingPathComponent("linked-ticks", isDirectory: true)
     }
 

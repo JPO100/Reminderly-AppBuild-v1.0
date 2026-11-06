@@ -2,12 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AppGroupIdentifier</key>
+	<string>$(APP_GROUP_ID)</string>
 	<key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Reminderly</string>
+	<string>$(APP_DISPLAY_NAME)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -68,10 +70,10 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>reminderly</string>
+				<string>$(APP_URL_SCHEME)</string>
 			</array>
 			<key>CFBundleURLName</key>
-			<string>com.reminderly.app</string>
+			<string>$(APP_BUNDLE_ID)</string>
 		</dict>
 	</array>
 </dict>

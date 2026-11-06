@@ -1,6 +1,11 @@
 import WidgetKit
 import SwiftUI
 
+/// The App Group id for this build variant. Set per configuration (Dev.xcconfig, Release.xcconfig) and read from Info.plist.
+enum AppGroup {
+    static let id = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String ?? ""
+}
+
 // Lock screen widget: outstanding reminders in the centre, arc shows today's completed share.
 // The app writes the snapshot (WidgetBridgePlugin) whenever reminders change.
 
@@ -26,7 +31,7 @@ struct Provider: TimelineProvider {
     }
 
     private func entry(for date: Date) -> ProgressEntry {
-        guard let snapshot = UserDefaults(suiteName: "group.com.reminderly.app")?.dictionary(forKey: "todayProgress") else {
+        guard let snapshot = UserDefaults(suiteName: AppGroup.id)?.dictionary(forKey: "todayProgress") else {
             return ProgressEntry(date: date, outstanding: nil, done: 0)
         }
         let outstanding = snapshot["outstanding"] as? Int ?? 0

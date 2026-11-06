@@ -12,6 +12,9 @@ import type { Check } from './check-system';
 import { readStoredBool, writeStoredBool } from '../settings/useStoredSetting';
 import { isFeatureActive } from '../settings/resolver';
 import { shouldAutoOpenTutorial } from '../utils/tutorial-pages';
+import { IS_RELEASE_BUILD } from '../config/build';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 
 /**
  * Simple assertion helper
@@ -28,6 +31,15 @@ function assert(condition: boolean, message: string): void {
  */
 export function getDevToolsChecks(): Check[] {
   return [
+    {
+      id: 'build-variant',
+      name: `Build variant: ${IS_RELEASE_BUILD ? 'Release' : 'Dev'} web build matches the app's bundle id (native app only)`,
+      run: async () => {
+        if (!Capacitor.isNativePlatform()) return;
+        const { id } = await CapacitorApp.getInfo();
+        assert(id.endsWith('.dev') === !IS_RELEASE_BUILD, `Web build is ${IS_RELEASE_BUILD ? 'Release' : 'Dev'} but the app id is ${id}`);
+      },
+    },
     {
       id: 'devtools-defaults',
       name: 'Dev tools defaults: password required on, paywall off, onboarding on, first-launch tutorial on, every-start tutorial off',

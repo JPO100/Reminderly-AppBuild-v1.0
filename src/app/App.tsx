@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useDragControls } from "motion/react";
 import svgPaths from "../imports/svg-tzdfx9foxi";
 import doneTickPaths from "../imports/svg-c9judk5sbu";
 import NewReminderOverlay from "../imports/NewReminderOverlay";
+import { IS_RELEASE_BUILD } from "./config/build";
 import DevToolsOverlay, { ShowInfoIconsContext } from "./components/DevToolsOverlay";
 import RepeatsOverlay from "./components/RepeatsOverlay";
 import ReminderInfoOverlay from "./components/ReminderInfoOverlay";
@@ -2601,6 +2602,7 @@ export default function App() {
   }, []);
 
   const handleLogoClick = () => {
+    if (IS_RELEASE_BUILD) return;
     clickCountRef.current += 1;
 
     if (clickCountRef.current === 3) {

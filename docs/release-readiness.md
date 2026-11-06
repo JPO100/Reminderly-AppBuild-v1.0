@@ -20,7 +20,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 |----------|--------------|--------------------|
 | iPhone only | 2026-10-12, John | Set `TARGETED_DEVICE_FAMILY` to iPhone for the app and widget. iPhone-only apps still run on iPad in compatibility mode, so check the app on an iPad |
 | Siri enabled for release | 2026-10-12, John | Siri for reminders on by default; the shortcut must work end to end |
-| Developer tools excluded from release builds | 2026-10-12, John | Release feature flags become fixed at their defaults, so the release defaults below must be decided |
+| Developer tools excluded from release builds | Done 2026-11-06 | 2.3.1(a) | `vite build --mode release` disables the logo triple-tap; the only entry point. Confirmed in Release builds 1 and 2 |
 | Tutorial shows once on first launch, then only manually | 2026-10-12, John | Implemented, merged 2026-10-14 ([features/onboarding.md](./features/onboarding.md)) |
 | Monetisation: 5 for Free with Reminderly Premium, £9 a year (D1) | 2026-10-14, John and CTO | Annual auto-renewing subscription through StoreKit 2; no trial, offer or Family Sharing. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 | No default templates for new users | 2026-10-14, John and CTO | `config-templates-in-clean-state` stays off; all templates count towards the free limit |
@@ -85,7 +85,7 @@ Implementation (2026-11-06, John approved): the Release build reads `SETTINGS_DE
 | Terms of use (Apple standard EULA or custom) | In progress (D4) | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions. Custom Terms of Use Version 1.0 in the app under Settings > Support > Terms of use (feature/reminder-list-settings, not merged), approved in principle only |
 | LEGAL SIGN-OFF REQUIRED: Terms of Use Version 1.0 | Outstanding (must be resolved before release; does not block development) | Legal review | Text approved in principle by John (2026-10-23) and in the app, but must not go live until legal sign-off. Covers liability limits for missed reminders, governing law (England and Wales), consumer rights wording and the relationship with Apple's licence agreement. Update the version and date in the app if legal review changes the text |
 | Global distribution legal review: Privacy Policy and Terms of Use | Outstanding (must be resolved before release; does not block development) | Legal review, App Store country availability | John intends a global launch with the US as a priority market (2026-10-23). Confirm both documents are appropriate for international distribution, covering: US federal and state privacy and consumer requirements; UK and EU legal requirements; international enforceability of the Terms of Use (including the England and Wales governing law clause); and any country-specific App Store requirements. Related: D5 (countries and storefronts) and the Terms of Use legal sign-off above |
-| Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Outstanding | App Store Connect | No non-exempt encryption used |
+| Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Done 2026-11-06 | App Store Connect | In Info.plist; builds 1 and 2 raised no compliance prompt |
 | Age rating (updated questionnaire) | Outstanding | Required since September 2026 | Expected lowest rating |
 | EU Digital Services Act trader status | Pending D5 | App Store Connect | Required for EU distribution |
 
@@ -93,12 +93,12 @@ Implementation (2026-11-06, John approved): the Release build reads `SETTINGS_DE
 
 | Requirement | Status | Reference | Notes |
 |-------------|--------|-----------|-------|
-| iPhone only (`TARGETED_DEVICE_FAMILY = 1`, app and widget) | Outstanding | 2.4.1 | Currently "1,2" with portrait-only orientation |
+| iPhone only (`TARGETED_DEVICE_FAMILY = 1`, app and widget) | Done 2026-11-06 | 2.4.1 | Intentional, temporary product scope for version 1.0 (John): native iPad support is on the roadmap but its UI work is not ready. Not an architectural restriction |
 | Check the app in iPhone compatibility mode on iPad | Verify before submission | 2.4.1 | Reviewers may use an iPad |
 | `UIRequiredDeviceCapabilities`: `arm64` instead of `armv7` | Outstanding | Upload validation | Legacy template value |
 | Build with Xcode 26 / iOS 26 SDK or later | Verify before submission | Apple upcoming requirements | Xcode 27 installed. From April 2027 the iOS 27 SDK is required |
-| Signing, distribution profiles and App Group for app and widget | Verify before submission | | `group.com.reminderly.app` on both bundle ids |
-| Version and build numbers | Outstanding | | Currently 1.0 (1); increment the build for each upload |
+| Signing, distribution profiles and App Group for app and widget | Done 2026-11-06 | | NeatlyMade Ltd (9B4GQCUS3R): Apple Distribution, Store profiles, `group.com.neatlymade.release` on `com.neatlymade.reminderly` and its widget; Dev uses `.dev` ids and `group.com.neatlymade.dev`. Verified in the exported builds |
+| Version and build numbers | In progress | | 1.0 (1) and 1.0 (2) uploaded to TestFlight; increment the build for every upload |
 | App icon (1024 single size) and launch screen | Complete | | `AppIcon.appiconset`, `LaunchScreen.storyboard` |
 | Minimum iOS raised from 15.0 (app) to match supported screen sizes | Outstanding | | Depends on D6; iOS 15 allows 320pt-wide devices |
 | Screen size testing (agreed test set, usable at every size) | Outstanding | 2.4.1 | [usability/screen-size-testing.md](./usability/screen-size-testing.md) |

@@ -13,6 +13,7 @@ The native layer that hosts Reminderly. The native side is deliberately thin: it
 | Signing | Automatic, NeatlyMade Ltd team (9B4GQCUS3R). Do not change without approval |
 | Build variants | Per-variant values (bundle id, display name, App Group, URL scheme, team) in `ios/Dev.xcconfig` and `ios/Release.xcconfig`. Configurations: Debug and Release-Dev (Dev), Release (Release). Schemes: `App-Dev` archives Release-Dev, `App` archives Release |
 | App Group | `group.com.neatlymade.dev` (Dev) or `group.com.neatlymade.release` (Release), set as `$(APP_GROUP_ID)` in both targets' entitlements and read in Swift through `AppGroup.id` (Info.plist key `AppGroupIdentifier`) |
+| Devices | iPhone only for version 1.0 (`TARGETED_DEVICE_FAMILY = 1`). An intentional, temporary product scope decision (John, 2026-11-06): native iPad support is on the roadmap but its UI work is not ready. It is not an architectural restriction |
 | Orientation | Portrait only; multiple scenes disabled |
 | URL scheme | `reminderly-dev` (Dev) or `reminderly` (Release), set from `$(APP_URL_SCHEME)` |
 | Capacitor config | `capacitor.config.json`: `appId com.reminderly.app`, `webDir dist`, logging off |

@@ -20,7 +20,7 @@ The living checklist for releasing Reminderly on the App Store. It records what 
 |----------|--------------|--------------------|
 | iPhone only | 2026-10-12, John | Set `TARGETED_DEVICE_FAMILY` to iPhone for the app and widget. iPhone-only apps still run on iPad in compatibility mode, so check the app on an iPad |
 | Siri enabled for release | 2026-10-12, John | Siri for reminders on by default; the shortcut must work end to end |
-| Developer tools excluded from release builds | 2026-10-12, John | Release feature flags become fixed at their defaults, so the release defaults below must be decided |
+| Developer tools excluded from release builds | Done 2026-11-06 | 2.3.1(a) | `vite build --mode release` disables the logo triple-tap; the only entry point. Confirmed in Release builds 1 and 2 |
 | Tutorial shows once on first launch, then only manually | 2026-10-12, John | Implemented, merged 2026-10-14 ([features/onboarding.md](./features/onboarding.md)) |
 | Monetisation: 5 for Free with Reminderly Premium, £9 a year (D1) | 2026-10-14, John and CTO | Annual auto-renewing subscription through StoreKit 2; no trial, offer or Family Sharing. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 | No default templates for new users | 2026-10-14, John and CTO | `config-templates-in-clean-state` stays off; all templates count towards the free limit |
@@ -68,6 +68,8 @@ With developer tools excluded, these values are what users get. Development defa
 | Linked lists | `ff-linked-lists` | off | off (decided 2026-11-04, D7) | With Dev tools excluded the flag cannot be turned on, so off means hidden in both apps. On adds Make list linkable, linked status, Unlink and the link icon, and needs the tutorial update and device checks in docs/features/linked-lists.md |
 | Paywall | `ff-paywall` | off | Enforced by the Release build configuration, not by the flag | Specified, not built. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 
+Implementation (2026-11-06, John approved): the Release build reads `SETTINGS_DEFAULTS` from `src/app/settings/keys.ts` with `RELEASE_DEFAULT_OVERRIDES` on top. Release defaults on: Siri for reminders, reminder attachments, natural language capture (flag and preference), calendar view (flag; the calendar view preference stays the user's choice), sounds (flag), information icons, date presets (flag), haptics (preference), and all tutorial live pages. Off in Release: Linked lists (D7), default templates for new users, paywall, feedback. Notifications keep the in-app permission ask. The export compliance declaration (`ITSAppUsesNonExemptEncryption` = false) is in Info.plist.
+
 ## Requirements tracker
 
 ### Privacy and legal
@@ -76,14 +78,14 @@ With developer tools excluded, these values are what users get. Development defa
 |-------------|--------|-----------|-------|
 | Privacy policy linked in the app and in App Store Connect | In progress (D4) | 5.1.1(i) | In the app under Settings > Support > Privacy policy (feature/reminder-list-settings, not merged). App Store Connect needs a hosted URL; neatlymade.co does not resolve yet |
 | Purchase and configure neatlymade.co; host the Reminderly privacy policy at `https://neatlymade.co/privacy`; verify the URL is publicly accessible and suitable for App Store submission | Outstanding (must be resolved before release; does not block development) | 5.1.1(i), App Store Connect privacy policy URL | Domain availability checked, not yet purchased (John, 2026-10-23). The in-app policy's website link fails until then |
-| Privacy manifest (`PrivacyInfo.xcprivacy`) for the app and widget | Outstanding | Required reason APIs; ITMS-91053 | UserDefaults used by app Swift code, widget, patched notifications plugin and the badge plugin (CA92.1, 1C8F.1) |
+| Privacy manifest (`PrivacyInfo.xcprivacy`) for the app and widget | Done 2026-11-06 | Required reason APIs; ITMS-91053 | App: UserDefaults (CA92.1, 1C8F.1) and file timestamps (C617.1, 3B52.1: Filesystem and file picker plugins); widget: UserDefaults (1C8F.1). No tracking, no collected data. Both manifests are in the archive; re-check when plugins change |
 | App Privacy answers ("nutrition label") | Outstanding | App Store Connect | Expected "Data Not Collected" unless monetisation tooling or fonts change this |
 | Bundle the Lato font instead of loading Google Fonts | Done (feature/reminder-list-settings, not merged) | 5.1.1, privacy accuracy | Lato 400, 700 and 900 (Latin and Latin Extended) bundled from @fontsource/lato (SIL Open Font License), approved by Kai 2026-10-23. The app makes no font requests; no Google Fonts references in the build. Also fixes offline appearance |
 | Camera and photo library permission strings (attachments) | Done | 5.1.1, 2.5.1 | `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`, `NSPhotoLibraryAddUsageDescription` in Info.plist. Recommendation, not approved: include the Filesystem, Camera and File Picker plugins when preparing the privacy manifest |
 | Terms of use (Apple standard EULA or custom) | In progress (D4) | 3.1.2, subscription metadata | Required in app and metadata if selling subscriptions. Custom Terms of Use Version 1.0 in the app under Settings > Support > Terms of use (feature/reminder-list-settings, not merged), approved in principle only |
 | LEGAL SIGN-OFF REQUIRED: Terms of Use Version 1.0 | Outstanding (must be resolved before release; does not block development) | Legal review | Text approved in principle by John (2026-10-23) and in the app, but must not go live until legal sign-off. Covers liability limits for missed reminders, governing law (England and Wales), consumer rights wording and the relationship with Apple's licence agreement. Update the version and date in the app if legal review changes the text |
 | Global distribution legal review: Privacy Policy and Terms of Use | Outstanding (must be resolved before release; does not block development) | Legal review, App Store country availability | John intends a global launch with the US as a priority market (2026-10-23). Confirm both documents are appropriate for international distribution, covering: US federal and state privacy and consumer requirements; UK and EU legal requirements; international enforceability of the Terms of Use (including the England and Wales governing law clause); and any country-specific App Store requirements. Related: D5 (countries and storefronts) and the Terms of Use legal sign-off above |
-| Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Outstanding | App Store Connect | No non-exempt encryption used |
+| Export compliance (`ITSAppUsesNonExemptEncryption = NO`) | Done 2026-11-06 | App Store Connect | In Info.plist; builds 1 and 2 raised no compliance prompt |
 | Age rating (updated questionnaire) | Outstanding | Required since September 2026 | Expected lowest rating |
 | EU Digital Services Act trader status | Pending D5 | App Store Connect | Required for EU distribution |
 
@@ -91,12 +93,12 @@ With developer tools excluded, these values are what users get. Development defa
 
 | Requirement | Status | Reference | Notes |
 |-------------|--------|-----------|-------|
-| iPhone only (`TARGETED_DEVICE_FAMILY = 1`, app and widget) | Outstanding | 2.4.1 | Currently "1,2" with portrait-only orientation |
+| iPhone only (`TARGETED_DEVICE_FAMILY = 1`, app and widget) | Done 2026-11-06 | 2.4.1 | Intentional, temporary product scope for version 1.0 (John): native iPad support is on the roadmap but its UI work is not ready. Not an architectural restriction |
 | Check the app in iPhone compatibility mode on iPad | Verify before submission | 2.4.1 | Reviewers may use an iPad |
 | `UIRequiredDeviceCapabilities`: `arm64` instead of `armv7` | Outstanding | Upload validation | Legacy template value |
 | Build with Xcode 26 / iOS 26 SDK or later | Verify before submission | Apple upcoming requirements | Xcode 27 installed. From April 2027 the iOS 27 SDK is required |
-| Signing, distribution profiles and App Group for app and widget | Verify before submission | | `group.com.reminderly.app` on both bundle ids |
-| Version and build numbers | Outstanding | | Currently 1.0 (1); increment the build for each upload |
+| Signing, distribution profiles and App Group for app and widget | Done 2026-11-06 | | NeatlyMade Ltd (9B4GQCUS3R): Apple Distribution, Store profiles, `group.com.neatlymade.release` on `com.neatlymade.reminderly` and its widget; Dev uses `.dev` ids and `group.com.neatlymade.dev`. Verified in the exported builds |
+| Version and build numbers | In progress | | 1.0 (1) and 1.0 (2) uploaded to TestFlight; increment the build for every upload |
 | App icon (1024 single size) and launch screen | Complete | | `AppIcon.appiconset`, `LaunchScreen.storyboard` |
 | Minimum iOS raised from 15.0 (app) to match supported screen sizes | Outstanding | | Depends on D6; iOS 15 allows 320pt-wide devices |
 | Screen size testing (agreed test set, usable at every size) | Outstanding | 2.4.1 | [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
@@ -171,7 +173,7 @@ Decided within D1 (2026-10-14): annual subscription at £9, all features free wi
 
 | Requirement | Status | Reference | Notes |
 |-------------|--------|-----------|-------|
-| Developer Program membership and App Store Connect app record | Verify before submission | | Bundle ids `com.reminderly.app`, `com.reminderly.app.widget` |
+| Developer Program membership and App Store Connect app record | Verify before submission | | NeatlyMade Ltd team. Bundle ids and the four App Store Connect records (Dev and Release for each app) are set out in [plans/testflight-dev-release-split.md](./plans/testflight-dev-release-split.md) (deferred, 2026-11-04); the ids `com.reminderly.app` and `com.reminderly.app.widget` are not assumed |
 | App name available | Verify before submission | | "Reminderly" |
 | Metadata: subtitle, description, keywords, category (Productivity), copyright, support URL | Outstanding | 2.3 | Must match the submitted feature set |
 | Screenshots: required iPhone sizes only (iPhone only) | Outstanding | | No iPad screenshots needed |

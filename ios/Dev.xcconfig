@@ -1,0 +1,6 @@
+// Reminderly Dev variant: used by Debug and Release-Dev. Ids per docs/plans/testflight-dev-release-split.md.
+APP_BUNDLE_ID = com.neatlymade.reminderly.dev
+APP_DISPLAY_NAME = Reminderly Dev
+APP_GROUP_ID = group.com.neatlymade.dev
+APP_URL_SCHEME = reminderly-dev
+DEVELOPMENT_TEAM = 9B4GQCUS3R

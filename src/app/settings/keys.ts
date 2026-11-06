@@ -5,6 +5,8 @@
 // reminderly-config-* (app behaviour set by us), reminderly-test-* (testing tools only).
 // Values are stored as strings, matching the existing storage pattern.
 
+import { IS_RELEASE_BUILD } from '../config/build';
+
 export type SettingsStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
 export const SETTINGS_SCHEMA_KEY = 'reminderly-settings-schema';
@@ -16,7 +18,7 @@ export const SOUNDS_PREF_KEY = 'reminderly-pref-sounds';
 // Development defaults, used when a key has never been saved (new installs).
 // Existing installs keep their current behaviour through the migration (migration.ts).
 // Before release, these are reviewed as the launch defaults.
-export const SETTINGS_DEFAULTS: Record<string, string> = {
+const DEVELOPMENT_DEFAULTS: Record<string, string> = {
   // Reminders
   'reminderly-ff-reminders': 'true',
   'reminderly-ff-repeat-reminders': 'true',
@@ -103,6 +105,26 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-paywall': 'false',
   'reminderly-ff-lock-screen-widget': 'true',
 };
+
+// Release launch defaults, decided by John (docs/release-readiness.md, Recommended release defaults). Anything not listed here
+// stays at the development default. Off in Release: Linked lists (D7), default templates, paywall, feedback. The tutorial live
+// pages are already all on in the development defaults. The calendar view preference stays the user's choice.
+export const RELEASE_DEFAULT_OVERRIDES: Record<string, string> = {
+  'reminderly-ff-siri-reminders': 'true',
+  'reminderly-pref-siri-reminders': 'true',
+  'reminderly-ff-reminder-attachments': 'true',
+  'reminderly-ff-nlc': 'true',
+  'reminderly-pref-nlc': 'true',
+  'reminderly-ff-calendar': 'true',
+  'reminderly-ff-sounds': 'true',
+  'reminderly-ff-info-icons': 'true',
+  'reminderly-ff-date-presets': 'true',
+  [HAPTICS_PREF_KEY]: '{"allHaptics":true}',
+};
+
+export const SETTINGS_DEFAULTS: Record<string, string> = IS_RELEASE_BUILD
+  ? { ...DEVELOPMENT_DEFAULTS, ...RELEASE_DEFAULT_OVERRIDES }
+  : DEVELOPMENT_DEFAULTS;
 
 // Transitional fallbacks: previous app defaults for keys outside SETTINGS_DEFAULTS. Every other setting
 // falls back to its development default in SETTINGS_DEFAULTS (notifications since Phase 4). Nothing is

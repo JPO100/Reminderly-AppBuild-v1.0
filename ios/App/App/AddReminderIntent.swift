@@ -105,7 +105,7 @@ enum SiriStore {
         var badgeTimeline: [Int64]
     }
 
-    private static var defaults: UserDefaults? { UserDefaults(suiteName: "group.com.reminderly.app") }
+    private static var defaults: UserDefaults? { UserDefaults(suiteName: AppGroup.id) }
 
     // Only a stored true accepts a request
     static func siriActive() -> Bool { defaults?.object(forKey: "siriRemindersActive") as? Bool == true }
@@ -295,7 +295,7 @@ enum SiriNotifications {
 @MainActor
 enum SiriWidget {
     static func add(reminder: [String: Any], now: Date) {
-        guard let defaults = UserDefaults(suiteName: "group.com.reminderly.app"),
+        guard let defaults = UserDefaults(suiteName: AppGroup.id),
               var snapshot = defaults.dictionary(forKey: "todayProgress"),
               let schedule = reminder["schedule"] as? [String: Any], schedule["kind"] as? String == "scheduled",
               let date = schedule["date"] as? String else { return }

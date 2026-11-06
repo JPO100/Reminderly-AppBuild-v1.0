@@ -3,7 +3,7 @@
 These rules cover Reminderly-specific technical and operational requirements. Shared governance is defined in the NeatlyMade Working Agreement.
 
 ## Project
-- iOS app: React, TypeScript, Vite, Capacitor 8, Swift Package Manager. Bundle id com.reminderly.app.
+- iOS app: React, TypeScript, Vite, Capacitor 8, Swift Package Manager. Two variants (docs/plans/testflight-dev-release-split.md): Reminderly Dev (com.neatlymade.reminderly.dev) and Reminderly Release (com.neatlymade.reminderly), team NeatlyMade Ltd (9B4GQCUS3R). Values per variant live in ios/Dev.xcconfig and ios/Release.xcconfig. John's original install (com.reminderly.app) stays untouched until he authorises its removal.
 - Reference docs: docs/architecture.md, docs/design-standards/ (the design standards, one document each), docs/development.md, docs/ios.md, docs/features/.
 - Follow the established architecture and existing implementation patterns.
 - Keep every command scoped to the project folder or scratchpad. Never run tools against / or ~.
@@ -47,25 +47,31 @@ Discover device ids each time:
     xcrun devicectl list devices
     xcrun simctl list devices booted
 
-Build web assets once:
-    npx vite build
+Build web assets once. Dev (Dev tools on): npx vite build. Release (Dev tools removed): npx vite build --mode release. Then:
     npx cap copy ios
+Configurations: Debug and Release-Dev build the Dev variant (scheme App-Dev archives Release-Dev); Release builds the Release variant (scheme App). Use -configuration Debug for Dev and -configuration Release for Release in the commands below.
 Use npx cap sync ios only when Capacitor plugins change. Open App.xcodeproj, not a workspace.
 
 Simulator:
     xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination 'id=<simulator-id>' -derivedDataPath ios/App/build build
     xcrun simctl install <simulator-id> ios/App/build/Build/Products/Debug-iphonesimulator/App.app
-    xcrun simctl launch <simulator-id> com.reminderly.app
+    xcrun simctl launch <simulator-id> <bundle-id>
 
 Chime: run afplay /System/Library/Sounds/Glass.aiff as its own command right before the iPhone build. A PreToolUse hook in ~/.claude/settings.json is a backup.
 
 iPhone (its own command):
     xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -destination 'id=<device-id>' -derivedDataPath ios/App/build build
     xcrun devicectl device install app --device <device-id> ios/App/build/Build/Products/Debug-iphoneos/App.app
-    xcrun devicectl device process launch --device <device-id> com.reminderly.app
+    xcrun devicectl device process launch --device <device-id> <bundle-id>
 
-- Never change signing, provisioning, bundle ids or app data.
+- Never change signing, provisioning, bundle ids or app data, except under the Signing exception below.
 - Never uninstall the app or erase simulator data. Install in place.
 - The free team profile expires every 7 days. -allowProvisioningUpdates needs John's approval for each deploy.
 - If deployment fails, report the error, investigate within the agreed scope and retry where appropriate. Do not claim successful deployment until both simulator and device installation and launch are verified.
 - If deployment cannot be completed, report the issue and seek John's direction.
+
+## Signing exception (John, 2026-11-06, Dev/Release split only)
+- Covered: bundle ids (both apps and the Reminderly widget), signing team NeatlyMade Ltd (9B4GQCUS3R), App Group entitlements and build configuration, URL schemes, -allowProvisioningUpdates for the new ids, and a temporary migration exporter/importer that writes restored data into the target app.
+- Not covered: Apple portal registrations, App Store Connect records, TestFlight uploads (each needs John's explicit authorisation), physical iPhone installs, anything touching John's original Reminderly install or data.
+- The migration branch is never merged. Installing a migration build over the original install needs separate explicit approval.
+- Status (2026-11-06): the split is complete for Reminderly. The migration exporter/importer and snapshot tooling lived only on the never-merged branch migration/reminderly-snapshot-import and are not on main; this exception covers no migration code on main.

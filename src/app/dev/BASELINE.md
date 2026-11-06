@@ -2,6 +2,15 @@
 
 Last updated: 2026-11-04
 
+## Verified Baseline (2026-11-06, feature/dev-release-split, Release preparation)
+
+- Vitest (`npm run test`): 518 passed, 0 failed (25 files). `release-defaults.test.ts` adds 5 (Release applies the approved defaults and only those, all 17 tutorial pages on, Dev unchanged, Linked lists/templates/paywall/feedback off). Self Check: not re-run (no Self Check suite changed). Type check: not run (no setup).
+
+## Verified Baseline (2026-11-06, feature/dev-release-split, Stage 1)
+
+- Vitest (`npm run test`): 513 passed, 0 failed (24 files). No test changes.
+- Self Check: 433 passed, 0 failed across 11 suites (Node run). Added `build-variant` to Dev tools and feature flags (on the device the web build mode must match the app id: Dev web build in a `.dev` app, Release web build otherwise; skipped in Node). Type check: not run (no setup).
+
 ## Verified Baseline (2026-11-04, fix/linked-note-count-distinct-notes, D1)
 
 - Vitest (`npm run test`): 513 passed, 0 failed (24 files). `linked-lists.test.ts` adds 3 (distinct-note counting, Unlink all ends every block, private and deleted notes). All 3 fail without the fix.
@@ -417,6 +426,7 @@ Lists and smart reminders
 
 Dev tools and feature flags
 
+✓ Build variant: Dev web build matches the app's bundle id (native app only)
 ✓ Dev tools defaults: password required on, paywall off, onboarding on, first-launch tutorial on, every-start tutorial off
 
 Notification and badge

@@ -1,0 +1,6 @@
+// Reminderly Release variant: used by Release (App Store and TestFlight). Ids per docs/plans/testflight-dev-release-split.md.
+APP_BUNDLE_ID = com.neatlymade.reminderly
+APP_DISPLAY_NAME = Reminderly
+APP_GROUP_ID = group.com.neatlymade.release
+APP_URL_SCHEME = reminderly
+DEVELOPMENT_TEAM = 9B4GQCUS3R

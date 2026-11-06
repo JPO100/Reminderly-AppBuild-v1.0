@@ -1,6 +1,6 @@
 # TestFlight and Dev/Release split
 
-**Status:** Complete 2026-11-06 for both apps: Reminderly (Release migration, builds 2 and 3) and Noterly (Release 1.0 (2) and (3) on internal TestFlight), signed off by John and the CTO. Outside this plan and not started: original-app removal, Dev branding, public submission. Decided 2026-11-04 (John, Jay). Reclassified Type E and authorised in stages on 2026-11-06 (identifiers, App Groups, schemes and names approved; Stage 1, Reminderly build separation, implemented on feature/dev-release-split). Portal registration, App Store Connect, TestFlight, device installs and migration remain separately authorised. Applies to Reminderly and Noterly.
+**Status:** Complete 2026-11-06 for both apps: Reminderly (Release migration, builds 2 and 3) and Noterly (Release 1.0 (2) and (3) on internal TestFlight), signed off by John and the CTO. Dev branding (milestone 26) was added and accepted on 2026-11-06. Outside this plan and not started: original-app removal, public submission. Decided 2026-11-04 (John, Jay). Reclassified Type E and authorised in stages on 2026-11-06 (identifiers, App Groups, schemes and names approved; Stage 1, Reminderly build separation, implemented on feature/dev-release-split). Portal registration, App Store Connect, TestFlight, device installs and migration remain separately authorised. Applies to Reminderly and Noterly.
 **Estimate (provisional):** 10 to 12 hours in total (Reminderly about 8h, Noterly about 2.5h). The migration is the main uncertainty.
 
 ## 1. Decisions

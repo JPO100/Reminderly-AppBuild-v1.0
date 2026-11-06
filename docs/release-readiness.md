@@ -99,7 +99,7 @@ Implementation (2026-11-06, John approved): the Release build reads `SETTINGS_DE
 | Build with Xcode 26 / iOS 26 SDK or later | Verify before submission | Apple upcoming requirements | Xcode 27 installed. From April 2027 the iOS 27 SDK is required |
 | Signing, distribution profiles and App Group for app and widget | Done 2026-11-06 | | NeatlyMade Ltd (9B4GQCUS3R): Apple Distribution, Store profiles, `group.com.neatlymade.release` on `com.neatlymade.reminderly` and its widget; Dev uses `.dev` ids and `group.com.neatlymade.dev`. Verified in the exported builds |
 | Version and build numbers | In progress | | Reminderly Release 1.0 (1), (2) and (3) uploaded to TestFlight; Noterly Release 1.0 (2) and (3); increment the build for every upload |
-| App icon and launch screen | Complete | | `AppIcon.appiconset`: explicit-size iPhone icons with transparent corners (these render flat on iOS 26) plus an opaque 1024 marketing icon (Apple rejects alpha only in the 1024); `LaunchScreen.storyboard`. Do not use one opaque 1024 icon for every size: iOS 26 gives it a glass effect (2026-11-06) |
+| App icon and launch screen | Complete | | `AppIcon.appiconset`: explicit-size iPhone icons with transparent corners (these render flat on iOS 26) plus an opaque 1024 marketing icon (Apple rejects alpha only in the 1024); `LaunchScreen.storyboard`. Do not use one opaque 1024 icon for every size: iOS 26 gives it a glass effect (2026-11-06). The Dev variants use their own `AppIcon-Dev.appiconset` (gear badge, `APP_ICON_NAME` in the xcconfigs); Release is unchanged |
 | Minimum iOS raised from 15.0 (app) to match supported screen sizes | Outstanding | | Depends on D6; iOS 15 allows 320pt-wide devices |
 | Screen size testing (agreed test set, usable at every size) | Outstanding | 2.4.1 | [usability/screen-size-testing.md](./usability/screen-size-testing.md) |
 | UIScene lifecycle | Complete | Required in the release after iOS 26 | Already adopted |
@@ -224,6 +224,7 @@ Details: [architecture.md](./architecture.md) (Known constraints) and the featur
 | 2026-10-15 | Notifications Phase 4 complete on feature/notifications-settings (not merged): user notification settings, sound off by default, in-app permission ask, no automatic iOS prompt |
 | 2026-10-12 | Plan created from the Phase 3 assessment. Decisions recorded: iPhone only, Siri enabled, developer tools excluded from release builds, tutorial once on first launch. Monetisation added as an outstanding dependency |
 | 2026-11-06 | Dev/Release split closed. Release builds 1.0 (3) of both apps are on internal TestFlight. App icon changed to explicit-size icons plus an opaque marketing icon after an iOS 26 rendering issue. Rows for version and build, app icon, linked lists, App Store Connect and the TestFlight device test updated |
+| 2026-11-06 | Dev branding added: Dev app icons (`AppIcon-Dev`) and a gear badge on the Dev header logo. Release icons, logo and builds unchanged (byte-identical icon assets) |
 
 ## Sources
 

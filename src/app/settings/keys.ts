@@ -5,6 +5,8 @@
 // reminderly-config-* (app behaviour set by us), reminderly-test-* (testing tools only).
 // Values are stored as strings, matching the existing storage pattern.
 
+import { IS_RELEASE_BUILD } from '../config/build';
+
 export type SettingsStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
 export const SETTINGS_SCHEMA_KEY = 'reminderly-settings-schema';
@@ -16,7 +18,7 @@ export const SOUNDS_PREF_KEY = 'reminderly-pref-sounds';
 // Development defaults, used when a key has never been saved (new installs).
 // Existing installs keep their current behaviour through the migration (migration.ts).
 // Before release, these are reviewed as the launch defaults.
-export const SETTINGS_DEFAULTS: Record<string, string> = {
+const DEVELOPMENT_DEFAULTS: Record<string, string> = {
   // Reminders
   'reminderly-ff-reminders': 'true',
   'reminderly-ff-repeat-reminders': 'true',
@@ -103,6 +105,17 @@ export const SETTINGS_DEFAULTS: Record<string, string> = {
   'reminderly-ff-paywall': 'false',
   'reminderly-ff-lock-screen-widget': 'true',
 };
+
+// Release launch defaults: only values John has decided (docs/release-readiness.md, Recommended release defaults). Everything
+// else in the Release build stays at the development default until decided. Linked lists stays off (D7).
+export const RELEASE_DEFAULT_OVERRIDES: Record<string, string> = {
+  'reminderly-ff-siri-reminders': 'true',
+  'reminderly-pref-siri-reminders': 'true',
+};
+
+export const SETTINGS_DEFAULTS: Record<string, string> = IS_RELEASE_BUILD
+  ? { ...DEVELOPMENT_DEFAULTS, ...RELEASE_DEFAULT_OVERRIDES }
+  : DEVELOPMENT_DEFAULTS;
 
 // Transitional fallbacks: previous app defaults for keys outside SETTINGS_DEFAULTS. Every other setting
 // falls back to its development default in SETTINGS_DEFAULTS (notifications since Phase 4). Nothing is

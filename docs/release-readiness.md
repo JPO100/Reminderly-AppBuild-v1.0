@@ -68,6 +68,8 @@ With developer tools excluded, these values are what users get. Development defa
 | Linked lists | `ff-linked-lists` | off | off (decided 2026-11-04, D7) | With Dev tools excluded the flag cannot be turned on, so off means hidden in both apps. On adds Make list linkable, linked status, Unlink and the link icon, and needs the tutorial update and device checks in docs/features/linked-lists.md |
 | Paywall | `ff-paywall` | off | Enforced by the Release build configuration, not by the flag | Specified, not built. See [plans/5-for-free-paywall.md](./plans/5-for-free-paywall.md) |
 
+Implementation (2026-11-06): the Release build reads `SETTINGS_DEFAULTS` from `src/app/settings/keys.ts` with `RELEASE_DEFAULT_OVERRIDES` on top. Only decided values are overridden (Siri for reminders on). Every other Release default is still the development default until John decides it (calendar, attachments D3, sounds, info icons, date presets, tutorial live pages, haptics, natural language capture and its preference). Linked lists stays off (D7). The export compliance declaration (`ITSAppUsesNonExemptEncryption` = false) is in Info.plist.
+
 ## Requirements tracker
 
 ### Privacy and legal

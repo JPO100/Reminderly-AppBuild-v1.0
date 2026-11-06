@@ -2,6 +2,10 @@
 
 Last updated: 2026-11-04
 
+## Verified Baseline (2026-11-06, feature/dev-release-split, Release preparation)
+
+- Vitest (`npm run test`): 516 passed, 0 failed (25 files). `release-defaults.test.ts` adds 3 (Dev keeps development defaults, Release applies only the decided overrides, Linked lists off). Self Check: not re-run (no Self Check suite changed). Type check: not run (no setup).
+
 ## Verified Baseline (2026-11-06, feature/dev-release-split, Stage 1)
 
 - Vitest (`npm run test`): 513 passed, 0 failed (24 files). No test changes.
